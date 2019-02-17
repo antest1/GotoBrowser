@@ -4,6 +4,7 @@
 
     <string name="select_server">Select Connector</string>
     <string name="select_server_toast">You must select the connector first.</string>
+    <string name="cache_cleared_toast">webview cache cleared</string>
     <string name="backpress_msg">Do you really want to exit?</string>
 
     <string name="version_format" formatted="false">gotobrowser-%s</string>

@@ -1,10 +1,6 @@
 package com.antest1.gotobrowser;
 
 import android.annotation.SuppressLint;
-
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -17,13 +13,14 @@ import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import java.util.Locale;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 
 import static com.antest1.gotobrowser.Constants.CONNECT_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.CONN_NITRABBIT;
@@ -138,7 +135,6 @@ public class FullscreenActivity extends AppCompatActivity {
             finish();
         }
 
-
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         mContentView = findViewById(R.id.main_browser);
@@ -204,11 +200,6 @@ public class FullscreenActivity extends AppCompatActivity {
 
         WebView.setWebContentsDebuggingEnabled(true);
         mContentView.loadUrl(connector_url);
-
-        // Upon interacting with UI controls, delay any scheduled hide()
-        // operations to prevent the jarring behavior of controls going away
-        // while interacting with the UI.
-        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
     }
 
     @Override

@@ -8,11 +8,13 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.Locale;
 
 import androidx.appcompat.app.ActionBar;
@@ -32,7 +34,7 @@ import static com.antest1.gotobrowser.Constants.URL_OOI;
  */
 public class EntranceActivity extends AppCompatActivity {
     private BackPressCloseHandler backPressCloseHandler;
-    private TextView startButton, selectButton, versionText;
+    private TextView startButton, selectButton, clearButton, versionText;
     private Switch landscapeSwitch, adjustmentSwitch;
 
     @Override
@@ -61,6 +63,7 @@ public class EntranceActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), getString(R.string.select_server_toast), Toast.LENGTH_LONG).show();
                 } else {
                     Intent intent = new Intent(EntranceActivity.this, FullscreenActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
                     finish();
                 }
@@ -122,6 +125,17 @@ public class EntranceActivity extends AppCompatActivity {
             }
         });
 
+        clearButton = findViewById(R.id.webview_clear);
+        clearButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                WebView webview = new WebView(getApplicationContext());
+                webview.clearCache(true);
+                clearApplicationCache(getApplicationContext(), null);
+                Toast.makeText(getApplicationContext(), getString(R.string.cache_cleared_toast), Toast.LENGTH_LONG).show();
+            }
+        });
+
         versionText = findViewById(R.id.version_info);
         versionText.setText(String.format(Locale.US, getString(R.string.version_format), BuildConfig.VERSION_NAME));
     }
@@ -139,5 +153,22 @@ public class EntranceActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    public void clearApplicationCache(Context context, File file) {
+        File dir = null;
+        if (file == null) {
+            dir = context.getCacheDir();
+        } else {
+            dir = file;
+        }
+        if (dir == null) return;
+        File[] children = dir.listFiles();
+        try {
+            for (File child : children)
+                if (child.isDirectory()) clearApplicationCache(context, child);
+                else child.delete();
+        } catch (Exception e) {
+        }
     }
 }
