@@ -2,12 +2,14 @@ package com.antest1.gotobrowser;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -16,19 +18,27 @@ import android.webkit.CookieSyncManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Locale;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import static com.antest1.gotobrowser.Constants.ACTION_WITHLC;
 import static com.antest1.gotobrowser.Constants.CONNECT_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.CONN_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.CONN_OOI;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
+import static com.antest1.gotobrowser.Constants.PREF_PADDING;
+import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI;
+import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI_CALL;
+import static com.antest1.gotobrowser.Constants.SERVER_LIST;
 import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.URL_OOI;
 
@@ -57,6 +67,9 @@ public class FullscreenActivity extends AppCompatActivity {
 
     private final Handler mHideHandler = new Handler();
     private WebView mContentView;
+    private View mControllerView;
+    private SeekBar mSeekbar;
+    private boolean isControllerActive = false;
     private boolean isStartedFlag = false;
     private String connector_url = "";
 
@@ -77,7 +90,6 @@ public class FullscreenActivity extends AppCompatActivity {
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         }
     };
-    private View mControlsView;
     private final Runnable mShowPart2Runnable = new Runnable() {
         @Override
         public void run() {
@@ -86,7 +98,7 @@ public class FullscreenActivity extends AppCompatActivity {
             if (actionBar != null) {
                 actionBar.show();
             }
-            mControlsView.setVisibility(View.VISIBLE);
+            // mControlsView.setVisibility(View.VISIBLE);
         }
     };
     private boolean mVisible;
@@ -118,7 +130,7 @@ public class FullscreenActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullscreen);
-
+        Intent intent = getIntent();
         final SharedPreferences sharedPref = getSharedPreferences(
                 getString(R.string.preference_key), Context.MODE_PRIVATE);
 
@@ -136,8 +148,10 @@ public class FullscreenActivity extends AppCompatActivity {
         }
 
         mVisible = true;
-        mControlsView = findViewById(R.id.fullscreen_content_controls);
         mContentView = findViewById(R.id.main_browser);
+        mControllerView = findViewById(R.id.control_component);
+        mControllerView.setVisibility(View.GONE);
+        isControllerActive = intent != null && ACTION_WITHLC.equals(intent.getAction());
 
         // window-level acceleration
         getWindow().setFlags(
@@ -165,14 +179,21 @@ public class FullscreenActivity extends AppCompatActivity {
                     getWindowManager().getDefaultDisplay().getMetrics(dimension);
                     int width = dimension.widthPixels;
                     int height = dimension.heightPixels;
-
+                    int adjust_padding = sharedPref.getInt(PREF_PADDING, getDefaultPadding(width, height));
                     boolean adjust_layout = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
-                    if (adjust_layout) mContentView.evaluateJavascript(String.format(Locale.US, RESIZE_OSAPI), null);
+                    if (adjust_layout) mContentView.evaluateJavascript(String.format(
+                            Locale.US, RESIZE_OSAPI, adjust_padding), null);
+                    if (isControllerActive) {
+                        mControllerView.setVisibility(View.VISIBLE);
+                        ((TextView) mControllerView.findViewById(R.id.control_text))
+                                .setText(String.valueOf(adjust_padding));
+                    }
                 }
-                if(url.equals("")){ // temp code
+                if(url.contains("125.6")){ // temp code
                     CookieSyncManager syncManager = CookieSyncManager.createInstance(mContentView.getContext());
                     CookieManager cookieManager = CookieManager.getInstance();
                     String cookie = cookieManager.getCookie(url);
+                    Log.e("GOTO", url + " " + cookie);
                     syncManager.sync();
                 }
             }
@@ -182,19 +203,55 @@ public class FullscreenActivity extends AppCompatActivity {
             mContentView.getSettings().setMixedContentMode(WebSettings
                     .MIXED_CONTENT_ALWAYS_ALLOW);
             CookieManager.getInstance().setAcceptThirdPartyCookies(mContentView, true);
-        }else {
+        } else {
             CookieManager.getInstance().setAcceptCookie(true);
         }
 
-        mContentView.setInitialScale(1);
-        //mContentView.getSettings().setLoadWithOverviewMode(true);
+        boolean isSilentMode = sharedPref.getBoolean(PREF_SILENT, false);
+        if (isSilentMode) setSoundMuteCookie();
+
+        DisplayMetrics dimension= new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(dimension);
+        int width = dimension.widthPixels;
+        int height = dimension.heightPixels;
+        int adjust_padding = sharedPref.getInt(PREF_PADDING, getDefaultPadding(width, height));
+        mSeekbar = mControllerView.findViewById(R.id.control_main);
+        mSeekbar.setProgress(getProgressFromPref(adjust_padding));
+        mSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (isStartedFlag && fromUser) {
+                    mContentView.evaluateJavascript(String.format(Locale.US, RESIZE_OSAPI_CALL, convertProgress(progress)), null);
+                    sharedPref.edit().putInt(PREF_PADDING, convertProgress(progress)).apply();
+                    ((TextView) mControllerView.findViewById(R.id.control_text))
+                            .setText(String.valueOf(convertProgress(progress)));
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) { }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) { }
+        });
+        mControllerView.findViewById(R.id.control_exit).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mControllerView.setVisibility(View.GONE);
+            }
+        });
+
+        // mContentView.setInitialScale(1);
+        mContentView.getSettings().setLoadWithOverviewMode(true);
+        mContentView.getSettings().setSaveFormData(true);
         mContentView.getSettings().setDomStorageEnabled(true);
         mContentView.getSettings().setUseWideViewPort(true);
         mContentView.getSettings().setJavaScriptEnabled(true);
         mContentView.getSettings().setSupportZoom(false);
         // mContentView.getSettings().setBuiltInZoomControls(true);
         mContentView.getSettings().setUserAgentString("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0");
-        mContentView.setScrollBarStyle (View.SCROLLBARS_INSIDE_OVERLAY);
+        mContentView.setScrollBarStyle (View.SCROLLBARS_OUTSIDE_OVERLAY);
+        mContentView.setScrollbarFadingEnabled(false);
         mContentView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         mContentView.getSettings().setAppCacheEnabled(true);
 
@@ -231,7 +288,7 @@ public class FullscreenActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.hide();
         }
-        mControlsView.setVisibility(View.GONE);
+        // mControlsView.setVisibility(View.GONE);
         mVisible = false;
 
         // Schedule a runnable to remove the status and navigation bar after a delay
@@ -273,12 +330,39 @@ public class FullscreenActivity extends AppCompatActivity {
         final SharedPreferences sharedPref = getSharedPreferences(
                 getString(R.string.preference_key), Context.MODE_PRIVATE);
         boolean adjust_layout = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
+
+        DisplayMetrics dimension = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(dimension);
+        int width = dimension.widthPixels;
+        int height = dimension.heightPixels;
+        int adjust_padding = sharedPref.getInt(PREF_PADDING, getDefaultPadding(width, height));
+        if (mSeekbar != null) mSeekbar.setProgress(adjust_padding);
+
         if (isStartedFlag) {
-            DisplayMetrics dimension = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(dimension);
-            int width = dimension.widthPixels;
-            int height = dimension.heightPixels;
-            if (adjust_layout) mContentView.evaluateJavascript(String.format(Locale.US, RESIZE_OSAPI), null);
+            if (adjust_layout) mContentView.evaluateJavascript(String.format(Locale.US, RESIZE_OSAPI, adjust_padding), null);
+        }
+    }
+    private int getProgressFromPref(int value) {return value / 2; }
+    private int convertProgress(int progress) { return progress * 2; }
+
+    private int getDefaultPadding(int width, int height) {
+        if (width < height) {
+            int temp = width; width = height; height = temp;
+        }
+        int ratio_val = width  * 18 / height;
+        return (ratio_val - 30) * 20;
+    }
+
+    public void setSoundMuteCookie(){
+        CookieSyncManager syncManager = CookieSyncManager.createInstance(mContentView.getContext());
+        syncManager.sync();
+
+        CookieManager cookieManager = CookieManager.getInstance();
+        for (String server: SERVER_LIST) {
+            String url = "http://".concat(server);
+            cookieManager.setCookie(url, "vol_bgm=0; expires=Tue Jan 19 2038 12:14:07 GMT+0900; path=/kcs2/");
+            cookieManager.setCookie(url, "vol_se=0; expires=Tue Jan 19 2038 12:14:07 GMT+0900; path=/kcs2/");
+            cookieManager.setCookie(url, "vol_voice=0; expires=Tue Jan 19 2038 12:14:07 GMT+0900; path=/kcs2/");
         }
     }
 }

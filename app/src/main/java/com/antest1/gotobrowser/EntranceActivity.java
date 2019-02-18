@@ -9,6 +9,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebView;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -21,9 +22,11 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import static com.antest1.gotobrowser.Constants.ACTION_WITHLC;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
+import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.URL_LIST;
 import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.URL_OOI;
@@ -35,7 +38,9 @@ import static com.antest1.gotobrowser.Constants.URL_OOI;
 public class EntranceActivity extends AppCompatActivity {
     private BackPressCloseHandler backPressCloseHandler;
     private TextView startButton, selectButton, clearButton, versionText;
-    private Switch landscapeSwitch, adjustmentSwitch;
+    private Switch landscapeSwitch, adjustmentSwitch, silentSwitch;
+    private CheckBox manualControlCheckbox;
+    private boolean manual_use = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,22 +59,6 @@ public class EntranceActivity extends AppCompatActivity {
 
         backPressCloseHandler = new BackPressCloseHandler(this);
 
-        startButton = findViewById(R.id.webview_start);
-        startButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String connector = sharedPref.getString(PREF_CONNECTOR, null);
-                if (connector == null) {
-                    Toast.makeText(getApplicationContext(), getString(R.string.select_server_toast), Toast.LENGTH_LONG).show();
-                } else {
-                    Intent intent = new Intent(EntranceActivity.this, FullscreenActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                    finish();
-                }
-            }
-        });
-
         landscapeSwitch = findViewById(R.id.switch_landscape);
         landscapeSwitch.setChecked(sharedPref.getBoolean(PREF_LANDSCAPE, false));
         landscapeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -85,6 +74,15 @@ public class EntranceActivity extends AppCompatActivity {
             @SuppressLint("ApplySharedPref")
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 sharedPref.edit().putBoolean(PREF_ADJUSTMENT, isChecked).commit();
+            }
+        });
+
+        silentSwitch = findViewById(R.id.switch_silent);
+        silentSwitch.setChecked(sharedPref.getBoolean(PREF_SILENT, false));
+        silentSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @SuppressLint("ApplySharedPref")
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                sharedPref.edit().putBoolean(PREF_SILENT, isChecked).commit();
             }
         });
 
@@ -133,6 +131,31 @@ public class EntranceActivity extends AppCompatActivity {
                 webview.clearCache(true);
                 clearApplicationCache(getApplicationContext(), null);
                 Toast.makeText(getApplicationContext(), getString(R.string.cache_cleared_toast), Toast.LENGTH_LONG).show();
+            }
+        });
+
+        manualControlCheckbox = findViewById(R.id.layout_control);
+        manualControlCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                manual_use = isChecked;
+            }
+        });
+
+        startButton = findViewById(R.id.webview_start);
+        startButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String connector = sharedPref.getString(PREF_CONNECTOR, null);
+                if (connector == null) {
+                    Toast.makeText(getApplicationContext(), getString(R.string.select_server_toast), Toast.LENGTH_LONG).show();
+                } else {
+                    Intent intent = new Intent(EntranceActivity.this, FullscreenActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    if (manualControlCheckbox.isChecked()) intent.setAction(ACTION_WITHLC);
+                    startActivity(intent);
+                    finish();
+                }
             }
         });
 

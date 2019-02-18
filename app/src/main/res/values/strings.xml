@@ -1,17 +1,23 @@
 <resources>
     <string name="app_name">GotoBrowser</string>
-    <string name="preference_key">shared_pref</string>
+    <string name="preference_key" translatable="false">shared_pref</string>
 
     <string name="select_server">Select Connector</string>
     <string name="select_server_toast">You must select the connector first.</string>
     <string name="cache_cleared_toast">webview cache cleared</string>
     <string name="backpress_msg">Do you really want to exit?</string>
 
-    <string name="version_format" formatted="false">gotobrowser-%s</string>
-    <string name="copyright_info">Copyright © 2019 antest1(IE10)</string>
+    <string name="mode_landscape">Landscape Mode</string>
+    <string name="mode_adjustment">Layout Adjustment</string>
+    <string name="mode_silent">Start with Audio OFF</string>
+    <string name="button_start">START</string>
+    <string name="version_format" formatted="false" translatable="false">gotobrowser-%s</string>
+    <string name="copyright_info" translatable="false">Copyright © 2019 antest1(IE10)</string>
 
     <string-array name="connector_list">
         <item>ooi.moe</item>
         <item>nitrabbit</item>
     </string-array>
+    <string name="cache_clear_text">Clear Cache</string>
+    <string name="mode_manual_adjust">show layout controller</string>
 </resources>

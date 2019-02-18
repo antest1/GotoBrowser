@@ -58,9 +58,19 @@
                 android:id="@+id/switch_landscape"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="6dp"
                 android:switchPadding="20dp"
-                android:text="Landscape Mode"
+                android:text="@string/mode_landscape"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+            <Switch
+                android:id="@+id/switch_silent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:switchPadding="20dp"
+                android:text="@string/mode_silent"
                 android:textColor="@color/white"
                 android:textSize="18sp" />
 
@@ -68,10 +78,20 @@
                 android:id="@+id/switch_adjustment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="2dp"
                 android:switchPadding="20dp"
-                android:text="Layout Adjustment"
+                android:text="@string/mode_adjustment"
                 android:textColor="@color/white"
+                android:textSize="18sp" />
+
+            <CheckBox
+                android:id="@+id/layout_control"
+                android:layout_width="match_parent"
+                android:layout_height="24sp"
+                android:scaleX="0.7"
+                android:scaleY="0.7"
+                android:text="@string/mode_manual_adjust"
+                android:textColor="@color/colorAccent"
                 android:textSize="18sp" />
         </LinearLayout>
 
@@ -104,7 +124,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="5dp"
-                android:text="Clear Cache"
+                android:text="@string/cache_clear_text"
                 android:textAlignment="center"
                 android:textColor="@color/colorAccent"
                 android:textSize="14sp" />

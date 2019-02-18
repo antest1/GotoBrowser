@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GotoBrowser</string>
+    <string name="select_server">접속기 선택</string>
+    <string name="select_server_toast">접속기를 먼저 선택해주세요.</string>
+    <string name="cache_cleared_toast">webview 캐시 비우기 완료</string>
+    <string name="backpress_msg">정말 종료하시겠습니까?</string>
+    <string name="cache_clear_text">캐시 비우기</string>
+    <string name="mode_landscape">가로 고정 모드</string>
+    <string name="mode_adjustment">레이아웃 자동 조정</string>
+    <string name="button_start">ㄱㄱ</string>
+    <string name="mode_manual_adjust">수동 조정 활성화</string>
+    <string name="mode_silent">음량 OFF로 시작</string>
+</resources>
