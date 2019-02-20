@@ -26,6 +26,7 @@ import static com.antest1.gotobrowser.Constants.ACTION_WITHLC;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
+import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.URL_LIST;
 import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
@@ -113,6 +114,7 @@ public class EntranceActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         sharedPref.edit().putString(PREF_CONNECTOR, listItems[i]).commit();
+                        sharedPref.edit().putString(PREF_LATEST_URL, URL_LIST[i]).apply();
                         selectButton.setText(listItems[i]);
                         Toast.makeText(getApplicationContext(), URL_LIST[i], Toast.LENGTH_LONG).show();
                         dialogInterface.dismiss();

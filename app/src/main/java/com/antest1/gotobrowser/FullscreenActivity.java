@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.DisplayMetrics;
@@ -34,8 +35,10 @@ import static com.antest1.gotobrowser.Constants.CONN_OOI;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
+import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_PADDING;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
+import static com.antest1.gotobrowser.Constants.REFRESH_CALL;
 import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI;
 import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI_CALL;
 import static com.antest1.gotobrowser.Constants.SERVER_LIST;
@@ -72,6 +75,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private boolean isControllerActive = false;
     private boolean isStartedFlag = false;
     private String connector_url = "";
+    private String connector_url_default = "";
 
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -140,9 +144,11 @@ public class FullscreenActivity extends AppCompatActivity {
 
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
         if (CONN_OOI.equals(pref_connector)) {
-            connector_url = URL_OOI;
+            connector_url_default = URL_OOI;
+            connector_url = sharedPref.getString(PREF_LATEST_URL, URL_OOI);
         } else if (CONN_NITRABBIT.equals(pref_connector)) {
-            connector_url = URL_NITRABBIT;
+            connector_url_default = URL_NITRABBIT;
+            connector_url = sharedPref.getString(PREF_LATEST_URL, URL_NITRABBIT);
         } else {
             finish();
         }
@@ -169,7 +175,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
         mContentView.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
-                //I save the cookies only when the user goes on login page
+                sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
                 if (url.equals(Constants.URL_NITRABBIT)) {
                     mContentView.evaluateJavascript(CONNECT_NITRABBIT, null);
                 }
@@ -183,17 +189,18 @@ public class FullscreenActivity extends AppCompatActivity {
                     boolean adjust_layout = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
                     if (adjust_layout) mContentView.evaluateJavascript(String.format(
                             Locale.US, RESIZE_OSAPI, adjust_padding), null);
+                    mContentView.evaluateJavascript(String.format(Locale.US,
+                            REFRESH_CALL, connector_url_default), null);
                     if (isControllerActive) {
                         mControllerView.setVisibility(View.VISIBLE);
                         ((TextView) mControllerView.findViewById(R.id.control_text))
                                 .setText(String.valueOf(adjust_padding));
                     }
                 }
-                if(url.contains("125.6")){ // temp code
+                if(url.contains("")){ // temp code
                     CookieSyncManager syncManager = CookieSyncManager.createInstance(mContentView.getContext());
                     CookieManager cookieManager = CookieManager.getInstance();
                     String cookie = cookieManager.getCookie(url);
-                    Log.e("GOTO", url + " " + cookie);
                     syncManager.sync();
                 }
             }
