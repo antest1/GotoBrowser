@@ -68,6 +68,14 @@
             app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
     </LinearLayout>
 
+    <ImageView
+        android:id="@+id/cookietest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:alpha="0.5"
+        android:visibility="gone"
+        app:srcCompat="@android:drawable/btn_star" />
+
     <!--<FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">

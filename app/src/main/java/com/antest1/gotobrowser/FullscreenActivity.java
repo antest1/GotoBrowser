@@ -197,7 +197,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                 .setText(String.valueOf(adjust_padding));
                     }
                 }
-                if(url.contains("")){ // temp code
+                if(url.contains("test")){ // temp code
                     CookieSyncManager syncManager = CookieSyncManager.createInstance(mContentView.getContext());
                     CookieManager cookieManager = CookieManager.getInstance();
                     String cookie = cookieManager.getCookie(url);
@@ -216,6 +216,14 @@ public class FullscreenActivity extends AppCompatActivity {
 
         boolean isSilentMode = sharedPref.getBoolean(PREF_SILENT, false);
         if (isSilentMode) setSoundMuteCookie();
+
+        findViewById(R.id.cookietest).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String cookie = CookieManager.getInstance().getCookie("http://125.6.189.215/kcs2/");
+                Toast.makeText(getApplicationContext(), cookie, Toast.LENGTH_LONG).show();
+            }
+        });
 
         DisplayMetrics dimension= new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dimension);
@@ -366,12 +374,10 @@ public class FullscreenActivity extends AppCompatActivity {
 
         CookieManager cookieManager = CookieManager.getInstance();
         for (String server: SERVER_LIST) {
-            String url = "http://".concat(server);
-            cookieManager.setCookie(url, "vol_bgm=0; expires=Tue Jan 19 2038 12:14:07 GMT+0900; path=/kcs2/");
-            cookieManager.setCookie(url, "vol_se=0; expires=Tue Jan 19 2038 12:14:07 GMT+0900; path=/kcs2/");
-            cookieManager.setCookie(url, "vol_voice=0; expires=Tue Jan 19 2038 12:14:07 GMT+0900; path=/kcs2/");
+            String url = "http://".concat(server).concat("/kcs2/");
+            cookieManager.setCookie(url, "vol_bgm=0;");
+            cookieManager.setCookie(url, "vol_se=0;");
+            cookieManager.setCookie(url, "vol_voice=0;");
         }
     }
-
-
 }
