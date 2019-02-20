@@ -365,4 +365,6 @@ public class FullscreenActivity extends AppCompatActivity {
             cookieManager.setCookie(url, "vol_voice=0; expires=Tue Jan 19 2038 12:14:07 GMT+0900; path=/kcs2/");
         }
     }
+
+
 }

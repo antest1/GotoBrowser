@@ -15,140 +15,147 @@
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:orientation="horizontal">
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:paddingTop="36dp"
+        android:paddingBottom="36dp">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:orientation="vertical">
-
-            <ImageView
-                android:id="@+id/logo_image"
-                android:layout_width="150dp"
-                android:layout_height="180dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="20dp"
-                android:src="@mipmap/gotland"
-                app:srcCompat="@mipmap/gotland" />
-
-            <TextView
-                android:id="@+id/connector_select"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="40dp"
-                android:layout_marginLeft="40dp"
-                android:layout_marginEnd="40dp"
-                android:layout_marginRight="40dp"
-                android:background="@color/colorSiteSelection"
-                android:text="OOI.MOE"
-                android:textAlignment="center"
-                android:textAllCaps="true"
-                android:textColor="@color/white"
-                android:textSize="24sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_vertical"
-            android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="15dp"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:gravity="center_vertical"
                 android:orientation="vertical">
 
-                <Switch
-                    android:id="@+id/switch_landscape"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:switchPadding="20dp"
-                    android:text="@string/mode_landscape"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-
-                <Switch
-                    android:id="@+id/switch_silent"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:switchPadding="20dp"
-                    android:text="@string/mode_silent"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-
-                <Switch
-                    android:id="@+id/switch_adjustment"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="2dp"
-                    android:switchPadding="20dp"
-                    android:text="@string/mode_adjustment"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-
-                <CheckBox
-                    android:id="@+id/layout_control"
-                    android:layout_width="match_parent"
-                    android:layout_height="24sp"
-                    android:scaleX="0.7"
-                    android:scaleY="0.7"
-                    android:text="@string/mode_manual_adjust"
-                    android:textColor="@color/colorAccent"
-                    android:textSize="18sp" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
-                android:orientation="vertical">
+                <ImageView
+                    android:id="@+id/logo_image"
+                    android:layout_width="120dp"
+                    android:layout_height="150dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="20dp"
+                    android:src="@mipmap/gotland"
+                    app:srcCompat="@mipmap/gotland" />
 
                 <TextView
-                    android:id="@+id/webview_start"
+                    android:id="@+id/connector_select"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:background="@drawable/start_button"
-                    android:paddingStart="20dp"
-                    android:paddingLeft="20dp"
-                    android:paddingTop="10dp"
-                    android:paddingEnd="20dp"
-                    android:paddingRight="20dp"
-                    android:paddingBottom="10dp"
-                    android:text="START"
+                    android:background="@color/colorSiteSelection"
+                    android:paddingStart="24dp"
+                    android:paddingLeft="24dp"
+                    android:paddingEnd="24dp"
+                    android:paddingRight="24dp"
+                    android:text="OOI.MOE"
                     android:textAlignment="center"
+                    android:textAllCaps="true"
                     android:textColor="@color/white"
                     android:textSize="24sp" />
+            </LinearLayout>
 
-                <TextView
-                    android:id="@+id/webview_clear"
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="2.5"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="5dp"
-                    android:text="@string/cache_clear_text"
-                    android:textAlignment="center"
-                    android:textColor="@color/colorAccent"
-                    android:textSize="14sp" />
+                    android:layout_marginTop="15dp"
+                    android:orientation="vertical">
+
+                    <Switch
+                        android:id="@+id/switch_landscape"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:switchPadding="15dp"
+                        android:text="@string/mode_landscape"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
+
+                    <Switch
+                        android:id="@+id/switch_silent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:switchPadding="15dp"
+                        android:text="@string/mode_silent"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
+
+                    <Switch
+                        android:id="@+id/switch_adjustment"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="2dp"
+                        android:switchPadding="15dp"
+                        android:text="@string/mode_adjustment"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
+
+                    <CheckBox
+                        android:id="@+id/layout_control"
+                        android:layout_width="match_parent"
+                        android:layout_height="24sp"
+                        android:scaleX="0.7"
+                        android:scaleY="0.7"
+                        android:text="@string/mode_manual_adjust"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="18sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="30dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/webview_start"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:background="@drawable/start_button"
+                        android:paddingStart="20dp"
+                        android:paddingLeft="20dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="20dp"
+                        android:paddingRight="20dp"
+                        android:paddingBottom="10dp"
+                        android:text="START"
+                        android:textAlignment="center"
+                        android:textColor="@color/white"
+                        android:textSize="24sp" />
+
+                    <TextView
+                        android:id="@+id/webview_clear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/cache_clear_text"
+                        android:textAlignment="center"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
             </LinearLayout>
-
         </LinearLayout>
-
-    </LinearLayout>
+    </ScrollView>
 
     <LinearLayout
         android:layout_width="match_parent"

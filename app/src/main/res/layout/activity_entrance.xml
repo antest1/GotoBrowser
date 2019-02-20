@@ -15,122 +15,129 @@
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:orientation="vertical">
+        android:layout_gravity="center_vertical"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp">
 
-        <ImageView
-            android:id="@+id/logo_image"
-            android:layout_width="180dp"
-            android:layout_height="200dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
-            android:src="@mipmap/gotland"
-            app:srcCompat="@mipmap/gotland" />
-
-        <TextView
-            android:id="@+id/connector_select"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="40dp"
-            android:layout_marginLeft="40dp"
-            android:layout_marginEnd="40dp"
-            android:layout_marginRight="40dp"
-            android:background="@color/colorSiteSelection"
-            android:padding="3dp"
-            android:text="OOI.MOE"
-            android:textAlignment="center"
-            android:textAllCaps="true"
-            android:textColor="@color/white"
-            android:textSize="24sp" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="15dp"
             android:orientation="vertical">
 
-            <Switch
-                android:id="@+id/switch_landscape"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
-                android:switchPadding="20dp"
-                android:text="@string/mode_landscape"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
-
-            <Switch
-                android:id="@+id/switch_silent"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
-                android:switchPadding="20dp"
-                android:text="@string/mode_silent"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
-
-            <Switch
-                android:id="@+id/switch_adjustment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="2dp"
-                android:switchPadding="20dp"
-                android:text="@string/mode_adjustment"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
-
-            <CheckBox
-                android:id="@+id/layout_control"
-                android:layout_width="match_parent"
-                android:layout_height="24sp"
-                android:scaleX="0.7"
-                android:scaleY="0.7"
-                android:text="@string/mode_manual_adjust"
-                android:textColor="@color/colorAccent"
-                android:textSize="18sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="20dp"
-            android:orientation="vertical">
+            <ImageView
+                android:id="@+id/logo_image"
+                android:layout_width="180dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp"
+                android:src="@mipmap/gotland"
+                app:srcCompat="@mipmap/gotland" />
 
             <TextView
-                android:id="@+id/webview_start"
-                android:layout_width="wrap_content"
+                android:id="@+id/connector_select"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:background="@drawable/start_button"
-                android:paddingStart="20dp"
-                android:paddingLeft="20dp"
-                android:paddingTop="5dp"
-                android:paddingEnd="20dp"
-                android:paddingRight="20dp"
-                android:paddingBottom="5dp"
-                android:text="START"
+                android:layout_marginStart="40dp"
+                android:layout_marginLeft="40dp"
+                android:layout_marginEnd="40dp"
+                android:layout_marginRight="40dp"
+                android:background="@color/colorSiteSelection"
+                android:padding="3dp"
+                android:text="OOI.MOE"
                 android:textAlignment="center"
+                android:textAllCaps="true"
                 android:textColor="@color/white"
                 android:textSize="24sp" />
 
-            <TextView
-                android:id="@+id/webview_clear"
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="5dp"
-                android:text="@string/cache_clear_text"
-                android:textAlignment="center"
-                android:textColor="@color/colorAccent"
-                android:textSize="14sp" />
-        </LinearLayout>
+                android:layout_marginTop="15dp"
+                android:orientation="vertical">
 
-    </LinearLayout>
+                <Switch
+                    android:id="@+id/switch_landscape"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:switchPadding="20dp"
+                    android:text="@string/mode_landscape"
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
+
+                <Switch
+                    android:id="@+id/switch_silent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:switchPadding="20dp"
+                    android:text="@string/mode_silent"
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
+
+                <Switch
+                    android:id="@+id/switch_adjustment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="2dp"
+                    android:switchPadding="20dp"
+                    android:text="@string/mode_adjustment"
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
+
+                <CheckBox
+                    android:id="@+id/layout_control"
+                    android:layout_width="match_parent"
+                    android:layout_height="24sp"
+                    android:scaleX="0.7"
+                    android:scaleY="0.7"
+                    android:text="@string/mode_manual_adjust"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="20dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/webview_start"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/start_button"
+                    android:paddingStart="20dp"
+                    android:paddingLeft="20dp"
+                    android:paddingTop="5dp"
+                    android:paddingEnd="20dp"
+                    android:paddingRight="20dp"
+                    android:paddingBottom="5dp"
+                    android:text="START"
+                    android:textAlignment="center"
+                    android:textColor="@color/white"
+                    android:textSize="24sp" />
+
+                <TextView
+                    android:id="@+id/webview_clear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="5dp"
+                    android:text="@string/cache_clear_text"
+                    android:textAlignment="center"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
 
     <TextView
         android:id="@+id/copyright"
