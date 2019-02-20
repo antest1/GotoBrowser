@@ -1,18 +1,4 @@
-*.iml
-.gradle
-.idea/
 misc/
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
 
 # Built application files
 *.apk
@@ -47,6 +33,17 @@ proguard/
 
 # Android Studio captures folder
 captures/
+
+# IntelliJ
+*.iml
+.idea/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+.idea/caches
 
 # Keystore files
 # Uncomment the following line if you do not want to check your keystore files in.
