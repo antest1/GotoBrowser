@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.DisplayMetrics;
@@ -68,12 +69,14 @@ public class FullscreenActivity extends AppCompatActivity {
      */
     private static final int UI_ANIMATION_DELAY = 300;
 
+    private AudioManager audioManager;
     private final Handler mHideHandler = new Handler();
     private WebView mContentView;
     private View mControllerView;
     private SeekBar mSeekbar;
     private boolean isControllerActive = false;
     private boolean isStartedFlag = false;
+    private boolean savedStreamMuted = false;
     private String connector_url = "";
     private String connector_url_default = "";
 
@@ -154,6 +157,7 @@ public class FullscreenActivity extends AppCompatActivity {
         }
 
         mVisible = true;
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mContentView = findViewById(R.id.main_browser);
         mControllerView = findViewById(R.id.control_component);
         mControllerView.setVisibility(View.GONE);
@@ -333,8 +337,23 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        mContentView.onPause();
+        //setVolumeMute(true);
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //setVolumeMute(false);
+        mContentView.onResume();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
+        //setVolumeMute(false);
         mContentView.removeAllViews();
         mContentView.destroy();
     }
@@ -378,6 +397,28 @@ public class FullscreenActivity extends AppCompatActivity {
             cookieManager.setCookie(url, "vol_bgm=0;");
             cookieManager.setCookie(url, "vol_se=0;");
             cookieManager.setCookie(url, "vol_voice=0;");
+        }
+    }
+
+    public void setVolumeMute(boolean is_mute) {
+        if (is_mute) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!audioManager.isStreamMute(AudioManager.STREAM_MUSIC)) {
+                    savedStreamMuted = true;
+                    audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
+                }
+            } else {
+                audioManager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+            }
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (savedStreamMuted) {
+                    audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
+                    savedStreamMuted = false;
+                }
+            } else {
+                audioManager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            }
         }
     }
 }
