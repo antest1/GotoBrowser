@@ -6,7 +6,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,6 +20,8 @@ import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -24,8 +29,19 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -45,6 +61,7 @@ import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI_CALL;
 import static com.antest1.gotobrowser.Constants.SERVER_LIST;
 import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.URL_OOI;
+import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -69,6 +86,7 @@ public class FullscreenActivity extends AppCompatActivity {
      */
     private static final int UI_ANIMATION_DELAY = 300;
 
+    private VersionDatabase versionTable;
     private AudioManager audioManager;
     private final Handler mHideHandler = new Handler();
     private WebView mContentView;
@@ -145,6 +163,8 @@ public class FullscreenActivity extends AppCompatActivity {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         }
 
+        versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
+
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
         if (CONN_OOI.equals(pref_connector)) {
             connector_url_default = URL_OOI;
@@ -208,6 +228,92 @@ public class FullscreenActivity extends AppCompatActivity {
                     syncManager.sync();
                 }
             }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    Map<String, String> header = request.getRequestHeaders();
+                    Uri source = request.getUrl();
+                    String version = "";
+                    if (source.getQueryParameterNames().contains("version")) {
+                        version = source.getQueryParameter("version");
+                    }
+                    String host = source.getHost();
+                    String accept = header.get("Accept");
+                    boolean is_image = accept != null && accept.contains("image") && source.toString().contains("kcs2");
+                    boolean is_audio = accept != null && source.toString().contains(".mp3");
+                    boolean is_json = accept != null && accept.contains("json") && source.toString().contains(".json");
+
+                    try {
+                        if (source.getPath() != null && source.getLastPathSegment() != null) {
+                            String filename = source.getLastPathSegment();
+                            if (filename.equals("version.json") || filename.contains("index.php")) {
+                                return super.shouldInterceptRequest(view, request);
+                            }
+
+                            String fullpath = String.format(Locale.US, "http://%s%s", host, source.getPath());
+                            String outputpath = getApplicationContext().getFilesDir().getAbsolutePath()
+                                    .concat("/").concat(source.getPath().replace(filename, "").substring(1));
+                            String filepath = outputpath.concat(filename);
+
+                            boolean update_flag = false;
+                            String version_key = source.getPath();
+
+                            if (is_image || is_audio || is_json) {
+                                if (!versionTable.getValue(version_key).equals(version)) {
+                                    update_flag = true;
+                                    versionTable.putValue(version_key, version);
+                                    Log.e("GOTO", "cache resource " + version_key +  ": " + version);
+                                } else {
+                                    Log.e("GOTO", "resource " + version_key +  " found: " + version);
+                                }
+                            }
+
+                            if (is_image) {
+                                File dir = new File(outputpath);
+                                if (!dir.exists()) dir.mkdirs();
+
+                                File file = new File(filepath);
+                                if (!file.exists() || update_flag) {
+                                    InputStream in = new URL(fullpath).openStream();
+                                    Bitmap image = BitmapFactory.decodeStream(in);
+                                    FileOutputStream fos = new FileOutputStream(new File(filepath));
+                                    image.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                                } else {
+                                    Log.e("GOTO", "load from disk: " + filepath);
+                                }
+                                FileInputStream fis = new FileInputStream(filepath);
+                                return new WebResourceResponse("image/png", "utf-8", fis);
+                            }
+
+                            if (is_json || is_audio) {
+                                File dir = new File(outputpath);
+                                if (!dir.exists()) dir.mkdirs();
+
+                                File file = new File(filepath);
+                                if (!file.exists() || update_flag) {
+                                    InputStream in = new URL(fullpath).openStream();
+                                    byte[] buffer = new byte[8 * 1024];
+                                    int bytes;
+                                    FileOutputStream fos = new FileOutputStream(new File(filepath));
+                                    while ((bytes = in.read(buffer)) != -1) {
+                                        fos.write(buffer, 0, bytes);
+                                    }
+                                } else {
+                                    Log.e("GOTO", "load from disk: " + filepath);
+                                }
+                                FileInputStream fis = new FileInputStream(filepath);
+                                if (is_json) return new WebResourceResponse("application/json", "utf-8", fis);
+                                if (is_audio) return new WebResourceResponse("audio/mpeg", "binary", fis);
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                return super.shouldInterceptRequest(view, request);
+            }
+
         });
 
         if (android.os.Build.VERSION.SDK_INT >= 21) {
@@ -272,7 +378,8 @@ public class FullscreenActivity extends AppCompatActivity {
         mContentView.setScrollBarStyle (View.SCROLLBARS_OUTSIDE_OVERLAY);
         mContentView.setScrollbarFadingEnabled(false);
         mContentView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        mContentView.getSettings().setAppCacheEnabled(true);
+        mContentView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        mContentView.getSettings().setAppCacheEnabled(false);
 
         WebView.setWebContentsDebuggingEnabled(true);
         mContentView.loadUrl(connector_url);
