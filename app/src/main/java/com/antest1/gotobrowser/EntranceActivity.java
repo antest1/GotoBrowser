@@ -11,6 +11,7 @@ import android.view.View;
 import android.webkit.WebView;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,23 +26,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import static com.antest1.gotobrowser.Constants.ACTION_WITHLC;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
+import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
+import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.URL_LIST;
-import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
-import static com.antest1.gotobrowser.Constants.URL_OOI;
 
-/**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
- */
 public class EntranceActivity extends AppCompatActivity {
     private BackPressCloseHandler backPressCloseHandler;
-    private TextView startButton, selectButton, clearButton, versionText;
+    private TextView startButton, selectButton, clearButton, autoCompleteButton, versionText;
     private Switch landscapeSwitch, adjustmentSwitch, silentSwitch;
     private CheckBox manualControlCheckbox;
     private boolean manual_use = false;
+    private String login_id = "";
+    private String login_password = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,6 +124,44 @@ public class EntranceActivity extends AppCompatActivity {
             }
         });
 
+        login_id = sharedPref.getString(PREF_DMM_ID, "");
+        login_password = sharedPref.getString(PREF_DMM_PASS, "");
+        autoCompleteButton = findViewById(R.id.webview_autocomplete);
+        autoCompleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(EntranceActivity.this);
+                View dialogView = getLayoutInflater().inflate(R.layout.login_form, null);
+                final CheckBox saveData = dialogView.findViewById(R.id.chkbox_account_pref);
+                final EditText formEmail = dialogView.findViewById(R.id.input_id);
+                final EditText formPassword = dialogView.findViewById(R.id.input_pw);
+                formEmail.setText(sharedPref.getString(PREF_DMM_ID, ""));
+                formPassword.setText(sharedPref.getString(PREF_DMM_PASS, ""));
+                builder.setView(dialogView);
+                builder.setPositiveButton(R.string.text_save, new DialogInterface.OnClickListener() {
+                    @SuppressLint("ApplySharedPref")
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        login_id = formEmail.getText().toString();
+                        login_password = formPassword.getText().toString();
+                        if (saveData.isChecked()) {
+                            sharedPref.edit().putString(PREF_DMM_ID, login_id).commit();
+                            sharedPref.edit().putString(PREF_DMM_PASS, login_password).commit();
+                        }
+                        dialog.dismiss();
+                    }
+                });
+                builder.setNegativeButton(R.string.text_cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                AlertDialog dialog = builder.create();
+                dialog.show();
+            }
+        });
+
         clearButton = findViewById(R.id.webview_clear);
         clearButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -155,12 +192,13 @@ public class EntranceActivity extends AppCompatActivity {
                     Intent intent = new Intent(EntranceActivity.this, FullscreenActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                     if (manualControlCheckbox.isChecked()) intent.setAction(ACTION_WITHLC);
+                    intent.putExtra("login_id", login_id);
+                    intent.putExtra("login_pw", login_password);
                     startActivity(intent);
                     finish();
                 }
             }
         });
-
         versionText = findViewById(R.id.version_info);
         versionText.setText(String.format(Locale.US, getString(R.string.version_format), BuildConfig.VERSION_NAME));
     }

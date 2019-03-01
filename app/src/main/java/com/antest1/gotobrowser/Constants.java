@@ -9,16 +9,20 @@ public class Constants {
     public static final String PREF_SILENT = "pref_silent";
     public static final String PREF_PADDING = "pref_padding";
     public static final String PREF_LATEST_URL = "pref_latest_url";
+    public static final String PREF_DMM_ID = "pref_autocomplete_id";
+    public static final String PREF_DMM_PASS = "pref_autocomplete_pass";
 
     public static final String ACTION_WITHLC = "with_layout_control";
 
-    public static final String CONN_OOI = "ooi.moe";
+    public static final String CONN_OOI = "kancolle.su";
+    public static final String CONN_KANSU = "ooi.moe";
     public static final String CONN_NITRABBIT = "nitrabbit";
 
     public static final String URL_OOI = "http://ooi.moe/";
+    public static final String URL_KANSU = "http://kancolle.su/";
     public static final String URL_NITRABBIT = "http://connector.usagi.space/kancolle/";
 
-    public static final String[] URL_LIST = {URL_OOI, URL_NITRABBIT};
+    public static final String[] URL_LIST = {URL_KANSU, URL_OOI, URL_NITRABBIT};
 
     public static final String URL_OSAPI = "osapi.dmm.com/gadgets/";
     public static final String RESIZE_OSAPI = "var width=1200,height=720,game_ratio=1200/height;function resize(a){resize_triggered=!0;var b=window.innerWidth,c=window.innerHeight;game_ratio<b/c?$(\"#flashWrap iframe\").css(\"padding\",\"0 \"+a+\"px\"):$(\"#flashWrap iframe\").css(\"padding\",\"0px\")}$(\"body\")[0].style.backgroundColor=\"black\",$(\"body\")[0].style.overflow=\"hidden\",$(\"body\")[0].style.margin=\"0px\",$(\"body\")[0].style.padding=\"0px\",resize_triggered=!1,setTimeout(function(){$(\"#spacing_top\").remove(),$(\"#sectionWrap\").hide()},1500),setTimeout(resize,1500,%d);";
@@ -26,6 +30,8 @@ public class Constants {
     public static final String REFRESH_CALL = "null==document.getElementById(\"flashWrap\")&&(location.href=\"%s\");";
 
     public static final String CONNECT_NITRABBIT = "$(\"#viewform\").unbind(\"submit\");function connect(){var a=$(\"#viewform input[name=\\\"game_url\\\"]\").val();return location.href=a,!1}$(\"#viewform\").submit(connect);";
+    public static final String AUTOCOMPLETE_OOI = "$(\"#login_id\").val(\"%s\");$(\"#password\").val(\"%s\");";
+    public static final String AUTOCOMPLETE_NIT = "$(\"input[name=id]\").val(\"%s\");$(\"input[name=pw]\").val(\"%s\");";
 
     public static final String[] SERVER_LIST = {
             "203.104.209.71",

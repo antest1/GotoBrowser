@@ -44,21 +44,39 @@
                     android:src="@mipmap/gotland"
                     app:srcCompat="@mipmap/gotland" />
 
-                <TextView
-                    android:id="@+id/connector_select"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:background="@color/colorSiteSelection"
-                    android:paddingStart="24dp"
-                    android:paddingLeft="24dp"
-                    android:paddingEnd="24dp"
-                    android:paddingRight="24dp"
-                    android:text="OOI.MOE"
-                    android:textAlignment="center"
-                    android:textAllCaps="true"
-                    android:textColor="@color/white"
-                    android:textSize="24sp" />
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/connector_select"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="40dp"
+                        android:layout_marginLeft="40dp"
+                        android:layout_marginEnd="40dp"
+                        android:layout_marginRight="40dp"
+                        android:background="@color/colorSiteSelection"
+                        android:padding="3dp"
+                        android:text="OOI.MOE"
+                        android:textAlignment="center"
+                        android:textAllCaps="true"
+                        android:textColor="@color/white"
+                        android:textSize="24sp" />
+
+                    <TextView
+                        android:id="@+id/webview_autocomplete"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/autocomplete_title"
+                        android:textAlignment="center"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
             </LinearLayout>
 
             <LinearLayout

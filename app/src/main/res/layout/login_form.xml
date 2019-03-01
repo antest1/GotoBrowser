@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <TextView
+        android:id="@+id/loginform_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/autocomplete_title"
+        android:textAlignment="center"
+        android:textColor="@color/colorBackground"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/loginform_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/autocomplete_msg"
+        android:textAlignment="center" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/label_id"
+            android:layout_width="72dp"
+            android:layout_height="wrap_content"
+            android:text="DMM ID"
+            android:textColor="@color/colorBackground"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/input_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textEmailAddress" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/label_pw"
+            android:layout_width="72dp"
+            android:layout_height="wrap_content"
+            android:text="Password"
+            android:textColor="@color/colorBackground"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/input_pw"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:inputType="textPassword" />
+
+    </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/chkbox_account_pref"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/autocomplete_store" />
+
+</LinearLayout>

@@ -46,7 +46,10 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import static com.antest1.gotobrowser.Constants.ACTION_WITHLC;
+import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_NIT;
+import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_OOI;
 import static com.antest1.gotobrowser.Constants.CONNECT_NITRABBIT;
+import static com.antest1.gotobrowser.Constants.CONN_KANSU;
 import static com.antest1.gotobrowser.Constants.CONN_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.CONN_OOI;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
@@ -59,6 +62,7 @@ import static com.antest1.gotobrowser.Constants.REFRESH_CALL;
 import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI;
 import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI_CALL;
 import static com.antest1.gotobrowser.Constants.SERVER_LIST;
+import static com.antest1.gotobrowser.Constants.URL_KANSU;
 import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.URL_OOI;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
@@ -97,6 +101,8 @@ public class FullscreenActivity extends AppCompatActivity {
     private boolean savedStreamMuted = false;
     private String connector_url = "";
     private String connector_url_default = "";
+    private String login_id = "";
+    private String login_password = "";
 
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -163,10 +169,17 @@ public class FullscreenActivity extends AppCompatActivity {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         }
 
+        login_id = intent.getStringExtra("login_id");
+        login_password = intent.getStringExtra("login_pw");
+        if (login_id == null) login_id = "";
+        if (login_password == null) login_password = "";
         versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
 
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
-        if (CONN_OOI.equals(pref_connector)) {
+        if (CONN_KANSU.equals(pref_connector)) {
+            connector_url_default = URL_KANSU;
+            connector_url = sharedPref.getString(PREF_LATEST_URL, URL_KANSU);
+        } else if (CONN_OOI.equals(pref_connector)) {
             connector_url_default = URL_OOI;
             connector_url = sharedPref.getString(PREF_LATEST_URL, URL_OOI);
         } else if (CONN_NITRABBIT.equals(pref_connector)) {
@@ -200,8 +213,16 @@ public class FullscreenActivity extends AppCompatActivity {
         mContentView.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
                 sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
+                if (url.equals(URL_KANSU) || url.equals(URL_OOI)) {
+                    mContentView.evaluateJavascript(
+                            String.format(Locale.US, AUTOCOMPLETE_OOI,
+                                    login_id, login_password), null);
+                }
                 if (url.equals(Constants.URL_NITRABBIT)) {
                     mContentView.evaluateJavascript(CONNECT_NITRABBIT, null);
+                    mContentView.evaluateJavascript(
+                            String.format(Locale.US, AUTOCOMPLETE_NIT,
+                                    login_id, login_password), null);
                 }
                 if (url.contains(Constants.URL_OSAPI)) {
                     isStartedFlag = true;

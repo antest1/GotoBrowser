@@ -15,9 +15,17 @@
     <string name="copyright_info" translatable="false">Copyright © 2019 antest1(IE10)</string>
 
     <string-array name="connector_list">
+        <item>kancolle.su</item>
         <item>ooi.moe</item>
         <item>nitrabbit</item>
     </string-array>
+
+    <string name="text_save">Save</string>
+    <string name="text_cancel">Cancel</string>
+
     <string name="cache_clear_text">Clear Cache</string>
     <string name="mode_manual_adjust">show layout controller</string>
+    <string name="autocomplete_title">Login Autocomplete</string>
+    <string name="autocomplete_msg">This information will be used to fill the login form.</string>
+    <string name="autocomplete_store">Save account information in the device</string>
 </resources>

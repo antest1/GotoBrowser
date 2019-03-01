@@ -11,4 +11,9 @@
     <string name="button_start">ㄱㄱ</string>
     <string name="mode_manual_adjust">수동 조정 활성화</string>
     <string name="mode_silent">음량 OFF로 시작</string>
+    <string name="text_save">저장</string>
+    <string name="text_cancel">취소</string>
+    <string name="autocomplete_title">로그인 자동완성</string>
+    <string name="autocomplete_msg">로그인 폼에 입력할 계정 정보를 입력하세요.</string>
+    <string name="autocomplete_store">계정 정보를 기기에 저장</string>
 </resources>
