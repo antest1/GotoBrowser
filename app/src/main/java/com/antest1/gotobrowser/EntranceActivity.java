@@ -6,7 +6,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.CheckBox;
@@ -30,7 +33,9 @@ import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
+import static com.antest1.gotobrowser.Constants.PREF_PADDING;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
+import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI;
 import static com.antest1.gotobrowser.Constants.URL_LIST;
 
 public class EntranceActivity extends AppCompatActivity {

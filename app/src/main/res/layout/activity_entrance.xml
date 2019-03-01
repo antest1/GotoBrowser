@@ -15,6 +15,22 @@
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
 
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:alpha="0.6"
+        android:scaleType="centerCrop"
+        app:srcCompat="@mipmap/background" />
+
+    <ImageView
+        android:id="@+id/gotland_full"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="centerCrop"
+        android:scrollY="-35dp"
+        app:srcCompat="@mipmap/gotland_full" />
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -34,8 +50,7 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="20dp"
-                android:src="@mipmap/gotland"
-                app:srcCompat="@mipmap/gotland" />
+                android:visibility="invisible" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -75,7 +90,14 @@
                 android:layout_height="match_parent"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="15dp"
-                android:orientation="vertical">
+                android:background="#40000000"
+                android:orientation="vertical"
+                android:paddingStart="15dp"
+                android:paddingLeft="15dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="15dp"
+                android:paddingRight="15dp"
+                android:paddingBottom="10dp">
 
                 <Switch
                     android:id="@+id/switch_landscape"
@@ -121,7 +143,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:orientation="vertical">
 
                 <TextView
