@@ -112,7 +112,7 @@ public class EntranceActivity extends AppCompatActivity {
                     }
                 }
                 AlertDialog.Builder mBuilder = new AlertDialog.Builder(EntranceActivity.this);
-                mBuilder.setTitle("Select Connector");
+                mBuilder.setTitle(getString(R.string.select_server));
                 mBuilder.setSingleChoiceItems(listItems, connector_idx, new DialogInterface.OnClickListener() {
                     @SuppressLint("ApplySharedPref")
                     @Override
