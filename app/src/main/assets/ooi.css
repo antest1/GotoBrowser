@@ -1,0 +1,51 @@
+#ooi-page {
+  margin-top: 2px;
+  margin-bottom: 14px;
+}
+
+#ooi-logo img {
+  width: 80px;
+  height: 96px;
+}
+
+#ooi-headline h1 {
+  margin: 20px 0;
+  font-size: 42px;
+}
+
+#ooi-content {
+  margin-top: 15px;
+}
+
+#ooi-form p {
+  margin-left: 15px;
+}
+
+#ooi-announcement p {
+  text-indent: 2em;
+}
+
+#ooi-footer {
+  margin-top: 15px;
+}
+
+#ooi-game #externalswf {
+  margin: 0 auto 15px auto;
+}
+
+.statistics {
+  visibility: hidden;
+}
+
+#bg {
+position:fixed;
+top:0;
+left:0;
+height:100%;
+width:100%;
+overflow:hidden;
+background-color:#7987A8;
+background-size:cover;
+opacity:0.15;
+z-index:-1;
+}

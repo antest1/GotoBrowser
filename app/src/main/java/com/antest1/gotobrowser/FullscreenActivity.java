@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -29,6 +30,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -271,6 +274,11 @@ public class FullscreenActivity extends AppCompatActivity {
                             if (filename.equals("version.json") || filename.contains("index.php")) {
                                 return super.shouldInterceptRequest(view, request);
                             }
+                            if (source.getPath().contains("ooi.css")) { // block ooi.moe background
+                                AssetManager as = getAssets();
+                                InputStream is = as.open("ooi.css");
+                                return new WebResourceResponse("text/css", "utf-8", is);
+                            }
 
                             String fullpath = String.format(Locale.US, "http://%s%s", host, source.getPath());
                             String outputpath = getApplicationContext().getFilesDir().getAbsolutePath()
@@ -399,7 +407,7 @@ public class FullscreenActivity extends AppCompatActivity {
         mContentView.setScrollBarStyle (View.SCROLLBARS_OUTSIDE_OVERLAY);
         mContentView.setScrollbarFadingEnabled(false);
         mContentView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        mContentView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        mContentView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         mContentView.getSettings().setAppCacheEnabled(false);
 
         WebView.setWebContentsDebuggingEnabled(true);
