@@ -447,17 +447,21 @@ public class FullscreenActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         boolean is_multi = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode();
-        if (!is_multi) mContentView.onPause();
+        if (!is_multi) {
+            mContentView.onPause();
+            super.onPause();
+        }
         //setVolumeMute(true);
-        super.onPause();
     }
 
     @Override
     protected void onResume() {
         boolean is_multi = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode();
-        if (!is_multi) mContentView.onResume();
+        if (!is_multi) {
+            mContentView.onResume();
+            super.onResume();
+        }
         //setVolumeMute(false);
-        super.onResume();
     }
 
     @Override
