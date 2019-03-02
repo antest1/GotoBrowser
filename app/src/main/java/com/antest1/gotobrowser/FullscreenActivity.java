@@ -88,6 +88,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private String connector_url_default = "";
     private String login_id = "";
     private String login_password = "";
+    private boolean pause_flag = false;
 
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -446,20 +447,29 @@ public class FullscreenActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
+        super.onPause();
         boolean is_multi = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode();
         if (!is_multi) {
+            Log.e("GOTO", "is_not_multi");
+            pause_flag = true;
             mContentView.onPause();
-            super.onPause();
+        } else {
+            if (pause_flag) {
+                mContentView.onResume();
+                pause_flag = false;
+            }
+            Log.e("GOTO", "is_multi");
         }
         //setVolumeMute(true);
     }
 
     @Override
     protected void onResume() {
+        super.onResume();
         boolean is_multi = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode();
-        if (!is_multi) {
+        if (pause_flag) {
             mContentView.onResume();
-            super.onResume();
+            pause_flag = false;
         }
         //setVolumeMute(false);
     }
