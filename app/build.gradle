@@ -6,8 +6,8 @@ android {
         applicationId "com.antest1.gotobrowser"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 3
-        versionName "1.0-beta.3"
+        versionCode 4
+        versionName "1.0-beta.4"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
