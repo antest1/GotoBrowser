@@ -173,8 +173,9 @@ public class EntranceActivity extends AppCompatActivity {
             public void onClick(View v) {
                 WebView webview = new WebView(getApplicationContext());
                 webview.clearCache(true);
+                String cache_dir = getApplicationContext().getFilesDir().getAbsolutePath().concat("/cache/");
                 clearApplicationCache(getApplicationContext(), getCacheDir());
-                clearApplicationCache(getApplicationContext(), getFilesDir());
+                clearApplicationCache(getApplicationContext(), new File(cache_dir));
                 Toast.makeText(getApplicationContext(), getString(R.string.cache_cleared_toast), Toast.LENGTH_LONG).show();
             }
         });

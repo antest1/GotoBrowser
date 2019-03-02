@@ -70,27 +70,9 @@ import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.URL_OOI;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 
-/**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
- */
 public class FullscreenActivity extends AppCompatActivity {
-    /**
-     * Whether or not the system UI should be auto-hidden after
-     * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
-     */
     private static final boolean AUTO_HIDE = true;
-
-    /**
-     * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
-     * user interaction before hiding the system UI.
-     */
     private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
-
-    /**
-     * Some older devices needs a small delay between UI widget updates
-     * and a change of the status and navigation bar.
-     */
     private static final int UI_ANIMATION_DELAY = 300;
 
     private VersionDatabase versionTable;
@@ -142,11 +124,6 @@ public class FullscreenActivity extends AppCompatActivity {
             hide();
         }
     };
-    /**
-     * Touch listener to use for in-layout UI controls to delay hiding the
-     * system UI. This is to prevent the jarring behavior of controls going away
-     * while interacting with activity UI.
-     */
     private final View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -203,14 +180,7 @@ public class FullscreenActivity extends AppCompatActivity {
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
-        // Set up the user interaction to manually show or hide the system UI.
-        /*
-        mContentView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                toggle();
-            }
-        });*/
+
         backPressCloseHandler = new BackPressCloseHandler(this);
 
         mContentView.setWebViewClient(new WebViewClient() {
@@ -270,6 +240,9 @@ public class FullscreenActivity extends AppCompatActivity {
 
                     try {
                         if (source.getPath() != null && source.getLastPathSegment() != null) {
+                            //Log.e("GOTO", source.getPath());
+                            //Log.e("GOTO", header.toString());
+
                             String filename = source.getLastPathSegment();
                             if (filename.equals("version.json") || filename.contains("index.php")) {
                                 return super.shouldInterceptRequest(view, request);
@@ -282,7 +255,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
                             String fullpath = String.format(Locale.US, "http://%s%s", host, source.getPath());
                             String outputpath = getApplicationContext().getFilesDir().getAbsolutePath()
-                                    .concat("/").concat(source.getPath().replace(filename, "").substring(1));
+                                    .concat("/cache/").concat(source.getPath().replace(filename, "").substring(1));
                             String filepath = outputpath.concat(filename);
 
                             boolean update_flag = false;
@@ -407,7 +380,6 @@ public class FullscreenActivity extends AppCompatActivity {
         mContentView.setScrollBarStyle (View.SCROLLBARS_OUTSIDE_OVERLAY);
         mContentView.setScrollbarFadingEnabled(false);
         mContentView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        mContentView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
         mContentView.getSettings().setAppCacheEnabled(false);
 
         WebView.setWebContentsDebuggingEnabled(true);
