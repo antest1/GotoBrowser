@@ -3,6 +3,7 @@
     <string name="version_format" formatted="false" translatable="false">gotobrowser-%s</string>
     <string name="copyright_info" translatable="false">Copyright © 2019 antest1(IE10)</string>
     <string-array name="connector_list">
+        <item>DMM direct</item>
         <item>kancolle.su</item>
         <item>ooi.moe</item>
         <item>nitrabbit</item>
