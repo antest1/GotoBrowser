@@ -41,6 +41,15 @@ public class Constants {
     public static final String AUTOCOMPLETE_OOI = "$(\"#login_id\").val(\"%s\");$(\"#password\").val(\"%s\");";
     public static final String AUTOCOMPLETE_NIT = "$(\"input[name=id]\").val(\"%s\");$(\"input[name=pw]\").val(\"%s\");";
 
+    public static final String[] REQUEST_BLOCK_RULES = {
+        "twitter.com/i/jot",
+        "dmm.com/latest/js/dmm.tracking",
+        "doubleclick.net",
+        "googletagmanager.com/",
+        "facebook.com",
+        "pics.dmm.com/"
+    };
+
     public static final String[] SERVER_LIST = {
             "203.104.209.71",
             "203.104.209.87",

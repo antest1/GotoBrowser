@@ -51,6 +51,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -73,6 +74,7 @@ import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_PADDING;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.REFRESH_CALL;
+import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.RESIZE_DMM;
 import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI;
 import static com.antest1.gotobrowser.Constants.RESIZE_CALL;
@@ -264,38 +266,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     syncManager.sync();
                 }
             }
-            /*
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                    if (url.contains(URL_DMM_POINT)) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setData(Uri.parse(url));
-                        startActivity(intent);
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-                return false;
-            }
 
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                    Uri source = request.getUrl();
-                    if (source.getPath().contains(URL_DMM_POINT)) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setData(source);
-                        startActivity(intent);
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-                return false;
-            }
-            */
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
@@ -307,12 +278,21 @@ public class FullscreenActivity extends AppCompatActivity {
                     boolean is_audio = accept != null && source.toString().contains(".mp3");
                     boolean is_json = accept != null && accept.contains("json") && source.toString().contains(".json");
 
+                    String url = source.toString();
+                    for (String rule : REQUEST_BLOCK_RULES) {
+                        if (url.contains(rule)) {
+                            Log.e("GOTO", "blocked: ".concat(url));
+                            return new WebResourceResponse("text/css", "utf-8", getEmptyStream());
+                        }
+                    }
+
                     try {
                         if (source.getPath() != null && source.getLastPathSegment() != null) {
                             //Log.e("GOTO", source.getPath());
                             //Log.e("GOTO", header.toString());
                             String path = source.getPath();
                             String filename = source.getLastPathSegment();
+
                             if (filename.equals("version.json") || filename.contains("index.php")) {
                                 return super.shouldInterceptRequest(view, request);
                             }
@@ -747,5 +727,14 @@ public class FullscreenActivity extends AppCompatActivity {
                 audioManager.setStreamMute(AudioManager.STREAM_MUSIC, false);
             }
         }
+    }
+    public InputStream getEmptyStream() {
+        InputStream empty = new InputStream() {
+            @Override
+            public int read() {
+                return -1;
+            }
+        };
+        return empty;
     }
 }
