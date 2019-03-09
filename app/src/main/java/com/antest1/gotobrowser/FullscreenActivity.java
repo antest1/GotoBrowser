@@ -8,8 +8,6 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
@@ -20,7 +18,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.JsResult;
@@ -37,24 +34,22 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 import static com.antest1.gotobrowser.Constants.ACTION_WITHLC;
 import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_NIT;
@@ -75,14 +70,13 @@ import static com.antest1.gotobrowser.Constants.PREF_PADDING;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.REFRESH_CALL;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
+import static com.antest1.gotobrowser.Constants.RESIZE_CALL;
 import static com.antest1.gotobrowser.Constants.RESIZE_DMM;
 import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI;
-import static com.antest1.gotobrowser.Constants.RESIZE_CALL;
 import static com.antest1.gotobrowser.Constants.SERVER_LIST;
 import static com.antest1.gotobrowser.Constants.URL_DMM;
 import static com.antest1.gotobrowser.Constants.URL_DMM_FOREIGN;
 import static com.antest1.gotobrowser.Constants.URL_DMM_LOGIN;
-import static com.antest1.gotobrowser.Constants.URL_DMM_POINT;
 import static com.antest1.gotobrowser.Constants.URL_KANSU;
 import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.URL_OOI;
@@ -108,7 +102,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private String login_id = "";
     private String login_password = "";
     private boolean pause_flag = false;
-    private static Map<String, byte[]> image_cache;
+    private final OkHttpClient resourceClient = new OkHttpClient();
 
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -196,9 +190,8 @@ public class FullscreenActivity extends AppCompatActivity {
         mControllerView = findViewById(R.id.control_component);
         mControllerView.setVisibility(View.GONE);
         isControllerActive = intent != null && ACTION_WITHLC.equals(intent.getAction());
-        image_cache = new HashMap<>();
-        setMemoryCache(getFilesDir().getAbsolutePath().concat("/cache/"));
-        Log.e("GOTO", "memory cache: " + image_cache.size());
+        //setMemoryCache(getFilesDir().getAbsolutePath().concat("/cache/"));
+        //Log.e("GOTO", "memory cache: " + image_cache.size());
 
         backPressCloseHandler = new BackPressCloseHandler(this);
 
@@ -321,25 +314,32 @@ public class FullscreenActivity extends AppCompatActivity {
                             }
 
                             if (is_image) {
-                                File dir = new File(outputpath);
-                                if (!dir.exists()) dir.mkdirs();
                                 File file = new File(filepath);
                                 if (!file.exists() || update_flag) {
-                                    InputStream in = new URL(fullpath).openStream();
-                                    Bitmap image = BitmapFactory.decodeStream(in);
-                                    FileOutputStream fos = new FileOutputStream(new File(filepath));
-                                    image.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                                    File dir = new File(outputpath);
+                                    if (!dir.exists()) dir.mkdirs();
+                                    Request imageRequest = new Request.Builder().url(fullpath).build();
+                                    Response response = resourceClient.newCall(imageRequest).execute();
+                                    ResponseBody body = response.body();
+                                    // InputStream in = new BufferedInputStream(new URL(fullpath).openStream());
+                                    if (body != null) {
+                                        InputStream in = body.byteStream();
+                                        byte[] buffer = new byte[2 * 1024];
+                                        int bytes;
+                                        FileOutputStream fos = new FileOutputStream(file);
+                                        while ((bytes = in.read(buffer)) != -1) {
+                                            fos.write(buffer, 0, bytes);
+                                        }
+                                        fos.close();
+                                        body.close();
+                                    } else {
+                                        return super.shouldInterceptRequest(view, request);
+                                    }
                                 }
 
-                                if (image_cache.containsKey(path)) {
-                                    Log.e("GOTO", "load from memory: " + path);
-                                    InputStream is = new ByteArrayInputStream(image_cache.get(path));
-                                    return new WebResourceResponse("image/png", "utf-8", is);
-                                } else {
-                                    Log.e("GOTO", "load from disk: " + path);
-                                    FileInputStream fis = new FileInputStream(filepath);
-                                    return new WebResourceResponse("image/png", "utf-8", fis);
-                                }
+                                Log.e("GOTO", "load from disk: " + path);
+                                InputStream is = new BufferedInputStream(new FileInputStream(file));
+                                return new WebResourceResponse("image/png", "utf-8", is);
                             }
 
                             if (is_json || is_audio) {
@@ -348,19 +348,20 @@ public class FullscreenActivity extends AppCompatActivity {
 
                                 File file = new File(filepath);
                                 if (!file.exists() || update_flag) {
-                                    InputStream in = new URL(fullpath).openStream();
+                                    InputStream in = new BufferedInputStream(new URL(fullpath).openStream());
                                     byte[] buffer = new byte[8 * 1024];
                                     int bytes;
-                                    FileOutputStream fos = new FileOutputStream(new File(filepath));
+                                    FileOutputStream fos = new FileOutputStream(file);
                                     while ((bytes = in.read(buffer)) != -1) {
                                         fos.write(buffer, 0, bytes);
                                     }
+                                    fos.close();
                                 } else {
                                     Log.e("GOTO", "load from disk: " + filepath);
                                 }
-                                FileInputStream fis = new FileInputStream(filepath);
-                                if (is_json) return new WebResourceResponse("application/json", "utf-8", fis);
-                                if (is_audio) return new WebResourceResponse("audio/mpeg", "binary", fis);
+                                InputStream is = new BufferedInputStream(new FileInputStream(file));
+                                if (is_json) return new WebResourceResponse("application/json", "utf-8", is);
+                                if (is_audio) return new WebResourceResponse("audio/mpeg", "binary", is);
                             }
                         }
                     } catch (Exception e) {
@@ -374,6 +375,7 @@ public class FullscreenActivity extends AppCompatActivity {
         mContentView.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
                 return super.onJsAlert(view, url, message, result);
             }
 
@@ -493,7 +495,7 @@ public class FullscreenActivity extends AppCompatActivity {
         mContentView.getSettings().setUserAgentString("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0");
         mContentView.setScrollbarFadingEnabled(true);
         mContentView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        mContentView.getSettings().setAppCacheEnabled(false);
+        mContentView.getSettings().setAppCacheEnabled(true);
 
         WebView.setWebContentsDebuggingEnabled(true);
         setDefaultPage();
@@ -623,6 +625,7 @@ public class FullscreenActivity extends AppCompatActivity {
         return (ratio_val - 30) * 20;
     }
 
+    /*
     public void setMemoryCache(String path) {
         File dir = new File(path);
         File[] fileList = dir.listFiles();
@@ -646,7 +649,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
             }
         }
-    }
+    }*/
 
     public void setDefaultPage() {
         SharedPreferences sharedPref = getSharedPreferences(
