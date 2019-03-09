@@ -59,7 +59,7 @@ public class EntranceActivity extends AppCompatActivity {
         final SharedPreferences sharedPref = getSharedPreferences(
                 getString(R.string.preference_key), Context.MODE_PRIVATE);
         if (sharedPref.getBoolean(PREF_LANDSCAPE, false)) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
         }
 
         backPressCloseHandler = new BackPressCloseHandler(this);

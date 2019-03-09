@@ -181,7 +181,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 getString(R.string.preference_key), Context.MODE_PRIVATE);
 
         if (sharedPref.getBoolean(PREF_LANDSCAPE, false)) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
         }
 
         login_id = sharedPref.getString(PREF_DMM_ID, ""); // intent.getStringExtra("login_id");
@@ -199,11 +199,6 @@ public class FullscreenActivity extends AppCompatActivity {
         image_cache = new HashMap<>();
         setMemoryCache(getFilesDir().getAbsolutePath().concat("/cache/"));
         Log.e("GOTO", "memory cache: " + image_cache.size());
-
-        // window-level acceleration
-        getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
 
         backPressCloseHandler = new BackPressCloseHandler(this);
 
@@ -496,8 +491,7 @@ public class FullscreenActivity extends AppCompatActivity {
         mContentView.getSettings().setSupportMultipleWindows(true);
         // mContentView.getSettings().setBuiltInZoomControls(true);
         mContentView.getSettings().setUserAgentString("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0");
-        mContentView.setScrollBarStyle (View.SCROLLBARS_OUTSIDE_OVERLAY);
-        mContentView.setScrollbarFadingEnabled(false);
+        mContentView.setScrollbarFadingEnabled(true);
         mContentView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         mContentView.getSettings().setAppCacheEnabled(false);
 

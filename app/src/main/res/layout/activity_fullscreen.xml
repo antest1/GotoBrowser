@@ -16,26 +16,19 @@
     <WebView
         android:id="@+id/main_browser"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent">
 
     </WebView>
 
-    <FrameLayout
-        android:id="@+id/dmm_browser_area"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <ImageView
-            android:id="@+id/dmm_browser_close"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right"
-            android:layout_margin="4dp"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:visibility="gone"
-            app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
-
-    </FrameLayout>
+    <ImageView
+        android:id="@+id/dmm_browser_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_margin="4dp"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:visibility="gone"
+        app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
 
     <!--<ImageView
         android:id="@+id/webview_camera"
