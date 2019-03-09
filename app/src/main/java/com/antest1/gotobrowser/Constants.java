@@ -50,7 +50,7 @@ public class Constants {
         "pics.dmm.com/"
     };
 
-    public static final String[] SERVER_LIST = {
+    public static final String[] KANCOLLE_SERVER_LIST = {
             "203.104.209.71",
             "203.104.209.87",
             "125.6.184.215",
@@ -71,5 +71,13 @@ public class Constants {
             "203.104.209.39",
             "203.104.209.55",
             "203.104.209.102"
+    };
+
+    public static final String[] OOI_SERVER_LIST = {
+            "120.194.81.119",
+            "104.31.72.227",
+            "104.31.72.227",
+            "104.27.146.101",
+            "104.27.146.101"
     };
 }

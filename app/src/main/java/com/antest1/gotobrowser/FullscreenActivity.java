@@ -60,6 +60,8 @@ import static com.antest1.gotobrowser.Constants.CONN_KANSU;
 import static com.antest1.gotobrowser.Constants.CONN_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.CONN_OOI;
 import static com.antest1.gotobrowser.Constants.DMM_COOKIE;
+import static com.antest1.gotobrowser.Constants.KANCOLLE_SERVER_LIST;
+import static com.antest1.gotobrowser.Constants.OOI_SERVER_LIST;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
@@ -73,7 +75,6 @@ import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.RESIZE_CALL;
 import static com.antest1.gotobrowser.Constants.RESIZE_DMM;
 import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI;
-import static com.antest1.gotobrowser.Constants.SERVER_LIST;
 import static com.antest1.gotobrowser.Constants.URL_DMM;
 import static com.antest1.gotobrowser.Constants.URL_DMM_FOREIGN;
 import static com.antest1.gotobrowser.Constants.URL_DMM_LOGIN;
@@ -484,6 +485,7 @@ public class FullscreenActivity extends AppCompatActivity {
         // mContentView.setInitialScale(1);
         mContentView.getSettings().setLoadWithOverviewMode(true);
         mContentView.getSettings().setSaveFormData(true);
+        mContentView.getSettings().setDatabaseEnabled(true);
         mContentView.getSettings().setDomStorageEnabled(true);
         mContentView.getSettings().setUseWideViewPort(true);
         mContentView.getSettings().setJavaScriptEnabled(true);
@@ -696,7 +698,13 @@ public class FullscreenActivity extends AppCompatActivity {
         syncManager.sync();
 
         CookieManager cookieManager = CookieManager.getInstance();
-        for (String server: SERVER_LIST) {
+        for (String server: KANCOLLE_SERVER_LIST) {
+            String url = "http://".concat(server).concat("/kcs2/");
+            cookieManager.setCookie(url, "vol_bgm=0;");
+            cookieManager.setCookie(url, "vol_se=0;");
+            cookieManager.setCookie(url, "vol_voice=0;");
+        }
+        for (String server: OOI_SERVER_LIST) {
             String url = "http://".concat(server).concat("/kcs2/");
             cookieManager.setCookie(url, "vol_bgm=0;");
             cookieManager.setCookie(url, "vol_se=0;");
