@@ -34,6 +34,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -273,6 +274,11 @@ public class FullscreenActivity extends AppCompatActivity {
                             Log.e("GOTO", "blocked: ".concat(url));
                             return new WebResourceResponse("text/css", "utf-8", getEmptyStream());
                         }
+                    }
+                    if (url.contains("kcscontents/css/common.css")) {
+                        String replace_css = "#globalNavi, #contentsWrap {display:none;} body {background-color: black;}";
+                        InputStream is = new ByteArrayInputStream(replace_css.getBytes());
+                        return new WebResourceResponse("text/css", "utf-8", is);
                     }
 
                     try {
@@ -613,7 +619,7 @@ public class FullscreenActivity extends AppCompatActivity {
         if (mSeekbar != null) mSeekbar.setProgress(adjust_padding);
 
         if (isStartedFlag) {
-            if (adjust_layout) mContentView.evaluateJavascript(String.format(Locale.US, RESIZE_OSAPI, adjust_padding), null);
+            if (adjust_layout) mContentView.evaluateJavascript(String.format(Locale.US, RESIZE_CALL, adjust_padding), null);
         }
     }
     private int getProgressFromPref(int value) {return value / 2; }
