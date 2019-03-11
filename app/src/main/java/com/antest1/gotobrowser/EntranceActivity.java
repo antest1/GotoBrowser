@@ -25,6 +25,7 @@ import java.util.Locale;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import io.fabric.sdk.android.Fabric;
 
 import static com.antest1.gotobrowser.Constants.ACTION_WITHLC;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;

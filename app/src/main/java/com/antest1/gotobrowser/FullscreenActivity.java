@@ -171,6 +171,7 @@ public class FullscreenActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setBackgroundDrawable(null);
         setContentView(R.layout.activity_fullscreen);
         Intent intent = getIntent();
         final SharedPreferences sharedPref = getSharedPreferences(
@@ -503,9 +504,10 @@ public class FullscreenActivity extends AppCompatActivity {
         mContentView.getSettings().setUserAgentString("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0");
         mContentView.setScrollbarFadingEnabled(true);
         mContentView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        mContentView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         mContentView.getSettings().setAppCacheEnabled(true);
 
-        WebView.setWebContentsDebuggingEnabled(true);
+        // WebView.setWebContentsDebuggingEnabled(true);
         setDefaultPage();
     }
 
