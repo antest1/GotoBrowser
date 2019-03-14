@@ -281,13 +281,13 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                     if (url.contains(URL_OSAPI)) {
                         mContentView.evaluateJavascript(String.format(Locale.US,
-                                REFRESH_CALL, connector_url_default), new ValueCallback<String>() {
-                            @Override
-                            public void onReceiveValue(String value) {
-                                Log.e("GOTO", "invalid: " + value);
-                                if (value.equals("true")) setDefaultPage();
-                            }
-                        });
+                                REFRESH_CALL, connector_url_default), value -> {
+                                    Log.e("GOTO", "invalid: " + value);
+                                    if (value.equals("true")) {
+                                        sharedPref.edit().putString(PREF_LATEST_URL, connector_url_default).apply();
+                                        setDefaultPage();
+                                    }
+                                });
                     }
 
                     if (isControllerActive) {
