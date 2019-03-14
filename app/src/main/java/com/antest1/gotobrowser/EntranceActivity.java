@@ -136,12 +136,25 @@ public class EntranceActivity extends AppCompatActivity {
 
         clearButton = findViewById(R.id.webview_clear);
         clearButton.setOnClickListener(v -> {
-            WebView webview = new WebView(getApplicationContext());
-            webview.clearCache(true);
-            String cache_dir = getApplicationContext().getFilesDir().getAbsolutePath().concat("/cache/");
-            clearApplicationCache(getApplicationContext(), getCacheDir());
-            clearApplicationCache(getApplicationContext(), new File(cache_dir));
-            Toast.makeText(getApplicationContext(), getString(R.string.cache_cleared_toast), Toast.LENGTH_LONG).show();
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(EntranceActivity.this);
+            alertDialogBuilder.setTitle(R.string.cache_clear_text);
+            alertDialogBuilder
+                    .setCancelable(false)
+                    .setMessage(getString(R.string.clearcache_msg))
+                    .setPositiveButton(R.string.action_ok,
+                            (dialog, id) -> {
+                                WebView webview = new WebView(getApplicationContext());
+                                webview.clearCache(true);
+                                String cache_dir = getApplicationContext().getFilesDir().getAbsolutePath().concat("/cache/");
+                                clearApplicationCache(getApplicationContext(), getCacheDir());
+                                clearApplicationCache(getApplicationContext(), new File(cache_dir));
+                                Toast.makeText(getApplicationContext(), getString(R.string.cache_cleared_toast), Toast.LENGTH_LONG).show();
+                                dialog.dismiss();
+                            })
+                    .setNegativeButton(R.string.action_cancel,
+                            (dialog, id) -> dialog.cancel());
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
         });
 
         manualControlCheckbox = findViewById(R.id.layout_control);
