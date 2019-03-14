@@ -10,10 +10,13 @@
     </string-array>
 
     <string name="app_name">GotoBrowser</string>
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Cancel</string>
     <string name="select_server">Select Connector</string>
     <string name="select_server_toast">You must select the connector first.</string>
     <string name="cache_clear_text">Clear Cache</string>
     <string name="cache_cleared_toast">webview cache cleared</string>
+    <string name="clearcache_msg">Use this function only when the image or audio is not loaded properly. Do you really want to clear the cache?</string>
     <string name="backpress_msg">Do you really want to exit?</string>
     <string name="mode_landscape">Landscape Mode</string>
     <string name="mode_adjustment">Layout Adjustment</string>

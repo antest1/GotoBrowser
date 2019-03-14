@@ -46,19 +46,13 @@ public class BackPressCloseHandler {
         alertDialogBuilder
                 .setCancelable(false)
                 .setMessage(activity.getString(R.string.backpress_msg))
-                .setPositiveButton("Close",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                activity.finish();
-                                dialog.dismiss();
-                            }
+                .setPositiveButton(R.string.action_ok,
+                        (dialog, id) -> {
+                            activity.finish();
+                            dialog.dismiss();
                         })
-                .setNegativeButton("Cancel",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        });
+                .setNegativeButton(R.string.action_cancel,
+                        (dialog, id) -> dialog.cancel());
 
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.show();
