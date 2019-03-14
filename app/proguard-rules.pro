@@ -7,6 +7,10 @@
 
 # Add this global rule
 -keepattributes Signature
+-keepattributes *Annotation*
+
+-keep class com.crashlytics.** { *; }
+-dontwarn com.crashlytics.**
 
 # This rule will properly ProGuard all the model classes in
 # the package com.yourcompany.models. Modify to fit the structure
@@ -38,6 +42,19 @@
 -dontwarn okio.**
 -keep class okio.**{*;}
 
+# Gson specific classes
+-dontwarn sun.misc.**
+#-keep class com.google.gson.stream.** { *; }
+
+# Application classes that will be serialized/deserialized over Gson
+-keep class com.google.gson.examples.android.model.** { *; }
+
+# Prevent proguard from stripping interface information from TypeAdapterFactory,
+# JsonSerializer, JsonDeserializer instances (so they can be used in @JsonAdapter)
+-keep class * implements com.google.gson.TypeAdapterFactory
+-keep class * implements com.google.gson.JsonSerializer
+-keep class * implements com.google.gson.JsonDeserializer
+
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** v(...);
@@ -46,4 +63,3 @@
     public static *** w(...);
     public static *** wtf(...);
 }
-
