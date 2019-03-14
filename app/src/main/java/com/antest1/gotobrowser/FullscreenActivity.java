@@ -36,22 +36,42 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
+
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPInputStream;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -114,15 +134,19 @@ public class FullscreenActivity extends AppCompatActivity {
     private boolean pause_flag = false;
     private final OkHttpClient resourceClient = new OkHttpClient();
     private MediaPlayer bgmPlayer;
+    private boolean isBgmPlaying = false;
     private float bgmVolume = 1.0f;
     private Map<String, Integer> seMap = new HashMap<>();
     private SoundPool sePlayer;
     private float seVolume = 1.0f;
-    private Map<String, Integer> voiceMap = new HashMap<>();
     private MediaPlayer voicePlayer;
+    private boolean isVoicePlaying = false;
     private float voiceVolume = 1.0f;
+    private MediaPlayer titleVoicePlayer;
     private boolean isBattleMode = false;
+    private Map<String, String> filenameToShipId = new HashMap<>();
     private String currentCookieHost = "";
+    private List<String> currentTitleCall = new ArrayList<>();
     ScheduledExecutorService executor;
 
     private final Runnable mHidePart2Runnable = new Runnable() {
@@ -204,8 +228,6 @@ public class FullscreenActivity extends AppCompatActivity {
 
         login_id = sharedPref.getString(PREF_DMM_ID, ""); // intent.getStringExtra("login_id");
         login_password = sharedPref.getString(PREF_DMM_PASS, "");
-        // if (login_id == null) login_id = "";
-        // if (login_password == null) login_password = "";
         versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
 
         mVisible = true;
@@ -220,6 +242,7 @@ public class FullscreenActivity extends AppCompatActivity {
         backPressCloseHandler = new BackPressCloseHandler(this);
         bgmPlayer = new MediaPlayer();
         voicePlayer = new MediaPlayer();
+        titleVoicePlayer = new MediaPlayer();
         sePlayer = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
         mContentView.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
@@ -297,18 +320,19 @@ public class FullscreenActivity extends AppCompatActivity {
                     if(url.contains("/kcs2/img/") && host != null) {
                         currentCookieHost = host.concat("/kcs2/");
                         String cookie = CookieManager.getInstance().getCookie(currentCookieHost);
-                        String[] data = cookie.split(";");
-                        for (String item: data) {
-                            String[] row = item.trim().split("=");
-                            if (!row[1].matches("[0-9]+")) continue;
-                            String key = row[0];
-                            float value = (float)Integer.parseInt(row[1]) / 100;
-                            if (key.equals("vol_bgm")) bgmVolume = value;
-                            if (key.equals("vol_voice")) voiceVolume = value;
-                            if (key.equals("vol_se")) seVolume = value;
-
+                        if (cookie != null) {
+                            String[] data = cookie.split(";");
+                            for (String item: data) {
+                                String[] row = item.trim().split("=");
+                                if (!row[1].matches("[0-9]+")) continue;
+                                String key = row[0];
+                                float value = (float)Integer.parseInt(row[1]) / 100;
+                                if (key.equals("vol_bgm")) bgmVolume = value;
+                                if (key.equals("vol_voice")) voiceVolume = value;
+                                if (key.equals("vol_se")) seVolume = value;
+                            }
                         }
-                        Log.e("GOTO", cookie);
+                        // Log.e("GOTO", cookie);
                     }
 
                     if (url.contains("kcscontents/css/common.css")) {
@@ -325,12 +349,70 @@ public class FullscreenActivity extends AppCompatActivity {
                             String filename = source.getLastPathSegment();
 
                             if (filename.equals("version.json") || filename.contains("index.php")) {
+                                currentTitleCall.clear();
                                 return super.shouldInterceptRequest(view, request);
                             }
                             if (path.contains("ooi.css")) { // block ooi.moe background
                                 AssetManager as = getAssets();
                                 InputStream is = as.open("ooi.css");
                                 return new WebResourceResponse("text/css", "utf-8", is);
+                            }
+
+                            if (path.contains("/api_start2/")) {
+                                boolean update_flag = false;
+                                String version_url = "http://52.55.91.44/kcanotify/dv.php";
+                                Request versionRequest = new Request.Builder().url(version_url)
+                                        .header("Referer", "goto/webkit").build();
+                                Response version_response = resourceClient.newCall(versionRequest).execute();
+                                if (version_response.body() != null) {
+                                    String version_check = version_response.body().string();
+                                    if (!versionTable.getValue("api_start2").equals(version_check)) {
+                                        update_flag = true;
+                                    }
+                                }
+                                Log.e("GOTO", versionTable.getValue("api_start2"));
+                                String apipath = getApplicationContext().getFilesDir().getAbsolutePath()
+                                        .concat("/cache/").concat("api_start2");
+                                File file = new File(apipath);
+                                if (!file.exists() || update_flag) {
+                                    file.createNewFile();
+                                    Log.e("GOTO", "download resource");
+                                    String api_url = "http://52.55.91.44/kcanotify/kca_api_start2.php?v=recent";
+                                    Request dataRequest = new Request.Builder().url(api_url)
+                                            .header("Referer", "goto/webkit")
+                                            .header("Accept-Encoding", "gzip")
+                                            .build();
+                                    Response response = resourceClient.newCall(dataRequest).execute();
+                                    ResponseBody body = response.body();
+                                    String api_version = response.header("X-Api-Version", "");
+                                    versionTable.putValue("api_start2", api_version);
+                                    Log.e("GOTO", "version: " + api_version);
+                                    if (body != null) {
+                                        InputStream in = body.byteStream();
+                                        byte[] buffer = new byte[2 * 1024];
+                                        int bytes;
+                                        FileOutputStream fos = new FileOutputStream(file);
+                                        while ((bytes = in.read(buffer)) != -1) {
+                                            fos.write(buffer, 0, bytes);
+                                        }
+                                        fos.close();
+                                        body.close();
+                                    }
+                                }
+
+                                InputStream buf = new BufferedInputStream(new GZIPInputStream(new FileInputStream(file)));
+                                Gson gson = new Gson();
+                                Reader reader = new InputStreamReader(buf);
+                                JsonObject api_data = gson.fromJson(reader, JsonObject.class).getAsJsonObject("api_data");
+                                JsonArray api_mst_shipgraph = api_data.getAsJsonArray("api_mst_shipgraph");
+                                for (JsonElement item: api_mst_shipgraph) {
+                                    JsonObject ship = item.getAsJsonObject();
+                                    String shipId = ship.get("api_id").getAsString();
+                                    String shipFn = ship.get("api_filename").getAsString();
+                                    filenameToShipId.put(shipFn, shipId);
+                                }
+                                Log.e("GOTO", "shipgraph: " + String.valueOf(filenameToShipId.size()));
+                                return super.shouldInterceptRequest(view, request);
                             }
 
                             if (path.contains("/api_port/port")) {
@@ -350,8 +432,6 @@ public class FullscreenActivity extends AppCompatActivity {
                             boolean update_flag = false;
                             String version_key = source.getPath();
                             stopMp3(bgmPlayer, filepath);
-
-                            Log.e("GOTO", "bgm: " + String.valueOf(bgmVolume));
 
                             if (is_image || is_audio || is_json) {
                                 String version = "";
@@ -419,10 +499,30 @@ public class FullscreenActivity extends AppCompatActivity {
                                 if (is_audio) {
                                     if (url.contains("resources/se")) playSe(sePlayer, file, seVolume);
                                     else if (url.contains("/kcs/sound/kc")) {
-                                        if (isBattleMode && (file.length() / 1024) < 100) playSe(sePlayer, file, voiceVolume);
-                                        else playMp3(voicePlayer, file, voiceVolume);
+                                        String info = version_key.replace("/kcs/sound/kc", "").replace(".mp3", "");
+                                        String[] fn_code = info.split("/");
+                                        int voiceline = KcVoiceUtils.getVoiceLineByFilename(filenameToShipId.get(fn_code[0]), fn_code[1]);
+                                        Log.e("GOTO", "file info: " + info);
+                                        Log.e("GOTO", "voiceline: " + String.valueOf(voiceline));
+                                        if (voiceline >= 30 && voiceline <= 53) { // hourly voiceline
+                                            Calendar now = Calendar.getInstance();
+                                            int minute = now.get(Calendar.MINUTE);
+                                            int second = now.get(Calendar.SECOND);
+                                            if (minute == 0 && second <= 2) {
+                                                playMp3("voice", voicePlayer, file, voiceVolume);
+                                            }
+                                        } else {
+                                            if (isBattleMode && (file.length() / 1024) < 100) playSe(sePlayer, file, voiceVolume);
+                                            else playMp3("voice", voicePlayer, file, voiceVolume);
+                                        }
                                     }
-                                    else if (url.contains("resources/bgm")) playMp3(bgmPlayer, file, bgmVolume);
+                                    else if (url.contains("/voice/titlecall")) {
+                                        currentTitleCall.add(file.getAbsolutePath());
+                                        if (currentTitleCall.size() == 2) {
+                                            playTitleCall(currentTitleCall, 0, voiceVolume);
+                                        }
+                                    }
+                                    else if (url.contains("resources/bgm")) playMp3("bgm", bgmPlayer, file, bgmVolume);
                                     return new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
                                 }
                             }
@@ -557,7 +657,7 @@ public class FullscreenActivity extends AppCompatActivity {
         mContentView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         mContentView.getSettings().setAppCacheEnabled(true);
 
-        // WebView.setWebContentsDebuggingEnabled(true);
+        WebView.setWebContentsDebuggingEnabled(true);
         setDefaultPage();
     }
 
@@ -630,13 +730,15 @@ public class FullscreenActivity extends AppCompatActivity {
             mContentView.pauseTimers();
             if (bgmPlayer.isPlaying()) bgmPlayer.pause();
             if (voicePlayer.isPlaying()) voicePlayer.pause();
+            if (titleVoicePlayer.isPlaying()) titleVoicePlayer.pause();
             sePlayer.autoPause();
         } else {
             if (pause_flag) {
                 mContentView.resumeTimers();
                 pause_flag = false;
-                if (!bgmPlayer.isPlaying()) bgmPlayer.start();
-                if (!voicePlayer.isPlaying()) voicePlayer.start();
+                if (!bgmPlayer.isPlaying() && isBgmPlaying) bgmPlayer.start();
+                if (!voicePlayer.isPlaying() && isVoicePlaying) voicePlayer.start();
+                if (!titleVoicePlayer.isPlaying() && isBgmPlaying) titleVoicePlayer.start();
                 sePlayer.autoResume();
             }
             Log.e("GOTO", "is_multi");
@@ -651,8 +753,8 @@ public class FullscreenActivity extends AppCompatActivity {
         if (pause_flag) {
             mContentView.resumeTimers();
             pause_flag = false;
-            if (!bgmPlayer.isPlaying()) bgmPlayer.start();
-            if (!voicePlayer.isPlaying()) voicePlayer.start();
+            if (!bgmPlayer.isPlaying() && isBgmPlaying) bgmPlayer.start();
+            if (!voicePlayer.isPlaying() && isVoicePlaying) voicePlayer.start();
             sePlayer.autoResume();
         }
         //setVolumeMute(false);
@@ -666,6 +768,7 @@ public class FullscreenActivity extends AppCompatActivity {
         bgmPlayer.release();
         sePlayer.release();
         voicePlayer.release();
+        titleVoicePlayer.release();
         mContentView.removeAllViews();
         mContentView.destroy();
     }
@@ -701,6 +804,7 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void setDefaultPage() {
+        mContentView.resumeTimers();
         SharedPreferences sharedPref = getSharedPreferences(
                 getString(R.string.preference_key), Context.MODE_PRIVATE);
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
@@ -821,18 +925,24 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
 
-    public void playMp3(MediaPlayer player, File file, float volume) {
+    public void playMp3(String tag, MediaPlayer player, File file, float volume) {
         try {
             String path = file.getAbsolutePath();
             if (player.isPlaying()) {
                 player.stop();
             }
+            player.setOnCompletionListener(mp -> {
+                if (tag.equals("bgm")) isBgmPlaying = false;
+                if (tag.equals("voice")) isVoicePlaying = false;
+            });
             player.reset();
             player.setVolume(volume, volume);
             player.setLooping(shouldAudioLoop(path));
             player.setDataSource(path);
             player.prepare();
             player.start();
+            if (tag.equals("bgm")) isBgmPlaying = true;
+            if (tag.equals("voice")) isVoicePlaying = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -880,6 +990,26 @@ public class FullscreenActivity extends AppCompatActivity {
         }, 100); // 1 second delay (takes millis)
     }
 
+    public void playTitleCall(List<String> list, int idx, float volume) {
+        Log.e("GOTO", list.toString());
+        try {
+            titleVoicePlayer.reset();
+            titleVoicePlayer.setOnCompletionListener(mp -> {
+                isBgmPlaying = false;
+                if (idx == 0) playTitleCall(list, 1, volume);
+            });
+            titleVoicePlayer.setLooping(false);
+            titleVoicePlayer.setVolume(volume, volume);
+            titleVoicePlayer.setDataSource(list.get(idx));
+            titleVoicePlayer.prepare();
+            titleVoicePlayer.start();
+            isBgmPlaying = true;
+        } catch (IOException e) {
+            Log.e("GOTO", "playTitleCall Error:");
+            e.printStackTrace();
+        }
+    }
+
     Runnable portVolumeCheckRunnable = new Runnable() {
         public void run() {
             String cookie = CookieManager.getInstance().getCookie(currentCookieHost);
@@ -901,7 +1031,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     seVolume = value;
                 }
             }
-            Log.e("GOTO", cookie);
+            // Log.e("GOTO", cookie);
         }
     };
 }
