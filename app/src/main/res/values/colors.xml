@@ -3,8 +3,10 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#283593</color>
     <color name="colorAccent">#FFC400</color>
+    <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
     <color name="colorSiteSelection">#80283593</color>
     <color name="black_overlay">#66000000</color>
     <color name="transparent">#00000000</color>
+    <color name="panel_red">#B00020</color>
 </resources>

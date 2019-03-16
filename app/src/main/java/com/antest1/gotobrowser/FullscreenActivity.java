@@ -67,6 +67,7 @@ import java.util.zip.GZIPInputStream;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -89,6 +90,7 @@ import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
+import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
 import static com.antest1.gotobrowser.Constants.PREF_PADDING;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_VPADDING;
@@ -117,7 +119,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private WebView mContentView;
     private View mHorizontalControlView, mVerticalControlView;
     private View broswerPanel;
-    private View menuAspect, menuCaption, menuClose;
+    private View menuAspect, menuMute, menuCaption, menuClose;
     private GestureDetector mDetector;
 
     private SeekBar mSeekBarH, mSeekBarV;
@@ -130,6 +132,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private String login_password = "";
     private boolean pause_flag = false;
     private final OkHttpClient resourceClient = new OkHttpClient();
+    private boolean isMuteMode;
     private MediaPlayer bgmPlayer;
     private boolean isBgmPlaying = false;
     private float bgmVolume = 1.0f;
@@ -254,6 +257,22 @@ public class FullscreenActivity extends AppCompatActivity {
                     .setText(String.valueOf(adjust_vpadding));
         });
         menuCaption = findViewById(R.id.menu_cc);
+
+        isMuteMode = sharedPref.getBoolean(PREF_MUTEMODE, false);
+        menuMute = findViewById(R.id.menu_mute);
+        menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isMuteMode ? R.color.panel_red : R.color.black));
+        menuMute.setOnClickListener(v -> {
+            if (isMuteMode) {
+                menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
+                sharedPref.edit().putBoolean(PREF_MUTEMODE, false).commit();
+            } else {
+                menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+                sharedPref.edit().putBoolean(PREF_MUTEMODE, true).commit();
+            }
+            isMuteMode = !isMuteMode;
+            setCurrentVolume(isMuteMode);
+        });
+
         menuClose = findViewById(R.id.menu_close);
         menuClose.setOnClickListener(v -> {
             broswerPanel.setVisibility(View.GONE);
@@ -516,7 +535,13 @@ public class FullscreenActivity extends AppCompatActivity {
                                     else if (url.contains("/kcs/sound/kc")) {
                                         String info = version_key.replace("/kcs/sound/kc", "").replace(".mp3", "");
                                         String[] fn_code = info.split("/");
-                                        int voiceline = KcVoiceUtils.getVoiceLineByFilename(filenameToShipId.get(fn_code[0]), fn_code[1]);
+                                        int voiceline = -1;
+                                        String voice_filename = fn_code[0];
+                                        if (filenameToShipId.containsKey(voice_filename)) {
+                                            voiceline = KcVoiceUtils.getVoiceLineByFilename(filenameToShipId.get(fn_code[0]), fn_code[1]);
+                                        } else {
+                                            voiceline = KcVoiceUtils.getVoiceLineByFilename(fn_code[0], fn_code[1]);
+                                        }
                                         Log.e("GOTO", "file info: " + info);
                                         Log.e("GOTO", "voiceline: " + String.valueOf(voiceline));
                                         if (voiceline >= 30 && voiceline <= 53) { // hourly voiceline
@@ -972,7 +997,43 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
 
+    public void setCurrentVolume(boolean mute_mode) {
+        Log.e("GOTO", "setCurrentVolume: " + mute_mode);
+        boolean bgm_playing = bgmPlayer.isPlaying();
+        boolean voice_playing = voicePlayer.isPlaying();
+        boolean title_playing = titleVoicePlayer.isPlaying();
+        if (bgm_playing) bgmPlayer.pause();
+        if (voice_playing) voicePlayer.pause();
+        if (title_playing) titleVoicePlayer.pause();
+
+        if (mute_mode) {
+            bgmPlayer.setVolume(0.0f, 0.0f);
+            voicePlayer.setVolume(0.0f, 0.0f);
+            titleVoicePlayer.setVolume(0.0f, 0.0f);
+            for (Integer key: seMap.values()) {
+                sePlayer.setVolume(key, 0.0f, 0.0f);
+            }
+        } else {
+            bgmPlayer.setVolume(bgmVolume, bgmVolume);
+            voicePlayer.setVolume(voiceVolume, voiceVolume);
+            titleVoicePlayer.setVolume(voiceVolume, voiceVolume);
+            for (Map.Entry<String, Integer> item: seMap.entrySet()) {
+                String url = item.getKey();
+                Integer sid = item.getValue();
+                if (url.contains("/kcs/sound/kc")) {
+                    sePlayer.setVolume(sid, voiceVolume, voiceVolume);
+                } else {
+                    sePlayer.setVolume(sid, seVolume, seVolume);
+                }
+            }
+        }
+        if (bgm_playing) bgmPlayer.start();
+        if (voice_playing) voicePlayer.start();
+        if (title_playing) titleVoicePlayer.start();
+    }
+
     public void playMp3(String tag, MediaPlayer player, File file, float volume) {
+        if (isMuteMode) volume = 0.0f;
         try {
             String path = file.getAbsolutePath();
             if (player.isPlaying()) {
@@ -996,13 +1057,15 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void playSe(SoundPool pool, File file, float volume) {
+        if (isMuteMode) volume = 0.0f;
         String path = file.getAbsolutePath();
         int soundId = -1;
         if (seMap != null) {
             if (!seMap.containsKey(path)) {
                 soundId = pool.load(path, 1);
+                float vol_f = volume;
                 pool.setOnLoadCompleteListener((soundPool, sampleId, status) -> {
-                    pool.play(sampleId, volume, volume,  1,  0,  1.0f);
+                    pool.play(sampleId, vol_f, vol_f,  1,  0,  1.0f);
                 });
                 seMap.put(path, soundId);
             } else {
@@ -1038,12 +1101,13 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void playTitleCall(List<String> list, int idx, float volume) {
-        Log.e("GOTO", list.toString());
+        if (isMuteMode) volume = 0.0f;
         try {
             titleVoicePlayer.reset();
+            float vol_f = volume;
             titleVoicePlayer.setOnCompletionListener(mp -> {
                 isBgmPlaying = false;
-                if (idx == 0) playTitleCall(list, 1, volume);
+                if (idx == 0) playTitleCall(list, 1, vol_f);
             });
             titleVoicePlayer.setLooping(false);
             titleVoicePlayer.setVolume(volume, volume);
@@ -1068,11 +1132,13 @@ public class FullscreenActivity extends AppCompatActivity {
                 float value = (float)Integer.parseInt(row[1]) / 100;
                 if (key.equals("vol_bgm")) {
                     bgmVolume = value;
-                    bgmPlayer.setVolume(bgmVolume, bgmVolume);
+                    if (isMuteMode) bgmPlayer.setVolume(0.0f, 0.0f);
+                    else bgmPlayer.setVolume(bgmVolume, bgmVolume);
                 }
                 if (key.equals("vol_voice")) {
                     voiceVolume = value;
-                    voicePlayer.setVolume(voiceVolume, voiceVolume);
+                    if (isMuteMode) voicePlayer.setVolume(0.0f, 0.0f);
+                    else voicePlayer.setVolume(voiceVolume, voiceVolume);
                 }
                 if (key.equals("vol_se")) {
                     seVolume = value;
