@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.JsResult;
@@ -201,7 +202,8 @@ public class FullscreenActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setBackgroundDrawable(null);
+        getWindow().setFlags( WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
         setContentView(R.layout.activity_fullscreen);
         Intent intent = getIntent();
         final SharedPreferences sharedPref = getSharedPreferences(
@@ -313,7 +315,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     Map<String, String> header = request.getRequestHeaders();
                     Uri source = request.getUrl();
                     String host = source.getHost();
@@ -607,7 +609,7 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         });
 
-        if (android.os.Build.VERSION.SDK_INT >= 21) {
+        if (Build.VERSION.SDK_INT >= 21) {
             mContentView.getSettings().setMixedContentMode(WebSettings
                     .MIXED_CONTENT_ALWAYS_ALLOW);
             CookieManager.getInstance().setAcceptThirdPartyCookies(mContentView, true);
@@ -692,8 +694,12 @@ public class FullscreenActivity extends AppCompatActivity {
         // mContentView.getSettings().setBuiltInZoomControls(true);
         mContentView.getSettings().setUserAgentString("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0");
         mContentView.setScrollbarFadingEnabled(true);
-        mContentView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        mContentView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         mContentView.getSettings().setAppCacheEnabled(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mContentView.getSettings().setOffscreenPreRaster(true);
+        }
+        mContentView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
         WebView.setWebContentsDebuggingEnabled(true);
         setDefaultPage();
@@ -1084,7 +1090,7 @@ public class FullscreenActivity extends AppCompatActivity {
             Log.e("TAG", event1.toString());
             Log.e("TAG", event2.toString());
             Log.e("TAG", velocityX + " " + velocityY);
-            if (event1.getX() < 100 && velocityX > 4000) {
+            if (event1.getX() < 100 && velocityX > 2000) {
                 broswerPanel.setVisibility(View.VISIBLE);
             }
             return super.onFling(event1, event2, velocityX, velocityY);
