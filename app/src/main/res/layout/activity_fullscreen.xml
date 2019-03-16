@@ -49,6 +49,15 @@
         android:orientation="vertical">
 
         <ImageView
+            android:id="@+id/menu_refresh"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.8"
+            android:padding="6dp"
+            android:src="@mipmap/refresh"
+            app:srcCompat="@mipmap/refresh" />
+
+        <ImageView
             android:id="@+id/menu_aspect"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -123,7 +123,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private WebView mContentView;
     private View mHorizontalControlView, mVerticalControlView;
     private View broswerPanel;
-    private View menuAspect, menuMute, menuLock, menuCaption, menuClose;
+    private View menuRefresh, menuAspect, menuMute, menuLock, menuCaption, menuClose;
     private GestureDetector mDetector;
 
     private SeekBar mSeekBarH, mSeekBarV;
@@ -243,6 +243,10 @@ public class FullscreenActivity extends AppCompatActivity {
 
         broswerPanel = findViewById(R.id.browser_panel);
         broswerPanel.setVisibility(isPancelActive ? View.VISIBLE : View.GONE);
+
+        menuRefresh = findViewById(R.id.menu_refresh);
+        menuRefresh.setOnClickListener(v -> setDefaultPage());
+
         menuAspect = findViewById(R.id.menu_aspect);
         menuAspect.setOnClickListener(v -> {
             DisplayMetrics dimension= new DisplayMetrics();
@@ -1180,8 +1184,10 @@ public class FullscreenActivity extends AppCompatActivity {
             Log.e("TAG", event1.toString());
             Log.e("TAG", event2.toString());
             Log.e("TAG", velocityX + " " + velocityY);
-            if (event1.getX() < 100 && velocityX > 2000) {
+            if (event1.getX() < 200 && velocityX > 2000) {
                 broswerPanel.setVisibility(View.VISIBLE);
+            } else if (event1.getX() < 1500 && velocityX < -2000) {
+                broswerPanel.setVisibility(View.GONE);
             }
             return super.onFling(event1, event2, velocityX, velocityY);
         }
