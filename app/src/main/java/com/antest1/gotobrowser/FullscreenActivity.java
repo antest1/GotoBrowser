@@ -2,6 +2,7 @@ package com.antest1.gotobrowser;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -19,8 +20,10 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
@@ -90,6 +93,7 @@ import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
+import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
 import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
 import static com.antest1.gotobrowser.Constants.PREF_PADDING;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
@@ -119,7 +123,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private WebView mContentView;
     private View mHorizontalControlView, mVerticalControlView;
     private View broswerPanel;
-    private View menuAspect, menuMute, menuCaption, menuClose;
+    private View menuAspect, menuMute, menuLock, menuCaption, menuClose;
     private GestureDetector mDetector;
 
     private SeekBar mSeekBarH, mSeekBarV;
@@ -132,7 +136,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private String login_password = "";
     private boolean pause_flag = false;
     private final OkHttpClient resourceClient = new OkHttpClient();
-    private boolean isMuteMode;
+    private boolean isMuteMode, isLockMode;
     private MediaPlayer bgmPlayer;
     private boolean isBgmPlaying = false;
     private float bgmVolume = 1.0f;
@@ -201,7 +205,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     private BackPressCloseHandler backPressCloseHandler;
 
-    @SuppressLint("SetJavaScriptEnabled")
+    @SuppressLint({"SetJavaScriptEnabled", "ApplySharedPref"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -262,15 +266,35 @@ public class FullscreenActivity extends AppCompatActivity {
         menuMute = findViewById(R.id.menu_mute);
         menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isMuteMode ? R.color.panel_red : R.color.black));
         menuMute.setOnClickListener(v -> {
-            if (isMuteMode) {
-                menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
-                sharedPref.edit().putBoolean(PREF_MUTEMODE, false).commit();
-            } else {
-                menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
-                sharedPref.edit().putBoolean(PREF_MUTEMODE, true).commit();
-            }
             isMuteMode = !isMuteMode;
             setCurrentVolume(isMuteMode);
+            if (isMuteMode) {
+                menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+                sharedPref.edit().putBoolean(PREF_MUTEMODE, true).commit();
+            } else {
+                menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
+                sharedPref.edit().putBoolean(PREF_MUTEMODE, false).commit();
+            }
+        });
+
+        isLockMode = sharedPref.getBoolean(PREF_LOCKMODE, false);
+        menuLock = findViewById(R.id.menu_lock);
+        menuLock.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isLockMode ? R.color.panel_red : R.color.black));
+        menuLock.setOnClickListener(v -> {
+            isLockMode = !isLockMode;
+            if (isLockMode) {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+                menuLock.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+                sharedPref.edit().putBoolean(PREF_LOCKMODE, true).commit();
+            } else {
+                if (sharedPref.getBoolean(PREF_LANDSCAPE, false)) {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+                } else {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
+                }
+                menuLock.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
+                sharedPref.edit().putBoolean(PREF_LOCKMODE, false).commit();
+            }
         });
 
         menuClose = findViewById(R.id.menu_close);

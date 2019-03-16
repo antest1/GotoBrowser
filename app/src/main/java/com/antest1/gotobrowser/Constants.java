@@ -8,6 +8,7 @@ public class Constants {
     public static final String PREF_CONNECTOR = "pref_connector";
     public static final String PREF_SILENT = "pref_silent";
     public static final String PREF_MUTEMODE = "pref_mutemode";
+    public static final String PREF_LOCKMODE = "pref_lockmode";
     public static final String PREF_PADDING = "pref_padding";
     public static final String PREF_VPADDING = "pref_vpadding";
     public static final String PREF_LATEST_URL = "pref_latest_url";
