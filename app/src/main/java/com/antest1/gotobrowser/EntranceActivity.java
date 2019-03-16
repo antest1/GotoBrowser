@@ -1,8 +1,6 @@
 package com.antest1.gotobrowser;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -10,7 +8,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -22,26 +19,23 @@ import java.util.Locale;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import io.fabric.sdk.android.Fabric;
 
-import static com.antest1.gotobrowser.Constants.ACTION_WITHLC;
+import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
-import static com.antest1.gotobrowser.Constants.PREF_PADDING;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
-import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI;
 import static com.antest1.gotobrowser.Constants.URL_LIST;
 
 public class EntranceActivity extends AppCompatActivity {
     private BackPressCloseHandler backPressCloseHandler;
     private TextView startButton, selectButton, clearButton, autoCompleteButton, versionText;
     private Switch landscapeSwitch, adjustmentSwitch, silentSwitch;
-    private CheckBox manualControlCheckbox;
-    private boolean manual_use = false;
+    private CheckBox showControlPanelCheckbox;
+    private boolean show_panel = false;
     private String login_id = "";
     private String login_password = "";
 
@@ -157,8 +151,8 @@ public class EntranceActivity extends AppCompatActivity {
             alertDialog.show();
         });
 
-        manualControlCheckbox = findViewById(R.id.layout_control);
-        manualControlCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> manual_use = isChecked);
+        showControlPanelCheckbox = findViewById(R.id.layout_control);
+        showControlPanelCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> show_panel = isChecked);
 
         startButton = findViewById(R.id.webview_start);
         startButton.setOnClickListener(v -> {
@@ -168,7 +162,7 @@ public class EntranceActivity extends AppCompatActivity {
             } else {
                 Intent intent = new Intent(EntranceActivity.this, FullscreenActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                if (manualControlCheckbox.isChecked()) intent.setAction(ACTION_WITHLC);
+                if (showControlPanelCheckbox.isChecked()) intent.setAction(ACTION_SHOWPANEL);
                 intent.putExtra("login_id", login_id);
                 intent.putExtra("login_pw", login_password);
                 startActivity(intent);

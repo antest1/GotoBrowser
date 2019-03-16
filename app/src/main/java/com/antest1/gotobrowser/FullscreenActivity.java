@@ -19,12 +19,12 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.JsResult;
-import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -40,17 +40,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.stream.JsonReader;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -59,15 +54,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -80,7 +71,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-import static com.antest1.gotobrowser.Constants.ACTION_WITHLC;
+import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_NIT;
 import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_OOI;
 import static com.antest1.gotobrowser.Constants.CONNECT_NITRABBIT;
@@ -99,6 +90,7 @@ import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_PADDING;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
+import static com.antest1.gotobrowser.Constants.PREF_VPADDING;
 import static com.antest1.gotobrowser.Constants.REFRESH_CALL;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.RESIZE_CALL;
@@ -122,9 +114,13 @@ public class FullscreenActivity extends AppCompatActivity {
     private AudioManager audioManager;
     private final Handler mHideHandler = new Handler();
     private WebView mContentView;
-    private View mControllerView;
-    private SeekBar mSeekbar;
-    private boolean isControllerActive = false;
+    private View mHorizontalControlView, mVerticalControlView;
+    private View broswerPanel;
+    private View menuAspect, menuCaption, menuClose;
+    private GestureDetector mDetector;
+
+    private SeekBar mSeekBarH, mSeekBarV;
+    private boolean isPancelActive = false;
     private boolean isStartedFlag = false;
     private boolean savedStreamMuted = false;
     private String connector_url = "";
@@ -184,15 +180,6 @@ public class FullscreenActivity extends AppCompatActivity {
             hide();
         }
     };
-    private final View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View view, MotionEvent motionEvent) {
-            if (AUTO_HIDE) {
-                delayedHide(AUTO_HIDE_DELAY_MILLIS);
-            }
-            return false;
-        }
-    };
 
     private boolean checkImageCached(String url) {
         if (url.contains("img/common")) return true;
@@ -232,12 +219,43 @@ public class FullscreenActivity extends AppCompatActivity {
 
         mVisible = true;
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mDetector = new GestureDetector(this, new SettingButtonGestureListener());
+
         mContentView = findViewById(R.id.main_browser);
-        mControllerView = findViewById(R.id.control_component);
-        mControllerView.setVisibility(View.GONE);
-        isControllerActive = intent != null && ACTION_WITHLC.equals(intent.getAction());
-        //setMemoryCache(getFilesDir().getAbsolutePath().concat("/cache/"));
-        //Log.e("GOTO", "memory cache: " + image_cache.size());
+        mContentView.setOnTouchListener((v, event) -> mDetector.onTouchEvent(event));
+        mHorizontalControlView = findViewById(R.id.control_component);
+        mHorizontalControlView.setVisibility(View.GONE);
+        mVerticalControlView = findViewById(R.id.vcontrol_component);
+        mVerticalControlView.setVisibility(View.GONE);
+
+        isPancelActive = intent != null && ACTION_SHOWPANEL.equals(intent.getAction());
+        // setMemoryCache(getFilesDir().getAbsolutePath().concat("/cache/"));
+        // Log.e("GOTO", "memory cache: " + image_cache.size());
+
+        broswerPanel = findViewById(R.id.browser_panel);
+        broswerPanel.setVisibility(isPancelActive ? View.VISIBLE : View.GONE);
+        menuAspect = findViewById(R.id.menu_aspect);
+        menuAspect.setOnClickListener(v -> {
+            DisplayMetrics dimension= new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(dimension);
+            int width = dimension.widthPixels;
+            int height = dimension.heightPixels;
+
+            int adjust_padding = sharedPref.getInt(PREF_PADDING, getDefaultPadding(width, height));
+            int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
+
+            mHorizontalControlView.setVisibility(View.VISIBLE);
+            ((TextView) mHorizontalControlView.findViewById(R.id.control_text))
+                    .setText(String.valueOf(adjust_padding));
+            mVerticalControlView.setVisibility(View.VISIBLE);
+            ((TextView) mVerticalControlView.findViewById(R.id.vcontrol_text))
+                    .setText(String.valueOf(adjust_vpadding));
+        });
+        menuCaption = findViewById(R.id.menu_cc);
+        menuClose = findViewById(R.id.menu_close);
+        menuClose.setOnClickListener(v -> {
+            broswerPanel.setVisibility(View.GONE);
+        });
 
         backPressCloseHandler = new BackPressCloseHandler(this);
         bgmPlayer = new MediaPlayer();
@@ -272,12 +290,13 @@ public class FullscreenActivity extends AppCompatActivity {
                     int width = dimension.widthPixels;
                     int height = dimension.heightPixels;
                     int adjust_padding = sharedPref.getInt(PREF_PADDING, getDefaultPadding(width, height));
+                    int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
                     boolean adjust_layout = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
                     if (adjust_layout) {
                         if (url.contains(URL_OSAPI)) mContentView.evaluateJavascript(String.format(
-                                Locale.US, RESIZE_OSAPI, adjust_padding), null);
+                                Locale.US, RESIZE_OSAPI, adjust_padding, adjust_vpadding), null);
                         else if (url.contains(URL_DMM)) mContentView.evaluateJavascript(String.format(
-                                Locale.US, RESIZE_DMM, adjust_padding), null);
+                                Locale.US, RESIZE_DMM, adjust_padding, adjust_vpadding), null);
                     }
                     if (url.contains(URL_OSAPI)) {
                         mContentView.evaluateJavascript(String.format(Locale.US,
@@ -288,12 +307,6 @@ public class FullscreenActivity extends AppCompatActivity {
                                         setDefaultPage();
                                     }
                                 });
-                    }
-
-                    if (isControllerActive) {
-                        mControllerView.setVisibility(View.VISIBLE);
-                        ((TextView) mControllerView.findViewById(R.id.control_text))
-                                .setText(String.valueOf(adjust_padding));
                     }
                 }
             }
@@ -618,27 +631,52 @@ public class FullscreenActivity extends AppCompatActivity {
         int width = dimension.widthPixels;
         int height = dimension.heightPixels;
         int adjust_padding = sharedPref.getInt(PREF_PADDING, getDefaultPadding(width, height));
-        mSeekbar = mControllerView.findViewById(R.id.control_main);
-        mSeekbar.setProgress(getProgressFromPref(adjust_padding));
-        mSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
+        mSeekBarH = mHorizontalControlView.findViewById(R.id.control_main);
+        mSeekBarH.setProgress(getHorizontalProgressFromPref(adjust_padding));
+        mSeekBarH.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (isStartedFlag && fromUser) {
-                    mContentView.evaluateJavascript(String.format(Locale.US, RESIZE_CALL, convertProgress(progress)), null);
-                    sharedPref.edit().putInt(PREF_PADDING, convertProgress(progress)).apply();
-                    ((TextView) mControllerView.findViewById(R.id.control_text))
-                            .setText(String.valueOf(convertProgress(progress)));
+                    int vprogress = sharedPref.getInt(PREF_VPADDING, 0);
+                    mContentView.evaluateJavascript(String.format(Locale.US,
+                            RESIZE_CALL, convertHorizontalProgress(progress), vprogress), null);
+                    sharedPref.edit().putInt(PREF_PADDING, convertHorizontalProgress(progress)).apply();
+                    ((TextView) mHorizontalControlView.findViewById(R.id.control_text))
+                            .setText(String.valueOf(convertHorizontalProgress(progress)));
                 }
             }
-
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) { }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) { }
         });
-        mControllerView.findViewById(R.id.control_exit)
-                .setOnClickListener(v -> mControllerView.setVisibility(View.GONE));
+        mHorizontalControlView.findViewById(R.id.control_exit)
+                .setOnClickListener(v -> mHorizontalControlView.setVisibility(View.GONE));
+
+        mSeekBarV = mVerticalControlView.findViewById(R.id.vcontrol_main);
+        mSeekBarV.setProgress(getVerticalProgressFromPref(adjust_vpadding));
+        mSeekBarV.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (isStartedFlag) {
+                    int hprogress = sharedPref.getInt(PREF_PADDING, getDefaultPadding(width, height));
+                    mContentView.evaluateJavascript(String.format(Locale.US,
+                            RESIZE_CALL, hprogress, convertVerticalProgress(progress)), null);
+                    sharedPref.edit().putInt(PREF_VPADDING, convertVerticalProgress(progress)).apply();
+                    ((TextView) mVerticalControlView.findViewById(R.id.vcontrol_text))
+                            .setText(String.valueOf(convertVerticalProgress(progress)));
+                }
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) { }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) { }
+        });
+        mVerticalControlView.findViewById(R.id.vcontrol_exit)
+                .setOnClickListener(v -> mVerticalControlView.setVisibility(View.GONE));
 
         // mContentView.setInitialScale(1);
         mContentView.getSettings().setLoadWithOverviewMode(true);
@@ -785,15 +823,18 @@ public class FullscreenActivity extends AppCompatActivity {
         int width = dimension.widthPixels;
         int height = dimension.heightPixels;
         int adjust_padding = sharedPref.getInt(PREF_PADDING, getDefaultPadding(width, height));
-        if (mSeekbar != null) mSeekbar.setProgress(adjust_padding);
+        int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
+        if (mSeekBarH != null) mSeekBarH.setProgress(adjust_padding);
 
         if (isStartedFlag) {
             if (adjust_layout) mContentView.evaluateJavascript(
-                    String.format(Locale.US, RESIZE_CALL, adjust_padding), null);
+                    String.format(Locale.US, RESIZE_CALL, adjust_padding, adjust_vpadding), null);
         }
     }
-    private int getProgressFromPref(int value) {return value / 2; }
-    private int convertProgress(int progress) { return progress * 2; }
+    private int getHorizontalProgressFromPref(int value) {return value / 2; }
+    private int convertHorizontalProgress(int progress) { return progress * 2; }
+    private int getVerticalProgressFromPref(int value) {return value / 2; }
+    private int convertVerticalProgress(int progress) { return progress * 2; }
 
     private int getDefaultPadding(int width, int height) {
         if (width < height) {
@@ -1034,4 +1075,19 @@ public class FullscreenActivity extends AppCompatActivity {
             // Log.e("GOTO", cookie);
         }
     };
+
+    class SettingButtonGestureListener extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onFling(MotionEvent event1, MotionEvent event2,
+                               float velocityX, float velocityY) {
+            Log.e("TAG", "onFling: ");
+            Log.e("TAG", event1.toString());
+            Log.e("TAG", event2.toString());
+            Log.e("TAG", velocityX + " " + velocityY);
+            if (event1.getX() < 100 && velocityX > 4000) {
+                broswerPanel.setVisibility(View.VISIBLE);
+            }
+            return super.onFling(event1, event2, velocityX, velocityY);
+        }
+    }
 }
