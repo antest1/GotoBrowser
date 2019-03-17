@@ -1116,7 +1116,8 @@ public class FullscreenActivity extends AppCompatActivity {
                 // can call h again after work!
                 time -= 100;
                 volume = (deviceVolume * time) / duration;
-                _player.setVolume(volume, volume);
+                if (isMuteMode) _player.setVolume(0.0f, 0.0f);
+                else _player.setVolume(volume, volume);
                 if (time > 0)
                     h.postDelayed(this, 100);
                 else {
