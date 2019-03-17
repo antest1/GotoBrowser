@@ -55,11 +55,11 @@
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
 
-#-assumenosideeffects class android.util.Log {
-#    public static *** d(...);
-#    public static *** v(...);
-#    public static *** i(...);
-#    public static *** e(...);
-#    public static *** w(...);
-#    public static *** wtf(...);
-#}
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+    public static *** e(...);
+    public static *** w(...);
+    public static *** wtf(...);
+}
