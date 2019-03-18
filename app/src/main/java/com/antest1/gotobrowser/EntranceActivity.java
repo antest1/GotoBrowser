@@ -42,6 +42,7 @@ public class EntranceActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!isTaskRoot()) finish();
         setContentView(R.layout.activity_entrance);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
