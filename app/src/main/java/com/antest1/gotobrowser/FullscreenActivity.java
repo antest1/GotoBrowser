@@ -2,7 +2,6 @@ package com.antest1.gotobrowser;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -20,10 +19,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Display;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
@@ -96,6 +93,7 @@ import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
 import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
 import static com.antest1.gotobrowser.Constants.PREF_PADDING;
+import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_VPADDING;
 import static com.antest1.gotobrowser.Constants.REFRESH_CALL;
@@ -136,7 +134,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private String login_password = "";
     private boolean pause_flag = false;
     private final OkHttpClient resourceClient = new OkHttpClient();
-    private boolean isMuteMode, isLockMode;
+    private boolean isMuteMode, isLockMode, isCaptionMode;
     private MediaPlayer bgmPlayer;
     private boolean isBgmPlaying = false;
     private float bgmVolume = 1.0f;
@@ -150,7 +148,10 @@ public class FullscreenActivity extends AppCompatActivity {
     private boolean isBattleMode = false;
     private Map<String, String> filenameToShipId = new HashMap<>();
     private String currentCookieHost = "";
-    private List<String> currentTitleCall = new ArrayList<>();
+    private TextView subtitleText;
+    private final Handler clearSubHandler = new Handler();
+    private List<String> titlePath = new ArrayList<>();
+    private List<String> titleFiles = new ArrayList<>();
     ScheduledExecutorService executor;
 
     private final Runnable mHidePart2Runnable = new Runnable() {
@@ -301,6 +302,22 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         });
 
+        isCaptionMode = sharedPref.getBoolean(PREF_SHOWCC, false);
+        menuCaption = findViewById(R.id.menu_cc);
+        menuCaption.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isCaptionMode ? R.color.panel_red : R.color.black));
+        menuCaption.setOnClickListener(v -> {
+            isCaptionMode = !isCaptionMode;
+            if (isCaptionMode) {
+                subtitleText.setVisibility(View.VISIBLE);
+                menuCaption.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+                sharedPref.edit().putBoolean(PREF_SHOWCC, true).commit();
+            } else {
+                subtitleText.setVisibility(View.GONE);
+                menuCaption.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
+                sharedPref.edit().putBoolean(PREF_SHOWCC, false).commit();
+            }
+        });
+
         menuClose = findViewById(R.id.menu_close);
         menuClose.setOnClickListener(v -> {
             broswerPanel.setVisibility(View.GONE);
@@ -311,6 +328,14 @@ public class FullscreenActivity extends AppCompatActivity {
         voicePlayer = new MediaPlayer();
         titleVoicePlayer = new MediaPlayer();
         sePlayer = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
+        subtitleText = findViewById(R.id.subtitle_view);
+        subtitleText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearSubHandler.postDelayed(clearSubtitle, 250);
+            }
+        });
+
         mContentView.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
                 sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
@@ -411,7 +436,8 @@ public class FullscreenActivity extends AppCompatActivity {
                             String filename = source.getLastPathSegment();
 
                             if (filename.equals("version.json") || filename.contains("index.php")) {
-                                currentTitleCall.clear();
+                                titlePath.clear();
+                                titleFiles.clear();
                                 return super.shouldInterceptRequest(view, request);
                             }
                             if (path.contains("ooi.css")) { // block ooi.moe background
@@ -492,7 +518,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             String filepath = outputpath.concat(filename);
 
                             boolean update_flag = false;
-                            String version_key = source.getPath();
+                            String source_path = source.getPath();
                             stopMp3(bgmPlayer, filepath);
 
                             if (is_image || is_audio || is_json) {
@@ -501,12 +527,12 @@ public class FullscreenActivity extends AppCompatActivity {
                                     version = source.getQueryParameter("version");
                                 }
 
-                                if (!versionTable.getValue(version_key).equals(version)) {
+                                if (!versionTable.getValue(source_path).equals(version)) {
                                     update_flag = true;
-                                    versionTable.putValue(version_key, version);
-                                    Log.e("GOTO", "cache resource " + version_key +  ": " + version);
+                                    versionTable.putValue(source_path, version);
+                                    Log.e("GOTO", "cache resource " + source_path +  ": " + version);
                                 } else {
-                                    Log.e("GOTO", "resource " + version_key +  " found: " + version);
+                                    Log.e("GOTO", "resource " + source_path +  " found: " + version);
                                 }
                             }
 
@@ -561,14 +587,18 @@ public class FullscreenActivity extends AppCompatActivity {
                                 if (is_audio) {
                                     if (url.contains("resources/se")) playSe(sePlayer, file, seVolume);
                                     else if (url.contains("/kcs/sound/kc")) {
-                                        String info = version_key.replace("/kcs/sound/kc", "").replace(".mp3", "");
+                                        String info = source_path.replace("/kcs/sound/kc", "").replace(".mp3", "");
                                         String[] fn_code = info.split("/");
                                         int voiceline = -1;
                                         String voice_filename = fn_code[0];
+                                        String voice_code = fn_code[1];
                                         if (filenameToShipId.containsKey(voice_filename)) {
-                                            voiceline = KcVoiceUtils.getVoiceLineByFilename(filenameToShipId.get(fn_code[0]), fn_code[1]);
+                                            String ship_id = filenameToShipId.get(voice_filename);
+                                            voiceline = KcVoiceUtils.getVoiceLineByFilename(ship_id, voice_code);
+                                            setSubtitle(ship_id, voiceline);
                                         } else {
-                                            voiceline = KcVoiceUtils.getVoiceLineByFilename(fn_code[0], fn_code[1]);
+                                            voiceline = KcVoiceUtils.getVoiceLineByFilename(voice_filename, voice_code);
+                                            setSubtitle(voice_filename, voiceline);
                                         }
                                         Log.e("GOTO", "file info: " + info);
                                         Log.e("GOTO", "voiceline: " + String.valueOf(voiceline));
@@ -584,10 +614,12 @@ public class FullscreenActivity extends AppCompatActivity {
                                             else playMp3("voice", voicePlayer, file, voiceVolume);
                                         }
                                     }
-                                    else if (url.contains("/voice/titlecall")) {
-                                        currentTitleCall.add(file.getAbsolutePath());
-                                        if (currentTitleCall.size() == 2) {
-                                            playTitleCall(currentTitleCall, 0, voiceVolume);
+                                    else if (url.contains("/voice/titlecall_")) {
+                                        String info = source_path.replace("/kcs2/resources/voice/", "").replace(".mp3", "");
+                                        titlePath.add(info);
+                                        titleFiles.add(file.getAbsolutePath());
+                                        if (titleFiles.size() == 2) {
+                                            playTitleCall(titlePath, titleFiles, 0, voiceVolume);
                                         }
                                     }
                                     else if (url.contains("resources/bgm")) playMp3("bgm", bgmPlayer, file, bgmVolume);
@@ -1129,14 +1161,18 @@ public class FullscreenActivity extends AppCompatActivity {
         }, 100); // 1 second delay (takes millis)
     }
 
-    public void playTitleCall(List<String> list, int idx, float volume) {
+    public void playTitleCall(List<String> info, List<String> list, int idx, float volume) {
         if (isMuteMode) volume = 0.0f;
         try {
+            String[] fn_code = info.get(idx).split("/");
+            String voice_filename = fn_code[0];
+            int voice_code = Integer.parseInt(fn_code[1]);
+            setSubtitle(voice_filename, voice_code);
             titleVoicePlayer.reset();
             float vol_f = volume;
             titleVoicePlayer.setOnCompletionListener(mp -> {
                 isBgmPlaying = false;
-                if (idx == 0) playTitleCall(list, 1, vol_f);
+                if (idx == 0) playTitleCall(info, list, 1, vol_f);
             });
             titleVoicePlayer.setLooping(false);
             titleVoicePlayer.setVolume(volume, volume);
@@ -1191,6 +1227,18 @@ public class FullscreenActivity extends AppCompatActivity {
                 broswerPanel.setVisibility(View.GONE);
             }
             return super.onFling(event1, event2, velocityX, velocityY);
+        }
+    }
+
+    // Reference: https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
+    public Runnable clearSubtitle = () -> subtitleText.setText("");
+    public void setSubtitle(String id, int code) {
+        if (isCaptionMode) {
+            runOnUiThread(() -> {
+                clearSubHandler.removeCallbacks(clearSubtitle);
+                subtitleText.setText(String.format(Locale.US, "%s %d", id, code));
+                clearSubHandler.postDelayed(clearSubtitle, 5000);
+            });
         }
     }
 }

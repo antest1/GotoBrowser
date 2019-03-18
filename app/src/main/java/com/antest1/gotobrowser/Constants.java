@@ -11,6 +11,7 @@ public class Constants {
     public static final String PREF_LOCKMODE = "pref_lockmode";
     public static final String PREF_PADDING = "pref_padding";
     public static final String PREF_VPADDING = "pref_vpadding";
+    public static final String PREF_SHOWCC = "pref_showcc";
     public static final String PREF_LATEST_URL = "pref_latest_url";
     public static final String PREF_DMM_ID = "pref_autocomplete_id";
     public static final String PREF_DMM_PASS = "pref_autocomplete_pass";

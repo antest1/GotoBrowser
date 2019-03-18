@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 // Reference: https://github.com/KC3Kai/KC3Kai/issues/1180
+//            https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
 public class KcVoiceUtils {
     public static final int[] resourceKeys = {
             6657, 5699, 3371, 8909, 7719, 6229, 5449, 8561, 2987, 5501,

@@ -91,7 +91,6 @@
             android:alpha="0.8"
             android:padding="6dp"
             android:src="@mipmap/caption"
-            android:visibility="gone"
             app:srcCompat="@mipmap/caption" />
 
         <ImageView
@@ -187,6 +186,24 @@
             app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
 
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/subtitle_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="15dp"
+        android:maxLines="2"
+        android:shadowColor="@color/black"
+        android:shadowDx="2"
+        android:shadowDy="2"
+        android:shadowRadius="2"
+        android:text="SUBTITLE AREA"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="20dp"
+        android:textStyle="bold" />
 
     <ImageView
         android:id="@+id/cookietest"
