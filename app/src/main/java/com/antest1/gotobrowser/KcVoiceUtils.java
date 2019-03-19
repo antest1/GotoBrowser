@@ -1,14 +1,35 @@
 package com.antest1.gotobrowser;
 
+import android.content.Context;
+import android.content.res.AssetManager;
+import android.util.Log;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 // Reference: https://github.com/KC3Kai/KC3Kai/issues/1180
 //            https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
 public class KcVoiceUtils {
+    public static final String specialVoiceCode = "WhiteDay";
+    public static final int SPECIAL_VOICE_START_YEAR = 2014;
+    public static final int SPECIAL_VOICE_END_YEAR = 2019;
+
     public static final int[] resourceKeys = {
             6657, 5699, 3371, 8909, 7719, 6229, 5449, 8561, 2987, 5501,
             3127, 9319, 4365, 9811, 9927, 2423, 3439, 1865, 5925, 4409,
@@ -45,7 +66,7 @@ public class KcVoiceUtils {
     // whiteday 2015
     // whiteday 2015
     public static final JsonObject specialDiffs =
-            new JsonParser().parse("{\"1555\":2,\"3347\":3,\"6547\":2,\"1471\":3}")
+            new JsonParser().parse("{\"1555\":\"2\",\"3347\":\"3\",\"6547\":\"2\",\"1471\":\"3\"}")
                     .getAsJsonObject();
 
     // Graf Zeppelin (Kai):
@@ -70,6 +91,11 @@ public class KcVoiceUtils {
         496,           // Zara due
     };
 
+    public static JsonObject shipDataGraph = new JsonObject();
+    public static JsonObject quoteLabel = new JsonObject();
+    public static JsonObject quoteData = new JsonObject();
+    public static JsonObject quoteTimingData = new JsonObject();
+
     public static int getFilenameByVoiceLine(int ship_id, int lineNum) {
         return lineNum <= 53 ? 100000 + 17 * (ship_id + 7) * (workingDiffs[lineNum - 1]) % 99173 : lineNum;
     }
@@ -92,18 +118,142 @@ public class KcVoiceUtils {
         return -1;
     }
 
-    public static int getVoiceLineByFilename(String ship_id, String filename) {
+    public static String getVoiceLineByFilename(String ship_id, String filename) {
         if (ship_id.equals("9999")) {
-            return Integer.parseInt(filename);
+            return filename;
         }
         // Some ships use special voice line filenames
         JsonObject specialMap = specialShipVoices.getAsJsonObject(ship_id);
         if (specialMap != null && specialMap.has(filename)) {
-            return specialMap.get(filename).getAsInt();
+            return specialMap.get(filename).getAsString();
         }
         int computedDiff = getVoiceDiffByFilename(ship_id, filename);
         int computedIndex = voiceDiffsList.indexOf(computedDiff);
         // If computed diff is not in voiceDiffs, return the computedDiff itself so we can lookup quotes via voiceDiff
-        return computedIndex > -1 ? computedIndex + 1 : computedDiff;
+        return String.valueOf(computedIndex > -1 ? computedIndex + 1 : computedDiff);
+    }
+
+    public static void buildShipGraph(JsonArray data) {
+        List<Map.Entry<Integer, JsonObject>> list = new ArrayList<>();
+        for (int i = 0; i < data.size(); i++) {
+            JsonObject item = data.get(i).getAsJsonObject();
+            int api_id = item.get("api_id").getAsInt();
+            Map.Entry<Integer, JsonObject> item_entry =
+                    new AbstractMap.SimpleEntry<Integer, JsonObject>(api_id, item);
+            list.add(item_entry);
+        }
+        Collections.sort(list, (o1, o2) -> o1.getKey().compareTo(o2.getKey()));
+
+        Set<String> checked = new HashSet<>();
+        shipDataGraph = new JsonObject();
+        for (Map.Entry<Integer, JsonObject> item: list) {
+            JsonObject ship_data = item.getValue();
+            if (ship_data.has("api_aftershipid")) {
+                String ship_id = ship_data.get("api_id").getAsString();
+                String ship_afterid = ship_data.get("api_aftershipid").getAsString();
+                if (!checked.contains(ship_id)) {
+                    shipDataGraph.addProperty(ship_afterid, ship_id);
+                    checked.add(ship_afterid);
+                }
+            }
+        }
+        Log.e("GOTO", "ship_graph: " + shipDataGraph.size());
+    }
+
+    public static void loadQuoteAnnotation(Context context) {
+        AssetManager as = context.getAssets();
+        try {
+            final Gson gson = new Gson();
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    as.open("quotes_label.json")));
+            quoteLabel = gson.fromJson(reader, JsonObject.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Log.e("GOTO", "quote_meta: " + quoteLabel.size());
+    }
+
+    public static void loadQuoteData(Context context, String locale) {
+        AssetManager as = context.getAssets();
+        try {
+            final Gson gson = new Gson();
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    as.open(String.format(Locale.US, "quotes_%s.json", locale))));
+            quoteData = gson.fromJson(reader, JsonObject.class);
+            quoteTimingData = quoteData.getAsJsonObject("timing");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Log.e("GOTO", "quote_data: " + quoteData.size());
+    }
+
+    public static int getDefaultTiming(String data) {
+        if (quoteTimingData.size() == 2) {
+            int default_time = quoteTimingData.get("baseMillisVoiceLine").getAsInt();
+            int extra_time = quoteTimingData.get("extraMillisPerChar").getAsInt() * data.length();
+            return default_time + extra_time;
+        }
+        return 0;
+    }
+
+    public static JsonObject getQuoteString(String ship_id, String voiceline) {
+        Log.e("GOTO", ship_id + " " +voiceline);
+        String voiceline_original = voiceline;
+        JsonObject voicedata_base = new JsonObject();
+        voicedata_base.addProperty("0", "");
+        if (shipDataGraph.has(ship_id)) {
+            String before_id = shipDataGraph.get(ship_id).getAsString();
+            voicedata_base = getQuoteString(before_id, voiceline_original);
+            Log.e("GOTO", "prev:" + voicedata_base.toString());
+        }
+
+        try {
+            String voiceline_special = "";
+            if (quoteData.size() == 0) return voicedata_base;
+            boolean is_npc = ship_id.equals("9999");
+            boolean is_title = ship_id.contains("titlecall");
+            boolean current_special_flag = false;
+            boolean prev_special_flag = voicedata_base.has("special");
+            if (is_npc) ship_id = "npc";
+            if (!is_npc && !is_title) {
+                if (specialDiffs.has(voiceline)) {
+                    voiceline = specialDiffs.get(voiceline).getAsString();
+                }
+                if (specialVoiceCode.length() > 0) {
+                    voiceline_special = voiceline.concat("@").concat(specialVoiceCode);
+                }
+                voiceline = quoteLabel.get(voiceline).getAsString();
+            }
+            JsonObject ship_data = quoteData.getAsJsonObject(ship_id);
+            if (ship_data.has(voiceline_special)) {
+                voiceline = voiceline_special;
+                current_special_flag = true;
+            }
+            for (int year = SPECIAL_VOICE_END_YEAR; year >= SPECIAL_VOICE_START_YEAR; year--) {
+                if (ship_data.has(voiceline_special +  year)) {
+                    voiceline = voiceline_special + year;
+                    current_special_flag = true;
+                    break;
+                }
+            }
+            Log.e("GOTO", ship_id + " " +voiceline);
+            if (current_special_flag || !prev_special_flag) {
+                if (ship_data.has(voiceline)) {
+                    JsonElement text_data = ship_data.get(voiceline);
+                    if (text_data.isJsonPrimitive()) {
+                        voicedata_base.addProperty("0", text_data.getAsString());
+                    } else {
+                        voicedata_base = text_data.getAsJsonObject();
+                    }
+                }
+            }
+            if (current_special_flag) voicedata_base.addProperty("special", true);
+        } catch (Exception e){
+            e.printStackTrace();
+            voicedata_base.addProperty("0", e.getMessage());
+        }
+
+        return voicedata_base;
     }
 }

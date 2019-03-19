@@ -32,6 +32,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -149,6 +150,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private Map<String, String> filenameToShipId = new HashMap<>();
     private String currentCookieHost = "";
     private TextView subtitleText;
+    private int defaultSubtitleMargin = 0;
     private final Handler clearSubHandler = new Handler();
     private List<String> titlePath = new ArrayList<>();
     private List<String> titleFiles = new ArrayList<>();
@@ -336,6 +338,12 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         });
 
+
+        defaultSubtitleMargin = getDefaultSubtitleMargin();
+        setSubtitleMargin(sharedPref.getInt(PREF_PADDING, 0));
+        KcVoiceUtils.loadQuoteAnnotation(getApplicationContext());
+        KcVoiceUtils.loadQuoteData(getApplicationContext(), "ko");
+
         mContentView.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
                 sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
@@ -493,13 +501,15 @@ public class FullscreenActivity extends AppCompatActivity {
                                 Reader reader = new InputStreamReader(buf);
                                 JsonObject api_data = gson.fromJson(reader, JsonObject.class).getAsJsonObject("api_data");
                                 JsonArray api_mst_shipgraph = api_data.getAsJsonArray("api_mst_shipgraph");
+                                JsonArray api_mst_ship = api_data.getAsJsonArray("api_mst_ship");
+                                KcVoiceUtils.buildShipGraph(api_mst_ship);
                                 for (JsonElement item: api_mst_shipgraph) {
                                     JsonObject ship = item.getAsJsonObject();
                                     String shipId = ship.get("api_id").getAsString();
                                     String shipFn = ship.get("api_filename").getAsString();
                                     filenameToShipId.put(shipFn, shipId);
                                 }
-                                Log.e("GOTO", "shipgraph: " + String.valueOf(filenameToShipId.size()));
+                                Log.e("GOTO", "ship_filename: " + filenameToShipId.size());
                                 return super.shouldInterceptRequest(view, request);
                             }
 
@@ -589,29 +599,32 @@ public class FullscreenActivity extends AppCompatActivity {
                                     else if (url.contains("/kcs/sound/kc")) {
                                         String info = source_path.replace("/kcs/sound/kc", "").replace(".mp3", "");
                                         String[] fn_code = info.split("/");
-                                        int voiceline = -1;
+                                        String voiceline = "";
                                         String voice_filename = fn_code[0];
                                         String voice_code = fn_code[1];
+                                        String ship_id = voice_filename;
                                         if (filenameToShipId.containsKey(voice_filename)) {
-                                            String ship_id = filenameToShipId.get(voice_filename);
+                                            ship_id = filenameToShipId.get(voice_filename);
                                             voiceline = KcVoiceUtils.getVoiceLineByFilename(ship_id, voice_code);
-                                            setSubtitle(ship_id, voiceline);
+
                                         } else {
                                             voiceline = KcVoiceUtils.getVoiceLineByFilename(voice_filename, voice_code);
-                                            setSubtitle(voice_filename, voiceline);
                                         }
                                         Log.e("GOTO", "file info: " + info);
                                         Log.e("GOTO", "voiceline: " + String.valueOf(voiceline));
-                                        if (voiceline >= 30 && voiceline <= 53) { // hourly voiceline
+                                        int voiceline_value = Integer.parseInt(voiceline);
+                                        if (voiceline_value >= 30 && voiceline_value <= 53) { // hourly voiceline
                                             Calendar now = Calendar.getInstance();
                                             int minute = now.get(Calendar.MINUTE);
                                             int second = now.get(Calendar.SECOND);
                                             if (minute == 0 && second <= 2) {
                                                 playMp3("voice", voicePlayer, file, voiceVolume);
+                                                setSubtitle(ship_id, voiceline);
                                             }
                                         } else {
                                             if (isBattleMode && (file.length() / 1024) < 100) playSe(sePlayer, file, voiceVolume);
                                             else playMp3("voice", voicePlayer, file, voiceVolume);
+                                            setSubtitle(ship_id, voiceline);
                                         }
                                     }
                                     else if (url.contains("/voice/titlecall_")) {
@@ -731,6 +744,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     sharedPref.edit().putInt(PREF_PADDING, convertHorizontalProgress(progress)).apply();
                     ((TextView) mHorizontalControlView.findViewById(R.id.control_text))
                             .setText(String.valueOf(convertHorizontalProgress(progress)));
+                    setSubtitleMargin(adjust_padding);
                 }
             }
             @Override
@@ -916,7 +930,7 @@ public class FullscreenActivity extends AppCompatActivity {
         int adjust_padding = sharedPref.getInt(PREF_PADDING, getDefaultPadding(width, height));
         int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
         if (mSeekBarH != null) mSeekBarH.setProgress(adjust_padding);
-
+        setSubtitleMargin(adjust_padding);
         if (isStartedFlag) {
             if (adjust_layout) mContentView.evaluateJavascript(
                     String.format(Locale.US, RESIZE_CALL, adjust_padding, adjust_vpadding), null);
@@ -1166,7 +1180,7 @@ public class FullscreenActivity extends AppCompatActivity {
         try {
             String[] fn_code = info.get(idx).split("/");
             String voice_filename = fn_code[0];
-            int voice_code = Integer.parseInt(fn_code[1]);
+            String voice_code = fn_code[1];
             setSubtitle(voice_filename, voice_code);
             titleVoicePlayer.reset();
             float vol_f = volume;
@@ -1232,13 +1246,27 @@ public class FullscreenActivity extends AppCompatActivity {
 
     // Reference: https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
     public Runnable clearSubtitle = () -> subtitleText.setText("");
-    public void setSubtitle(String id, int code) {
+    public void setSubtitle(String id, String code) {
         if (isCaptionMode) {
             runOnUiThread(() -> {
                 clearSubHandler.removeCallbacks(clearSubtitle);
-                subtitleText.setText(String.format(Locale.US, "%s %d", id, code));
-                clearSubHandler.postDelayed(clearSubtitle, 5000);
+                JsonObject subtitle = KcVoiceUtils.getQuoteString(id, code);
+                String subtitle_text = subtitle.get("0").getAsString().replace("<br>", "\n");
+                subtitleText.setText(subtitle_text);
+                int delay = KcVoiceUtils.getDefaultTiming(subtitle_text);
+                clearSubHandler.postDelayed(clearSubtitle, delay);
             });
         }
+    }
+
+    public int getDefaultSubtitleMargin() {
+        FrameLayout.LayoutParams param = (FrameLayout.LayoutParams) subtitleText.getLayoutParams();
+        return param.leftMargin;
+    }
+
+    public void setSubtitleMargin(int value) {
+        FrameLayout.LayoutParams param = (FrameLayout.LayoutParams) subtitleText.getLayoutParams();
+        param.setMargins(param.leftMargin + value, param.topMargin, param.rightMargin + value, param.bottomMargin);
+        subtitleText.setLayoutParams(param);
     }
 }
