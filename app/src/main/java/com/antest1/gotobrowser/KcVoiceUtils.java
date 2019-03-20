@@ -11,6 +11,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.AbstractMap;
@@ -95,6 +96,14 @@ public class KcVoiceUtils {
     public static JsonObject quoteLabel = new JsonObject();
     public static JsonObject quoteData = new JsonObject();
     public static JsonObject quoteTimingData = new JsonObject();
+    public static JsonObject currentHourlyVoiceInfo = new JsonObject();
+
+    public static void setHourlyVoiceInfo(String path, String ship_id, String voiceline) {
+        currentHourlyVoiceInfo = new JsonObject();
+        currentHourlyVoiceInfo.addProperty("path", path);
+        currentHourlyVoiceInfo.addProperty("ship_id", ship_id);
+        currentHourlyVoiceInfo.addProperty("voiceline", voiceline);
+    }
 
     public static int getFilenameByVoiceLine(int ship_id, int lineNum) {
         return lineNum <= 53 ? 100000 + 17 * (ship_id + 7) * (workingDiffs[lineNum - 1]) % 99173 : lineNum;
@@ -151,9 +160,10 @@ public class KcVoiceUtils {
             if (ship_data.has("api_aftershipid")) {
                 String ship_id = ship_data.get("api_id").getAsString();
                 String ship_afterid = ship_data.get("api_aftershipid").getAsString();
-                if (!checked.contains(ship_id)) {
+                if (!checked.contains(ship_id+ "_" + ship_afterid) && !ship_afterid.equals("0")) {
                     shipDataGraph.addProperty(ship_afterid, ship_id);
-                    checked.add(ship_afterid);
+                    checked.add(ship_afterid + "_" + ship_id);
+                    Log.e("GOTO-ship", "" + ship_afterid + " -> " + ship_id);
                 }
             }
         }

@@ -45,6 +45,7 @@ import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -55,8 +56,11 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -146,6 +150,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private boolean isVoicePlaying = false;
     private float voiceVolume = 1.0f;
     private MediaPlayer titleVoicePlayer;
+    private final Handler hourVoiceHandler = new Handler();
     private boolean isBattleMode = false;
     private Map<String, String> filenameToShipId = new HashMap<>();
     private String currentCookieHost = "";
@@ -248,7 +253,10 @@ public class FullscreenActivity extends AppCompatActivity {
         broswerPanel.setVisibility(isPancelActive ? View.VISIBLE : View.GONE);
 
         menuRefresh = findViewById(R.id.menu_refresh);
-        menuRefresh.setOnClickListener(v -> setDefaultPage());
+        menuRefresh.setOnClickListener(v -> {
+            if (bgmPlayer.isPlaying()) bgmPlayer.stop();
+            setDefaultPage();
+        });
 
         menuAspect = findViewById(R.id.menu_aspect);
         menuAspect.setOnClickListener(v -> {
@@ -403,6 +411,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     boolean is_image = accept != null && accept.contains("image") && source.toString().contains("kcs2");
                     boolean is_audio = accept != null && source.toString().contains(".mp3");
                     boolean is_json = accept != null && accept.contains("json") && source.toString().contains(".json");
+                    boolean is_js = source.toString().contains("/js/") && source.toString().contains(".js");
 
                     String url = source.toString();
                     for (String rule : REQUEST_BLOCK_RULES) {
@@ -531,7 +540,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             String source_path = source.getPath();
                             stopMp3(bgmPlayer, filepath);
 
-                            if (is_image || is_audio || is_json) {
+                            if (is_image || is_audio || is_json || is_js) {
                                 String version = "";
                                 if (source.getQueryParameterNames().contains("version")) {
                                     version = source.getQueryParameter("version");
@@ -575,7 +584,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                 return new WebResourceResponse("image/png", "utf-8", is);
                             }
 
-                            if (is_json || is_audio) {
+                            if (is_json || is_audio || is_js) {
                                 File dir = new File(outputpath);
                                 if (!dir.exists()) dir.mkdirs();
 
@@ -594,6 +603,31 @@ public class FullscreenActivity extends AppCompatActivity {
                                 }
                                 InputStream is = new BufferedInputStream(new FileInputStream(file));
                                 if (is_json) return new WebResourceResponse("application/json", "utf-8", is);
+                                if (is_js) {
+                                    if (url.contains("kcs2/js/")) {
+                                        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                                        int nRead;
+                                        byte[] data = new byte[1024];
+                                        while ((nRead = is.read(data, 0, data.length)) != -1) {
+                                            buffer.write(data, 0, nRead);
+                                        }
+                                        buffer.flush();
+                                        is.close();
+
+                                        byte[] byteArray = buffer.toByteArray();
+                                        String main_js = new String(byteArray, StandardCharsets.UTF_8);
+                                        // LABS Targeting
+                                        main_js = main_js.replaceAll(
+                                                "this\\._panel\\.on\\(a\\.EventType\\.MOUSEOVER,this\\._onMouseOver\\)",
+                                                "this._panel.on(a.EventType.MOUSEDOWN,this._onMouseOver)");
+                                        main_js = main_js.replaceAll(
+                                                "this\\._panel\\.off\\(a\\.EventType\\.MOUSEOVER,this\\._onMouseOver\\)",
+                                                "this._panel.off(a.EventType.MOUSEDOWN,this._onMouseOver)");
+                                        is = new ByteArrayInputStream(main_js.getBytes());
+                                        // Log.e("GOTO", main_js);
+                                    }
+                                    return new WebResourceResponse("application/javascript", "utf-8", is);
+                                }
                                 if (is_audio) {
                                     if (url.contains("resources/se")) playSe(sePlayer, file, seVolume);
                                     else if (url.contains("/kcs/sound/kc")) {
@@ -614,13 +648,17 @@ public class FullscreenActivity extends AppCompatActivity {
                                         Log.e("GOTO", "voiceline: " + String.valueOf(voiceline));
                                         int voiceline_value = Integer.parseInt(voiceline);
                                         if (voiceline_value >= 30 && voiceline_value <= 53) { // hourly voiceline
-                                            Calendar now = Calendar.getInstance();
-                                            int minute = now.get(Calendar.MINUTE);
-                                            int second = now.get(Calendar.SECOND);
-                                            if (minute == 0 && second <= 2) {
-                                                playMp3("voice", voicePlayer, file, voiceVolume);
-                                                setSubtitle(ship_id, voiceline);
-                                            }
+                                            Date now = new Date();
+                                            String voiceline_time = String.format(Locale.US, "%02d:00:00", voiceline_value - 30);
+                                            SimpleDateFormat time_fmt = new SimpleDateFormat("HH:mm:ss");
+                                            Date time_src = time_fmt.parse(time_fmt.format(now));
+                                            Date time_tgt = time_fmt.parse(voiceline_time);
+                                            long diff_msec = time_tgt.getTime() - time_src.getTime();
+                                            if (voiceline_value == 30) diff_msec += 86400000;
+                                                KcVoiceUtils.setHourlyVoiceInfo(file.getAbsolutePath(), ship_id, voiceline);
+                                                hourVoiceHandler.removeCallbacks(playHourVoice);
+                                                hourVoiceHandler.postDelayed(playHourVoice, diff_msec);
+                                                Log.e("GOTO", "playHourVoice after: " + diff_msec + " msec");
                                         } else {
                                             if (isBattleMode && (file.length() / 1024) < 100) playSe(sePlayer, file, voiceVolume);
                                             else playMp3("voice", voicePlayer, file, voiceVolume);
@@ -1054,7 +1092,7 @@ public class FullscreenActivity extends AppCompatActivity {
             "api_req_battle_midnight",
             "api_req_combined_battle",
             "api_req_practice",
-            "battle_result/battle_result_main"
+            "battle_result/battle_result_main",
         };
 
         isBattleMode = false;
@@ -1065,9 +1103,15 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         }
 
-        if (url.contains("api_req_map")) {
-            voicePlayer.stop();
-            voicePlayer.reset();
+        String[] STOP_V_FLAG = {
+            "api_req_map",
+            "api_get_member/slot_item"
+        };
+        for (String pattern: STOP_V_FLAG) {
+            if (url.contains(pattern)) {
+                voicePlayer.stop();
+                voicePlayer.reset();
+            }
         }
     }
 
@@ -1251,6 +1295,7 @@ public class FullscreenActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 clearSubHandler.removeCallbacks(clearSubtitle);
                 JsonObject subtitle = KcVoiceUtils.getQuoteString(id, code);
+                Log.e("GOTO", subtitle.toString());
                 String subtitle_text = subtitle.get("0").getAsString().replace("<br>", "\n");
                 subtitleText.setText(subtitle_text);
                 int delay = KcVoiceUtils.getDefaultTiming(subtitle_text);
@@ -1258,6 +1303,20 @@ public class FullscreenActivity extends AppCompatActivity {
             });
         }
     }
+
+    public Runnable playHourVoice = new Runnable() {
+        @Override
+        public void run() {
+            JsonObject data = KcVoiceUtils.currentHourlyVoiceInfo;
+            if (data.has("path")) {
+                File file = new File(data.get("path").getAsString());
+                String ship_id = data.get("ship_id").getAsString();
+                String voiceline = data.get("voiceline").getAsString();
+                playMp3("voice", voicePlayer, file, voiceVolume);
+                setSubtitle(ship_id, voiceline);
+            }
+        }
+    };
 
     public int getDefaultSubtitleMargin() {
         FrameLayout.LayoutParams param = (FrameLayout.LayoutParams) subtitleText.getLayoutParams();
