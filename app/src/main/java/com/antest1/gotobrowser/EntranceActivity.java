@@ -109,7 +109,6 @@ public class EntranceActivity extends AppCompatActivity {
         autoCompleteButton.setOnClickListener(v -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(EntranceActivity.this);
             View dialogView = getLayoutInflater().inflate(R.layout.login_form, null);
-            final CheckBox saveData = dialogView.findViewById(R.id.chkbox_account_pref);
             final EditText formEmail = dialogView.findViewById(R.id.input_id);
             final EditText formPassword = dialogView.findViewById(R.id.input_pw);
             formEmail.setText(sharedPref.getString(PREF_DMM_ID, ""));
@@ -118,10 +117,8 @@ public class EntranceActivity extends AppCompatActivity {
             builder.setPositiveButton(R.string.text_save, (dialog, which) -> {
                 login_id = formEmail.getText().toString();
                 login_password = formPassword.getText().toString();
-                if (saveData.isChecked()) {
-                    sharedPref.edit().putString(PREF_DMM_ID, login_id).commit();
-                    sharedPref.edit().putString(PREF_DMM_PASS, login_password).commit();
-                }
+                sharedPref.edit().putString(PREF_DMM_ID, login_id).apply();
+                sharedPref.edit().putString(PREF_DMM_PASS, login_password).apply();
                 dialog.dismiss();
             });
             builder.setNegativeButton(R.string.text_cancel, (dialog, which) -> dialog.cancel());

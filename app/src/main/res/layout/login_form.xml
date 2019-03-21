@@ -66,10 +66,4 @@
 
     </LinearLayout>
 
-    <CheckBox
-        android:id="@+id/chkbox_account_pref"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/autocomplete_store" />
-
 </LinearLayout>

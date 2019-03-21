@@ -18,5 +18,4 @@
     <string name="text_cancel">취소</string>
     <string name="autocomplete_title">로그인 자동완성</string>
     <string name="autocomplete_msg">로그인 폼에 입력할 계정 정보를 입력하세요.</string>
-    <string name="autocomplete_store">계정 정보를 기기에 저장</string>
 </resources>

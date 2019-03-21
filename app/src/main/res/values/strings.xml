@@ -27,5 +27,4 @@
     <string name="text_cancel">Cancel</string>
     <string name="autocomplete_title">Login Autocomplete</string>
     <string name="autocomplete_msg">This information will be used to fill the login form.</string>
-    <string name="autocomplete_store">Save account information in the device</string>
 </resources>
