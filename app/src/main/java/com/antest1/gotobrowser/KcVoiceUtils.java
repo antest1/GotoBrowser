@@ -96,14 +96,6 @@ public class KcVoiceUtils {
     public static JsonObject quoteLabel = new JsonObject();
     public static JsonObject quoteData = new JsonObject();
     public static JsonObject quoteTimingData = new JsonObject();
-    public static JsonObject currentHourlyVoiceInfo = new JsonObject();
-
-    public static void setHourlyVoiceInfo(String path, String ship_id, String voiceline) {
-        currentHourlyVoiceInfo = new JsonObject();
-        currentHourlyVoiceInfo.addProperty("path", path);
-        currentHourlyVoiceInfo.addProperty("ship_id", ship_id);
-        currentHourlyVoiceInfo.addProperty("voiceline", voiceline);
-    }
 
     public static int getFilenameByVoiceLine(int ship_id, int lineNum) {
         return lineNum <= 53 ? 100000 + 17 * (ship_id + 7) * (workingDiffs[lineNum - 1]) % 99173 : lineNum;
@@ -128,7 +120,7 @@ public class KcVoiceUtils {
     }
 
     public static String getVoiceLineByFilename(String ship_id, String filename) {
-        if (ship_id.equals("9999")) {
+        if (ship_id.equals("9998") || ship_id.equals("9999")) {
             return filename;
         }
         // Some ships use special voice line filenames
@@ -220,13 +212,19 @@ public class KcVoiceUtils {
 
         try {
             String voiceline_special = "";
-            if (quoteData.size() == 0) return voicedata_base;
+            boolean is_abyssal = ship_id.equals("9998");
             boolean is_npc = ship_id.equals("9999");
             boolean is_title = ship_id.contains("titlecall");
+            boolean is_special = is_abyssal || is_npc || is_title;
+            if (quoteData.size() == 0 || !(is_special || quoteData.has(ship_id))) {
+                return voicedata_base;
+            }
+
             boolean current_special_flag = false;
             boolean prev_special_flag = voicedata_base.has("special");
+            if (is_abyssal) ship_id = "abyssal";
             if (is_npc) ship_id = "npc";
-            if (!is_npc && !is_title) {
+            if (!is_special) {
                 if (specialDiffs.has(voiceline)) {
                     voiceline = specialDiffs.get(voiceline).getAsString();
                 }
@@ -235,6 +233,7 @@ public class KcVoiceUtils {
                 }
                 voiceline = quoteLabel.get(voiceline).getAsString();
             }
+
             JsonObject ship_data = quoteData.getAsJsonObject(ship_id);
             if (ship_data.has(voiceline_special)) {
                 voiceline = voiceline_special;

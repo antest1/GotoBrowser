@@ -59,7 +59,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +67,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 import androidx.appcompat.app.ActionBar;
@@ -150,12 +150,11 @@ public class FullscreenActivity extends AppCompatActivity {
     private boolean isVoicePlaying = false;
     private float voiceVolume = 1.0f;
     private MediaPlayer titleVoicePlayer;
-    private final Handler hourVoiceHandler = new Handler();
+    private final Handler shipVoiceHandler = new Handler();
     private boolean isBattleMode = false;
     private Map<String, String> filenameToShipId = new HashMap<>();
     private String currentCookieHost = "";
     private TextView subtitleText;
-    private int defaultSubtitleMargin = 0;
     private final Handler clearSubHandler = new Handler();
     private List<String> titlePath = new ArrayList<>();
     private List<String> titleFiles = new ArrayList<>();
@@ -347,7 +346,7 @@ public class FullscreenActivity extends AppCompatActivity {
         });
 
 
-        defaultSubtitleMargin = getDefaultSubtitleMargin();
+        // defaultSubtitleMargin = getDefaultSubtitleMargin();
         setSubtitleMargin(sharedPref.getInt(PREF_PADDING, 0));
         KcVoiceUtils.loadQuoteAnnotation(getApplicationContext());
         KcVoiceUtils.loadQuoteData(getApplicationContext(), "ko");
@@ -655,13 +654,17 @@ public class FullscreenActivity extends AppCompatActivity {
                                             Date time_tgt = time_fmt.parse(voiceline_time);
                                             long diff_msec = time_tgt.getTime() - time_src.getTime();
                                             if (voiceline_value == 30) diff_msec += 86400000;
-                                                KcVoiceUtils.setHourlyVoiceInfo(file.getAbsolutePath(), ship_id, voiceline);
-                                                hourVoiceHandler.removeCallbacks(playHourVoice);
-                                                hourVoiceHandler.postDelayed(playHourVoice, diff_msec);
+                                            //KcVoiceUtils.setHourlyVoiceInfo(file.getAbsolutePath(), ship_id, voiceline);
+                                                Runnable r = new VoiceSubtitleRunnable(file.getAbsolutePath(), ship_id, voiceline);
+                                                shipVoiceHandler.removeCallbacks(r);
+                                                shipVoiceHandler.postDelayed(r, diff_msec);
                                                 Log.e("GOTO", "playHourVoice after: " + diff_msec + " msec");
                                         } else {
                                             if (isBattleMode && (file.length() / 1024) < 100) playSe(sePlayer, file, voiceVolume);
-                                            else playMp3("voice", voicePlayer, file, voiceVolume);
+                                            else {
+                                                playMp3("voice", voicePlayer, file, voiceVolume);
+
+                                            }
                                             setSubtitle(ship_id, voiceline);
                                         }
                                     }
@@ -1292,11 +1295,30 @@ public class FullscreenActivity extends AppCompatActivity {
     public Runnable clearSubtitle = () -> subtitleText.setText("");
     public void setSubtitle(String id, String code) {
         if (isCaptionMode) {
+            shipVoiceHandler.removeCallbacksAndMessages(null);
+            JsonObject subtitle = KcVoiceUtils.getQuoteString(id, code);
+            Log.e("GOTO", subtitle.toString());
+            for (String key: subtitle.keySet()) {
+                String start_time = key.split(",")[0];
+                if (Pattern.matches("[0-9]+", start_time)) {
+                    String text = subtitle.get(key).getAsString();
+                    int delay = Integer.parseInt(start_time);
+                    SubtitleRunnable sr = new SubtitleRunnable(text);
+                    shipVoiceHandler.postDelayed(sr, delay);
+                }
+            }
+        }
+    }
+
+    class SubtitleRunnable implements Runnable {
+        String subtitle_text = "";
+        SubtitleRunnable(String text) { subtitle_text = text; }
+
+        @Override
+        public void run() {
             runOnUiThread(() -> {
                 clearSubHandler.removeCallbacks(clearSubtitle);
-                JsonObject subtitle = KcVoiceUtils.getQuoteString(id, code);
-                Log.e("GOTO", subtitle.toString());
-                String subtitle_text = subtitle.get("0").getAsString().replace("<br>", "\n");
+                subtitle_text = subtitle_text.replace("<br>", "\n");
                 subtitleText.setText(subtitle_text);
                 int delay = KcVoiceUtils.getDefaultTiming(subtitle_text);
                 clearSubHandler.postDelayed(clearSubtitle, delay);
@@ -1304,19 +1326,24 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
 
-    public Runnable playHourVoice = new Runnable() {
+    class VoiceSubtitleRunnable implements Runnable {
+        String path, ship_id, voiceline;
+
+        VoiceSubtitleRunnable(String path, String ship_id, String voiceline) {
+            this.ship_id = ship_id;
+            this.path = path;
+            this.voiceline = voiceline;
+        }
+
         @Override
         public void run() {
-            JsonObject data = KcVoiceUtils.currentHourlyVoiceInfo;
-            if (data.has("path")) {
-                File file = new File(data.get("path").getAsString());
-                String ship_id = data.get("ship_id").getAsString();
-                String voiceline = data.get("voiceline").getAsString();
+            if (path != null) {
+                File file = new File(path);
                 playMp3("voice", voicePlayer, file, voiceVolume);
-                setSubtitle(ship_id, voiceline);
             }
+            setSubtitle(ship_id, voiceline);
         }
-    };
+    }
 
     public int getDefaultSubtitleMargin() {
         FrameLayout.LayoutParams param = (FrameLayout.LayoutParams) subtitleText.getLayoutParams();
