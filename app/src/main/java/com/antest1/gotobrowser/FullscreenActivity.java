@@ -105,6 +105,7 @@ import static com.antest1.gotobrowser.Constants.REFRESH_CALL;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.RESIZE_CALL;
 import static com.antest1.gotobrowser.Constants.RESIZE_DMM;
+import static com.antest1.gotobrowser.Constants.RESIZE_OOI_3;
 import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI;
 import static com.antest1.gotobrowser.Constants.URL_DMM;
 import static com.antest1.gotobrowser.Constants.URL_DMM_FOREIGN;
@@ -112,6 +113,7 @@ import static com.antest1.gotobrowser.Constants.URL_DMM_LOGIN;
 import static com.antest1.gotobrowser.Constants.URL_KANSU;
 import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.URL_OOI;
+import static com.antest1.gotobrowser.Constants.URL_OOI_3;
 import static com.antest1.gotobrowser.Constants.URL_OSAPI;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 
@@ -226,6 +228,7 @@ public class FullscreenActivity extends AppCompatActivity {
         if (sharedPref.getBoolean(PREF_LANDSCAPE, false)) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
         }
+
 
         executor = Executors.newScheduledThreadPool(1);
 
@@ -372,7 +375,7 @@ public class FullscreenActivity extends AppCompatActivity {
                             String.format(Locale.US, AUTOCOMPLETE_NIT,
                                     login_id, login_password), null);
                 }
-                if (url.contains(Constants.URL_OSAPI) || url.contains(URL_DMM)) {
+                if (url.contains(Constants.URL_OSAPI) || url.contains(Constants.URL_OOI_3) || url.contains(URL_DMM)) {
                     isStartedFlag = true;
                     DisplayMetrics dimension= new DisplayMetrics();
                     getWindowManager().getDefaultDisplay().getMetrics(dimension);
@@ -384,10 +387,12 @@ public class FullscreenActivity extends AppCompatActivity {
                     if (adjust_layout) {
                         if (url.contains(URL_OSAPI)) mContentView.evaluateJavascript(String.format(
                                 Locale.US, RESIZE_OSAPI, adjust_padding, adjust_vpadding), null);
+                        else if (url.contains(URL_OOI_3)) mContentView.evaluateJavascript(String.format(
+                                Locale.US, RESIZE_OOI_3, adjust_padding, adjust_vpadding), null);
                         else if (url.contains(URL_DMM)) mContentView.evaluateJavascript(String.format(
                                 Locale.US, RESIZE_DMM, adjust_padding, adjust_vpadding), null);
                     }
-                    if (url.contains(URL_OSAPI)) {
+                    if (url.contains(URL_OSAPI) || url.contains(URL_OOI_3)) {
                         mContentView.evaluateJavascript(String.format(Locale.US,
                                 REFRESH_CALL, connector_url_default), value -> {
                                     Log.e("GOTO", "invalid: " + value);
@@ -446,7 +451,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
                     try {
                         if (source.getPath() != null && source.getLastPathSegment() != null) {
-                            //Log.e("GOTO", source.getPath());
+                            Log.e("GOTO", source.getPath());
                             //Log.e("GOTO", header.toString());
                             String path = source.getPath();
                             String filename = source.getLastPathSegment();
@@ -461,7 +466,6 @@ public class FullscreenActivity extends AppCompatActivity {
                                 InputStream is = as.open("ooi.css");
                                 return new WebResourceResponse("text/css", "utf-8", is);
                             }
-
                             if (path.contains("/api_start2/")) {
                                 boolean update_flag = false;
                                 String version_url = "http://52.55.91.44/kcanotify/dv.php";
@@ -820,18 +824,20 @@ public class FullscreenActivity extends AppCompatActivity {
         mVerticalControlView.findViewById(R.id.vcontrol_exit)
                 .setOnClickListener(v -> mVerticalControlView.setVisibility(View.GONE));
 
-        // mContentView.setInitialScale(1);
+        String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
+
+        mContentView.setInitialScale(1);
         mContentView.getSettings().setLoadWithOverviewMode(true);
         mContentView.getSettings().setSaveFormData(true);
         mContentView.getSettings().setDatabaseEnabled(true);
         mContentView.getSettings().setDomStorageEnabled(true);
         mContentView.getSettings().setUseWideViewPort(true);
         mContentView.getSettings().setJavaScriptEnabled(true);
-        mContentView.getSettings().setSupportZoom(false);
         mContentView.getSettings().setTextZoom(100);
         mContentView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         mContentView.getSettings().setSupportMultipleWindows(true);
         // mContentView.getSettings().setBuiltInZoomControls(true);
+        mContentView.getSettings().setSupportZoom(false);
         mContentView.getSettings().setUserAgentString("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0");
         mContentView.setScrollbarFadingEnabled(true);
         mContentView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
@@ -1011,9 +1017,11 @@ public class FullscreenActivity extends AppCompatActivity {
             if (connector_url_default.equals(connector_url)) {
                 String postdata = "";
                 try {
-                    postdata = String.format(Locale.US, "login_id=%s&password=%s&mode=4",
+                    int connect_mode = connector_url_default.equals(URL_OOI) ? 3 : 4;
+                    postdata = String.format(Locale.US, "login_id=%s&password=%s&mode=%d",
                             URLEncoder.encode(login_id, "utf-8"),
-                            URLEncoder.encode(login_password, "utf-8"));
+                            URLEncoder.encode(login_password, "utf-8"),
+                            connect_mode);
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }

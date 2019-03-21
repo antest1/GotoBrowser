@@ -34,7 +34,9 @@ public class Constants {
     public static final String URL_DMM_FOREIGN = "www.dmm.com/netgame/foreign";
     public static final String URL_DMM_POINT = "point.dmm.com/choice";
     public static final String URL_OSAPI = "osapi.dmm.com/gadgets/";
+    public static final String URL_OOI_3 = "ooi.moe/poi";
     public static final String RESIZE_OSAPI = "var width=1200,height=720,game_ratio=1200/height;function resize(e,i){resize_triggered=!0;var d=window.innerWidth,o=window.innerHeight;game_ratio<d/o?($(\"#flashWrap iframe\").css(\"padding\",\"0 \"+e+\"px\"),$(\"body\").css(\"padding-top\",\"0px\")):($(\"#flashWrap iframe\").css(\"padding\",\"0px\"),$(\"body\").css(\"padding-top\",i+\"px\"))}$(\"body\")[0].style.backgroundColor=\"black\",$(\"body\")[0].style.overflow=\"hidden\",$(\"body\")[0].style.margin=\"0px\",$(\"body\")[0].style.padding=\"0px\",resize_triggered=!1,setTimeout(function(){$(\"#spacing_top\").remove(),$(\"#sectionWrap\").hide()},1500),setTimeout(resize,1500,%d,%d);";
+    public static final String RESIZE_OOI_3 = "var width=1200,height=720,game_ratio=1200/height;function resize(e,t){resize_triggered=!0;var i=window.innerWidth,r=window.innerHeight;game_ratio<i/r?($(\"#flashWrap embed\").css(\"padding\",\"0 \"+e+\"px\"),$(\"body\").css(\"padding-top\",\"0px\")):($(\"#flashWrap embed\").css(\"padding\",\"0px\"),$(\"body\").css(\"padding-top\",t+\"px\"))}$(\"body\")[0].style.zoom=\"1\",$(\"body\")[0].style.backgroundColor=\"black\",$(\"body\")[0].style.overflow=\"hidden\",$(\"body\")[0].style.margin=\"0px\",$(\"body\")[0].style.padding=\"0px\",$(\"#externalswf\").removeAttr(\"width\"),$(\"#externalswf\").removeAttr(\"height\"),$(\"#externalswf\").attr(\"scrolling\",\"no\"),$(\"#externalswf\").width(1200),$(\"#externalswf\").height(728),resize_triggered=!1,setTimeout(resize,100,%d,%d);";
     public static final String RESIZE_DMM = "var width=1200,height=720,game_ratio=width/height;function resize(e,a){resize_triggered=!0;var i=window.innerWidth,g=window.innerHeight;game_ratio<i/g?($(\"#game_frame\").css(\"padding\",\"0 \"+e+\"px\"),$(\"body\").css(\"padding-top\",\"0px\")):($(\"#game_frame\").css(\"padding\",\"0px\"),$(\"body\").css(\"padding-top\",a+\"px\"))}$(\"#foot, #ntg-recommend\").remove(),$(\"img, .dmm-ntgnavi, .area-naviapp, .mg-b10\").remove(),$(\"#page, body\").css(\"background-color\",\"black\"),$(\"#main-ntg\").css(\"padding\",\"0px\"),$(\"#game_frame\").css(\"margin-top\",\"-16px\"),$(\"#game_frame\").height(736);var chk=setInterval(function(){736!=$(\"#game_frame\").height()&&($(\"#game_frame\").height(736),console.log(\"resize\"),clearInterval(chk))},100);resize_triggered=!1,setTimeout(resize,300,%d,%d);";
     public static final String RESIZE_CALL = "resize_triggered&&setTimeout(resize,300,%d,%d);";
     public static final String REFRESH_CALL = "(function(){return document.getElementById(\"flashWrap\")==null})();";
@@ -51,7 +53,8 @@ public class Constants {
         "doubleclick.net",
         "googletagmanager.com/",
         "facebook.com",
-        "pics.dmm.com/"
+        "pics.dmm.com/",
+        "/uikit"
     };
 
     public static final String[] KANCOLLE_SERVER_LIST = {
