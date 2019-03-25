@@ -404,293 +404,37 @@ public class FullscreenActivity extends AppCompatActivity {
             }
 
             @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                Uri source = Uri.parse(url);
+                String host = source.getHost();
+                boolean is_image = url.contains("kcs2") && (url.contains(".png") || url.contains(".jpg"));
+                boolean is_audio = url.contains(".mp3");
+                boolean is_json = url.contains("json");
+                boolean is_js = url.contains("/js/") && url.contains(".js");
+                WebResourceResponse response = processWebRequest(source, is_image, is_audio, is_json, is_js);
+                if (response != null) return response;
+                return super.shouldInterceptRequest(view, url);
+            }
+
+            @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    Map<String, String> header = request.getRequestHeaders();
                     Uri source = request.getUrl();
+                    Map<String, String> header = request.getRequestHeaders();
                     String host = source.getHost();
                     String accept = header.get("Accept");
                     boolean is_image = accept != null && accept.contains("image") && source.toString().contains("kcs2");
                     boolean is_audio = accept != null && source.toString().contains(".mp3");
                     boolean is_json = accept != null && accept.contains("json") && source.toString().contains(".json");
                     boolean is_js = source.toString().contains("/js/") && source.toString().contains(".js");
-
-                    String url = source.toString();
-                    for (String rule : REQUEST_BLOCK_RULES) {
-                        if (url.contains(rule)) {
-                            Log.e("GOTO", "blocked: ".concat(url));
-                            return new WebResourceResponse("text/css", "utf-8", getEmptyStream());
-                        }
-                    }
-
-                    if(url.contains("/kcs2/img/") && host != null) {
-                        currentCookieHost = host.concat("/kcs2/");
-                        String cookie = CookieManager.getInstance().getCookie(currentCookieHost);
-                        if (cookie != null) {
-                            String[] data = cookie.split(";");
-                            for (String item: data) {
-                                String[] row = item.trim().split("=");
-                                if (!row[1].matches("[0-9]+")) continue;
-                                String key = row[0];
-                                float value = (float)Integer.parseInt(row[1]) / 100;
-                                if (key.equals("vol_bgm")) bgmVolume = value;
-                                if (key.equals("vol_voice")) voiceVolume = value;
-                                if (key.equals("vol_se")) seVolume = value;
-                            }
-                        }
-                        // Log.e("GOTO", cookie);
-                    }
-
-                    if (url.contains("kcscontents/css/common.css")) {
-                        String replace_css = "#globalNavi, #contentsWrap {display:none;} body {background-color: black;}";
-                        InputStream is = new ByteArrayInputStream(replace_css.getBytes());
-                        return new WebResourceResponse("text/css", "utf-8", is);
-                    }
-
-                    try {
-                        if (source.getPath() != null && source.getLastPathSegment() != null) {
-                            Log.e("GOTO", source.getPath());
-                            //Log.e("GOTO", header.toString());
-                            String path = source.getPath();
-                            String filename = source.getLastPathSegment();
-
-                            if (filename.equals("version.json") || filename.contains("index.php")) {
-                                titlePath.clear();
-                                titleFiles.clear();
-                                return super.shouldInterceptRequest(view, request);
-                            }
-                            if (path.contains("ooi.css")) { // block ooi.moe background
-                                AssetManager as = getAssets();
-                                InputStream is = as.open("ooi.css");
-                                return new WebResourceResponse("text/css", "utf-8", is);
-                            }
-                            if (path.contains("/api_start2/")) {
-                                boolean update_flag = false;
-                                String version_url = "http://52.55.91.44/kcanotify/dv.php";
-                                Request versionRequest = new Request.Builder().url(version_url)
-                                        .header("Referer", "goto/webkit").build();
-                                Response version_response = resourceClient.newCall(versionRequest).execute();
-                                if (version_response.body() != null) {
-                                    String version_check = version_response.body().string();
-                                    if (!versionTable.getValue("api_start2").equals(version_check)) {
-                                        update_flag = true;
-                                    }
-                                }
-                                Log.e("GOTO", versionTable.getValue("api_start2"));
-                                String apipath = getApplicationContext().getFilesDir().getAbsolutePath()
-                                        .concat("/cache/").concat("api_start2");
-                                File file = new File(apipath);
-                                if (!file.exists() || update_flag) {
-                                    file.createNewFile();
-                                    Log.e("GOTO", "download resource");
-                                    String api_url = "http://52.55.91.44/kcanotify/kca_api_start2.php?v=recent";
-                                    Request dataRequest = new Request.Builder().url(api_url)
-                                            .header("Referer", "goto/webkit")
-                                            .header("Accept-Encoding", "gzip")
-                                            .build();
-                                    Response response = resourceClient.newCall(dataRequest).execute();
-                                    ResponseBody body = response.body();
-                                    String api_version = response.header("X-Api-Version", "");
-                                    versionTable.putValue("api_start2", api_version);
-                                    Log.e("GOTO", "version: " + api_version);
-                                    if (body != null) {
-                                        InputStream in = body.byteStream();
-                                        byte[] buffer = new byte[2 * 1024];
-                                        int bytes;
-                                        FileOutputStream fos = new FileOutputStream(file);
-                                        while ((bytes = in.read(buffer)) != -1) {
-                                            fos.write(buffer, 0, bytes);
-                                        }
-                                        fos.close();
-                                        body.close();
-                                    }
-                                }
-
-                                InputStream buf = new BufferedInputStream(new GZIPInputStream(new FileInputStream(file)));
-                                Gson gson = new Gson();
-                                Reader reader = new InputStreamReader(buf);
-                                JsonObject api_data = gson.fromJson(reader, JsonObject.class).getAsJsonObject("api_data");
-                                JsonArray api_mst_shipgraph = api_data.getAsJsonArray("api_mst_shipgraph");
-                                JsonArray api_mst_ship = api_data.getAsJsonArray("api_mst_ship");
-                                KcVoiceUtils.buildShipGraph(api_mst_ship);
-                                for (JsonElement item: api_mst_shipgraph) {
-                                    JsonObject ship = item.getAsJsonObject();
-                                    String shipId = ship.get("api_id").getAsString();
-                                    String shipFn = ship.get("api_filename").getAsString();
-                                    filenameToShipId.put(shipFn, shipId);
-                                }
-                                Log.e("GOTO", "ship_filename: " + filenameToShipId.size());
-                                return super.shouldInterceptRequest(view, request);
-                            }
-
-                            if (path.contains("/api_port/port")) {
-                                Log.e("GOTO","run executor");
-                                executor = Executors.newScheduledThreadPool(1);
-                                executor.scheduleAtFixedRate(portVolumeCheckRunnable, 0, 1, TimeUnit.SECONDS);
-
-                            } else if (path.contains("/api")) {
-                                if (!executor.isShutdown()) executor.shutdown();
-                            }
-
-                            String fullpath = String.format(Locale.US, "http://%s%s", host, path);
-                            String outputpath = getApplicationContext().getFilesDir().getAbsolutePath()
-                                    .concat("/cache/").concat(path.replace(filename, "").substring(1));
-                            String filepath = outputpath.concat(filename);
-
-                            boolean update_flag = false;
-                            String source_path = source.getPath();
-                            stopMp3(bgmPlayer, filepath);
-
-                            if (is_image || is_audio || is_json || is_js) {
-                                String version = "";
-                                if (source.getQueryParameterNames().contains("version")) {
-                                    version = source.getQueryParameter("version");
-                                }
-
-                                if (!versionTable.getValue(source_path).equals(version)) {
-                                    update_flag = true;
-                                    versionTable.putValue(source_path, version);
-                                    Log.e("GOTO", "cache resource " + source_path +  ": " + version);
-                                } else {
-                                    Log.e("GOTO", "resource " + source_path +  " found: " + version);
-                                }
-                            }
-
-                            if (is_image) {
-                                File file = new File(filepath);
-                                if (!file.exists() || update_flag) {
-                                    File dir = new File(outputpath);
-                                    if (!dir.exists()) dir.mkdirs();
-                                    Request imageRequest = new Request.Builder().url(fullpath).build();
-                                    Response response = resourceClient.newCall(imageRequest).execute();
-                                    ResponseBody body = response.body();
-                                    // InputStream in = new BufferedInputStream(new URL(fullpath).openStream());
-                                    if (body != null) {
-                                        InputStream in = body.byteStream();
-                                        byte[] buffer = new byte[2 * 1024];
-                                        int bytes;
-                                        FileOutputStream fos = new FileOutputStream(file);
-                                        while ((bytes = in.read(buffer)) != -1) {
-                                            fos.write(buffer, 0, bytes);
-                                        }
-                                        fos.close();
-                                        body.close();
-                                    } else {
-                                        return super.shouldInterceptRequest(view, request);
-                                    }
-                                }
-
-                                Log.e("GOTO", "load from disk: " + path);
-                                InputStream is = new BufferedInputStream(new FileInputStream(file));
-                                return new WebResourceResponse("image/png", "utf-8", is);
-                            }
-
-                            if (is_json || is_audio || is_js) {
-                                File dir = new File(outputpath);
-                                if (!dir.exists()) dir.mkdirs();
-
-                                File file = new File(filepath);
-                                if (!file.exists() || update_flag) {
-                                    InputStream in = new BufferedInputStream(new URL(fullpath).openStream());
-                                    byte[] buffer = new byte[8 * 1024];
-                                    int bytes;
-                                    FileOutputStream fos = new FileOutputStream(file);
-                                    while ((bytes = in.read(buffer)) != -1) {
-                                        fos.write(buffer, 0, bytes);
-                                    }
-                                    fos.close();
-                                } else {
-                                    Log.e("GOTO", "load from disk: " + filepath);
-                                }
-                                InputStream is = new BufferedInputStream(new FileInputStream(file));
-                                if (is_json) return new WebResourceResponse("application/json", "utf-8", is);
-                                if (is_js) {
-                                    if (url.contains("kcs2/js/")) {
-                                        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                                        int nRead;
-                                        byte[] data = new byte[1024];
-                                        while ((nRead = is.read(data, 0, data.length)) != -1) {
-                                            buffer.write(data, 0, nRead);
-                                        }
-                                        buffer.flush();
-                                        is.close();
-
-                                        byte[] byteArray = buffer.toByteArray();
-                                        String main_js = new String(byteArray, StandardCharsets.UTF_8);
-                                        // LABS Targeting
-                                        main_js = main_js.replaceAll(
-                                                "this\\._panel\\.on\\(a\\.EventType\\.MOUSEOVER,this\\._onMouseOver\\)",
-                                                "this._panel.on(a.EventType.MOUSEDOWN,this._onMouseOver)");
-                                        main_js = main_js.replaceAll(
-                                                "this\\._panel\\.off\\(a\\.EventType\\.MOUSEOVER,this\\._onMouseOver\\)",
-                                                "this._panel.off(a.EventType.MOUSEDOWN,this._onMouseOver)");
-                                        is = new ByteArrayInputStream(main_js.getBytes());
-                                        // Log.e("GOTO", main_js);
-                                    }
-                                    return new WebResourceResponse("application/javascript", "utf-8", is);
-                                }
-                                if (is_audio) {
-                                    if (url.contains("resources/se")) playSe(sePlayer, file, seVolume);
-                                    else if (url.contains("/kcs/sound/kc")) {
-                                        String info = source_path.replace("/kcs/sound/kc", "").replace(".mp3", "");
-                                        String[] fn_code = info.split("/");
-                                        String voiceline = "";
-                                        String voice_filename = fn_code[0];
-                                        String voice_code = fn_code[1];
-                                        String ship_id = voice_filename;
-                                        if (filenameToShipId.containsKey(voice_filename)) {
-                                            ship_id = filenameToShipId.get(voice_filename);
-                                            voiceline = KcVoiceUtils.getVoiceLineByFilename(ship_id, voice_code);
-
-                                        } else {
-                                            voiceline = KcVoiceUtils.getVoiceLineByFilename(voice_filename, voice_code);
-                                        }
-                                        Log.e("GOTO", "file info: " + info);
-                                        Log.e("GOTO", "voiceline: " + String.valueOf(voiceline));
-                                        int voiceline_value = Integer.parseInt(voiceline);
-                                        if (voiceline_value >= 30 && voiceline_value <= 53) { // hourly voiceline
-                                            Date now = new Date();
-                                            String voiceline_time = String.format(Locale.US, "%02d:00:00", voiceline_value - 30);
-                                            SimpleDateFormat time_fmt = new SimpleDateFormat("HH:mm:ss");
-                                            Date time_src = time_fmt.parse(time_fmt.format(now));
-                                            Date time_tgt = time_fmt.parse(voiceline_time);
-                                            long diff_msec = time_tgt.getTime() - time_src.getTime();
-                                            if (voiceline_value == 30) diff_msec += 86400000;
-                                            //KcVoiceUtils.setHourlyVoiceInfo(file.getAbsolutePath(), ship_id, voiceline);
-                                                Runnable r = new VoiceSubtitleRunnable(file.getAbsolutePath(), ship_id, voiceline);
-                                                shipVoiceHandler.removeCallbacks(r);
-                                                shipVoiceHandler.postDelayed(r, diff_msec);
-                                                Log.e("GOTO", "playHourVoice after: " + diff_msec + " msec");
-                                        } else {
-                                            if (isBattleMode && (file.length() / 1024) < 100) playSe(sePlayer, file, voiceVolume);
-                                            else {
-                                                playMp3("voice", voicePlayer, file, voiceVolume);
-
-                                            }
-                                            setSubtitle(ship_id, voiceline);
-                                        }
-                                    }
-                                    else if (url.contains("/voice/titlecall_")) {
-                                        String info = source_path.replace("/kcs2/resources/voice/", "").replace(".mp3", "");
-                                        titlePath.add(info);
-                                        titleFiles.add(file.getAbsolutePath());
-                                        if (titleFiles.size() == 2) {
-                                            playTitleCall(titlePath, titleFiles, 0, voiceVolume);
-                                        }
-                                    }
-                                    else if (url.contains("resources/bgm")) playMp3("bgm", bgmPlayer, file, bgmVolume);
-                                    return new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    WebResourceResponse response = processWebRequest(source, is_image, is_audio, is_json, is_js);
+                    if (response != null) return response;
                 }
                 return super.shouldInterceptRequest(view, request);
             }
 
         });
+
         mContentView.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
@@ -988,6 +732,284 @@ public class FullscreenActivity extends AppCompatActivity {
                     String.format(Locale.US, RESIZE_CALL, adjust_padding, adjust_vpadding), null);
         }
     }
+
+    public WebResourceResponse processWebRequest(Uri source, boolean is_image, boolean is_audio, boolean is_json, boolean is_js) {
+        String url = source.toString();
+        String host = source.getHost();
+        for (String rule : REQUEST_BLOCK_RULES) {
+            if (url.contains(rule)) {
+                Log.e("GOTO", "blocked: ".concat(url));
+                return new WebResourceResponse("text/css", "utf-8", getEmptyStream());
+            }
+        }
+
+        if(url.contains("/kcs2/img/") && host != null) {
+            currentCookieHost = host.concat("/kcs2/");
+            String cookie = CookieManager.getInstance().getCookie(currentCookieHost);
+            if (cookie != null) {
+                String[] data = cookie.split(";");
+                for (String item: data) {
+                    String[] row = item.trim().split("=");
+                    if (!row[1].matches("[0-9]+")) continue;
+                    String key = row[0];
+                    float value = (float)Integer.parseInt(row[1]) / 100;
+                    if (key.equals("vol_bgm")) bgmVolume = value;
+                    if (key.equals("vol_voice")) voiceVolume = value;
+                    if (key.equals("vol_se")) seVolume = value;
+                }
+            }
+            // Log.e("GOTO", cookie);
+        }
+
+        if (url.contains("kcscontents/css/common.css")) {
+            String replace_css = "#globalNavi, #contentsWrap {display:none;} body {background-color: black;}";
+            InputStream is = new ByteArrayInputStream(replace_css.getBytes());
+            return new WebResourceResponse("text/css", "utf-8", is);
+        }
+
+        try {
+            if (source.getPath() != null && source.getLastPathSegment() != null) {
+                Log.e("GOTO", source.getPath());
+                //Log.e("GOTO", header.toString());
+                String path = source.getPath();
+                String filename = source.getLastPathSegment();
+
+                if (filename.equals("version.json") || filename.contains("index.php")) {
+                    titlePath.clear();
+                    titleFiles.clear();
+                    return null;
+                }
+                if (path.contains("ooi.css")) { // block ooi.moe background
+                    AssetManager as = getAssets();
+                    InputStream is = as.open("ooi.css");
+                    return new WebResourceResponse("text/css", "utf-8", is);
+                }
+                if (path.contains("/api_start2/")) {
+                    boolean update_flag = false;
+                    String version_url = "http://52.55.91.44/kcanotify/dv.php";
+                    Request versionRequest = new Request.Builder().url(version_url)
+                            .header("Referer", "goto/webkit").build();
+                    Response version_response = resourceClient.newCall(versionRequest).execute();
+                    if (version_response.body() != null) {
+                        String version_check = version_response.body().string();
+                        if (!versionTable.getValue("api_start2").equals(version_check)) {
+                            update_flag = true;
+                        }
+                    }
+                    Log.e("GOTO", versionTable.getValue("api_start2"));
+                    String apipath = getApplicationContext().getFilesDir().getAbsolutePath()
+                            .concat("/cache/").concat("api_start2");
+                    File file = new File(apipath);
+                    if (!file.exists() || update_flag) {
+                        file.createNewFile();
+                        Log.e("GOTO", "download resource");
+                        String api_url = "http://52.55.91.44/kcanotify/kca_api_start2.php?v=recent";
+                        Request dataRequest = new Request.Builder().url(api_url)
+                                .header("Referer", "goto/webkit")
+                                .header("Accept-Encoding", "gzip")
+                                .build();
+                        Response response = resourceClient.newCall(dataRequest).execute();
+                        ResponseBody body = response.body();
+                        String api_version = response.header("X-Api-Version", "");
+                        versionTable.putValue("api_start2", api_version);
+                        Log.e("GOTO", "version: " + api_version);
+                        if (body != null) {
+                            InputStream in = body.byteStream();
+                            byte[] buffer = new byte[2 * 1024];
+                            int bytes;
+                            FileOutputStream fos = new FileOutputStream(file);
+                            while ((bytes = in.read(buffer)) != -1) {
+                                fos.write(buffer, 0, bytes);
+                            }
+                            fos.close();
+                            body.close();
+                        }
+                    }
+
+                    InputStream buf = new BufferedInputStream(new GZIPInputStream(new FileInputStream(file)));
+                    Gson gson = new Gson();
+                    Reader reader = new InputStreamReader(buf);
+                    JsonObject api_data = gson.fromJson(reader, JsonObject.class).getAsJsonObject("api_data");
+                    JsonArray api_mst_shipgraph = api_data.getAsJsonArray("api_mst_shipgraph");
+                    JsonArray api_mst_ship = api_data.getAsJsonArray("api_mst_ship");
+                    KcVoiceUtils.buildShipGraph(api_mst_ship);
+                    for (JsonElement item: api_mst_shipgraph) {
+                        JsonObject ship = item.getAsJsonObject();
+                        String shipId = ship.get("api_id").getAsString();
+                        String shipFn = ship.get("api_filename").getAsString();
+                        filenameToShipId.put(shipFn, shipId);
+                    }
+                    Log.e("GOTO", "ship_filename: " + filenameToShipId.size());
+                    return null;
+                }
+
+                if (path.contains("/api_port/port")) {
+                    Log.e("GOTO","run executor");
+                    executor = Executors.newScheduledThreadPool(1);
+                    executor.scheduleAtFixedRate(portVolumeCheckRunnable, 0, 1, TimeUnit.SECONDS);
+
+                } else if (path.contains("/api")) {
+                    if (!executor.isShutdown()) executor.shutdown();
+                }
+
+                String fullpath = String.format(Locale.US, "http://%s%s", host, path);
+                String outputpath = getApplicationContext().getFilesDir().getAbsolutePath()
+                        .concat("/cache/").concat(path.replace(filename, "").substring(1));
+                String filepath = outputpath.concat(filename);
+
+                boolean update_flag = false;
+                String source_path = source.getPath();
+                stopMp3(bgmPlayer, filepath);
+
+                if (is_image || is_audio || is_json || is_js) {
+                    String version = "";
+                    if (source.getQueryParameterNames().contains("version")) {
+                        version = source.getQueryParameter("version");
+                    }
+
+                    if (!versionTable.getValue(source_path).equals(version)) {
+                        update_flag = true;
+                        versionTable.putValue(source_path, version);
+                        Log.e("GOTO", "cache resource " + source_path +  ": " + version);
+                    } else {
+                        Log.e("GOTO", "resource " + source_path +  " found: " + version);
+                    }
+                }
+
+                if (is_image) {
+                    File file = new File(filepath);
+                    if (!file.exists() || update_flag) {
+                        File dir = new File(outputpath);
+                        if (!dir.exists()) dir.mkdirs();
+                        Request imageRequest = new Request.Builder().url(fullpath).build();
+                        Response response = resourceClient.newCall(imageRequest).execute();
+                        ResponseBody body = response.body();
+                        // InputStream in = new BufferedInputStream(new URL(fullpath).openStream());
+                        if (body != null) {
+                            InputStream in = body.byteStream();
+                            byte[] buffer = new byte[2 * 1024];
+                            int bytes;
+                            FileOutputStream fos = new FileOutputStream(file);
+                            while ((bytes = in.read(buffer)) != -1) {
+                                fos.write(buffer, 0, bytes);
+                            }
+                            fos.close();
+                            body.close();
+                        } else {
+                            return null;
+                        }
+                    }
+
+                    Log.e("GOTO", "load from disk: " + path);
+                    InputStream is = new BufferedInputStream(new FileInputStream(file));
+                    return new WebResourceResponse("image/png", "utf-8", is);
+                }
+
+                if (is_json || is_audio || is_js) {
+                    File dir = new File(outputpath);
+                    if (!dir.exists()) dir.mkdirs();
+
+                    File file = new File(filepath);
+                    if (!file.exists() || update_flag) {
+                        InputStream in = new BufferedInputStream(new URL(fullpath).openStream());
+                        byte[] buffer = new byte[8 * 1024];
+                        int bytes;
+                        FileOutputStream fos = new FileOutputStream(file);
+                        while ((bytes = in.read(buffer)) != -1) {
+                            fos.write(buffer, 0, bytes);
+                        }
+                        fos.close();
+                    } else {
+                        Log.e("GOTO", "load from disk: " + filepath);
+                    }
+                    InputStream is = new BufferedInputStream(new FileInputStream(file));
+                    if (is_json) return new WebResourceResponse("application/json", "utf-8", is);
+                    if (is_js) {
+                        if (url.contains("kcs2/js/")) {
+                            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                            int nRead;
+                            byte[] data = new byte[1024];
+                            while ((nRead = is.read(data, 0, data.length)) != -1) {
+                                buffer.write(data, 0, nRead);
+                            }
+                            buffer.flush();
+                            is.close();
+
+                            byte[] byteArray = buffer.toByteArray();
+                            String main_js = new String(byteArray, StandardCharsets.UTF_8);
+                            // LABS Targeting
+                            main_js = main_js.replaceAll(
+                                    "this\\._panel\\.on\\(a\\.EventType\\.MOUSEOVER,this\\._onMouseOver\\)",
+                                    "this._panel.on(a.EventType.MOUSEDOWN,this._onMouseOver)");
+                            main_js = main_js.replaceAll(
+                                    "this\\._panel\\.off\\(a\\.EventType\\.MOUSEOVER,this\\._onMouseOver\\)",
+                                    "this._panel.off(a.EventType.MOUSEDOWN,this._onMouseOver)");
+                            is = new ByteArrayInputStream(main_js.getBytes());
+                            // Log.e("GOTO", main_js);
+                        }
+                        return new WebResourceResponse("application/javascript", "utf-8", is);
+                    }
+                    if (is_audio) {
+                        if (url.contains("resources/se")) playSe(sePlayer, file, seVolume);
+                        else if (url.contains("/kcs/sound/kc")) {
+                            String info = source_path.replace("/kcs/sound/kc", "").replace(".mp3", "");
+                            String[] fn_code = info.split("/");
+                            String voiceline = "";
+                            String voice_filename = fn_code[0];
+                            String voice_code = fn_code[1];
+                            String ship_id = voice_filename;
+                            if (filenameToShipId.containsKey(voice_filename)) {
+                                ship_id = filenameToShipId.get(voice_filename);
+                                voiceline = KcVoiceUtils.getVoiceLineByFilename(ship_id, voice_code);
+
+                            } else {
+                                voiceline = KcVoiceUtils.getVoiceLineByFilename(voice_filename, voice_code);
+                            }
+                            Log.e("GOTO", "file info: " + info);
+                            Log.e("GOTO", "voiceline: " + String.valueOf(voiceline));
+                            int voiceline_value = Integer.parseInt(voiceline);
+                            if (voiceline_value >= 30 && voiceline_value <= 53) { // hourly voiceline
+                                Date now = new Date();
+                                String voiceline_time = String.format(Locale.US, "%02d:00:00", voiceline_value - 30);
+                                SimpleDateFormat time_fmt = new SimpleDateFormat("HH:mm:ss");
+                                Date time_src = time_fmt.parse(time_fmt.format(now));
+                                Date time_tgt = time_fmt.parse(voiceline_time);
+                                long diff_msec = time_tgt.getTime() - time_src.getTime();
+                                if (voiceline_value == 30) diff_msec += 86400000;
+                                //KcVoiceUtils.setHourlyVoiceInfo(file.getAbsolutePath(), ship_id, voiceline);
+                                Runnable r = new VoiceSubtitleRunnable(file.getAbsolutePath(), ship_id, voiceline);
+                                shipVoiceHandler.removeCallbacks(r);
+                                shipVoiceHandler.postDelayed(r, diff_msec);
+                                Log.e("GOTO", "playHourVoice after: " + diff_msec + " msec");
+                            } else {
+                                if (isBattleMode && (file.length() / 1024) < 100) playSe(sePlayer, file, voiceVolume);
+                                else {
+                                    playMp3("voice", voicePlayer, file, voiceVolume);
+
+                                }
+                                setSubtitle(ship_id, voiceline);
+                            }
+                        }
+                        else if (url.contains("/voice/titlecall_")) {
+                            String info = source_path.replace("/kcs2/resources/voice/", "").replace(".mp3", "");
+                            titlePath.add(info);
+                            titleFiles.add(file.getAbsolutePath());
+                            if (titleFiles.size() == 2) {
+                                playTitleCall(titlePath, titleFiles, 0, voiceVolume);
+                            }
+                        }
+                        else if (url.contains("resources/bgm")) playMp3("bgm", bgmPlayer, file, bgmVolume);
+                        return new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
     private int getHorizontalProgressFromPref(int value) {return value / 2; }
     private int convertHorizontalProgress(int progress) { return progress * 2; }
     private int getVerticalProgressFromPref(int value) {return value / 2; }
