@@ -121,6 +121,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private static final boolean AUTO_HIDE = true;
     private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
     private static final int UI_ANIMATION_DELAY = 300;
+    private int uiOption;
 
     private VersionDatabase versionTable;
     private AudioManager audioManager;
@@ -177,6 +178,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+            uiOption = mContentView.getSystemUiVisibility();
         }
     };
     private final Runnable mShowPart2Runnable = new Runnable() {
@@ -218,6 +220,7 @@ public class FullscreenActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        uiOption = getWindow().getDecorView().getSystemUiVisibility();
         getWindow().setFlags( WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
         setContentView(R.layout.activity_fullscreen);
@@ -228,7 +231,6 @@ public class FullscreenActivity extends AppCompatActivity {
         if (sharedPref.getBoolean(PREF_LANDSCAPE, false)) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
         }
-
 
         executor = Executors.newScheduledThreadPool(1);
 
@@ -907,6 +909,13 @@ public class FullscreenActivity extends AppCompatActivity {
     private void delayedHide(int delayMillis) {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        if (hasFocus) {
+            mContentView.setSystemUiVisibility( uiOption );
+        }
     }
 
     @Override
