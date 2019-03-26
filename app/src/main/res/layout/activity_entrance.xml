@@ -16,7 +16,7 @@
          android:fitsSystemWindows. -->
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/background"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:alpha="0.6"
@@ -30,6 +30,15 @@
         android:scaleType="centerCrop"
         android:scrollY="-35dp"
         app:srcCompat="@mipmap/gotland_full" />
+
+    <ImageView
+        android:id="@+id/icon_setting"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_margin="8dp"
+        android:src="@mipmap/settings"
+        app:srcCompat="@mipmap/settings" />
 
     <ScrollView
         android:layout_width="match_parent"
