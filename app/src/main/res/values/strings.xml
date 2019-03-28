@@ -25,4 +25,5 @@
     <string name="settings_version_check">Check Update</string>
     <string name="settings_subtitle_label">Download Subtitle Data</string>
     <string name="settings_appinfo_label">App Information</string>
+    <string name="no_subtitle_file">Please download subtitle file from the settings first.</string>
 </resources>

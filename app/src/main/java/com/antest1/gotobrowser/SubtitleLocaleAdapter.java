@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Locale;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -34,6 +35,16 @@ public class SubtitleLocaleAdapter extends RecyclerView.Adapter<SubtitleLocaleAd
         Collections.sort(mItems, new LocaleSort());
     }
 
+    public void itemCommitUpdate(String locale_code) {
+        for (int i = 0; i < mItems.size(); i++) {
+            JsonObject item = mItems.get(i);
+            if (item.get("locale_code").getAsString().equals(locale_code)) {
+                item.addProperty("current_commit", item.get("latest_commit").getAsString());
+            }
+            mItems.set(i, item);
+        }
+    }
+
     @Override
     public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_subtitle, parent, false);
@@ -50,7 +61,16 @@ public class SubtitleLocaleAdapter extends RecyclerView.Adapter<SubtitleLocaleAd
             holder.selected.setBackgroundResource(R.color.colorListItem);
         }
         holder.localeLabel.setText(item.get("locale_label").getAsString());
-        holder.localeInfo.setText(item.get("locale_info").getAsString());
+        String current_commit = item.get("current_commit").getAsString();
+        if (VersionDatabase.isDefaultValue(current_commit)) {
+            current_commit = "(none)";
+        } else {
+            current_commit = current_commit.substring(0, 7);
+        }
+        String latest_commit = item.get("latest_commit").getAsString().substring(0, 7);
+        String locale_info_text = String.format(Locale.US,
+                "Current: %s / Latest: %s", current_commit, latest_commit);
+        holder.localeInfo.setText(locale_info_text);
     }
 
     @Override

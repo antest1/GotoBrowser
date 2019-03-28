@@ -9,9 +9,15 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -34,8 +40,10 @@ import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_PATH;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_ROOT;
+import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 
 public class SettingsActivity extends AppCompatActivity {
+    private VersionDatabase versionTable;
     public ImageView exitButton;
     public RecyclerView subtitleList;
     public SharedPreferences sharedPref;
@@ -59,6 +67,8 @@ public class SettingsActivity extends AppCompatActivity {
         if (sharedPref.getBoolean(PREF_LANDSCAPE, false)) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
         }
+
+        versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
 
         exitButton = findViewById(R.id.button_exit);
         exitButton.setOnClickListener(v -> finish());
@@ -86,16 +96,44 @@ public class SettingsActivity extends AppCompatActivity {
     };
 
     SubtitleLocaleAdapter.OnItemClickListener downloader = item -> {
+        String locale_code = item.get("locale_code").getAsString();
         String commit = item.get("latest_commit").getAsString();
         String path = item.get("download_url").getAsString();
-        Toast.makeText(getApplicationContext(), path, Toast.LENGTH_LONG).show();
+        String filename = String.format(Locale.US, "quotes_%s.json", locale_code);
         Call<JsonObject> call = subtitleRepo.download(commit, path);
         call.enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 JsonObject data = response.body();
-                Toast.makeText(getApplicationContext(), data.toString().substring(0, 100), Toast.LENGTH_LONG).show();
-                adapter.notifyDataSetChanged();
+                Gson gson = new Gson();
+                String subtitle_folder = getApplicationContext().getFilesDir().getAbsolutePath().concat("/subtitle/");
+                String subtitle_path = subtitle_folder.concat(filename);
+                File file = new File(subtitle_folder);
+                try {
+                    if (!file.exists()) file.mkdirs();
+                    if (data != null) {
+                        File subtitle_file = new File(subtitle_path);
+                        FileOutputStream fos = new FileOutputStream(subtitle_file);
+                        fos.write(data.toString().getBytes());
+                        fos.close();
+                        versionTable.putValue(filename, commit);
+                        adapter.itemCommitUpdate(locale_code);
+                        adapter.notifyDataSetChanged();
+                        Toast.makeText(getApplicationContext(),
+                                "Saved: quotes_".concat(locale_code).concat(".json")
+                                , Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                "No data to write: quotes_".concat(locale_code).concat(".json")
+                                , Toast.LENGTH_LONG).show();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(),
+                            "IOException while saving quotes_".concat(locale_code).concat(".json")
+                            , Toast.LENGTH_LONG).show();
+                }
+
             }
 
             @Override
@@ -117,6 +155,7 @@ public class SettingsActivity extends AppCompatActivity {
             final String locale_code = SUBTITLE_LOCALE[i];
             final String locale_label = subtitle_label[i];
             final String locale_path = SUBTITLE_PATH[i];
+            String filename = String.format(Locale.US, "quotes_%s.json", locale_code);
             Call<JsonArray> call = updateCheck.check(locale_path);
             call.enqueue(new Callback<JsonArray>() {
                 @Override
@@ -130,7 +169,7 @@ public class SettingsActivity extends AppCompatActivity {
                     item.addProperty("locale_code", locale_code);
                     item.addProperty("selected", locale_code.equals(sharedPref.getString(PREF_SUBTITLE_LOCALE, "")));
                     item.addProperty("locale_label", locale_label);
-                    item.addProperty("locale_info", String.format(Locale.US, "current: %s / latest: %s", "", latest.substring(0, 7)));
+                    item.addProperty("current_commit", versionTable.getValue(filename));
                     item.addProperty("latest_commit", latest);
                     item.addProperty("download_url", locale_path);
                     adapter.addLocaleData(item);

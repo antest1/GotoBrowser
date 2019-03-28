@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -32,6 +33,10 @@ public class VersionDatabase extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    public static boolean isDefaultValue(String text) {
+        return "_none_".equals(text);
+    }
+
     // for kca_userdata
     public String getValue(String key) {
         String value = "_none_";
@@ -47,6 +52,7 @@ public class VersionDatabase extends SQLiteOpenHelper {
         } finally {
             if (c != null) c.close();
         }
+        Log.e("GOTO", "getValue " + key + " " + value);
         return value;
     }
 

@@ -12,6 +12,7 @@ import com.google.gson.JsonParser;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.AbstractMap;
@@ -27,10 +28,9 @@ import java.util.Set;
 // Reference: https://github.com/KC3Kai/KC3Kai/issues/1180
 //            https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
 public class KcVoiceUtils {
-    public static final String specialVoiceCode = "WhiteDay";
+    public static final String specialVoiceCode = "Spring";
     public static final int SPECIAL_VOICE_START_YEAR = 2014;
     public static final int SPECIAL_VOICE_END_YEAR = 2019;
-
     public static final int[] resourceKeys = {
             6657, 5699, 3371, 8909, 7719, 6229, 5449, 8561, 2987, 5501,
             3127, 9319, 4365, 9811, 9927, 2423, 3439, 1865, 5925, 4409,
@@ -175,19 +175,24 @@ public class KcVoiceUtils {
         Log.e("GOTO", "quote_meta: " + quoteLabel.size());
     }
 
-    public static void loadQuoteData(Context context, String locale) {
-        AssetManager as = context.getAssets();
+    public static boolean loadQuoteData(Context context, String locale_code) {
+        String filename = String.format(Locale.US, "quotes_%s.json", locale_code);
+        String subtitle_path = context.getFilesDir().getAbsolutePath()
+                .concat("/subtitle/").concat(filename);
         try {
             final Gson gson = new Gson();
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    as.open(String.format(Locale.US, "quotes_%s.json", locale))));
-            quoteData = gson.fromJson(reader, JsonObject.class);
+            final BufferedReader reader = new BufferedReader(new FileReader(subtitle_path));
+            String line;
+            StringBuilder sb = new StringBuilder();
+            while ((line = reader.readLine()) != null) sb.append(line);
+            quoteData = gson.fromJson(sb.toString(), JsonObject.class);
             quoteTimingData = quoteData.getAsJsonObject("timing");
-
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
         Log.e("GOTO", "quote_data: " + quoteData.size());
+        return true;
     }
 
     public static int getDefaultTiming(String data) {
@@ -234,6 +239,7 @@ public class KcVoiceUtils {
                 voiceline = quoteLabel.get(voiceline).getAsString();
             }
 
+            if (!quoteData.has(ship_id)) return voicedata_base;
             JsonObject ship_data = quoteData.getAsJsonObject(ship_id);
             if (ship_data.has(voiceline_special)) {
                 voiceline = voiceline_special;

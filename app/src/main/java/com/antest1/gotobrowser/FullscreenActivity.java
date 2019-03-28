@@ -100,6 +100,7 @@ import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
 import static com.antest1.gotobrowser.Constants.PREF_PADDING;
 import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
+import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_VPADDING;
 import static com.antest1.gotobrowser.Constants.REFRESH_CALL;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
@@ -157,6 +158,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private boolean isBattleMode = false;
     private Map<String, String> filenameToShipId = new HashMap<>();
     private String currentCookieHost = "";
+    private boolean isSubtitleLoaded = false;
     private TextView subtitleText;
     private final Handler clearSubHandler = new Handler();
     private List<String> titlePath = new ArrayList<>();
@@ -350,8 +352,9 @@ public class FullscreenActivity extends AppCompatActivity {
 
         // defaultSubtitleMargin = getDefaultSubtitleMargin();
         setSubtitleMargin(sharedPref.getInt(PREF_PADDING, 0));
+        String subtitle_local = sharedPref.getString(PREF_SUBTITLE_LOCALE, "en");
         KcVoiceUtils.loadQuoteAnnotation(getApplicationContext());
-        KcVoiceUtils.loadQuoteData(getApplicationContext(), "ko");
+        isSubtitleLoaded = KcVoiceUtils.loadQuoteData(getApplicationContext(), subtitle_local);
 
         mContentView.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
@@ -1354,7 +1357,11 @@ public class FullscreenActivity extends AppCompatActivity {
         public void run() {
             runOnUiThread(() -> {
                 clearSubHandler.removeCallbacks(clearSubtitle);
-                subtitle_text = subtitle_text.replace("<br>", "\n");
+                if (isSubtitleLoaded) {
+                    subtitle_text = subtitle_text.replace("<br>", "\n");
+                } else {
+                    subtitle_text = getString(R.string.no_subtitle_file);
+                }
                 subtitleText.setText(subtitle_text);
                 int delay = KcVoiceUtils.getDefaultTiming(subtitle_text);
                 clearSubHandler.postDelayed(clearSubtitle, delay);
