@@ -9,6 +9,7 @@ import android.view.View;
 import android.webkit.WebView;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,6 +34,7 @@ import static com.antest1.gotobrowser.Constants.URL_LIST;
 public class EntranceActivity extends AppCompatActivity {
     private BackPressCloseHandler backPressCloseHandler;
     private TextView startButton, selectButton, clearButton, autoCompleteButton, versionText;
+    private ImageView settingsButton;
     private Switch landscapeSwitch, adjustmentSwitch, silentSwitch;
     private CheckBox showControlPanelCheckbox;
     private boolean show_panel = false;
@@ -56,6 +58,15 @@ public class EntranceActivity extends AppCompatActivity {
         }
 
         backPressCloseHandler = new BackPressCloseHandler(this);
+
+        settingsButton = findViewById(R.id.icon_setting);
+        settingsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(EntranceActivity.this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
 
         landscapeSwitch = findViewById(R.id.switch_landscape);
         landscapeSwitch.setChecked(sharedPref.getBoolean(PREF_LANDSCAPE, false));

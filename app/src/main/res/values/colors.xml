@@ -9,4 +9,6 @@
     <color name="black_overlay">#66000000</color>
     <color name="transparent">#00000000</color>
     <color name="panel_red">#B00020</color>
+    <color name="colorListItem">#FAFAFA</color>
+    <color name="gray">#9E9E9E</color>
 </resources>

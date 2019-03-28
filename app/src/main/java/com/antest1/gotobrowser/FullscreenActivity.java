@@ -317,6 +317,9 @@ public class FullscreenActivity extends AppCompatActivity {
         });
 
         isCaptionMode = sharedPref.getBoolean(PREF_SHOWCC, false);
+
+        subtitleText = findViewById(R.id.subtitle_view);
+        subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
         subtitleText.setVisibility(isCaptionMode ? View.VISIBLE : View.GONE);
         menuCaption = findViewById(R.id.menu_cc);
         menuCaption.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isCaptionMode ? R.color.panel_red : R.color.black));
@@ -343,8 +346,6 @@ public class FullscreenActivity extends AppCompatActivity {
         voicePlayer = new MediaPlayer();
         titleVoicePlayer = new MediaPlayer();
         sePlayer = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
-        subtitleText = findViewById(R.id.subtitle_view);
-        subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
 
 
         // defaultSubtitleMargin = getDefaultSubtitleMargin();

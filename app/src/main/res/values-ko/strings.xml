@@ -18,4 +18,8 @@
     <string name="text_cancel">취소</string>
     <string name="autocomplete_title">로그인 자동완성</string>
     <string name="autocomplete_msg">로그인 폼에 입력할 계정 정보를 입력하세요.</string>
+    <string name="settings_version_label">현재 버전</string>
+    <string name="settings_version_check">업데이트 확인</string>
+    <string name="settings_subtitle_label">자막 데이터 다운로드</string>
+    <string name="settings_appinfo_label">어플리케이션 정보</string>
 </resources>

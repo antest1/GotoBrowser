@@ -2,12 +2,6 @@
     <string name="preference_key" translatable="false">shared_pref</string>
     <string name="version_format" formatted="false" translatable="false">gotobrowser-%s</string>
     <string name="copyright_info" translatable="false">Copyright © 2019 antest1(IE10)</string>
-    <string-array name="connector_list">
-        <item>DMM direct</item>
-        <item>kancolle.su</item>
-        <item>ooi.moe</item>
-        <item>nitrabbit</item>
-    </string-array>
 
     <string name="app_name">GotoBrowser</string>
     <string name="action_ok">OK</string>
@@ -27,4 +21,8 @@
     <string name="text_cancel">Cancel</string>
     <string name="autocomplete_title">Login Autocomplete</string>
     <string name="autocomplete_msg">This information will be used to fill the login form.</string>
+    <string name="settings_version_label">Current Version</string>
+    <string name="settings_version_check">Check Update</string>
+    <string name="settings_subtitle_label">Download Subtitle Data</string>
+    <string name="settings_appinfo_label">App Information</string>
 </resources>

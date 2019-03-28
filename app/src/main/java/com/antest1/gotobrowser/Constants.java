@@ -15,6 +15,7 @@ public class Constants {
     public static final String PREF_LATEST_URL = "pref_latest_url";
     public static final String PREF_DMM_ID = "pref_autocomplete_id";
     public static final String PREF_DMM_PASS = "pref_autocomplete_pass";
+    public static final String PREF_SUBTITLE_LOCALE = "pref_subtitle_locale";
 
     public static final String ACTION_SHOWPANEL = "with_layout_control";
 
@@ -46,6 +47,14 @@ public class Constants {
     public static final String CONNECT_NITRABBIT = "$(\"#viewform\").unbind(\"submit\");function connect(){var a=$(\"#viewform input[name=\\\"game_url\\\"]\").val();return location.href=a,!1}$(\"#viewform\").submit(connect);";
     public static final String AUTOCOMPLETE_OOI = "$(\"#login_id\").val(\"%s\");$(\"#password\").val(\"%s\");";
     public static final String AUTOCOMPLETE_NIT = "$(\"input[name=id]\").val(\"%s\");$(\"input[name=pw]\").val(\"%s\");";
+
+    public static final String[] SUBTITLE_LOCALE = {"en", "kr"};
+    public static final String GITHUBAPI_ROOT = "https://api.github.com/";
+    public static final String SUBTITLE_ROOT = "https://raw.githubusercontent.com/";
+    public static final String[] SUBTITLE_PATH = {
+            "data/en/quotes.json",
+            "data/kr/quotes.json"
+    };
 
     public static final String[] REQUEST_BLOCK_RULES = {
         "twitter.com/i/jot",
