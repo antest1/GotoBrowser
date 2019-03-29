@@ -226,7 +226,7 @@ public class SettingsActivity extends AppCompatActivity {
                         String tag = version_info.get("tag_name").getAsString().replace("v", "");
                         String latest_file = version_info.getAsJsonArray("assets")
                                 .get(0).getAsJsonObject().get("browser_download_url").getAsString();
-                        if (!BuildConfig.VERSION_NAME.equals(tag)) {
+                        if (BuildConfig.VERSION_NAME.equals(tag)) {
                             Toast.makeText(getApplicationContext(), R.string.setting_latest_version, Toast.LENGTH_LONG).show();
                         } else {
                             AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
