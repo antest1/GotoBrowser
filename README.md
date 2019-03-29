@@ -55,7 +55,7 @@ E-mail: kcanotify@gmail.com
 
 License
 -------
-[GNU General Public License version 3](http://www.gnu.org/licenses/gpl.txt)
+[Apache License 2.0](http://www.apache.org/licenses/)
 
 Copyright (c) 2019 antest1(IE10)
 
