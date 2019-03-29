@@ -6,11 +6,28 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add this global rule
--keepattributes Signature
+-keepattributes Signature, InnerClasses, EnclosingMethod
 -keepattributes *Annotation*
+-keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
 
 -keep class com.crashlytics.** { *; }
 -dontwarn com.crashlytics.**
+
+# Retain service method parameters when optimizing.
+-keepclassmembers,allowshrinking,allowobfuscation interface * {
+    @retrofit2.http.* <methods>;
+}
+
+# Ignore annotation used for build tooling.
+-dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
+
+# Ignore JSR 305 annotations for embedding nullability information.
+-dontwarn javax.annotation.**
+
+# With R8 full mode, it sees no subtypes of Retrofit interfaces since they are created with a Proxy
+# and replaces all potential values with null. Explicitly keeping the interfaces prevents this.
+-if interface * { @retrofit2.http.* <methods>; }
+-keep,allowobfuscation interface <1>
 
 # This rule will properly ProGuard all the model classes in
 # the package com.yourcompany.models. Modify to fit the structure
