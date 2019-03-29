@@ -8,8 +8,8 @@ android {
         applicationId "com.antest1.gotobrowser"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 8
-        versionName "1.0-beta.8"
+        versionCode 9
+        versionName "1.0-beta.9"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
