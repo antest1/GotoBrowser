@@ -2,8 +2,10 @@ package com.antest1.gotobrowser;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -11,19 +13,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Locale;
 
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -46,7 +46,7 @@ import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 
 public class SettingsActivity extends AppCompatActivity {
     private VersionDatabase versionTable;
-    private TextView version_text, subtitleLoading;
+    private TextView versionText, latestCheck, subtitleLoading;
     public ImageView exitButton;
     public RecyclerView subtitleList;
     public SharedPreferences sharedPref;
@@ -65,14 +65,15 @@ public class SettingsActivity extends AppCompatActivity {
             actionBar.hide();
         }
 
-        sharedPref = getSharedPreferences(
-                getString(R.string.preference_key), Context.MODE_PRIVATE);
-        if (sharedPref.getBoolean(PREF_LANDSCAPE, false)) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
-        }
+        updateCheck = getRetrofitAdapter(getApplicationContext(), GITHUBAPI_ROOT).create(SubtitleCheck.class);
+        subtitleRepo = getRetrofitAdapter(getApplicationContext(), SUBTITLE_ROOT).create(SubtitleRepo.class);
 
-        version_text = findViewById(R.id.version_text);
-        version_text.setText(BuildConfig.VERSION_NAME);
+        versionText = findViewById(R.id.version_text);
+        versionText.setText(BuildConfig.VERSION_NAME);
+
+        latestCheck = findViewById(R.id.version_update);
+        latestCheck.setOnClickListener(v -> checkAppVersion());
+
         versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
 
         exitButton = findViewById(R.id.button_exit);
@@ -80,9 +81,6 @@ public class SettingsActivity extends AppCompatActivity {
 
         subtitleLoading = findViewById(R.id.subtitle_loading);
         subtitleLoading.setVisibility(View.VISIBLE);
-
-        updateCheck = getRetrofitAdapter(getApplicationContext(), GITHUBAPI_ROOT).create(SubtitleCheck.class);
-        subtitleRepo = getRetrofitAdapter(getApplicationContext(), SUBTITLE_ROOT).create(SubtitleRepo.class);
 
         subtitleList = findViewById(R.id.subtitle_list);
         subtitleList.addItemDecoration(new DividerItemDecoration(getApplicationContext(),
@@ -190,6 +188,49 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    public void checkAppVersion() {
+        Call<JsonObject> call = updateCheck.version();
+        call.enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                JsonObject version_info = response.body();
+                Log.e("GOTO", version_info.toString());
+                if (version_info.has("tag_name")) {
+                    String tag = version_info.get("tag_name").getAsString().replace("v", "");
+                    String latest_file = version_info.getAsJsonArray("assets")
+                            .get(0).getAsJsonObject().get("browser_download_url").getAsString();
+                    if (!BuildConfig.VERSION_NAME.equals(tag)) {
+                        Toast.makeText(getApplicationContext(), R.string.setting_latest_version, Toast.LENGTH_LONG).show();
+                    } else {
+                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                                SettingsActivity.this);
+                        alertDialogBuilder.setTitle(getString(R.string.app_name));
+                        alertDialogBuilder
+                                .setCancelable(false)
+                                .setMessage(String.format(Locale.US, getString(R.string.setting_latest_download), tag))
+                                .setPositiveButton(R.string.action_ok,
+                                        (dialog, id) -> {
+                                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(latest_file));
+                                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            startActivity(intent);
+                                        })
+                                .setNegativeButton(R.string.action_cancel,
+                                        (dialog, id) -> dialog.cancel());
+                        AlertDialog alertDialog = alertDialogBuilder.create();
+                        alertDialog.show();
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(), "No update found.", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                Toast.makeText(getApplicationContext(), t.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
 
     }
 

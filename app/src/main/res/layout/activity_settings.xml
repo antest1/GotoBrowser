@@ -66,8 +66,7 @@
                     android:text="@string/settings_version_check"
                     android:textAlignment="center"
                     android:textColor="@color/white"
-                    android:textSize="18sp"
-                    android:visibility="gone" />
+                    android:textSize="18sp" />
             </LinearLayout>
 
             <LinearLayout
