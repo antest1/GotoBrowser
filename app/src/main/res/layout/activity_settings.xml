@@ -95,6 +95,17 @@
                     android:textColor="@color/gray"
                     android:textSize="10dp" />
 
+                <TextView
+                    android:id="@+id/subtitle_loading"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="2dp"
+                    android:text="LOADING..."
+                    android:textAlignment="center"
+                    android:textColor="@color/black"
+                    android:textSize="24dp"
+                    android:visibility="gone" />
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/subtitle_list"
                     android:layout_width="match_parent"

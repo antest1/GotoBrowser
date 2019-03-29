@@ -6,7 +6,9 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -44,6 +46,7 @@ import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 
 public class SettingsActivity extends AppCompatActivity {
     private VersionDatabase versionTable;
+    private TextView subtitleLoading;
     public ImageView exitButton;
     public RecyclerView subtitleList;
     public SharedPreferences sharedPref;
@@ -72,6 +75,9 @@ public class SettingsActivity extends AppCompatActivity {
 
         exitButton = findViewById(R.id.button_exit);
         exitButton.setOnClickListener(v -> finish());
+
+        subtitleLoading = findViewById(R.id.subtitle_loading);
+        subtitleLoading.setVisibility(View.VISIBLE);
 
         updateCheck = getRetrofitAdapter(getApplicationContext(), GITHUBAPI_ROOT).create(SubtitleCheck.class);
         subtitleRepo = getRetrofitAdapter(getApplicationContext(), SUBTITLE_ROOT).create(SubtitleRepo.class);
@@ -174,6 +180,7 @@ public class SettingsActivity extends AppCompatActivity {
                     item.addProperty("download_url", locale_path);
                     adapter.addLocaleData(item);
                     adapter.notifyDataSetChanged();
+                    subtitleLoading.setVisibility(adapter.getCount() > 0 ? View.GONE : View.VISIBLE);
                 }
 
                 @Override

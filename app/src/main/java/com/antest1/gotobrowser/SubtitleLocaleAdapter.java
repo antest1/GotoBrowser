@@ -28,6 +28,10 @@ public class SubtitleLocaleAdapter extends RecyclerView.Adapter<SubtitleLocaleAd
         this.downloader = downloader;
     }
 
+    public int getCount() {
+        return mItems.size();
+    }
+
     public void clearLocaleData() {
         mItems.clear();
     }
