@@ -12,6 +12,7 @@
     <string name="cache_cleared_toast">webview cache cleared</string>
     <string name="clearcache_msg">Use this function only when the image or audio is not loaded properly. Do you really want to clear the cache?</string>
     <string name="backpress_msg">Do you really want to exit?</string>
+    <string name="refresh_msg">Do you really want to refresh?</string>
     <string name="mode_landscape">Landscape Mode</string>
     <string name="mode_adjustment">Layout Adjustment</string>
     <string name="mode_silent">Start with Audio OFF</string>

@@ -71,6 +71,7 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import okhttp3.OkHttpClient;
@@ -260,8 +261,25 @@ public class FullscreenActivity extends AppCompatActivity {
 
         menuRefresh = findViewById(R.id.menu_refresh);
         menuRefresh.setOnClickListener(v -> {
-            if (bgmPlayer.isPlaying()) bgmPlayer.stop();
-            setDefaultPage();
+            mContentView.pauseTimers();
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                    FullscreenActivity.this);
+            alertDialogBuilder.setTitle(getString(R.string.app_name));
+            alertDialogBuilder
+                    .setCancelable(false)
+                    .setMessage(getString(R.string.refresh_msg))
+                    .setPositiveButton(R.string.action_ok,
+                            (dialog, id) -> {
+                                if (bgmPlayer.isPlaying()) bgmPlayer.stop();
+                                setDefaultPage();
+                            })
+                    .setNegativeButton(R.string.action_cancel,
+                            (dialog, id) -> {
+                                dialog.cancel();
+                                mContentView.resumeTimers();
+                            });
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
         });
 
         menuAspect = findViewById(R.id.menu_aspect);

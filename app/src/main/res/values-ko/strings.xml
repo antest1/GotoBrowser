@@ -9,6 +9,7 @@
     <string name="cache_cleared_toast">webview 캐시 비우기 완료</string>
     <string name="clearcache_msg">이미지나 오디오 등이 제대로 나타나지 않을 때에만 사용하십시오. 정말 캐시를 비우시겠습니까?</string>
     <string name="backpress_msg">정말 종료하시겠습니까?</string>
+    <string name="refresh_msg">새로 고침 하시겠습니까?</string>
     <string name="mode_landscape">가로 고정 모드</string>
     <string name="mode_adjustment">레이아웃 자동 조정</string>
     <string name="mode_silent">음량 OFF로 시작</string>
