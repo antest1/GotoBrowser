@@ -203,7 +203,7 @@
         android:shadowDx="2"
         android:shadowDy="2"
         android:shadowRadius="2"
-        android:text="SUBTITLE AREA"
+        android:text="@string/subtitle_default"
         android:textAlignment="center"
         android:textColor="@color/white"
         android:textSize="18dp"

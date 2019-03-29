@@ -17,6 +17,7 @@
     <string name="button_start">ㄱㄱ</string>
     <string name="text_save">저장</string>
     <string name="text_cancel">취소</string>
+    <string name="subtitle_default">자막 영역 / 터치하여 숨기기</string>
     <string name="autocomplete_title">로그인 자동완성</string>
     <string name="autocomplete_msg">로그인 폼에 입력할 계정 정보를 입력하세요.</string>
     <string name="settings_version_label">현재 버전</string>

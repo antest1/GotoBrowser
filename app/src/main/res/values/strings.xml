@@ -20,6 +20,7 @@
     <string name="button_start">START</string>
     <string name="text_save">Save</string>
     <string name="text_cancel">Cancel</string>
+    <string name="subtitle_default">SUBTITLE AREA / TOUCH TO HIDE</string>
     <string name="autocomplete_title">Login Autocomplete</string>
     <string name="autocomplete_msg">This information will be used to fill the login form.</string>
     <string name="settings_version_label">Current Version</string>
