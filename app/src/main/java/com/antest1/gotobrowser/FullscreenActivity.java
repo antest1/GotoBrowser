@@ -1148,18 +1148,19 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void stopMp3(MediaPlayer player, String url) {
         String[] STOP_FLAG = {
+            "battle_result/battle_result_main",
             "api_req_sortie",
             "api_req_battle_midnight",
             "api_req_combined_battle",
-            "api_req_practice",
-            "battle_result/battle_result_main",
+            "api_req_practice"
         };
 
         isBattleMode = false;
         for (String pattern: STOP_FLAG) {
             if (url.contains(pattern)) {
                 fadeOut(bgmPlayer, 1000);
-                isBattleMode = true;
+                if (url.contains("api_req")) isBattleMode = true;
+                break;
             }
         }
 
@@ -1265,9 +1266,9 @@ public class FullscreenActivity extends AppCompatActivity {
                     _player.start();
                 // can call h again after work!
                 time -= 100;
-                volume = (deviceVolume * time) / duration;
-                if (isMuteMode) _player.setVolume(0.0f, 0.0f);
-                else _player.setVolume(volume, volume);
+                volume = isMuteMode ? 0.0f : (deviceVolume * time) / duration;
+                Log.e("GOTO", "vol: " + volume);
+                _player.setVolume(volume, volume);
                 if (time > 0)
                     h.postDelayed(this, 100);
                 else {
