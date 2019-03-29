@@ -1,5 +1,6 @@
 package com.antest1.gotobrowser;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,12 +11,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Locale;
 
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class SubtitleLocaleAdapter extends RecyclerView.Adapter<SubtitleLocaleAdapter.ItemViewHolder> {
     ArrayList<JsonObject> mItems;
     private OnItemClickListener selector, downloader;
-
+    private Context context;
     public interface OnItemClickListener {
         void onItemClick(JsonObject item);
     }
@@ -48,6 +50,7 @@ public class SubtitleLocaleAdapter extends RecyclerView.Adapter<SubtitleLocaleAd
     @Override
     public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_subtitle, parent, false);
+        context = parent.getContext().getApplicationContext();
         return new ItemViewHolder(view);
     }
 
@@ -71,6 +74,13 @@ public class SubtitleLocaleAdapter extends RecyclerView.Adapter<SubtitleLocaleAd
         String locale_info_text = String.format(Locale.US,
                 "Current: %s / Latest: %s", current_commit, latest_commit);
         holder.localeInfo.setText(locale_info_text);
+        if (!current_commit.equals(latest_commit)) {
+            holder.localeInfo.setBackgroundResource(R.color.colorBackground);
+            holder.localeInfo.setTextColor(ContextCompat.getColor(context, R.color.white));
+        } else {
+            holder.localeInfo.setBackgroundResource(0);
+            holder.localeInfo.setTextColor(ContextCompat.getColor(context, R.color.gray));
+        }
     }
 
     @Override
