@@ -46,7 +46,7 @@ import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 
 public class SettingsActivity extends AppCompatActivity {
     private VersionDatabase versionTable;
-    private TextView subtitleLoading;
+    private TextView version_text, subtitleLoading;
     public ImageView exitButton;
     public RecyclerView subtitleList;
     public SharedPreferences sharedPref;
@@ -71,6 +71,8 @@ public class SettingsActivity extends AppCompatActivity {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
         }
 
+        version_text = findViewById(R.id.version_text);
+        version_text.setText(BuildConfig.VERSION_NAME);
         versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
 
         exitButton = findViewById(R.id.button_exit);
@@ -111,7 +113,6 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 JsonObject data = response.body();
-                Gson gson = new Gson();
                 String subtitle_folder = getApplicationContext().getFilesDir().getAbsolutePath().concat("/subtitle/");
                 String subtitle_path = subtitle_folder.concat(filename);
                 File file = new File(subtitle_folder);
