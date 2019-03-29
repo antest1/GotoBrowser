@@ -65,6 +65,9 @@ public class SettingsActivity extends AppCompatActivity {
             actionBar.hide();
         }
 
+        sharedPref = getSharedPreferences(
+                getString(R.string.preference_key), Context.MODE_PRIVATE);
+
         updateCheck = getRetrofitAdapter(getApplicationContext(), GITHUBAPI_ROOT).create(SubtitleCheck.class);
         subtitleRepo = getRetrofitAdapter(getApplicationContext(), SUBTITLE_ROOT).create(SubtitleRepo.class);
 
@@ -166,6 +169,7 @@ public class SettingsActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(Call<JsonArray> call, Response<JsonArray> response) {
                     JsonArray commitLog = response.body();
+                    Log.e("GOTO", response.headers().toString());
                     Log.e("GOTO", commitLog.toString());
                     String latest = commitLog.get(0).getAsJsonObject().get("sha").getAsString();
                     // Log.e("GOTO", locale + " " + latest);
@@ -195,34 +199,39 @@ public class SettingsActivity extends AppCompatActivity {
         call.enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                JsonObject version_info = response.body();
-                Log.e("GOTO", version_info.toString());
-                if (version_info.has("tag_name")) {
-                    String tag = version_info.get("tag_name").getAsString().replace("v", "");
-                    String latest_file = version_info.getAsJsonArray("assets")
-                            .get(0).getAsJsonObject().get("browser_download_url").getAsString();
-                    if (!BuildConfig.VERSION_NAME.equals(tag)) {
-                        Toast.makeText(getApplicationContext(), R.string.setting_latest_version, Toast.LENGTH_LONG).show();
-                    } else {
-                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                                SettingsActivity.this);
-                        alertDialogBuilder.setTitle(getString(R.string.app_name));
-                        alertDialogBuilder
-                                .setCancelable(false)
-                                .setMessage(String.format(Locale.US, getString(R.string.setting_latest_download), tag))
-                                .setPositiveButton(R.string.action_ok,
-                                        (dialog, id) -> {
-                                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(latest_file));
-                                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                            startActivity(intent);
-                                        })
-                                .setNegativeButton(R.string.action_cancel,
-                                        (dialog, id) -> dialog.cancel());
-                        AlertDialog alertDialog = alertDialogBuilder.create();
-                        alertDialog.show();
+                Log.e("GOTO", response.headers().toString());
+                if (response.code() == 404) {
+                    Toast.makeText(getApplicationContext(), "No update found.", Toast.LENGTH_LONG).show();
+                } else if (response.code() == 200) {
+                    JsonObject version_info = response.body();
+                    Log.e("GOTO", version_info.toString());
+                    if (version_info.has("tag_name")) {
+                        String tag = version_info.get("tag_name").getAsString().replace("v", "");
+                        String latest_file = version_info.getAsJsonArray("assets")
+                                .get(0).getAsJsonObject().get("browser_download_url").getAsString();
+                        if (!BuildConfig.VERSION_NAME.equals(tag)) {
+                            Toast.makeText(getApplicationContext(), R.string.setting_latest_version, Toast.LENGTH_LONG).show();
+                        } else {
+                            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                                    SettingsActivity.this);
+                            alertDialogBuilder.setTitle(getString(R.string.app_name));
+                            alertDialogBuilder
+                                    .setCancelable(false)
+                                    .setMessage(String.format(Locale.US, getString(R.string.setting_latest_download), tag))
+                                    .setPositiveButton(R.string.action_ok,
+                                            (dialog, id) -> {
+                                                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(latest_file));
+                                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                startActivity(intent);
+                                            })
+                                    .setNegativeButton(R.string.action_cancel,
+                                            (dialog, id) -> dialog.cancel());
+                            AlertDialog alertDialog = alertDialogBuilder.create();
+                            alertDialog.show();
+                        }
                     }
                 } else {
-                    Toast.makeText(getApplicationContext(), "No update found.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "HTTP: " + response.code(), Toast.LENGTH_LONG).show();
                 }
             }
 
