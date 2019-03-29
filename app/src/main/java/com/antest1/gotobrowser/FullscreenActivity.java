@@ -1039,10 +1039,10 @@ public class FullscreenActivity extends AppCompatActivity {
         } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
             if (CONN_KANSU.equals(pref_connector)) {
                 connector_url_default = URL_KANSU;
-                connector_url = sharedPref.getString(PREF_LATEST_URL, URL_KANSU);
+                connector_url = URL_KANSU; sharedPref.getString(PREF_LATEST_URL, URL_KANSU);
             } else {
                 connector_url_default = URL_OOI;
-                connector_url = sharedPref.getString(PREF_LATEST_URL, URL_OOI);
+                connector_url = URL_OOI; // sharedPref.getString(PREF_LATEST_URL, URL_OOI);
             }
 
             if (connector_url_default.equals(connector_url)) {
