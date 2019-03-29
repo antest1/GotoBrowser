@@ -47,6 +47,7 @@ import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 public class SettingsActivity extends AppCompatActivity {
     private VersionDatabase versionTable;
     private TextView versionText, latestCheck, subtitleLoading;
+    private TextView licenseButton, githubButton;
     public ImageView exitButton;
     public RecyclerView subtitleList;
     public SharedPreferences sharedPref;
@@ -81,6 +82,22 @@ public class SettingsActivity extends AppCompatActivity {
 
         exitButton = findViewById(R.id.button_exit);
         exitButton.setOnClickListener(v -> finish());
+
+        licenseButton = findViewById(R.id.license_button);
+        licenseButton.setOnClickListener(v -> {
+            Toast.makeText(getApplicationContext(), getString(R.string.license_link), Toast.LENGTH_LONG);
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.license_link)));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        });
+
+        githubButton = findViewById(R.id.github_button);
+        githubButton.setOnClickListener(v -> {
+            Toast.makeText(getApplicationContext(), getString(R.string.github_link), Toast.LENGTH_LONG);
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.github_link)));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        });
 
         subtitleLoading = findViewById(R.id.subtitle_loading);
         subtitleLoading.setVisibility(View.VISIBLE);

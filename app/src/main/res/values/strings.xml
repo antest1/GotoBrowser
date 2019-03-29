@@ -29,4 +29,7 @@
     <string name="no_subtitle_file">Please download subtitle file from the settings first.</string>
     <string name="setting_latest_version">You have a latest version.</string>
     <string name="setting_latest_download" formatted="false">An update is available. (%s)\nDo you wish to download it?</string>
+
+    <string name="github_link" translatable="false">https://github.com/antest1/GotoBrowser/</string>
+    <string name="license_link" translatable="false">http://www.apache.org/licenses/</string>
 </resources>
