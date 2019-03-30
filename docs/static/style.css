@@ -35,6 +35,32 @@ ul {
 	margin: auto;
 	text-align: center;
 }
+.section-text {
+	margin-bottom: 10px;
+}
+
+.section-text strong {
+	font-size: 1.1rem;
+	color: #283593;
+	
+}
+
+.section-howto {
+	margin-bottom: 1.5rem;
+}
+
+.section-howto .section-text {
+	margin-bottom: 1rem;
+}
+
+.screenshot {
+	margin: 10px 0px;
+}
+
+mark {
+	font-weight: bold;
+}
+
 
 .footer {
 	position: absolute;

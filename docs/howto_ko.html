@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="static/style.css">
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+<title>GotoBrowser</title>
+
+<body>
+    <nav class="navbar navbar-expand-sm bg-custom navbar-dark">
+		<a class="navbar-brand" href="index_ko.html">GotoBrowser</a>
+		<div class="collapse navbar-collapse " id="navbar_lang">
+			<div class="navbar-nav ml-auto">
+			  <a class="nav-item nav-link" href="howto.html">English</a>
+			  <a class="nav-item nav-link active" href="howto_ko.html"><strong>한국어</strong></a>
+			</div>
+		</div>
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar_lang" aria-controls="navbar_lang" aria-expanded="false" aria-label="">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+    </nav>
+
+    <div class="container ">
+        <div class=" mt-3 mt-sm-3"></div>
+		 <div class="section">
+			<h2>고토브라우저 사용법</h2> 
+		 </div>
+				
+		 <div class="section">
+			<div class="section-title lead mb-1">목차</div>
+			<ul style="background-color: #f3f3f3; padding: 10px; width: 250px;">
+				<li><a href="#section-start">초기 화면</a></li>
+				<li><a href="#section-browser">브라우저 화면 (패널)</a></li>
+				<li><a href="#section-settings">설정 화면</a></li>
+				<li><a href="#section-others">유의사항 및 문의</a></li>
+			</ul>
+		 </div>
+		
+		<div id="section-start" class="section section-howto">
+			<div class="section-title lead">초기 화면</div>
+			<img class="screenshot img-fluid border" src="https://upload.cc/i1/2019/03/30/AVxaUv.png" width="540"/>
+			
+			<div class="section-text"><strong>1. 접속기 선택</strong><br/>
+				<div>4가지 접속기 중 하나를 선택할 수 있습니다.
+				<div>- <b>DMM direct</b>: DMM 직접 접속 <mark>(권장, 아이템 구매 필요 시 반드시 해당 접속기 사용)</mark></div>
+				<div>- <b>kancolle.su</b>: OOI 웹 프록시 (한국 포함 해외 사용자용)</div>
+				<div>- <b>ooi.moe</b>: OOI 웹 프록시 (중국 사용자용)</div>
+				<div>- <b>nitrabbit</b>: 니트래빗 접속기 (한국 사용자용)</div>
+				</div>
+			</div>
+			
+			<div class="section-text"><strong>2. 로그인 자동완성</strong><br/>
+				<div>DMM 사이트 / 접속기 로그인 시 직접 입력하는 수고를 덜 수 있습니다.<br/>
+				<span class="text-danger">입력한 계정 정보는 기기에 저장되며 로그인 이외의 목적으로 사용되지 않습니다.</span>
+				<div>- DMM 직접 접속 및 니트래빗의 경우 로그인 폼은 채워지지만 로그인은 직접 하셔야 합니다.</div>
+				<div>- OOI 계열 접속기의 경우 자동으로 로그인이 진행됩니다.</div>
+				</div>			
+			</div>
+			
+			
+			<div class="section-text"><strong>3. 시작 옵션</strong><br/>
+				<div>- <b>가로 고정 모드</b>: 기기 설정과 관계 없이 브라우저를 가로 화면에서 실행합니다.</div>
+				<div>- <b>음량 OFF로 시작</b>: 게임 내 음량 설정을 0으로 만든 이후 실행합니다. (칸코레 안드로이드 버전과 동일)</div>
+				<div>- <b>레이아웃 자동 조절</b>: 게임 화면 감지 시 주위 구성 요소를 제거하고 검은색 배경으로 칠합니다.</div>
+				<div>- <b>패널 보이기</b>: 브라우저 시작 시 좌측 패널을 표시합니다.</div>
+			</div>
+			
+			<div class="section-text"><strong>4. 캐시 비우기</strong><br/>
+				<div>GotoBrowser에 저장되어 있는 이미지 등의 리소스들을 모두 삭제합니다.<br/>
+				게임 내의 화상이 제대로 표시되지 않는 경우 해당 기능을 실행하기 바랍니다.<br/>
+				<span class="text-danger">※ 캐시를 비운 이후 리소스를 다시 다운받는 과정에서 데이터 용량이 더 나갈 수 있습니다.</span>
+				</div>
+			</div>
+			
+			<div class="section-text"><strong>5. 설정 버튼</strong><br/>
+				<div>업데이트 확인 및 자막 데이터를 다운받을 수 있습니다. 자세한 설명은 <a href="#section-settings">[설정 화면]</a>을 참고하세요.</div>
+			</div>
+			
+		 </div>
+		 
+		 
+		 <div id="section-browser" class="section section-howto">
+			<div class="section-title lead">브라우저 화면 (패널)</div>
+			<img class="screenshot img-fluid border" src="https://upload.cc/i1/2019/03/30/dQL6kg.png" width="540"/>
+			
+			<div class="section-text"><strong>1. 패널 보이기/숨기기</strong><br/>
+				<div>좌측 패널은 브라우저 상에서 새로고침이나 화면 위치 조정 등 다양한 기능을 수행할 수 있습니다.</div>
+				<div>패널을 나타나게 하기 위해서는 시작 시 패널을 표시되도록 하거나, 화면 왼쪽 끝에서 오른쪽 방향으로 밀면 나타납니다.</div>
+				<div>반대로 패널을 없애기 위해서는 패널 최하단의 X 버튼을 누르거나, 화면 오른쪽에서 왼쪽으로 스와이프하면 됩니다.</div>
+			</div>
+			
+			<div class="section-text"><strong>2. 패널 기능 설명 (위에서 아래 순서)</strong><br/>
+				<div>- <b>새로고침</b>: 현재 게임 화면을 새로고침합니다. 에러코가 발생했을 때 등의 상황에서 앱을 재시작하지 않고 싶을 때 사용합니다.</div>
+				<div>- <b>화면 조정</b>: 게임 화면 조정을 위한 인터페이스를 표시합니다. 자세한 내용은 <a href="#section-browser-adjust">[3. 게임 화면 조정]</a> 참고</div>
+				<div>- <b>임시 음소거</b>: 현재 재생되고 있는 소리를 음소거합니다. 음성 파일은 계속 로딩됩니다. 소리 없이 자막만 보고 싶은 경우 등에 사용합니다.</div>
+				<div>- <b>화면 회전 고정</b>: 현재 화면 상태에서 기기 설정에 상관없이 회전되지 않도록 합니다.</div>
+				<div>- <b>자막 표시</b>: 인게임 자막을 표시하거나 표시하지 않도록 합니다. 자세한 내용은 <a href="#section-browser-subtitle">[4. 인게임 자막 표시]</a> 참고</div>
+				<div>- <b>패널 종료</b>: 패널을 비활성화합니다. 스와이프를 통해 다시 활성화할 수 있습니다.</div>
+			</div>
+			
+			<div id="section-browser-adjust" class="section-text"><strong>3. 게임 화면 조정</strong><br/>
+				<img class="screenshot img-fluid border" src="https://upload.cc/i1/2019/03/30/oT9sZS.png" width="540"/>
+				<div>화면 비율 등의 이유로 인해 게임 화면이 잘려서 보이는 문제가 있는 경우 사용합니다.</div>
+				<div><span class="text-danger">※ 해당 기능을 사용하기 위해서는 시작 시 반드시 <b>레이아웃 자동 조절을 활성화</b>해야 합니다.</span></div>
+				<div>하단 슬라이더를 통해 가로 화면에서의 좌우 여백을, 우측 슬라이더를 통해 세로 화면에서의 상하 여백을 설정할 수 있습니다.</div>
+				<div>- 좌우 여백의 경우 일반적으로 40 혹은 140으로 설정 시 화면에 딱 맞습니다.</div>
+			</div>
+			
+			<div id="section-browser-subtitle" class="section-text"><strong>4. 인게임 자막 표시</strong><br/>
+				<div>패널에서 자막 표시 기능을 활성화한 경우 자막이 표시됩니다.</div>
+				<div><span class="text-danger">※ 해당 기능을 사용하기 위해서는 <b>시작 전에 반드시 <a href="#section-settings-subtitle-download">[설정]</a>에서 자막 파일을 다운로드받고 언어를 선택해야 합니다!</b><br/></div>
+				<div>※ 해당 기능을 사용하기 위해서는 게임 내 음성 볼륨이 0이 아니어야 합니다.<br/> 해당 기능을 활성화했음에도 자막이 나오지 않는 경우 음소거 상태인지의 여부를 확인하시기 바랍니다.</div>
+				<div>- 인게임 업데이트 등으로 인해 다른 자막이 나오는 경우가 있습니다. 최신 버전인지 여부는 설정에서 수시로 확인하시기 바랍니다.</div>
+				<div>- 번역 데이터를 수정하거나 추가하고 싶은 경우 <b><a href="https://github.com/KC3Kai/kc3-translations/">KC3Kai/kc3-translations</a> 팀에 기여해주세요.</b></div>
+			</div>			
+		 </div>
+		 
+		 <div id="section-settings" class="section section-howto">
+			<div class="section-title lead">설정 화면</div>
+			<img class="screenshot img-fluid border" src="https://upload.cc/i1/2019/03/30/XPad1u.png" width="540"/>
+			
+			<div class="section-text"><strong>1. 버전 확인</strong><br/>
+				<div>업데이트 가능 여부를 확인할 수 있습니다. 업데이트가 존재하는 경우 Github에서 APK 파일을 다운로드 받습니다.</div>
+			</div>
+			
+			<div id="section-settings-subtitle-download" class="section-text"><strong>2. 자막 데이터 다운로드</strong><br/>
+				<div>브라우저에서 사용할 자막 언어를 선택할 수 있습니다. 선택된 언어는 좌측에 <span style="background-color: #FFC400; color: white;">황색</span>으로 표시됩니다. (현재 한국어/영어 지원)<br/>
+				또한, KC3Kai 번역 저장소에서 최신 자막 파일을 받을 수 있습니다.
+				업데이트가 있는 경우 하단 부분의 배경색이 <span style="background-color: #7987A8; color: white;">청색</span>으로 표시됩니다.<br/></div>
+			</div>
+		 </div>
+		 
+		 
+		 <div id="section-others" class="section section-howto">
+			<div class="section-title lead">유의사항 및 문의</div>
+			<div class="mt-2"></div>
+			<div class="section-text"><strong>1. 음성 재생 관련</strong><br/>
+				<div>백그라운드에서 칸코레 음성이 실행되는 것을 막기 위해, GotoBrowser는 브라우저 대신에 음성 파일을 실행하는 자체적인 시스템을 가지고 있습니다.</div>
+				<div>이에 따라 일부 상황에서는 원래 칸코레 게임과 다른 방식으로 음성이 실행되는 경우가 있습니다.</div>
+				<div class="small mt-1 mb-1"> 
+				<div>- 모항에서 볼륨 조절 시 실시간으로 볼륨 조절 결과가 반영되지 않음</div>
+				<div>- 전투 중 다른 칸무스 보이스가 실행되는 경우 일부 칸무스 보이스가 실행되는 중 중단됨</div>
+				<div>- 전투 종료 이후 혹은 칸무스 드랍 이후 다음 해역으로 진행하기 전에 배경음의 재생이 멈추지 않음</div>
+				</div>
+				<div>만약 해당 현상과 무관한 버그로 생각되는 경우 개발자에게 문의해주시기 바랍니다.</div>
+			</div>
+			
+			<div class="section-text"><strong>2. 게임 내 동작 관련</strong><br/>
+				<div>화면 위에 커서를 올리는 동작을 지원하지 않는 안드로이드 자체의 한계로 인해 일부 기능이 동작하지 않는 경우가 있습니다.</div>
+				<div class="small mt-1 mb-1"> 
+				<div>- 모항에서 각 버튼을 눌렀을 때의 효과가 사라지지 않거나 개수공창 버튼이 나타나지 않음</div>
+				<div>- 개발 시 장비 한계에 도달하지 않은 경우 경고창이 표시되지 않음</div>
+				</div>
+				<div>만약 해당 현상과 무관한 버그로 생각되는 경우 개발자에게 문의해주시기 바랍니다.</div>
+			</div>
+			
+			<div class="section-text"><strong>3. 어플리케이션 관련 문의</strong><br/>
+				<div>해당 어플리케이션의 소스 코드는 <a target="_blank" href="https://github.com/antest1/GotoBrowser">[Github]</a>에 공개되어 있습니다.</div>
+				<div>어플리케이션 사용 중 버그를 발견했거나 관련하여 궁금한 점이 있는 경우 다음 메일로 연락 바랍니다.</div>
+				<div>- <a href="mailto:kcanotify@gmail.com">kcanotify [AT] gmail.com</a></div>
+			</div>
+			
+			
+		 </div>
+	</div>
+
+    <div class=" mt-5 mt-sm-5"></div>
+    <footer class="footer">
+        <div class="text-center">
+            <div class="footer-copy"><span class="text-muted">Copyright (c) 2019 <a href="https://github.com/antest1" target="_blank">antest1</a> All rights reserved. <a href="mailto:kcanotify@gmail.com">[메일]</a></div>
+        </div>
+    </footer>
+</body>
+<script>
+    
+</script>
