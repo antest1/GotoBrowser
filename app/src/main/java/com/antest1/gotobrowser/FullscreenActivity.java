@@ -148,6 +148,9 @@ public class FullscreenActivity extends AppCompatActivity {
     private MediaPlayer bgmPlayer;
     private boolean isBgmPlaying = false;
     private float bgmVolume = 1.0f;
+    private int currentMapId = 0;
+    private int currentBattleBgmId = 0;
+    private boolean isFadeoutRunning = false;
     private Map<String, Integer> seMap = new HashMap<>();
     private SoundPool sePlayer;
     private float seVolume = 1.0f;
@@ -371,8 +374,8 @@ public class FullscreenActivity extends AppCompatActivity {
         // defaultSubtitleMargin = getDefaultSubtitleMargin();
         setSubtitleMargin(sharedPref.getInt(PREF_PADDING, 0));
         String subtitle_local = sharedPref.getString(PREF_SUBTITLE_LOCALE, "en");
-        KcVoiceUtils.loadQuoteAnnotation(getApplicationContext());
-        isSubtitleLoaded = KcVoiceUtils.loadQuoteData(getApplicationContext(), subtitle_local);
+        KcSoundUtils.loadQuoteAnnotation(getApplicationContext());
+        isSubtitleLoaded = KcSoundUtils.loadQuoteData(getApplicationContext(), subtitle_local);
 
         mContentView.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
@@ -854,7 +857,9 @@ public class FullscreenActivity extends AppCompatActivity {
                     JsonObject api_data = gson.fromJson(reader, JsonObject.class).getAsJsonObject("api_data");
                     JsonArray api_mst_shipgraph = api_data.getAsJsonArray("api_mst_shipgraph");
                     JsonArray api_mst_ship = api_data.getAsJsonArray("api_mst_ship");
-                    KcVoiceUtils.buildShipGraph(api_mst_ship);
+                    JsonArray api_mst_mapbgm = api_data.getAsJsonArray("api_mst_mapbgm");
+                    KcSoundUtils.buildShipGraph(api_mst_ship);
+                    KcSoundUtils.buildMapBgmGraph(api_mst_mapbgm);
                     for (JsonElement item: api_mst_shipgraph) {
                         JsonObject ship = item.getAsJsonObject();
                         String shipId = ship.get("api_id").getAsString();
@@ -866,6 +871,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
 
                 if (path.contains("/api_port/port")) {
+                    currentMapId = 0;
                     Log.e("GOTO","run executor");
                     executor = Executors.newScheduledThreadPool(1);
                     executor.scheduleAtFixedRate(portVolumeCheckRunnable, 0, 1, TimeUnit.SECONDS);
@@ -873,6 +879,22 @@ public class FullscreenActivity extends AppCompatActivity {
                 } else if (path.contains("/api")) {
                     if (!executor.isShutdown()) executor.shutdown();
                 }
+
+                if (path.contains("/kcs2/resources/map/")) {
+                    String[] map_info = path.replace("/kcs2/resources/map/", "").split("/");
+                    int world = Integer.parseInt(map_info[0]);
+                    int map = Integer.parseInt(map_info[1].split("_")[0]);
+                    Log.e("GOTO", "wm: " + world + "-" + map);
+                    currentMapId = world * 10 + map;
+                }
+
+                if (path.contains("/kcs2/resources/bgm/battle/")) {
+                    int bgm_no = Integer.parseInt(filename.replace("mp3", "").split("_")[0]);
+                    currentBattleBgmId = bgm_no;
+                    Log.e("GOTO", "battle_bgm_id " + currentBattleBgmId);
+                }
+
+                isBattleMode = path.contains("api_req_battle") || path.contains("api_req_map");
 
                 String fullpath = String.format(Locale.US, "http://%s%s", host, path);
                 String outputpath = getApplicationContext().getFilesDir().getAbsolutePath()
@@ -982,10 +1004,10 @@ public class FullscreenActivity extends AppCompatActivity {
                             String ship_id = voice_filename;
                             if (filenameToShipId.containsKey(voice_filename)) {
                                 ship_id = filenameToShipId.get(voice_filename);
-                                voiceline = KcVoiceUtils.getVoiceLineByFilename(ship_id, voice_code);
+                                voiceline = KcSoundUtils.getVoiceLineByFilename(ship_id, voice_code);
 
                             } else {
-                                voiceline = KcVoiceUtils.getVoiceLineByFilename(voice_filename, voice_code);
+                                voiceline = KcSoundUtils.getVoiceLineByFilename(voice_filename, voice_code);
                             }
                             Log.e("GOTO", "file info: " + info);
                             Log.e("GOTO", "voiceline: " + String.valueOf(voiceline));
@@ -998,7 +1020,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                 Date time_tgt = time_fmt.parse(voiceline_time);
                                 long diff_msec = time_tgt.getTime() - time_src.getTime();
                                 if (voiceline_value == 30) diff_msec += 86400000;
-                                //KcVoiceUtils.setHourlyVoiceInfo(file.getAbsolutePath(), ship_id, voiceline);
+                                //KcSoundUtils.setHourlyVoiceInfo(file.getAbsolutePath(), ship_id, voiceline);
                                 Runnable r = new VoiceSubtitleRunnable(file.getAbsolutePath(), ship_id, voiceline);
                                 shipVoiceHandler.removeCallbacks(r);
                                 shipVoiceHandler.postDelayed(r, diff_msec);
@@ -1020,7 +1042,14 @@ public class FullscreenActivity extends AppCompatActivity {
                                 playTitleCall(titlePath, titleFiles, 0, voiceVolume);
                             }
                         }
-                        else if (url.contains("resources/bgm")) playMp3("bgm", bgmPlayer, file, bgmVolume);
+                        else if (url.contains("resources/bgm")) {
+                            if (isBgmPlaying) {
+                                bgmPlayer.stop();
+                            }
+                            bgmPlayer.release();
+                            bgmPlayer = new MediaPlayer();
+                            playMp3("bgm", bgmPlayer, file, bgmVolume);
+                        }
                         return new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
                     }
                 }
@@ -1148,19 +1177,32 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void stopMp3(MediaPlayer player, String url) {
         String[] STOP_FLAG = {
-            "battle_result/battle_result_main",
-            "api_req_sortie",
-            "api_req_battle_midnight",
-            "api_req_combined_battle",
-            "api_req_practice"
+            "battle_result/battle_result_main.json",
+            "battle/battle_main.json",
+            "/kcs2/resources/se/217.mp3"
         };
 
-        isBattleMode = false;
         for (String pattern: STOP_FLAG) {
             if (url.contains(pattern)) {
-                fadeOut(bgmPlayer, 1000);
-                if (url.contains("api_req")) isBattleMode = true;
-                break;
+                boolean shutter_call = url.contains("/se/217.mp3");
+                if (shutter_call) {
+                    JsonObject bgmData = KcSoundUtils.getMapBgmGraph(currentMapId);
+                    JsonArray normal_bgm = bgmData.getAsJsonArray("api_map_bgm");
+                    boolean normal_diff = normal_bgm.get(0).getAsInt() != normal_bgm.get(1).getAsInt();
+                    if (currentBattleBgmId == normal_bgm.get(0).getAsInt() && normal_diff) {
+                        fadeOut(bgmPlayer, 1000);
+                        break;
+                    }
+                    JsonArray boss_bgm = bgmData.getAsJsonArray("api_boss_bgm");
+                    boolean boss_diff = boss_bgm.get(0).getAsInt() != boss_bgm.get(1).getAsInt();
+                    if (currentBattleBgmId == boss_bgm.get(0).getAsInt() && boss_diff) {
+                        fadeOut(bgmPlayer, 1000);
+                        break;
+                    }
+                } else {
+                    fadeOut(bgmPlayer, 1000);
+                    break;
+                }
             }
         }
 
@@ -1255,6 +1297,8 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void fadeOut(final MediaPlayer _player, final int duration) {
+        if (isFadeoutRunning) return;
+        isFadeoutRunning = true;
         final float deviceVolume = bgmVolume;
         final Handler h = new Handler(Looper.getMainLooper());
         h.postDelayed(new Runnable() {
@@ -1275,6 +1319,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     _player.stop();
                     _player.reset();
                     _player.setVolume(deviceVolume, deviceVolume);
+                    isFadeoutRunning = false;
                 }
             }
         }, 100); // 1 second delay (takes millis)
@@ -1354,7 +1399,7 @@ public class FullscreenActivity extends AppCompatActivity {
     public void setSubtitle(String id, String code) {
         if (isCaptionMode) {
             shipVoiceHandler.removeCallbacksAndMessages(null);
-            JsonObject subtitle = KcVoiceUtils.getQuoteString(id, code);
+            JsonObject subtitle = KcSoundUtils.getQuoteString(id, code);
             Log.e("GOTO", subtitle.toString());
             for (String key: subtitle.keySet()) {
                 String start_time = key.split(",")[0];
@@ -1382,7 +1427,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     subtitle_text = getString(R.string.no_subtitle_file);
                 }
                 subtitleText.setText(subtitle_text);
-                int delay = KcVoiceUtils.getDefaultTiming(subtitle_text);
+                int delay = KcSoundUtils.getDefaultTiming(subtitle_text);
                 clearSubHandler.postDelayed(clearSubtitle, delay);
             });
         }

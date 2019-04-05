@@ -27,7 +27,7 @@ import java.util.Set;
 
 // Reference: https://github.com/KC3Kai/KC3Kai/issues/1180
 //            https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
-public class KcVoiceUtils {
+public class KcSoundUtils {
     public static final String specialVoiceCode = "Spring";
     public static final int SPECIAL_VOICE_START_YEAR = 2014;
     public static final int SPECIAL_VOICE_END_YEAR = 2019;
@@ -93,6 +93,7 @@ public class KcVoiceUtils {
     };
 
     public static JsonObject shipDataGraph = new JsonObject();
+    public static JsonObject mapBgmGraph = new JsonObject();
     public static JsonObject quoteLabel = new JsonObject();
     public static JsonObject quoteData = new JsonObject();
     public static JsonObject quoteTimingData = new JsonObject();
@@ -155,7 +156,7 @@ public class KcVoiceUtils {
                 if (!checked.contains(ship_id+ "_" + ship_afterid) && !ship_afterid.equals("0")) {
                     shipDataGraph.addProperty(ship_afterid, ship_id);
                     checked.add(ship_afterid + "_" + ship_id);
-                    Log.e("GOTO-ship", "" + ship_afterid + " -> " + ship_id);
+                    // Log.e("GOTO-ship", "" + ship_afterid + " -> " + ship_id);
                 }
             }
         }
@@ -270,5 +271,16 @@ public class KcVoiceUtils {
         }
 
         return voicedata_base;
+    }
+
+    public static void buildMapBgmGraph(JsonArray data) {
+        for (int i = 0; i < data.size(); i++) {
+            JsonObject item = data.get(i).getAsJsonObject();
+            mapBgmGraph.add(item.get("api_id").getAsString(), item);
+        }
+    }
+
+    public static JsonObject getMapBgmGraph(int api_id) {
+       return mapBgmGraph.get(String.valueOf(api_id)).getAsJsonObject();
     }
 }
