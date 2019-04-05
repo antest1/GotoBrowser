@@ -188,19 +188,23 @@ public class SettingsActivity extends AppCompatActivity {
                     JsonArray commitLog = response.body();
                     Log.e("GOTO", response.headers().toString());
                     Log.e("GOTO", commitLog.toString());
-                    String latest = commitLog.get(0).getAsJsonObject().get("sha").getAsString();
-                    // Log.e("GOTO", locale + " " + latest);
+                    if (!commitLog.isJsonNull()) {
+                        String latest = commitLog.get(0).getAsJsonObject().get("sha").getAsString();
+                        // Log.e("GOTO", locale + " " + latest);
 
-                    JsonObject item = new JsonObject();
-                    item.addProperty("locale_code", locale_code);
-                    item.addProperty("selected", locale_code.equals(sharedPref.getString(PREF_SUBTITLE_LOCALE, "")));
-                    item.addProperty("locale_label", locale_label);
-                    item.addProperty("current_commit", versionTable.getValue(filename));
-                    item.addProperty("latest_commit", latest);
-                    item.addProperty("download_url", locale_path);
-                    adapter.addLocaleData(item);
-                    adapter.notifyDataSetChanged();
-                    subtitleLoading.setVisibility(adapter.getCount() > 0 ? View.GONE : View.VISIBLE);
+                        JsonObject item = new JsonObject();
+                        item.addProperty("locale_code", locale_code);
+                        item.addProperty("selected", locale_code.equals(sharedPref.getString(PREF_SUBTITLE_LOCALE, "")));
+                        item.addProperty("locale_label", locale_label);
+                        item.addProperty("current_commit", versionTable.getValue(filename));
+                        item.addProperty("latest_commit", latest);
+                        item.addProperty("download_url", locale_path);
+                        adapter.addLocaleData(item);
+                        adapter.notifyDataSetChanged();
+                        subtitleLoading.setVisibility(adapter.getCount() > 0 ? View.GONE : View.VISIBLE);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "communication error.", Toast.LENGTH_LONG).show();
+                    }
                 }
 
                 @Override

@@ -53,8 +53,9 @@ public class BackPressCloseHandler {
                         })
                 .setNegativeButton(R.string.action_cancel,
                         (dialog, id) -> dialog.cancel());
-
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        if (activity != null && !activity.isFinishing()) {
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+        }
     }
 }

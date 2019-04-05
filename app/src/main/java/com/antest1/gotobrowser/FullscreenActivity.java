@@ -1401,6 +1401,11 @@ public class FullscreenActivity extends AppCompatActivity {
         public void run() {
             if (path != null) {
                 File file = new File(path);
+                if (isVoicePlaying) {
+                    voicePlayer.stop();
+                    voicePlayer.release();
+                    voicePlayer = new MediaPlayer();
+                }
                 playMp3("voice", voicePlayer, file, voiceVolume);
             }
             setSubtitle(ship_id, voiceline);
