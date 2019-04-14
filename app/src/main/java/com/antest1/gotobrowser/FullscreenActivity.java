@@ -96,6 +96,7 @@ import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
+import static com.antest1.gotobrowser.Constants.PREF_KEEPMODE;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
@@ -133,7 +134,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private WebView mContentView;
     private View mHorizontalControlView, mVerticalControlView;
     private View broswerPanel;
-    private View menuRefresh, menuAspect, menuMute, menuLock, menuCaption, menuClose;
+    private View menuRefresh, menuAspect, menuMute, menuLock, menuCaption, menuBrightOn, menuClose;
     private GestureDetector mDetector;
 
     private SeekBar mSeekBarH, mSeekBarV;
@@ -146,7 +147,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private String login_password = "";
     private boolean pause_flag = false;
     private final OkHttpClient resourceClient = new OkHttpClient();
-    private boolean isMuteMode, isLockMode, isCaptionMode;
+    private boolean isMuteMode, isLockMode, isKeepMode, isCaptionMode;
     private MediaPlayer bgmPlayer;
     private boolean isBgmPlaying = false;
     private float bgmVolume = 1.0f;
@@ -239,6 +240,10 @@ public class FullscreenActivity extends AppCompatActivity {
 
         if (sharedPref.getBoolean(PREF_LANDSCAPE, false)) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+        }
+
+        if (sharedPref.getBoolean(PREF_KEEPMODE, false)) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
 
         executor = Executors.newScheduledThreadPool(1);
@@ -339,6 +344,22 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
                 menuLock.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
                 sharedPref.edit().putBoolean(PREF_LOCKMODE, false).commit();
+            }
+        });
+
+        isKeepMode = sharedPref.getBoolean(PREF_KEEPMODE, false);
+        menuBrightOn = findViewById(R.id.menu_brighton);
+        menuBrightOn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isKeepMode ? R.color.panel_red : R.color.black));
+        menuBrightOn.setOnClickListener(v -> {
+            isKeepMode = !isKeepMode;
+            if (isKeepMode) {
+                getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                menuBrightOn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+                sharedPref.edit().putBoolean(PREF_KEEPMODE, true).commit();
+            } else {
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                menuBrightOn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
+                sharedPref.edit().putBoolean(PREF_KEEPMODE, false).commit();
             }
         });
 

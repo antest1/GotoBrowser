@@ -85,6 +85,15 @@
             app:srcCompat="@mipmap/lock" />
 
         <ImageView
+            android:id="@+id/menu_brighton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.8"
+            android:padding="6dp"
+            android:src="@mipmap/brighton"
+            app:srcCompat="@mipmap/brighton" />
+
+        <ImageView
             android:id="@+id/menu_cc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
