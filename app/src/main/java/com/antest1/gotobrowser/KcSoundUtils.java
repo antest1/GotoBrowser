@@ -202,7 +202,7 @@ public class KcSoundUtils {
             int extra_time = quoteTimingData.get("extraMillisPerChar").getAsInt() * data.length();
             return default_time + extra_time;
         }
-        return 0;
+        return 3000;
     }
 
     public static JsonObject getQuoteString(String ship_id, String voiceline) {
