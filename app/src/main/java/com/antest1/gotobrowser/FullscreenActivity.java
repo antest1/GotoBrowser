@@ -64,6 +64,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -148,6 +150,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private MediaPlayer bgmPlayer;
     private boolean isBgmPlaying = false;
     private float bgmVolume = 1.0f;
+    private float fadeOutBgmVolume = 1.0f;
     private int currentMapId = 0;
     private int currentBattleBgmId = 0;
     private boolean isFadeoutRunning = false;
@@ -713,14 +716,11 @@ public class FullscreenActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.e("GOTO", "onResume");
-        boolean is_multi = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode();
-        if (pause_flag) {
-            mContentView.resumeTimers();
-            pause_flag = false;
-            if (!bgmPlayer.isPlaying() && isBgmPlaying) bgmPlayer.start();
-            if (!voicePlayer.isPlaying() && isVoicePlaying) voicePlayer.start();
-            sePlayer.autoResume();
-        }
+        pause_flag = false;
+        mContentView.resumeTimers();
+        if (!bgmPlayer.isPlaying() && isBgmPlaying) bgmPlayer.start();
+        if (!voicePlayer.isPlaying() && isVoicePlaying) voicePlayer.start();
+        sePlayer.autoResume();
         //setVolumeMute(false);
     }
 
@@ -792,13 +792,13 @@ public class FullscreenActivity extends AppCompatActivity {
             return new WebResourceResponse("text/css", "utf-8", is);
         }
 
+        String path = source.getPath();
+        String filename = source.getLastPathSegment();
+
         try {
-            if (source.getPath() != null && source.getLastPathSegment() != null) {
+            if (path != null && filename != null) {
                 Log.e("GOTO", source.getPath());
                 //Log.e("GOTO", header.toString());
-                String path = source.getPath();
-                String filename = source.getLastPathSegment();
-
                 if (filename.equals("version.json") || filename.contains("index.php")) {
                     titlePath.clear();
                     titleFiles.clear();
@@ -988,6 +988,16 @@ public class FullscreenActivity extends AppCompatActivity {
                             main_js = main_js.replaceAll(
                                     "this\\._panel\\.off\\(a\\.EventType\\.MOUSEOVER,this\\._onMouseOver\\)",
                                     "this._panel.off(a.EventType.MOUSEDOWN,this._onMouseOver)");
+                            // preset check
+                            main_js = main_js.replaceAll("expandButton\\.addListener\\(r\\.EventType\\.MOUSEOVER",
+                                    "expandButton.addListener(r.EventType.MOUSEDOWN");
+                            main_js = main_js.replaceAll("expandButton\\.addListener\\(r\\.EventType\\.MOUSEOUT",
+                                    "expandButton.addListener(r.EventType.CLICK");
+                            main_js = main_js.replaceAll("on\\(s\\.EventType\\.MOUSEOUT, i\\._onMouseOut\\)",
+                                    "on(s.EventType.CLICK, i._onMouseOut)");
+                            main_js = main_js.replaceAll("on\\(s\\.EventType\\.MOUSEOVER, i\\._onMouseOver\\)",
+                                    "on(s.EventType.MOUSEDOWN, i._onMouseOver)");
+
                             is = new ByteArrayInputStream(main_js.getBytes());
                             // Log.e("GOTO", main_js);
                         }
@@ -1026,12 +1036,15 @@ public class FullscreenActivity extends AppCompatActivity {
                                 shipVoiceHandler.postDelayed(r, diff_msec);
                                 Log.e("GOTO", "playHourVoice after: " + diff_msec + " msec");
                             } else {
-                                if (isBattleMode && (file.length() / 1024) < 100) playSe(sePlayer, file, voiceVolume);
+                                setSubtitle(ship_id, voiceline);
+                                if (ship_id.equals("9998") && false) { // temp code: play abyssal sound from browser
+                                    return null;
+                                } else if (isBattleMode && (file.length() / 1024) < 100) {
+                                    playSe(sePlayer, file, voiceVolume);
+                                }
                                 else {
                                     playMp3("voice", voicePlayer, file, voiceVolume);
-
                                 }
-                                setSubtitle(ship_id, voiceline);
                             }
                         }
                         else if (url.contains("/voice/titlecall_")) {
@@ -1299,30 +1312,29 @@ public class FullscreenActivity extends AppCompatActivity {
     public void fadeOut(final MediaPlayer _player, final int duration) {
         if (isFadeoutRunning) return;
         isFadeoutRunning = true;
-        final float deviceVolume = bgmVolume;
-        final Handler h = new Handler(Looper.getMainLooper());
-        h.postDelayed(new Runnable() {
-            private float time = duration;
-            private float volume = 0.0f;
+        fadeOutBgmVolume = isMuteMode ? 0.0f : bgmVolume;
+        final int FADE_DURATION = duration;
+        final int FADE_INTERVAL = 100;
+        final float MAX_VOLUME = bgmVolume;
+        int numberOfSteps = FADE_DURATION / FADE_INTERVAL;
+        final float deltaVolume = MAX_VOLUME / (float) numberOfSteps;
+
+        final Timer timer = new Timer(true);
+        TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                if (!_player.isPlaying())
-                    _player.start();
-                // can call h again after work!
-                time -= 100;
-                volume = isMuteMode ? 0.0f : (deviceVolume * time) / duration;
-                Log.e("GOTO", "vol: " + volume);
-                _player.setVolume(volume, volume);
-                if (time > 0)
-                    h.postDelayed(this, 100);
-                else {
+                _player.setVolume(fadeOutBgmVolume, fadeOutBgmVolume);
+                fadeOutBgmVolume -= deltaVolume;
+                if(fadeOutBgmVolume < 0.0f){
+                    timer.cancel();
+                    timer.purge();
                     _player.stop();
                     _player.reset();
-                    _player.setVolume(deviceVolume, deviceVolume);
                     isFadeoutRunning = false;
                 }
             }
-        }, 100); // 1 second delay (takes millis)
+        };
+        timer.schedule(timerTask, 0, FADE_INTERVAL);
     }
 
     public void playTitleCall(List<String> info, List<String> list, int idx, float volume) {
@@ -1423,6 +1435,8 @@ public class FullscreenActivity extends AppCompatActivity {
                 clearSubHandler.removeCallbacks(clearSubtitle);
                 if (isSubtitleLoaded) {
                     subtitle_text = subtitle_text.replace("<br>", "\n");
+                    subtitle_text = subtitle_text.replace("<br />", "\n");
+                    subtitle_text = subtitle_text.replace("<br>", "\n");
                 } else {
                     subtitle_text = getString(R.string.no_subtitle_file);
                 }
@@ -1451,7 +1465,9 @@ public class FullscreenActivity extends AppCompatActivity {
                     voicePlayer.release();
                     voicePlayer = new MediaPlayer();
                 }
-                playMp3("voice", voicePlayer, file, voiceVolume);
+                if (!pause_flag) {
+                    playMp3("voice", voicePlayer, file, voiceVolume);
+                }
             }
             setSubtitle(ship_id, voiceline);
         }
