@@ -244,7 +244,7 @@ public class SettingsActivity extends AppCompatActivity {
                     JsonObject version_info = response.body();
                     Log.e("GOTO", version_info.toString());
                     if (version_info.has("tag_name")) {
-                        String tag = version_info.get("tag_name").getAsString().replace("v", "");
+                        String tag = version_info.get("tag_name").getAsString().substring(1);
                         String latest_file = version_info.getAsJsonArray("assets")
                                 .get(0).getAsJsonObject().get("browser_download_url").getAsString();
                         if (BuildConfig.VERSION_NAME.equals(tag)) {
