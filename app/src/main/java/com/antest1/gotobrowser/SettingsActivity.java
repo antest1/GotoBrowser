@@ -25,6 +25,7 @@ import java.util.Locale;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,7 +47,7 @@ import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 
 public class SettingsActivity extends AppCompatActivity {
     private VersionDatabase versionTable;
-    private TextView versionText, latestCheck, subtitleLoading;
+    private TextView versionText, latestCheck, subtitleLoading, subtitleLang;
     private TextView licenseButton, githubButton;
     public ImageView exitButton;
     public RecyclerView subtitleList;
@@ -102,6 +103,19 @@ public class SettingsActivity extends AppCompatActivity {
         subtitleLoading = findViewById(R.id.subtitle_loading);
         subtitleLoading.setVisibility(View.VISIBLE);
 
+        String current_locale = sharedPref.getString(PREF_SUBTITLE_LOCALE, "");
+        subtitleLang = findViewById(R.id.subtitle_current_lang);
+
+        if (current_locale == null || current_locale.length() == 0) {
+            subtitleLang.setText(String.format(Locale.US,
+                    getString(R.string.settings_subtitle_language), "(none)"));
+            subtitleLang.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+        } else {
+            subtitleLang.setText(String.format(Locale.US,
+                    getString(R.string.settings_subtitle_language), current_locale));
+            subtitleLang.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
+        }
+
         subtitleList = findViewById(R.id.subtitle_list);
         subtitleList.addItemDecoration(new DividerItemDecoration(getApplicationContext(),
                 DividerItemDecoration.VERTICAL));
@@ -116,6 +130,9 @@ public class SettingsActivity extends AppCompatActivity {
     @SuppressLint("ApplySharedPref")
     SubtitleLocaleAdapter.OnItemClickListener selector = item -> {
         String locale_code = item.get("locale_code").getAsString();
+        subtitleLang.setText(String.format(Locale.US,
+                getString(R.string.settings_subtitle_language), locale_code));
+        subtitleLang.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
         sharedPref.edit().putString(PREF_SUBTITLE_LOCALE, locale_code).commit();
         adapter.notifyDataSetChanged();
         Toast.makeText(getApplicationContext(), locale_code, Toast.LENGTH_LONG).show();
@@ -195,7 +212,7 @@ public class SettingsActivity extends AppCompatActivity {
                         JsonObject item = new JsonObject();
                         item.addProperty("locale_code", locale_code);
                         item.addProperty("selected", locale_code.equals(sharedPref.getString(PREF_SUBTITLE_LOCALE, "")));
-                        item.addProperty("locale_label", locale_label);
+                        item.addProperty("locale_label", String.format(Locale.US, "%s (%s)", locale_label, locale_code));
                         item.addProperty("current_commit", versionTable.getValue(filename));
                         item.addProperty("latest_commit", latest);
                         item.addProperty("download_url", locale_path);

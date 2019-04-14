@@ -23,6 +23,7 @@
     <string name="settings_version_label">현재 버전</string>
     <string name="settings_version_check">업데이트 확인</string>
     <string name="settings_subtitle_label">자막 데이터 다운로드</string>
+    <string name="settings_subtitle_language" formatted="false">현재 언어: %s</string>
     <string name="settings_appinfo_label">어플리케이션 정보</string>
     <string name="no_subtitle_file">설정에서 자막 데이터를 다운로드하세요.</string>
     <string name="setting_latest_version">최신 버전입니다.</string>
