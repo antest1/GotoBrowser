@@ -81,6 +81,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
+import com.antest1.gotobrowser.Helpers.MediaPlayerPool;
+
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_NIT;
 import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_OOI;
@@ -126,6 +128,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private static final boolean AUTO_HIDE = true;
     private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
     private static final int UI_ANIMATION_DELAY = 300;
+    private static final int AUDIO_POOL_LIMIT = 10;
     private int uiOption;
 
     private VersionDatabase versionTable;
@@ -158,7 +161,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private Map<String, Integer> seMap = new HashMap<>();
     private SoundPool sePlayer;
     private float seVolume = 1.0f;
-    private MediaPlayer voicePlayer;
+    private MediaPlayerPool voicePlayers;
     private boolean isVoicePlaying = false;
     private float voiceVolume = 1.0f;
     private MediaPlayer titleVoicePlayer;
@@ -390,7 +393,10 @@ public class FullscreenActivity extends AppCompatActivity {
 
         backPressCloseHandler = new BackPressCloseHandler(this);
         bgmPlayer = new MediaPlayer();
-        voicePlayer = new MediaPlayer();
+        voicePlayers = new MediaPlayerPool(AUDIO_POOL_LIMIT);
+        voicePlayers.setOnAllCompletedListener((pool, lastPlayer) -> {
+            isVoicePlaying = false;
+        });
         titleVoicePlayer = new MediaPlayer();
         sePlayer = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
 
@@ -717,7 +723,7 @@ public class FullscreenActivity extends AppCompatActivity {
             pause_flag = true;
             mContentView.pauseTimers();
             if (bgmPlayer.isPlaying()) bgmPlayer.pause();
-            if (voicePlayer.isPlaying()) voicePlayer.pause();
+            if (voicePlayers.isAnyPlaying()) voicePlayers.pauseAll();
             if (titleVoicePlayer.isPlaying()) titleVoicePlayer.pause();
             sePlayer.autoPause();
         } else {
@@ -725,7 +731,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 mContentView.resumeTimers();
                 pause_flag = false;
                 if (!bgmPlayer.isPlaying() && isBgmPlaying) bgmPlayer.start();
-                if (!voicePlayer.isPlaying() && isVoicePlaying) voicePlayer.start();
+                if (!voicePlayers.isAnyPlaying() && isVoicePlaying) voicePlayers.startAll();
                 if (!titleVoicePlayer.isPlaying() && isBgmPlaying) titleVoicePlayer.start();
                 sePlayer.autoResume();
             }
@@ -740,7 +746,7 @@ public class FullscreenActivity extends AppCompatActivity {
         pause_flag = false;
         mContentView.resumeTimers();
         if (!bgmPlayer.isPlaying() && isBgmPlaying) bgmPlayer.start();
-        if (!voicePlayer.isPlaying() && isVoicePlaying) voicePlayer.start();
+        if (!voicePlayers.isAnyPlaying() && isVoicePlaying) voicePlayers.startAll();
         sePlayer.autoResume();
         //setVolumeMute(false);
     }
@@ -752,7 +758,7 @@ public class FullscreenActivity extends AppCompatActivity {
         bgmPlayer.stop();
         bgmPlayer.release();
         sePlayer.release();
-        voicePlayer.release();
+        voicePlayers.release();
         titleVoicePlayer.release();
         mContentView.removeAllViews();
         mContentView.destroy();
@@ -1064,7 +1070,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                     playSe(sePlayer, file, voiceVolume);
                                 }
                                 else {
-                                    playMp3("voice", voicePlayer, file, voiceVolume);
+                                    playVoice(file, voiceVolume);
                                 }
                             }
                         }
@@ -1246,8 +1252,8 @@ public class FullscreenActivity extends AppCompatActivity {
         };
         for (String pattern: STOP_V_FLAG) {
             if (url.contains(pattern)) {
-                voicePlayer.stop();
-                voicePlayer.reset();
+                voicePlayers.stopAll();
+                voicePlayers.resetAll();
             }
         }
     }
@@ -1255,22 +1261,22 @@ public class FullscreenActivity extends AppCompatActivity {
     public void setCurrentVolume(boolean mute_mode) {
         Log.e("GOTO", "setCurrentVolume: " + mute_mode);
         boolean bgm_playing = bgmPlayer.isPlaying();
-        boolean voice_playing = voicePlayer.isPlaying();
+        boolean voice_playing = voicePlayers.isAnyPlaying();
         boolean title_playing = titleVoicePlayer.isPlaying();
         if (bgm_playing) bgmPlayer.pause();
-        if (voice_playing) voicePlayer.pause();
+        if (voice_playing) voicePlayers.pauseAll();
         if (title_playing) titleVoicePlayer.pause();
 
         if (mute_mode) {
             bgmPlayer.setVolume(0.0f, 0.0f);
-            voicePlayer.setVolume(0.0f, 0.0f);
+            voicePlayers.setVolumeAll(0.0f, 0.0f);
             titleVoicePlayer.setVolume(0.0f, 0.0f);
             for (Integer key: seMap.values()) {
                 sePlayer.setVolume(key, 0.0f, 0.0f);
             }
         } else {
             bgmPlayer.setVolume(bgmVolume, bgmVolume);
-            voicePlayer.setVolume(voiceVolume, voiceVolume);
+            voicePlayers.setVolumeAll(voiceVolume, voiceVolume);
             titleVoicePlayer.setVolume(voiceVolume, voiceVolume);
             for (Map.Entry<String, Integer> item: seMap.entrySet()) {
                 String url = item.getKey();
@@ -1283,7 +1289,7 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         }
         if (bgm_playing) bgmPlayer.start();
-        if (voice_playing) voicePlayer.start();
+        if (voice_playing) voicePlayers.startAll();
         if (title_playing) titleVoicePlayer.start();
     }
 
@@ -1294,9 +1300,9 @@ public class FullscreenActivity extends AppCompatActivity {
             if (player.isPlaying()) {
                 player.stop();
             }
+
             player.setOnCompletionListener(mp -> {
                 if (tag.equals("bgm")) isBgmPlaying = false;
-                if (tag.equals("voice")) isVoicePlaying = false;
             });
             player.reset();
             player.setVolume(volume, volume);
@@ -1305,10 +1311,18 @@ public class FullscreenActivity extends AppCompatActivity {
             player.prepare();
             player.start();
             if (tag.equals("bgm")) isBgmPlaying = true;
-            if (tag.equals("voice")) isVoicePlaying = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void playVoice(File file, float volume) {
+        MediaPlayer player = new MediaPlayer();
+
+        playMp3("voice", player, file, volume);
+
+        voicePlayers.addToPool(player);
+        isVoicePlaying = true;
     }
 
     public void playSe(SoundPool pool, File file, float volume) {
@@ -1399,8 +1413,8 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
                 if (key.equals("vol_voice")) {
                     voiceVolume = value;
-                    if (isMuteMode) voicePlayer.setVolume(0.0f, 0.0f);
-                    else voicePlayer.setVolume(voiceVolume, voiceVolume);
+                    if (isMuteMode) voicePlayers.setVolumeAll(0.0f, 0.0f);
+                    else voicePlayers.setVolumeAll(voiceVolume, voiceVolume);
                 }
                 if (key.equals("vol_se")) {
                     seVolume = value;
@@ -1480,14 +1494,9 @@ public class FullscreenActivity extends AppCompatActivity {
         @Override
         public void run() {
             if (path != null) {
-                File file = new File(path);
-                if (isVoicePlaying) {
-                    voicePlayer.stop();
-                    voicePlayer.release();
-                    voicePlayer = new MediaPlayer();
-                }
                 if (!pause_flag) {
-                    playMp3("voice", voicePlayer, file, voiceVolume);
+                    File file = new File(path);
+                    playVoice(file, voiceVolume);
                 }
             }
             setSubtitle(ship_id, voiceline);
