@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">GotoBrowser</string>
+    <string name="action_ok">确认</string>
+    <string name="action_cancel">取消</string>
+    <string name="select_server">选择连接线路</string>
+    <string name="select_server_toast">你必须先选择一个连接线路</string>
+    <string name="cache_clear_text">清除缓存</string>
+    <string name="cache_cleared_toast">webview 缓存已清除</string>
+    <string name="clearcache_msg">仅当图像或声音未正确载入时使用这个选项。 确定要清除缓存吗？</string>
+    <string name="backpress_msg">是否要退出？</string>
+    <string name="refresh_msg">是否要刷新页面？</string>
+    <string name="mode_landscape">横屏模式</string>
+    <string name="mode_adjustment">布局调节</string>
+    <string name="mode_silent">静音启动游戏</string>
+    <string name="mode_show_panel">显示控制台</string>
+    <string name="button_start">开始游戏</string>
+    <string name="text_save">保存</string>
+    <string name="text_cancel">取消</string>
+    <string name="subtitle_default">字幕区域 / 点击以隐藏</string>
+    <string name="autocomplete_title">自动完成登录</string>
+    <string name="autocomplete_msg">这些信息用于填写登录框</string>
+    <string name="settings_version_label">当前版本</string>
+    <string name="settings_version_check">检查更新</string>
+    <string name="settings_subtitle_label">下载字幕数据</string>
+    <string name="settings_subtitle_language" formatted="false">当前语言: %s</string>
+    <string name="settings_appinfo_label">程序信息</string>
+    <string name="no_subtitle_file">请先于设置中下载字幕数据。</string>
+    <string name="setting_latest_version">已是最新版本。</string>
+    <string name="setting_latest_download" formatted="false">有一个可用更新。 (%s)\nD是否要下载？</string>
+</resources>
