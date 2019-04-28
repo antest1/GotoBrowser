@@ -56,12 +56,10 @@ public class EntranceActivity extends AppCompatActivity {
         backPressCloseHandler = new BackPressCloseHandler(this);
 
         settingsButton = findViewById(R.id.icon_setting);
-        settingsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(EntranceActivity.this, SettingsActivity.class);
-                startActivity(intent);
-            }
+        settingsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(EntranceActivity.this, SettingsActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
         });
 
         landscapeSwitch = findViewById(R.id.switch_landscape);
