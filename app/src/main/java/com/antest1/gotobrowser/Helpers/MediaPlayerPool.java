@@ -47,6 +47,10 @@ public class MediaPlayerPool {
         players.clear();
     }
 
+    public void setStreamsLimit(int limit) {
+        streamsLimit = limit;
+    }
+
     public void setOnAllCompletedListener(OnAllCompletedListener onAllCompletitionListener) {
         this.onAllCompletedListener = onAllCompletitionListener;
     }

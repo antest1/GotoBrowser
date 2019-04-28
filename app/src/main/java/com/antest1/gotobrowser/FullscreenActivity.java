@@ -134,7 +134,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private VersionDatabase versionTable;
     private AudioManager audioManager;
     private final Handler mHideHandler = new Handler();
-    private WebView mContentView;
+    private WebViewL mContentView;
     private View mHorizontalControlView, mVerticalControlView;
     private View broswerPanel;
     private View menuRefresh, menuAspect, menuMute, menuLock, menuCaption, menuBrightOn, menuClose;
@@ -393,12 +393,13 @@ public class FullscreenActivity extends AppCompatActivity {
 
         backPressCloseHandler = new BackPressCloseHandler(this);
         bgmPlayer = new MediaPlayer();
-        voicePlayers = new MediaPlayerPool(AUDIO_POOL_LIMIT);
+        voicePlayers = new MediaPlayerPool(1);
         voicePlayers.setOnAllCompletedListener((pool, lastPlayer) -> {
             isVoicePlaying = false;
         });
         titleVoicePlayer = new MediaPlayer();
         sePlayer = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
+
 
 
         // defaultSubtitleMargin = getDefaultSubtitleMargin();
@@ -499,7 +500,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
             @Override
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
-                final WebView newWebView = new WebView(FullscreenActivity.this);
+                final WebViewL newWebView = new WebViewL(FullscreenActivity.this);
                 ImageView closeButton = findViewById(R.id.dmm_browser_close);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     CookieManager.getInstance().setAcceptThirdPartyCookies(newWebView, true);
@@ -921,7 +922,11 @@ public class FullscreenActivity extends AppCompatActivity {
                     Log.e("GOTO", "battle_bgm_id " + currentBattleBgmId);
                 }
 
-                isBattleMode = path.contains("api_req_battle") || path.contains("api_req_map");
+                isBattleMode = isBattleMode || path.contains("api_req_battle") || path.contains("api_req_map");
+                isBattleMode = isBattleMode && !path.contains("api_port");
+                voicePlayers.setStreamsLimit(isBattleMode ? AUDIO_POOL_LIMIT : 1);
+                Log.e("GOTO ", "isBattleMode: " + isBattleMode);
+                Log.e("GOTO", "voicePlayers: streams_limit " + (isBattleMode ? AUDIO_POOL_LIMIT : 1));
 
                 String fullpath = String.format(Locale.US, "http://%s%s", host, path);
                 String outputpath = getApplicationContext().getFilesDir().getAbsolutePath()

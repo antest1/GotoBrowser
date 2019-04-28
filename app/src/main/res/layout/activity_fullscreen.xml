@@ -13,11 +13,11 @@
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
 
-    <WebView
+    <com.antest1.gotobrowser.WebViewL
         android:id="@+id/main_browser"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    </WebView>
+    </com.antest1.gotobrowser.WebViewL>
 
     <ImageView
         android:id="@+id/dmm_browser_close"
