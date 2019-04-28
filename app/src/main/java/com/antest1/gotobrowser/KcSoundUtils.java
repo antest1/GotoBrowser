@@ -28,7 +28,7 @@ import java.util.Set;
 // Reference: https://github.com/KC3Kai/KC3Kai/issues/1180
 //            https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
 public class KcSoundUtils {
-    public static final String specialVoiceCode = "Spring";
+    public static final String specialVoiceCode = "Anniversary";
     public static final int SPECIAL_VOICE_START_YEAR = 2014;
     public static final int SPECIAL_VOICE_END_YEAR = 2019;
     public static final int[] resourceKeys = {
