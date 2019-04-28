@@ -722,17 +722,17 @@ public class FullscreenActivity extends AppCompatActivity {
             Log.e("GOTO", "is_not_multi");
             pause_flag = true;
             mContentView.pauseTimers();
-            if (bgmPlayer.isPlaying()) bgmPlayer.pause();
-            if (voicePlayers.isAnyPlaying()) voicePlayers.pauseAll();
-            if (titleVoicePlayer.isPlaying()) titleVoicePlayer.pause();
+            if (isBgmPlaying && bgmPlayer.isPlaying()) bgmPlayer.pause();
+            if (isVoicePlaying && voicePlayers.isAnyPlaying()) voicePlayers.pauseAll();
+            if (isBgmPlaying && titleVoicePlayer.isPlaying()) titleVoicePlayer.pause();
             sePlayer.autoPause();
         } else {
             if (pause_flag) {
                 mContentView.resumeTimers();
                 pause_flag = false;
-                if (!bgmPlayer.isPlaying() && isBgmPlaying) bgmPlayer.start();
-                if (!voicePlayers.isAnyPlaying() && isVoicePlaying) voicePlayers.startAll();
-                if (!titleVoicePlayer.isPlaying() && isBgmPlaying) titleVoicePlayer.start();
+                if (isBgmPlaying && !bgmPlayer.isPlaying()) bgmPlayer.start();
+                if (isVoicePlaying && !voicePlayers.isAnyPlaying()) voicePlayers.startAll();
+                if (isBgmPlaying && !titleVoicePlayer.isPlaying()) titleVoicePlayer.start();
                 sePlayer.autoResume();
             }
             Log.e("GOTO", "is_multi");
@@ -745,8 +745,8 @@ public class FullscreenActivity extends AppCompatActivity {
         Log.e("GOTO", "onResume");
         pause_flag = false;
         mContentView.resumeTimers();
-        if (!bgmPlayer.isPlaying() && isBgmPlaying) bgmPlayer.start();
-        if (!voicePlayers.isAnyPlaying() && isVoicePlaying) voicePlayers.startAll();
+        if (isBgmPlaying && !bgmPlayer.isPlaying()) bgmPlayer.start();
+        if (isVoicePlaying && !voicePlayers.isAnyPlaying()) voicePlayers.startAll();
         sePlayer.autoResume();
         //setVolumeMute(false);
     }
@@ -1345,7 +1345,7 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void fadeOut(final MediaPlayer _player, final int duration) {
-        if (isFadeoutRunning) return;
+        if (isFadeoutRunning || !isBgmPlaying) return;
         isFadeoutRunning = true;
         fadeOutBgmVolume = isMuteMode ? 0.0f : bgmVolume;
         final int FADE_DURATION = duration;
@@ -1366,6 +1366,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     _player.stop();
                     _player.reset();
                     isFadeoutRunning = false;
+                    isBgmPlaying = false;
                 }
             }
         };
