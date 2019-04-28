@@ -1,0 +1,41 @@
+{
+  "project_info": {
+    "project_number": "24112411365",
+    "firebase_url": "https://antest1-gotobrowser.firebaseio.com",
+    "project_id": "antest1-gotobrowser",
+    "storage_bucket": "antest1-gotobrowser.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:24112411365:android:e68493e6800de831",
+        "android_client_info": {
+          "package_name": "com.antest1.gotobrowser.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "24112411365-u527mgbd2b3g0to1km2esr49hso0duem.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "Ajk23klsadfnocio903jSFJS4JSAmncjsdkijfa"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }],
+  "configuration_version": "1"
+}
