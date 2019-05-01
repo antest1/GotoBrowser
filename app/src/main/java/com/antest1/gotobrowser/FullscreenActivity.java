@@ -922,7 +922,8 @@ public class FullscreenActivity extends AppCompatActivity {
                     Log.e("GOTO", "battle_bgm_id " + currentBattleBgmId);
                 }
 
-                isBattleMode = isBattleMode || path.contains("api_req_battle") || path.contains("api_req_map");
+                isBattleMode = isBattleMode || path.contains("api_req_battle")
+                        || path.contains("api_req_map") || path.contains("api_req_practice");
                 isBattleMode = isBattleMode && !path.contains("api_port");
                 voicePlayers.setStreamsLimit(isBattleMode ? AUDIO_POOL_LIMIT : 1);
                 Log.e("GOTO ", "isBattleMode: " + isBattleMode);
