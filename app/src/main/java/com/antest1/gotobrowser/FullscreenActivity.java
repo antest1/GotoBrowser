@@ -1364,12 +1364,20 @@ public class FullscreenActivity extends AppCompatActivity {
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                _player.setVolume(fadeOutBgmVolume, fadeOutBgmVolume);
-                fadeOutBgmVolume -= deltaVolume;
-                if(fadeOutBgmVolume < 0.0f){
+                try {
+                    _player.setVolume(fadeOutBgmVolume, fadeOutBgmVolume);
+                    fadeOutBgmVolume -= deltaVolume;
+                    if(fadeOutBgmVolume < 0.0f){
+                        timer.cancel();
+                        timer.purge();
+                        _player.stop();
+                        _player.reset();
+                        isFadeoutRunning = false;
+                        isBgmPlaying = false;
+                    }
+                } catch (IllegalStateException e) {
                     timer.cancel();
                     timer.purge();
-                    _player.stop();
                     _player.reset();
                     isFadeoutRunning = false;
                     isBgmPlaying = false;
