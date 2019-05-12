@@ -246,13 +246,21 @@ public class KcSoundUtils {
                 voiceline = voiceline_special;
                 current_special_flag = true;
             }
-            for (int year = SPECIAL_VOICE_END_YEAR; year >= SPECIAL_VOICE_START_YEAR; year--) {
+
+            int year = SPECIAL_VOICE_END_YEAR;
+            for (year = SPECIAL_VOICE_END_YEAR; year >= SPECIAL_VOICE_START_YEAR; year--) {
                 if (ship_data.has(voiceline_special +  year)) {
                     voiceline = voiceline_special + year;
                     current_special_flag = true;
                     break;
                 }
             }
+
+            if (current_special_flag && ship_data.has(voiceline_special)
+                    && year != SPECIAL_VOICE_END_YEAR) {
+                voiceline = voiceline_special;
+            }
+
             Log.e("GOTO", ship_id + " " +voiceline);
             if (current_special_flag || !prev_special_flag) {
                 if (ship_data.has(voiceline)) {
