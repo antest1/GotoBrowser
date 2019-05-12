@@ -1073,10 +1073,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                 setSubtitle(ship_id, voiceline);
                                 if (ship_id.equals("9998") && false) { // temp code: play abyssal sound from browser
                                     return null;
-                                } else if (isBattleMode && (file.length() / 1024) < 100) {
-                                    playSe(sePlayer, file, voiceVolume);
-                                }
-                                else {
+                                } else {
                                     playVoice(file, voiceVolume);
                                 }
                             }
@@ -1288,11 +1285,7 @@ public class FullscreenActivity extends AppCompatActivity {
             for (Map.Entry<String, Integer> item: seMap.entrySet()) {
                 String url = item.getKey();
                 Integer sid = item.getValue();
-                if (url.contains("/kcs/sound/kc")) {
-                    sePlayer.setVolume(sid, voiceVolume, voiceVolume);
-                } else {
-                    sePlayer.setVolume(sid, seVolume, seVolume);
-                }
+                sePlayer.setVolume(sid, seVolume, seVolume);
             }
         }
         if (bgm_playing) bgmPlayer.start();
