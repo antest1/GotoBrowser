@@ -30,6 +30,7 @@ import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.URL_LIST;
+import static com.antest1.gotobrowser.FullscreenActivity.OPEN_KANCOLLE;
 
 public class EntranceActivity extends AppCompatActivity {
     private BackPressCloseHandler backPressCloseHandler;
@@ -168,6 +169,7 @@ public class EntranceActivity extends AppCompatActivity {
                 if (showControlPanelCheckbox.isChecked()) intent.setAction(ACTION_SHOWPANEL);
                 intent.putExtra("login_id", login_id);
                 intent.putExtra("login_pw", login_password);
+                intent.setAction(OPEN_KANCOLLE);
                 startActivity(intent);
                 finish();
             }

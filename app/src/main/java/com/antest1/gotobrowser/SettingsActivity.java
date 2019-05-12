@@ -44,10 +44,11 @@ import static com.antest1.gotobrowser.Constants.SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_PATH;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_ROOT;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
+import static com.antest1.gotobrowser.FullscreenActivity.OPEN_RES_DOWN;
 
 public class SettingsActivity extends AppCompatActivity {
     private VersionDatabase versionTable;
-    private TextView versionText, latestCheck, subtitleLoading, subtitleLang;
+    private TextView versionText, latestCheck, resourceDown, subtitleLoading, subtitleLang;
     private TextView licenseButton, githubButton;
     public ImageView exitButton;
     public RecyclerView subtitleList;
@@ -78,6 +79,9 @@ public class SettingsActivity extends AppCompatActivity {
 
         latestCheck = findViewById(R.id.version_update);
         latestCheck.setOnClickListener(v -> checkAppVersion());
+
+        resourceDown = findViewById(R.id.resource_update);
+        resourceDown.setOnClickListener(v -> openResourceDownloadPage());
 
         versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
 
@@ -279,6 +283,13 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    public void openResourceDownloadPage() {
+        Intent intent = new Intent(SettingsActivity.this, FullscreenActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setAction(OPEN_RES_DOWN);
+        startActivity(intent);
     }
 
     @Override

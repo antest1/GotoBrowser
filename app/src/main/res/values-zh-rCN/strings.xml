@@ -27,4 +27,6 @@
     <string name="no_subtitle_file">请先于设置中下载字幕数据。</string>
     <string name="setting_latest_version">已是最新版本。</string>
     <string name="setting_latest_download" formatted="false">有一个可用更新。 (%s)\nD是否要下载？</string>
+    <string name="settings_resource_label" translatable="false">下载图像资源</string>
+    <string name="settings_resource_btn">下载</string>
 </resources>

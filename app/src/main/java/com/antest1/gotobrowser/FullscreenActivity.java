@@ -2,6 +2,7 @@ package com.antest1.gotobrowser;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -25,6 +26,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import android.webkit.DownloadListener;
 import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -124,13 +126,15 @@ import static com.antest1.gotobrowser.Constants.URL_OOI;
 import static com.antest1.gotobrowser.Constants.URL_OOI_3;
 import static com.antest1.gotobrowser.Constants.URL_OSAPI;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
+import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
 
 public class FullscreenActivity extends AppCompatActivity {
-    private static final boolean AUTO_HIDE = true;
-    private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
+    public static final String OPEN_KANCOLLE = "open_kancolle";
+    public static final String OPEN_RES_DOWN = "open_res_down";
     private static final int UI_ANIMATION_DELAY = 300;
     private static final int AUDIO_POOL_LIMIT = 10;
     private int uiOption;
+    private String action;
 
     private VersionDatabase versionTable;
     private AudioManager audioManager;
@@ -239,6 +243,8 @@ public class FullscreenActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
         setContentView(R.layout.activity_fullscreen);
         Intent intent = getIntent();
+        if (intent != null) action = intent.getAction();
+
         final SharedPreferences sharedPref = getSharedPreferences(
                 getString(R.string.preference_key), Context.MODE_PRIVATE);
 
@@ -285,7 +291,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     .setMessage(getString(R.string.refresh_msg))
                     .setPositiveButton(R.string.action_ok,
                             (dialog, id) -> {
-                                if (bgmPlayer.isPlaying()) bgmPlayer.stop();
+                                if (KcUtils.checkIsPlaying(bgmPlayer)) bgmPlayer.stop();
                                 setDefaultPage();
                             })
                     .setNegativeButton(R.string.action_cancel,
@@ -464,12 +470,14 @@ public class FullscreenActivity extends AppCompatActivity {
             public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
                 Uri source = Uri.parse(url);
                 String host = source.getHost();
-                boolean is_image = url.contains("kcs2") && (url.contains(".png") || url.contains(".jpg"));
-                boolean is_audio = url.contains(".mp3");
-                boolean is_json = url.contains("json");
-                boolean is_js = url.contains("/js/") && url.contains(".js");
-                WebResourceResponse response = processWebRequest(source, is_image, is_audio, is_json, is_js);
-                if (response != null) return response;
+                if (OPEN_KANCOLLE.equals(action)) {
+                    boolean is_image = url.contains("kcs2") && (url.contains(".png") || url.contains(".jpg"));
+                    boolean is_audio = url.contains(".mp3");
+                    boolean is_json = url.contains("json");
+                    boolean is_js = url.contains("/js/") && url.contains(".js");
+                    WebResourceResponse response = processWebRequest(source, is_image, is_audio, is_json, is_js);
+                    if (response != null) return response;
+                }
                 return super.shouldInterceptRequest(view, url);
             }
 
@@ -480,12 +488,14 @@ public class FullscreenActivity extends AppCompatActivity {
                     Map<String, String> header = request.getRequestHeaders();
                     String host = source.getHost();
                     String accept = header.get("Accept");
-                    boolean is_image = accept != null && accept.contains("image") && source.toString().contains("kcs2");
-                    boolean is_audio = accept != null && source.toString().contains(".mp3");
-                    boolean is_json = accept != null && accept.contains("json") && source.toString().contains(".json");
-                    boolean is_js = source.toString().contains("/js/") && source.toString().contains(".js");
-                    WebResourceResponse response = processWebRequest(source, is_image, is_audio, is_json, is_js);
-                    if (response != null) return response;
+                    if (OPEN_KANCOLLE.equals(action)) {
+                        boolean is_image = accept != null && accept.contains("image") && source.toString().contains("kcs2");
+                        boolean is_audio = accept != null && source.toString().contains(".mp3");
+                        boolean is_json = accept != null && accept.contains("json") && source.toString().contains(".json");
+                        boolean is_js = source.toString().contains("/js/") && source.toString().contains(".js");
+                        WebResourceResponse response = processWebRequest(source, is_image, is_audio, is_json, is_js);
+                        if (response != null) return response;
+                    }
                 }
                 return super.shouldInterceptRequest(view, request);
             }
@@ -597,6 +607,56 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) { }
         });
+
+        mContentView.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder().url(url)
+                    .addHeader("User-Agent", userAgent)
+                    .addHeader("Content-Type", mimetype)
+                    .addHeader("Cache-Control", "no-cache")
+                    .build();
+            Log.e("GOTO", url);
+            Uri uri = Uri.parse(url);
+            String version = uri.getQueryParameter("v");
+            if (version == null) version = "";
+
+            String filename = uri.getLastPathSegment();
+            String outputpath = uri.getPath().replace(getString(R.string.resource_download_prefix), "")
+                    .replace(".zip", "/");
+
+            Log.e("GOTO", outputpath);
+            Log.e("GOTO", "version: " + version);
+
+            ProgressDialog progress = new ProgressDialog(FullscreenActivity.this);
+            progress.setMessage(String.format(Locale.US, "Downloading %s...", filename));
+            progress.setCancelable(false);
+            progress.setProgressNumberFormat(null);
+            progress.setProgressPercentFormat(null);
+            progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            progress.setIndeterminate(true);
+            progress.show();
+            String version_f = version;
+            new Thread() {
+                public void run() {
+                    try {
+                        Response response = client.newCall(request).execute();
+                        InputStream in = response.body().byteStream();
+                        runOnUiThread(() -> progress.setMessage(String.format(Locale.US, "Extracting %s...", filename)));
+                        KcUtils.unZip(getApplicationContext(), in, outputpath, versionTable, version_f);
+                        runOnUiThread(() -> {
+                            if (progress.isShowing()) progress.dismiss();
+                            Toast.makeText(FullscreenActivity.this, String.format(Locale.US, "Process finished: %s", filename), Toast.LENGTH_LONG).show();
+                        });
+                    } catch (NullPointerException | IOException e) {
+                        e.printStackTrace();
+                        runOnUiThread(() -> {
+                            Toast.makeText(FullscreenActivity.this, getStringFromException(e), Toast.LENGTH_LONG).show();
+                        });
+                    }
+                }
+            }.start();
+        });
+
         mHorizontalControlView.findViewById(R.id.control_exit)
                 .setOnClickListener(v -> mHorizontalControlView.setVisibility(View.GONE));
 
@@ -909,7 +969,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     if (!executor.isShutdown()) executor.shutdown();
                 }
 
-                if (path.contains("/kcs2/resources/map/")) {
+                if (path.contains("/kcs2/resources/map/") && path.contains(".json")) {
                     String[] map_info = path.replace("/kcs2/resources/map/", "").split("/");
                     int world = Integer.parseInt(map_info[0]);
                     int map = Integer.parseInt(map_info[1].split("_")[0]);
@@ -1120,42 +1180,48 @@ public class FullscreenActivity extends AppCompatActivity {
 
     public void setDefaultPage() {
         mContentView.resumeTimers();
-        SharedPreferences sharedPref = getSharedPreferences(
-                getString(R.string.preference_key), Context.MODE_PRIVATE);
-        String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
-        if (CONN_DMM.equals(pref_connector)) {
-            connector_url_default = URL_DMM;
-            connector_url = sharedPref.getString(PREF_LATEST_URL, URL_DMM);
-            mContentView.loadUrl(connector_url);
-        } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
-            if (CONN_KANSU.equals(pref_connector)) {
-                connector_url_default = URL_KANSU;
-                connector_url = URL_KANSU; sharedPref.getString(PREF_LATEST_URL, URL_KANSU);
-            } else {
-                connector_url_default = URL_OOI;
-                connector_url = URL_OOI; // sharedPref.getString(PREF_LATEST_URL, URL_OOI);
-            }
-
-            if (connector_url_default.equals(connector_url)) {
-                String postdata = "";
-                try {
-                    int connect_mode = connector_url_default.equals(URL_OOI) ? 3 : 4;
-                    postdata = String.format(Locale.US, "login_id=%s&password=%s&mode=%d",
-                            URLEncoder.encode(login_id, "utf-8"),
-                            URLEncoder.encode(login_password, "utf-8"),
-                            connect_mode);
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                Log.e("GOTO", postdata);
-                mContentView.postUrl(connector_url, postdata.getBytes());
-            } else {
+        if (OPEN_RES_DOWN.equals(action)) {
+            mContentView.loadUrl(getString(R.string.resource_download_link));
+        } else if (OPEN_KANCOLLE.equals(action)) {
+            SharedPreferences sharedPref = getSharedPreferences(
+                    getString(R.string.preference_key), Context.MODE_PRIVATE);
+            String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
+            if (CONN_DMM.equals(pref_connector)) {
+                connector_url_default = URL_DMM;
+                connector_url = sharedPref.getString(PREF_LATEST_URL, URL_DMM);
                 mContentView.loadUrl(connector_url);
+            } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
+                if (CONN_KANSU.equals(pref_connector)) {
+                    connector_url_default = URL_KANSU;
+                    connector_url = URL_KANSU; sharedPref.getString(PREF_LATEST_URL, URL_KANSU);
+                } else {
+                    connector_url_default = URL_OOI;
+                    connector_url = URL_OOI; // sharedPref.getString(PREF_LATEST_URL, URL_OOI);
+                }
+
+                if (connector_url_default.equals(connector_url)) {
+                    String postdata = "";
+                    try {
+                        int connect_mode = connector_url_default.equals(URL_OOI) ? 3 : 4;
+                        postdata = String.format(Locale.US, "login_id=%s&password=%s&mode=%d",
+                                URLEncoder.encode(login_id, "utf-8"),
+                                URLEncoder.encode(login_password, "utf-8"),
+                                connect_mode);
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                    Log.e("GOTO", postdata);
+                    mContentView.postUrl(connector_url, postdata.getBytes());
+                } else {
+                    mContentView.loadUrl(connector_url);
+                }
+            } else if (CONN_NITRABBIT.equals(pref_connector)) {
+                connector_url_default = URL_NITRABBIT;
+                connector_url = sharedPref.getString(PREF_LATEST_URL, URL_NITRABBIT);
+                mContentView.loadUrl(connector_url);
+            } else {
+                finish();
             }
-        } else if (CONN_NITRABBIT.equals(pref_connector)) {
-            connector_url_default = URL_NITRABBIT;
-            connector_url = sharedPref.getString(PREF_LATEST_URL, URL_NITRABBIT);
-            mContentView.loadUrl(connector_url);
         } else {
             finish();
         }

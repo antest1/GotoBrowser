@@ -34,4 +34,8 @@
 
     <string name="github_link" translatable="false">https://github.com/antest1/GotoBrowser/</string>
     <string name="license_link" translatable="false">http://www.apache.org/licenses/</string>
+    <string name="resource_download_link" translatable="false">https://antest1.github.io/kcs2-resources/</string>
+    <string name="resource_download_prefix" translatable="false">/antest1/kcs2-resources/master</string>
+    <string name="settings_resource_label">Download Resources</string>
+    <string name="settings_resource_btn">Download</string>
 </resources>
