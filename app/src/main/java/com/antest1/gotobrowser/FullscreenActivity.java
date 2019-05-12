@@ -377,7 +377,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
         subtitleText = findViewById(R.id.subtitle_view);
         subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
-        subtitleText.setVisibility(isCaptionMode ? View.VISIBLE : View.GONE);
+        subtitleText.setVisibility(OPEN_KANCOLLE.equals(action) && isCaptionMode ? View.VISIBLE : View.GONE);
         menuCaption = findViewById(R.id.menu_cc);
         menuCaption.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isCaptionMode ? R.color.panel_red : R.color.black));
         menuCaption.setOnClickListener(v -> {
@@ -712,7 +712,13 @@ public class FullscreenActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        backPressCloseHandler.onBackPressed();
+        if (OPEN_RES_DOWN.equals(action)) {
+            Intent intent = new Intent(FullscreenActivity.this, EntranceActivity.class);
+            startActivity(intent);
+            finish();
+        } else {
+            backPressCloseHandler.onBackPressed();
+        }
     }
 
     @Override
