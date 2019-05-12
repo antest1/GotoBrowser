@@ -38,6 +38,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -723,17 +724,17 @@ public class FullscreenActivity extends AppCompatActivity {
             Log.e("GOTO", "is_not_multi");
             pause_flag = true;
             mContentView.pauseTimers();
-            if (isBgmPlaying && bgmPlayer.isPlaying()) bgmPlayer.pause();
+            if (isBgmPlaying && KcUtils.checkIsPlaying(bgmPlayer)) bgmPlayer.pause();
             if (isVoicePlaying && voicePlayers.isAnyPlaying()) voicePlayers.pauseAll();
-            if (isBgmPlaying && titleVoicePlayer.isPlaying()) titleVoicePlayer.pause();
+            if (isBgmPlaying && KcUtils.checkIsPlaying(titleVoicePlayer)) titleVoicePlayer.pause();
             sePlayer.autoPause();
         } else {
             if (pause_flag) {
                 mContentView.resumeTimers();
                 pause_flag = false;
-                if (isBgmPlaying && !bgmPlayer.isPlaying()) bgmPlayer.start();
+                if (isBgmPlaying && !KcUtils.checkIsPlaying(bgmPlayer)) bgmPlayer.start();
                 if (isVoicePlaying && !voicePlayers.isAnyPlaying()) voicePlayers.startAll();
-                if (isBgmPlaying && !titleVoicePlayer.isPlaying()) titleVoicePlayer.start();
+                if (isBgmPlaying && !KcUtils.checkIsPlaying(titleVoicePlayer)) titleVoicePlayer.start();
                 sePlayer.autoResume();
             }
             Log.e("GOTO", "is_multi");
@@ -746,7 +747,7 @@ public class FullscreenActivity extends AppCompatActivity {
         Log.e("GOTO", "onResume");
         pause_flag = false;
         mContentView.resumeTimers();
-        if (isBgmPlaying && !bgmPlayer.isPlaying()) bgmPlayer.start();
+        if (isBgmPlaying && !KcUtils.checkIsPlaying(bgmPlayer)) bgmPlayer.start();
         if (isVoicePlaying && !voicePlayers.isAnyPlaying()) voicePlayers.startAll();
         sePlayer.autoResume();
         //setVolumeMute(false);
@@ -1368,17 +1369,17 @@ public class FullscreenActivity extends AppCompatActivity {
                     _player.setVolume(fadeOutBgmVolume, fadeOutBgmVolume);
                     fadeOutBgmVolume -= deltaVolume;
                     if(fadeOutBgmVolume < 0.0f){
-                        timer.cancel();
-                        timer.purge();
                         _player.stop();
                         _player.reset();
+                        timer.cancel();
+                        timer.purge();
                         isFadeoutRunning = false;
                         isBgmPlaying = false;
                     }
                 } catch (IllegalStateException e) {
+                    _player.reset();
                     timer.cancel();
                     timer.purge();
-                    _player.reset();
                     isFadeoutRunning = false;
                     isBgmPlaying = false;
                 }

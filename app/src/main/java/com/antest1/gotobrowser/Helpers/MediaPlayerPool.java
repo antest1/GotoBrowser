@@ -118,9 +118,12 @@ public class MediaPlayerPool {
 
     private void removeOldestTrack() {
         MediaPlayer oldestPlayer = getOldest();
-        oldestPlayer.stop();
-        oldestPlayer.release();
-
+        try {
+            oldestPlayer.stop();
+            oldestPlayer.release();
+        } catch (IllegalStateException e) {
+            // possibly already released: do nothing
+        }
         players.removeFirst();
     }
 }
