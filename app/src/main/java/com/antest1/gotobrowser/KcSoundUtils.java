@@ -289,6 +289,11 @@ public class KcSoundUtils {
     }
 
     public static JsonObject getMapBgmGraph(int api_id) {
-       return mapBgmGraph.get(String.valueOf(api_id)).getAsJsonObject();
+        String key = String.valueOf(api_id);
+        if (mapBgmGraph.has(key)) {
+            return mapBgmGraph.get(key).getAsJsonObject();
+        } else {
+            return null;
+        }
     }
 }

@@ -158,6 +158,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private boolean isMuteMode, isLockMode, isKeepMode, isCaptionMode;
     private MediaPlayer bgmPlayer;
     private boolean isBgmPlaying = false;
+    private boolean isOnPractice = false;
     private float bgmVolume = 1.0f;
     private float fadeOutBgmVolume = 1.0f;
     private int currentMapId = 0;
@@ -992,6 +993,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 isBattleMode = isBattleMode || path.contains("api_req_battle")
                         || path.contains("api_req_map") || path.contains("api_req_practice");
                 isBattleMode = isBattleMode && !path.contains("api_port");
+                isOnPractice = isOnPractice || path.contains("/kcs2/img/prac/prac_main");
                 voicePlayers.setStreamsLimit(isBattleMode ? AUDIO_POOL_LIMIT : 1);
                 Log.e("GOTO ", "isBattleMode: " + isBattleMode);
                 Log.e("GOTO", "voicePlayers: streams_limit " + (isBattleMode ? AUDIO_POOL_LIMIT : 1));
@@ -1300,22 +1302,27 @@ public class FullscreenActivity extends AppCompatActivity {
 
         for (String pattern: STOP_FLAG) {
             if (url.contains(pattern)) {
+                boolean fadeout_flag = true;
                 boolean shutter_call = url.contains("/se/217.mp3");
                 if (shutter_call) {
+                    if (isOnPractice) {
+                        isOnPractice = false;
+                        continue;
+                    }
                     JsonObject bgmData = KcSoundUtils.getMapBgmGraph(currentMapId);
-                    JsonArray normal_bgm = bgmData.getAsJsonArray("api_map_bgm");
-                    boolean normal_diff = normal_bgm.get(0).getAsInt() != normal_bgm.get(1).getAsInt();
-                    if (currentBattleBgmId == normal_bgm.get(0).getAsInt() && normal_diff) {
-                        fadeOut(bgmPlayer, 1000);
-                        break;
+                    if (bgmData != null) {
+                        JsonArray normal_bgm = bgmData.getAsJsonArray("api_map_bgm");
+                        boolean normal_diff = normal_bgm.get(0).getAsInt() != normal_bgm.get(1).getAsInt();
+                        boolean normal_flag = currentBattleBgmId == normal_bgm.get(0).getAsInt() && normal_diff;
+
+                        JsonArray boss_bgm = bgmData.getAsJsonArray("api_boss_bgm");
+                        boolean boss_diff = boss_bgm.get(0).getAsInt() != boss_bgm.get(1).getAsInt();
+                        boolean boss_flag = currentBattleBgmId == boss_bgm.get(0).getAsInt() && boss_diff;
+
+                        fadeout_flag = normal_flag || boss_flag;
                     }
-                    JsonArray boss_bgm = bgmData.getAsJsonArray("api_boss_bgm");
-                    boolean boss_diff = boss_bgm.get(0).getAsInt() != boss_bgm.get(1).getAsInt();
-                    if (currentBattleBgmId == boss_bgm.get(0).getAsInt() && boss_diff) {
-                        fadeOut(bgmPlayer, 1000);
-                        break;
-                    }
-                } else {
+                }
+                if (fadeout_flag) {
                     fadeOut(bgmPlayer, 1000);
                     break;
                 }
@@ -1440,6 +1447,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         timer.purge();
                         isFadeoutRunning = false;
                         isBgmPlaying = false;
+                        _player.setVolume(bgmVolume, bgmVolume);
                     }
                 } catch (IllegalStateException e) {
                     _player.reset();
@@ -1447,6 +1455,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     timer.purge();
                     isFadeoutRunning = false;
                     isBgmPlaying = false;
+                    _player.setVolume(bgmVolume, bgmVolume);
                 }
             }
         };
