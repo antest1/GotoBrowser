@@ -7,6 +7,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.google.gson.JsonObject;
+
+import java.util.Locale;
+
 import androidx.annotation.Nullable;
 
 public class VersionDatabase extends SQLiteOpenHelper {
@@ -64,6 +68,32 @@ public class VersionDatabase extends SQLiteOpenHelper {
         int u = db.update(table_name, values, "KEY=?", new String[]{key});
         if (u == 0) {
             db.insertWithOnConflict(table_name, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        }
+    }
+
+    public void overrideByPrefix(JsonObject prefix) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c =  db.query(table_name, null, null, null, null, null, null, null);
+        try {
+            Log.e("GOTO", "total: " + c.getCount());
+            if (c.moveToFirst()) {
+                while (!c.isAfterLast()) {
+                    String key = c.getString(c.getColumnIndex("KEY"));
+                    Log.e("GOTO", "key: " + key);
+                    for (String p: prefix.keySet()) {
+                        if (key.startsWith(p)) {
+                            putValue(key, prefix.get(p).getAsString());
+                            Log.e("GOTO", key + " -> " + prefix.get(p).getAsString());
+                            break;
+                        }
+                    }
+                    c.moveToNext();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (c != null) c.close();
         }
     }
 }

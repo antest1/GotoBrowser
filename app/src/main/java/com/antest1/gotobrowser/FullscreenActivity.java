@@ -16,7 +16,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -26,7 +25,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
-import android.webkit.DownloadListener;
 import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -610,6 +608,7 @@ public class FullscreenActivity extends AppCompatActivity {
         });
 
         mContentView.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder().url(url)
                     .addHeader("User-Agent", userAgent)
@@ -622,8 +621,13 @@ public class FullscreenActivity extends AppCompatActivity {
             if (version == null) version = "";
 
             String filename = uri.getLastPathSegment();
-            String outputpath = uri.getPath().replace(getString(R.string.resource_download_prefix), "")
-                    .replace(".zip", "/");
+            String outputpath = "";
+            if (uri.getPath().contains(getString(R.string.resource_download_prefix))) {
+                outputpath = uri.getPath().replace(getString(R.string.resource_download_prefix), "")
+                        .replace(".zip", "/");
+            } else if (uri.getPath().contains("kcs2-all")) {
+                outputpath = "/";
+            }
 
             Log.e("GOTO", outputpath);
             Log.e("GOTO", "version: " + version);
@@ -636,22 +640,26 @@ public class FullscreenActivity extends AppCompatActivity {
             progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             progress.setIndeterminate(true);
             progress.show();
-            String version_f = version;
+
+            final String outputpath_f = outputpath;
+            final String version_f = version;
             new Thread() {
                 public void run() {
                     try {
                         Response response = client.newCall(request).execute();
                         InputStream in = response.body().byteStream();
                         runOnUiThread(() -> progress.setMessage(String.format(Locale.US, "Extracting %s...", filename)));
-                        KcUtils.unZip(getApplicationContext(), in, outputpath, versionTable, version_f);
+                        KcUtils.unzipResource(getApplicationContext(), in, outputpath_f, versionTable, version_f);
                         runOnUiThread(() -> {
                             if (progress.isShowing()) progress.dismiss();
                             Toast.makeText(FullscreenActivity.this, String.format(Locale.US, "Process finished: %s", filename), Toast.LENGTH_LONG).show();
+                            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                         });
                     } catch (NullPointerException | IOException e) {
                         e.printStackTrace();
                         runOnUiThread(() -> {
                             Toast.makeText(FullscreenActivity.this, getStringFromException(e), Toast.LENGTH_LONG).show();
+                            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                         });
                     }
                 }
