@@ -416,51 +416,53 @@ public class FullscreenActivity extends AppCompatActivity {
 
         mContentView.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
-                sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
-                if (url.contains(URL_DMM_FOREIGN)) {
-                    mContentView.evaluateJavascript(DMM_COOKIE, null);
-                    mContentView.evaluateJavascript("location.href='".concat(URL_DMM).concat("';"), null);
-                }
-                if (url.contains(URL_DMM_LOGIN) || url.equals(URL_KANSU) || url.equals(URL_OOI)) {
-                    mContentView.evaluateJavascript(
-                            String.format(Locale.US, AUTOCOMPLETE_OOI,
-                                    login_id, login_password), null);
-                    if (url.contains(URL_DMM_LOGIN)) {
+                if (OPEN_KANCOLLE.equals(action)) {
+                    sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
+                    if (url.contains(URL_DMM_FOREIGN)) {
                         mContentView.evaluateJavascript(DMM_COOKIE, null);
+                        mContentView.evaluateJavascript("location.href='".concat(URL_DMM).concat("';"), null);
                     }
-                }
-                if (url.equals(Constants.URL_NITRABBIT)) {
-                    mContentView.evaluateJavascript(CONNECT_NITRABBIT, null);
-                    mContentView.evaluateJavascript(
-                            String.format(Locale.US, AUTOCOMPLETE_NIT,
-                                    login_id, login_password), null);
-                }
-                if (url.contains(Constants.URL_OSAPI) || url.contains(Constants.URL_OOI_3) || url.contains(URL_DMM)) {
-                    isStartedFlag = true;
-                    DisplayMetrics dimension= new DisplayMetrics();
-                    getWindowManager().getDefaultDisplay().getMetrics(dimension);
-                    int width = dimension.widthPixels;
-                    int height = dimension.heightPixels;
-                    int adjust_padding = sharedPref.getInt(PREF_PADDING, getDefaultPadding(width, height));
-                    int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
-                    boolean adjust_layout = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
-                    if (adjust_layout) {
-                        if (url.contains(URL_OSAPI)) mContentView.evaluateJavascript(String.format(
-                                Locale.US, RESIZE_OSAPI, adjust_padding, adjust_vpadding), null);
-                        else if (url.contains(URL_OOI_3)) mContentView.evaluateJavascript(String.format(
-                                Locale.US, RESIZE_OOI_3, adjust_padding, adjust_vpadding), null);
-                        else if (url.contains(URL_DMM)) mContentView.evaluateJavascript(String.format(
-                                Locale.US, RESIZE_DMM, adjust_padding, adjust_vpadding), null);
+                    if (url.contains(URL_DMM_LOGIN) || url.equals(URL_KANSU) || url.equals(URL_OOI)) {
+                        mContentView.evaluateJavascript(
+                                String.format(Locale.US, AUTOCOMPLETE_OOI,
+                                        login_id, login_password), null);
+                        if (url.contains(URL_DMM_LOGIN)) {
+                            mContentView.evaluateJavascript(DMM_COOKIE, null);
+                        }
                     }
-                    if (url.contains(URL_OSAPI) || url.contains(URL_OOI_3)) {
-                        mContentView.evaluateJavascript(String.format(Locale.US,
-                                REFRESH_CALL, connector_url_default), value -> {
-                                    Log.e("GOTO", "invalid: " + value);
-                                    if (value.equals("true")) {
-                                        sharedPref.edit().putString(PREF_LATEST_URL, connector_url_default).apply();
-                                        setDefaultPage();
-                                    }
-                                });
+                    if (url.equals(Constants.URL_NITRABBIT)) {
+                        mContentView.evaluateJavascript(CONNECT_NITRABBIT, null);
+                        mContentView.evaluateJavascript(
+                                String.format(Locale.US, AUTOCOMPLETE_NIT,
+                                        login_id, login_password), null);
+                    }
+                    if (url.contains(Constants.URL_OSAPI) || url.contains(Constants.URL_OOI_3) || url.contains(URL_DMM)) {
+                        isStartedFlag = true;
+                        DisplayMetrics dimension= new DisplayMetrics();
+                        getWindowManager().getDefaultDisplay().getMetrics(dimension);
+                        int width = dimension.widthPixels;
+                        int height = dimension.heightPixels;
+                        int adjust_padding = sharedPref.getInt(PREF_PADDING, getDefaultPadding(width, height));
+                        int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
+                        boolean adjust_layout = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
+                        if (adjust_layout) {
+                            if (url.contains(URL_OSAPI)) mContentView.evaluateJavascript(String.format(
+                                    Locale.US, RESIZE_OSAPI, adjust_padding, adjust_vpadding), null);
+                            else if (url.contains(URL_OOI_3)) mContentView.evaluateJavascript(String.format(
+                                    Locale.US, RESIZE_OOI_3, adjust_padding, adjust_vpadding), null);
+                            else if (url.contains(URL_DMM)) mContentView.evaluateJavascript(String.format(
+                                    Locale.US, RESIZE_DMM, adjust_padding, adjust_vpadding), null);
+                        }
+                        if (url.contains(URL_OSAPI) || url.contains(URL_OOI_3)) {
+                            mContentView.evaluateJavascript(String.format(Locale.US,
+                                    REFRESH_CALL, connector_url_default), value -> {
+                                Log.e("GOTO", "invalid: " + value);
+                                if (value.equals("true")) {
+                                    sharedPref.edit().putString(PREF_LATEST_URL, connector_url_default).apply();
+                                    setDefaultPage();
+                                }
+                            });
+                        }
                     }
                 }
             }
