@@ -1168,8 +1168,6 @@ public class FullscreenActivity extends AppCompatActivity {
                             if (isBgmPlaying) {
                                 bgmPlayer.stop();
                             }
-                            bgmPlayer.release();
-                            bgmPlayer = new MediaPlayer();
                             playMp3("bgm", bgmPlayer, file, bgmVolume);
                         }
                         return new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
@@ -1392,6 +1390,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
             player.setOnCompletionListener(mp -> {
                 if (tag.equals("bgm")) isBgmPlaying = false;
+                player.reset();
             });
             player.reset();
             player.setVolume(volume, volume);
@@ -1434,7 +1433,7 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void fadeOut(final MediaPlayer _player, final int duration) {
-        if (isFadeoutRunning || !isBgmPlaying) return;
+        if (_player == null || isFadeoutRunning || !isBgmPlaying) return;
         isFadeoutRunning = true;
         fadeOutBgmVolume = isMuteMode ? 0.0f : bgmVolume;
         final int FADE_DURATION = duration;
@@ -1460,7 +1459,6 @@ public class FullscreenActivity extends AppCompatActivity {
                         _player.setVolume(bgmVolume, bgmVolume);
                     }
                 } catch (IllegalStateException e) {
-                    _player.reset();
                     timer.cancel();
                     timer.purge();
                     isFadeoutRunning = false;

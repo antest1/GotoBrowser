@@ -1,6 +1,9 @@
 package com.antest1.gotobrowser.Helpers;
 
 import android.media.MediaPlayer;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
@@ -56,15 +59,27 @@ public class MediaPlayerPool {
     }
 
     public void startAll() {
+        List<MediaPlayer> remove_target = new ArrayList<>();
         for (MediaPlayer player: players) {
-            player.start();
+            try {
+                player.start();
+            } catch (IllegalStateException e) {
+                remove_target.add(player);
+            }
+        }
+        for (MediaPlayer player: remove_target) {
+            players.remove(player);
         }
     }
 
     public boolean isAnyPlaying() {
         for (MediaPlayer player: players) {
-            if (player.isPlaying()) {
-                return true;
+            try {
+                if (player.isPlaying()) {
+                    return true;
+                }
+            } catch (IllegalStateException e) {
+                continue;
             }
         }
 
