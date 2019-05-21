@@ -1061,10 +1061,47 @@ public class FullscreenActivity extends AppCompatActivity {
                     return new WebResourceResponse("image/png", "utf-8", is);
                 }
 
-                if (is_json || is_audio || is_js) {
+                if (is_js) {
+                    if (url.contains("kcs2/js/main.js")) {
+                        InputStream in = new BufferedInputStream(new URL(fullpath).openStream());
+                        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                        int nRead;
+                        byte[] data = new byte[1024];
+                        while ((nRead = in.read(data, 0, data.length)) != -1) {
+                            buffer.write(data, 0, nRead);
+                        }
+                        buffer.flush();
+                        in.close();
+
+                        byte[] byteArray = buffer.toByteArray();
+                        String main_js = new String(byteArray, StandardCharsets.UTF_8);
+                        // LABS Targeting
+                        main_js = main_js.replaceAll(
+                                "this\\._panel\\.on\\(a\\.EventType\\.MOUSEOVER,this\\._onMouseOver\\)",
+                                "this._panel.on(a.EventType.MOUSEDOWN,this._onMouseOver)");
+                        main_js = main_js.replaceAll(
+                                "this\\._panel\\.off\\(a\\.EventType\\.MOUSEOVER,this\\._onMouseOver\\)",
+                                "this._panel.off(a.EventType.MOUSEDOWN,this._onMouseOver)");
+                        // preset check
+                        main_js = main_js.replaceAll("expandButton\\.addListener\\(r\\.EventType\\.MOUSEOVER",
+                                "expandButton.addListener(r.EventType.MOUSEDOWN");
+                        main_js = main_js.replaceAll("expandButton\\.addListener\\(r\\.EventType\\.MOUSEOUT",
+                                "expandButton.addListener(r.EventType.CLICK");
+                        main_js = main_js.replaceAll("on\\(s\\.EventType\\.MOUSEOUT, i\\._onMouseOut\\)",
+                                "on(s.EventType.CLICK, i._onMouseOut)");
+                        main_js = main_js.replaceAll("on\\(s\\.EventType\\.MOUSEOVER, i\\._onMouseOver\\)",
+                                "on(s.EventType.MOUSEDOWN, i._onMouseOver)");
+
+                        InputStream is = new ByteArrayInputStream(main_js.getBytes());
+                        return new WebResourceResponse("application/javascript", "utf-8", is);
+                    } else {
+                        return null;
+                    }
+                }
+
+                if (is_json || is_audio) {
                     File dir = new File(outputpath);
                     if (!dir.exists()) dir.mkdirs();
-
                     File file = new File(filepath);
                     if (!file.exists() || update_flag) {
                         InputStream in = new BufferedInputStream(new URL(fullpath).openStream());
@@ -1079,41 +1116,8 @@ public class FullscreenActivity extends AppCompatActivity {
                         Log.e("GOTO", "load from disk: " + filepath);
                     }
                     InputStream is = new BufferedInputStream(new FileInputStream(file));
-                    if (is_json) return new WebResourceResponse("application/json", "utf-8", is);
-                    if (is_js) {
-                        if (url.contains("kcs2/js/")) {
-                            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                            int nRead;
-                            byte[] data = new byte[1024];
-                            while ((nRead = is.read(data, 0, data.length)) != -1) {
-                                buffer.write(data, 0, nRead);
-                            }
-                            buffer.flush();
-                            is.close();
-
-                            byte[] byteArray = buffer.toByteArray();
-                            String main_js = new String(byteArray, StandardCharsets.UTF_8);
-                            // LABS Targeting
-                            main_js = main_js.replaceAll(
-                                    "this\\._panel\\.on\\(a\\.EventType\\.MOUSEOVER,this\\._onMouseOver\\)",
-                                    "this._panel.on(a.EventType.MOUSEDOWN,this._onMouseOver)");
-                            main_js = main_js.replaceAll(
-                                    "this\\._panel\\.off\\(a\\.EventType\\.MOUSEOVER,this\\._onMouseOver\\)",
-                                    "this._panel.off(a.EventType.MOUSEDOWN,this._onMouseOver)");
-                            // preset check
-                            main_js = main_js.replaceAll("expandButton\\.addListener\\(r\\.EventType\\.MOUSEOVER",
-                                    "expandButton.addListener(r.EventType.MOUSEDOWN");
-                            main_js = main_js.replaceAll("expandButton\\.addListener\\(r\\.EventType\\.MOUSEOUT",
-                                    "expandButton.addListener(r.EventType.CLICK");
-                            main_js = main_js.replaceAll("on\\(s\\.EventType\\.MOUSEOUT, i\\._onMouseOut\\)",
-                                    "on(s.EventType.CLICK, i._onMouseOut)");
-                            main_js = main_js.replaceAll("on\\(s\\.EventType\\.MOUSEOVER, i\\._onMouseOver\\)",
-                                    "on(s.EventType.MOUSEDOWN, i._onMouseOver)");
-
-                            is = new ByteArrayInputStream(main_js.getBytes());
-                            // Log.e("GOTO", main_js);
-                        }
-                        return new WebResourceResponse("application/javascript", "utf-8", is);
+                    if (is_json) {
+                        return new WebResourceResponse("application/json", "utf-8", is);
                     }
                     if (is_audio) {
                         if (url.contains("resources/se")) playSe(sePlayer, file, seVolume);
