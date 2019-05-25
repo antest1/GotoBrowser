@@ -20,6 +20,11 @@ import java.io.StringWriter;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+
 public class KcUtils {
     public static String getStringFromException(Exception ex) {
         StringWriter errors = new StringWriter();
@@ -105,6 +110,33 @@ public class KcUtils {
             }
         }
         return null;
+    }
+
+    public static String downloadResourceWithLastModified(OkHttpClient client, String fullpath, File file) {
+        Request request = new Request.Builder().url(fullpath).build();
+        try {
+            Response response = client.newCall(request).execute();
+            String last_modified = response.header("Last-Modified", "none");
+            ResponseBody body = response.body();
+            // InputStream in = new BufferedInputStream(new URL(fullpath).openStream());
+            if (body != null) {
+                InputStream in = body.byteStream();
+                byte[] buffer = new byte[8 * 1024];
+                int bytes;
+                FileOutputStream fos = new FileOutputStream(file);
+                while ((bytes = in.read(buffer)) != -1) {
+                    fos.write(buffer, 0, bytes);
+                }
+                fos.close();
+                body.close();
+                return last_modified;
+            } else {
+                return "";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
 

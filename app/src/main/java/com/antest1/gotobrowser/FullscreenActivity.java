@@ -124,6 +124,7 @@ import static com.antest1.gotobrowser.Constants.URL_OOI;
 import static com.antest1.gotobrowser.Constants.URL_OOI_3;
 import static com.antest1.gotobrowser.Constants.URL_OSAPI;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
+import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResourceWithLastModified;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
 
 public class FullscreenActivity extends AppCompatActivity {
@@ -500,7 +501,8 @@ public class FullscreenActivity extends AppCompatActivity {
                     if (OPEN_KANCOLLE.equals(action)) {
                         boolean is_image = accept != null && accept.contains("image") && source.toString().contains("kcs2");
                         boolean is_audio = accept != null && source.toString().contains(".mp3");
-                        boolean is_json = accept != null && accept.contains("json") && source.toString().contains(".json");
+                        boolean is_json = accept != null && accept.contains("json") && source.toString().contains(".json")
+                                && source.toString().contains("kcs2");
                         boolean is_js = source.toString().contains("/js/") && source.toString().contains(".js");
                         WebResourceResponse response = processWebRequest(source, is_image, is_audio, is_json, is_js);
                         if (response != null) return response;
@@ -1025,7 +1027,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 String source_path = source.getPath();
                 stopMp3(bgmPlayer, filepath);
 
-                if (is_image || is_audio || is_json) {
+                if (is_image || is_audio) {
                     String version = "";
                     if (source.getQueryParameterNames().contains("version")) {
                         version = source.getQueryParameter("version");
@@ -1107,12 +1109,31 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                 }
 
-                if (is_json || is_audio) {
+                if (is_json) {
+                    File dir = new File(outputpath);
+                    if (!dir.exists()) dir.mkdirs();
+                    File file = new File(filepath);
+                    String last_modified_json = downloadResourceWithLastModified(resourceClient, fullpath, file);
+                    if (!last_modified_json.equals(versionTable.getValue(source_path))) {
+                        File img_file = new File(filepath.replace(".json", ".png"));
+                        downloadResourceWithLastModified(resourceClient, fullpath.replace(".json", ".png"), img_file);
+                    }
+                    versionTable.putValue(source_path, last_modified_json);
+                    InputStream is = new BufferedInputStream(new FileInputStream(file));
+                    return new WebResourceResponse("application/json", "utf-8", is);
+                }
+
+                if (is_audio) {
                     File dir = new File(outputpath);
                     if (!dir.exists()) dir.mkdirs();
                     File file = new File(filepath);
                     if (!file.exists() || update_flag) {
-                        InputStream in = new BufferedInputStream(new URL(fullpath).openStream());
+                        Request imageRequest = new Request.Builder().url(fullpath).build();
+                        Response response = resourceClient.newCall(imageRequest).execute();
+                        ResponseBody body = response.body();
+                        InputStream in = body.byteStream();
+
+
                         byte[] buffer = new byte[8 * 1024];
                         int bytes;
                         FileOutputStream fos = new FileOutputStream(file);
@@ -1123,10 +1144,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     } else {
                         Log.e("GOTO", "load from disk: " + filepath);
                     }
-                    InputStream is = new BufferedInputStream(new FileInputStream(file));
-                    if (is_json) {
-                        return new WebResourceResponse("application/json", "utf-8", is);
-                    }
+
                     if (is_audio) {
                         if (url.contains("resources/se")) playSe(sePlayer, file, seVolume);
                         else if (url.contains("/kcs/sound/kc")) {
