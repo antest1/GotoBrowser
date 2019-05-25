@@ -240,6 +240,14 @@ public class FullscreenActivity extends AppCompatActivity {
         uiOption = getWindow().getDecorView().getSystemUiVisibility();
         getWindow().setFlags( WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            String processName = KcUtils.getProcessName(this);
+            if (!BuildConfig.APPLICATION_ID.equals(processName)) {
+                WebView.setDataDirectorySuffix(processName);
+            }
+        }
+
         setContentView(R.layout.activity_fullscreen);
         Intent intent = getIntent();
         if (intent != null) action = intent.getAction();
