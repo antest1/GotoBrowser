@@ -30,6 +30,7 @@ import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.URL_LIST;
+import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.FullscreenActivity.OPEN_KANCOLLE;
 
 public class EntranceActivity extends AppCompatActivity {
@@ -38,6 +39,7 @@ public class EntranceActivity extends AppCompatActivity {
     private ImageView settingsButton;
     private Switch landscapeSwitch, adjustmentSwitch, silentSwitch;
     private CheckBox showControlPanelCheckbox;
+    private VersionDatabase versionTable;
     private boolean show_panel = false;
     private String login_id = "";
     private String login_password = "";
@@ -55,6 +57,8 @@ public class EntranceActivity extends AppCompatActivity {
         final SharedPreferences sharedPref = getSharedPreferences(
                 getString(R.string.preference_key), Context.MODE_PRIVATE);
         backPressCloseHandler = new BackPressCloseHandler(this);
+
+        versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
 
         settingsButton = findViewById(R.id.icon_setting);
         settingsButton.setOnClickListener(v -> {
@@ -143,6 +147,7 @@ public class EntranceActivity extends AppCompatActivity {
                             (dialog, id) -> {
                                 WebView webview = new WebView(getApplicationContext());
                                 webview.clearCache(true);
+                                versionTable.clearVersionDatabase();
                                 String cache_dir = getApplicationContext().getFilesDir().getAbsolutePath().concat("/cache/");
                                 clearApplicationCache(getApplicationContext(), getCacheDir());
                                 clearApplicationCache(getApplicationContext(), new File(cache_dir));

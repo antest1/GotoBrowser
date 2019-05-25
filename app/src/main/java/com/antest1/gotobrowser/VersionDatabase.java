@@ -37,6 +37,11 @@ public class VersionDatabase extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    public void clearVersionDatabase() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        db.execSQL("delete from " + table_name);
+    }
+
     public static boolean isDefaultValue(String text) {
         return "_none_".equals(text);
     }

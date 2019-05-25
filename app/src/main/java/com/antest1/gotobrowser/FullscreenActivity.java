@@ -627,7 +627,7 @@ public class FullscreenActivity extends AppCompatActivity {
             if (uri.getPath().contains(getString(R.string.resource_download_prefix))) {
                 outputpath = uri.getPath().replace(getString(R.string.resource_download_prefix), "")
                         .replace(".zip", "/");
-            } else if (uri.getPath().contains("kcs2-all")) {
+            } else if (uri.getPath().contains("kcs2-all") || uri.getPath().contains("kcs2-event")) {
                 outputpath = "/";
             }
 
@@ -1017,7 +1017,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 String source_path = source.getPath();
                 stopMp3(bgmPlayer, filepath);
 
-                if (is_image || is_audio || is_json || is_js) {
+                if (is_image || is_audio || is_json) {
                     String version = "";
                     if (source.getQueryParameterNames().contains("version")) {
                         version = source.getQueryParameter("version");
