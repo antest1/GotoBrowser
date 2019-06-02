@@ -720,8 +720,8 @@ public class FullscreenActivity extends AppCompatActivity {
         mContentView.getSettings().setSupportZoom(false);
         mContentView.getSettings().setUserAgentString("Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0");
         mContentView.setScrollbarFadingEnabled(true);
+        mContentView.getSettings().setAppCacheEnabled(false);
         mContentView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
-        mContentView.getSettings().setAppCacheEnabled(true);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mContentView.getSettings().setOffscreenPreRaster(true);
         }
@@ -1032,13 +1032,13 @@ public class FullscreenActivity extends AppCompatActivity {
                     if (source.getQueryParameterNames().contains("version")) {
                         version = source.getQueryParameter("version");
                     }
-
+                    Log.e("GOTO-R", "check resource " + source_path +  ": " + version);
                     if (!versionTable.getValue(source_path).equals(version)) {
                         update_flag = true;
                         versionTable.putValue(source_path, version);
-                        Log.e("GOTO", "cache resource " + source_path +  ": " + version);
+                        Log.e("GOTO-R", "cache resource " + source_path +  ": " + version);
                     } else {
-                        Log.e("GOTO", "resource " + source_path +  " found: " + version);
+                        Log.e("GOTO-R", "resource " + source_path +  " found: " + version);
                     }
                 }
 
@@ -1119,8 +1119,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         downloadResourceWithLastModified(resourceClient, fullpath.replace(".json", ".png"), img_file);
                     }
                     versionTable.putValue(source_path, last_modified_json);
-                    InputStream is = new BufferedInputStream(new FileInputStream(file));
-                    return new WebResourceResponse("application/json", "utf-8", is);
+                    return null;
                 }
 
                 if (is_audio) {
@@ -1133,7 +1132,6 @@ public class FullscreenActivity extends AppCompatActivity {
                         ResponseBody body = response.body();
                         InputStream in = body.byteStream();
 
-
                         byte[] buffer = new byte[8 * 1024];
                         int bytes;
                         FileOutputStream fos = new FileOutputStream(file);
@@ -1145,63 +1143,64 @@ public class FullscreenActivity extends AppCompatActivity {
                         Log.e("GOTO", "load from disk: " + filepath);
                     }
 
-                    if (is_audio) {
-                        if (url.contains("resources/se")) playSe(sePlayer, file, seVolume);
-                        else if (url.contains("/kcs/sound/kc")) {
-                            String info = source_path.replace("/kcs/sound/kc", "").replace(".mp3", "");
-                            String[] fn_code = info.split("/");
-                            String voiceline = "";
-                            String voice_filename = fn_code[0];
-                            String voice_code = fn_code[1];
-                            String ship_id = voice_filename;
-                            if (filenameToShipId.containsKey(voice_filename)) {
-                                ship_id = filenameToShipId.get(voice_filename);
-                                voiceline = KcSoundUtils.getVoiceLineByFilename(ship_id, voice_code);
+                    if (url.contains("resources/se")) playSe(sePlayer, file, seVolume);
+                    else if (url.contains("/kcs/sound/kc")) {
+                        String info = source_path.replace("/kcs/sound/kc", "").replace(".mp3", "");
+                        String[] fn_code = info.split("/");
+                        String voiceline = "";
+                        String voice_filename = fn_code[0];
+                        String voice_code = fn_code[1];
+                        String ship_id = voice_filename;
+                        if (filenameToShipId.containsKey(voice_filename)) {
+                            ship_id = filenameToShipId.get(voice_filename);
+                            voiceline = KcSoundUtils.getVoiceLineByFilename(ship_id, voice_code);
 
+                        } else {
+                            voiceline = KcSoundUtils.getVoiceLineByFilename(voice_filename, voice_code);
+                        }
+                        Log.e("GOTO", "file info: " + info);
+                        Log.e("GOTO", "voiceline: " + String.valueOf(voiceline));
+                        int voiceline_value = Integer.parseInt(voiceline);
+                        if (voiceline_value >= 30 && voiceline_value <= 53) { // hourly voiceline
+                            Date now = new Date();
+                            String voiceline_time = String.format(Locale.US, "%02d:00:00", voiceline_value - 30);
+                            SimpleDateFormat time_fmt = new SimpleDateFormat("HH:mm:ss");
+                            Date time_src = time_fmt.parse(time_fmt.format(now));
+                            Date time_tgt = time_fmt.parse(voiceline_time);
+                            long diff_msec = time_tgt.getTime() - time_src.getTime();
+                            if (voiceline_value == 30) diff_msec += 86400000;
+                            //KcSoundUtils.setHourlyVoiceInfo(file.getAbsolutePath(), ship_id, voiceline);
+                            Runnable r = new VoiceSubtitleRunnable(file.getAbsolutePath(), ship_id, voiceline);
+                            shipVoiceHandler.removeCallbacks(r);
+                            shipVoiceHandler.postDelayed(r, diff_msec);
+                            Log.e("GOTO", "playHourVoice after: " + diff_msec + " msec");
+                        } else {
+                            setSubtitle(ship_id, voiceline);
+                            if (ship_id.equals("9999") && voiceline_value >= 411 && voiceline_value <= 424) {
+                                return null;
+                            }
+                            if (ship_id.equals("9998") && false) { // temp code: play abyssal sound from browser
+                                return null;
                             } else {
-                                voiceline = KcSoundUtils.getVoiceLineByFilename(voice_filename, voice_code);
-                            }
-                            Log.e("GOTO", "file info: " + info);
-                            Log.e("GOTO", "voiceline: " + String.valueOf(voiceline));
-                            int voiceline_value = Integer.parseInt(voiceline);
-                            if (voiceline_value >= 30 && voiceline_value <= 53) { // hourly voiceline
-                                Date now = new Date();
-                                String voiceline_time = String.format(Locale.US, "%02d:00:00", voiceline_value - 30);
-                                SimpleDateFormat time_fmt = new SimpleDateFormat("HH:mm:ss");
-                                Date time_src = time_fmt.parse(time_fmt.format(now));
-                                Date time_tgt = time_fmt.parse(voiceline_time);
-                                long diff_msec = time_tgt.getTime() - time_src.getTime();
-                                if (voiceline_value == 30) diff_msec += 86400000;
-                                //KcSoundUtils.setHourlyVoiceInfo(file.getAbsolutePath(), ship_id, voiceline);
-                                Runnable r = new VoiceSubtitleRunnable(file.getAbsolutePath(), ship_id, voiceline);
-                                shipVoiceHandler.removeCallbacks(r);
-                                shipVoiceHandler.postDelayed(r, diff_msec);
-                                Log.e("GOTO", "playHourVoice after: " + diff_msec + " msec");
-                            } else {
-                                setSubtitle(ship_id, voiceline);
-                                if (ship_id.equals("9998") && false) { // temp code: play abyssal sound from browser
-                                    return null;
-                                } else {
-                                    playVoice(file, voiceVolume);
-                                }
+                                playVoice(file, voiceVolume);
                             }
                         }
-                        else if (url.contains("/voice/titlecall_")) {
-                            String info = source_path.replace("/kcs2/resources/voice/", "").replace(".mp3", "");
-                            titlePath.add(info);
-                            titleFiles.add(file.getAbsolutePath());
-                            if (titleFiles.size() == 2) {
-                                playTitleCall(titlePath, titleFiles, 0, voiceVolume);
-                            }
-                        }
-                        else if (url.contains("resources/bgm")) {
-                            if (isBgmPlaying) {
-                                bgmPlayer.stop();
-                            }
-                            playMp3("bgm", bgmPlayer, file, bgmVolume);
-                        }
-                        return new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
                     }
+                    else if (url.contains("/voice/titlecall_")) {
+                        String info = source_path.replace("/kcs2/resources/voice/", "").replace(".mp3", "");
+                        titlePath.add(info);
+                        titleFiles.add(file.getAbsolutePath());
+                        if (titleFiles.size() == 2) {
+                            playTitleCall(titlePath, titleFiles, 0, voiceVolume);
+                        }
+                    }
+                    else if (url.contains("resources/bgm")) {
+                        if (isBgmPlaying) {
+                            bgmPlayer.stop();
+                        }
+                        playMp3("bgm", bgmPlayer, file, bgmVolume);
+                    }
+                    return new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
                 }
             }
         } catch (Exception e) {
