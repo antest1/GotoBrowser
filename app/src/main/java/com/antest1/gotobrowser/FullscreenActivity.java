@@ -1492,7 +1492,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     timer.purge();
                     isFadeoutRunning = false;
                     isBgmPlaying = false;
-                    _player.setVolume(bgmVolume, bgmVolume);
+                    // _player.setVolume(bgmVolume, bgmVolume);
                 }
             }
         };
