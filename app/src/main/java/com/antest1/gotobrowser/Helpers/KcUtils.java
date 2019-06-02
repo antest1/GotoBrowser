@@ -74,7 +74,7 @@ public class KcUtils {
                     for (String item: content_list) {
                         if (item.trim().length() > 0) {
                             String[] item_v = item.split("\\t");
-                            String key = item_v[0].concat("/");
+                            String key = item_v[0];
                             String value = item_v[1].trim().replace("_", "");
                             if (value.length() > 0) prefixInfo.addProperty(key, value);
                         }
