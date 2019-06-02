@@ -1045,27 +1045,9 @@ public class FullscreenActivity extends AppCompatActivity {
                 if (is_image) {
                     File file = new File(filepath);
                     if (!file.exists() || update_flag) {
-                        File dir = new File(outputpath);
-                        if (!dir.exists()) dir.mkdirs();
-                        Request imageRequest = new Request.Builder().url(fullpath).build();
-                        Response response = resourceClient.newCall(imageRequest).execute();
-                        ResponseBody body = response.body();
-                        // InputStream in = new BufferedInputStream(new URL(fullpath).openStream());
-                        if (body != null) {
-                            InputStream in = body.byteStream();
-                            byte[] buffer = new byte[2 * 1024];
-                            int bytes;
-                            FileOutputStream fos = new FileOutputStream(file);
-                            while ((bytes = in.read(buffer)) != -1) {
-                                fos.write(buffer, 0, bytes);
-                            }
-                            fos.close();
-                            body.close();
-                        } else {
-                            return null;
-                        }
+                        String result = downloadResourceWithLastModified(resourceClient, fullpath, file);
+                        if (result == null) return null;
                     }
-
                     Log.e("GOTO", "load from disk: " + path);
                     InputStream is = new BufferedInputStream(new FileInputStream(file));
                     return new WebResourceResponse("image/png", "utf-8", is);
@@ -1114,7 +1096,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     if (!dir.exists()) dir.mkdirs();
                     File file = new File(filepath);
                     String last_modified_json = downloadResourceWithLastModified(resourceClient, fullpath, file);
-                    if (!last_modified_json.equals(versionTable.getValue(source_path))) {
+                    if (last_modified_json != null && !last_modified_json.equals(versionTable.getValue(source_path))) {
                         File img_file = new File(filepath.replace(".json", ".png"));
                         downloadResourceWithLastModified(resourceClient, fullpath.replace(".json", ".png"), img_file);
                     }
