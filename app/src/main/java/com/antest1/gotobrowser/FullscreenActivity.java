@@ -937,6 +937,15 @@ public class FullscreenActivity extends AppCompatActivity {
                     return new WebResourceResponse("text/css", "utf-8", is);
                 }
                 if (path.contains("/api_start2/")) {
+                    String voice_url = "http://52.55.91.44/gotobrowser/sub_special";
+                    Request voiceCodeRequest = new Request.Builder().url(voice_url)
+                            .header("Referer", "goto/webkit").build();
+                    Response voice_special = resourceClient.newCall(voiceCodeRequest).execute();
+                    if (voice_special.body() != null) {
+                        String voice_special_code = voice_special.body().string();
+                        KcSoundUtils.specialVoiceCode = voice_special_code;
+                    }
+
                     boolean update_flag = false;
                     String version_url = "http://52.55.91.44/kcanotify/dv.php";
                     Request versionRequest = new Request.Builder().url(version_url)
