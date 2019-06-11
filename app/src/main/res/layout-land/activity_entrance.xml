@@ -160,6 +160,16 @@
                         android:textColor="@color/colorAccent"
                         android:textSize="18sp" />
 
+                    <CheckBox
+                        android:id="@+id/layout_keyboard"
+                        android:layout_width="match_parent"
+                        android:layout_height="24sp"
+                        android:scaleX="0.7"
+                        android:scaleY="0.7"
+                        android:text="@string/mode_enable_keyboard"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="18sp" />
+
                 </LinearLayout>
 
                 <LinearLayout

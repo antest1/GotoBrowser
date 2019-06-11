@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
@@ -84,6 +85,7 @@ import okhttp3.ResponseBody;
 
 import com.antest1.gotobrowser.Helpers.MediaPlayerPool;
 
+import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_NIT;
 import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_OOI;
@@ -145,7 +147,8 @@ public class FullscreenActivity extends AppCompatActivity {
     private GestureDetector mDetector;
 
     private SeekBar mSeekBarH, mSeekBarV;
-    private boolean isPancelActive = false;
+    private boolean isPanelActive = false;
+    private boolean isKeyboardActive = false;
     private boolean isStartedFlag = false;
     private boolean savedStreamMuted = false;
     private String connector_url = "";
@@ -281,12 +284,16 @@ public class FullscreenActivity extends AppCompatActivity {
         mVerticalControlView = findViewById(R.id.vcontrol_component);
         mVerticalControlView.setVisibility(View.GONE);
 
-        isPancelActive = intent != null && ACTION_SHOWPANEL.equals(intent.getAction());
+        if (intent != null && intent.getAction() != null) {
+            isPanelActive = intent.getAction().contains(ACTION_SHOWPANEL);
+            isKeyboardActive = intent.getAction().contains(ACTION_SHOWKEYBOARD);
+        }
+
         // setMemoryCache(getFilesDir().getAbsolutePath().concat("/cache/"));
         // Log.e("GOTO", "memory cache: " + image_cache.size());
 
         broswerPanel = findViewById(R.id.browser_panel);
-        broswerPanel.setVisibility(isPancelActive ? View.VISIBLE : View.GONE);
+        broswerPanel.setVisibility(isPanelActive ? View.VISIBLE : View.GONE);
 
         menuRefresh = findViewById(R.id.menu_refresh);
         menuRefresh.setOnClickListener(v -> {
@@ -415,13 +422,17 @@ public class FullscreenActivity extends AppCompatActivity {
         titleVoicePlayer = new MediaPlayer();
         sePlayer = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
 
-
-
         // defaultSubtitleMargin = getDefaultSubtitleMargin();
         setSubtitleMargin(sharedPref.getInt(PREF_PADDING, 0));
         String subtitle_local = sharedPref.getString(PREF_SUBTITLE_LOCALE, "en");
         KcSoundUtils.loadQuoteAnnotation(getApplicationContext());
         isSubtitleLoaded = KcSoundUtils.loadQuoteData(getApplicationContext(), subtitle_local);
+
+        if (!isKeyboardActive) {
+            mContentView.setFocusableInTouchMode(false);
+            mContentView.setFocusable(false);
+            mContentView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+        }
 
         mContentView.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
@@ -1027,13 +1038,13 @@ public class FullscreenActivity extends AppCompatActivity {
                 String source_path = source.getPath();
                 stopMp3(bgmPlayer, filepath);
 
-                if (is_image || is_audio) {
+                if (is_image || is_audio || is_json) {
                     String version = "";
                     if (source.getQueryParameterNames().contains("version")) {
                         version = source.getQueryParameter("version");
                     }
                     Log.e("GOTO-R", "check resource " + source_path +  ": " + version);
-                    if (!versionTable.getValue(source_path).equals(version)) {
+                    if ((is_image || is_audio) && !versionTable.getValue(source_path).equals(version)) {
                         update_flag = true;
                         versionTable.putValue(source_path, version);
                         Log.e("GOTO-R", "cache resource " + source_path +  ": " + version);
@@ -1159,7 +1170,8 @@ public class FullscreenActivity extends AppCompatActivity {
                         } else {
                             setSubtitle(ship_id, voiceline);
                             if (ship_id.equals("9999") && voiceline_value >= 411 && voiceline_value <= 424) {
-                                return null;
+                                if (isMuteMode) new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
+                                else return null;
                             }
                             if (ship_id.equals("9998") && false) { // temp code: play abyssal sound from browser
                                 return null;

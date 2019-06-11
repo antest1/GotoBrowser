@@ -13,6 +13,7 @@
     <string name="mode_adjustment">佈局調節</string>
     <string name="mode_silent">靜音模式啟動</string>
     <string name="mode_show_panel">顯示控制台</string>
+    <string name="mode_enable_keyboard">激活鍵盤輸入</string>
     <string name="button_start">開始遊戲</string>
     <string name="text_save">保存</string>
     <string name="text_cancel">Cancel</string>

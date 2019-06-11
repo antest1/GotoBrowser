@@ -17,6 +17,7 @@
     <string name="mode_adjustment">Layout Adjustment</string>
     <string name="mode_silent">Start with Audio OFF</string>
     <string name="mode_show_panel">show control panel</string>
+    <string name="mode_enable_keyboard">enable keyboard input</string>
     <string name="button_start">START</string>
     <string name="text_save">Save</string>
     <string name="text_cancel">Cancel</string>

@@ -21,6 +21,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
@@ -38,9 +39,10 @@ public class EntranceActivity extends AppCompatActivity {
     private TextView startButton, selectButton, clearButton, autoCompleteButton, versionText;
     private ImageView settingsButton;
     private Switch landscapeSwitch, adjustmentSwitch, silentSwitch;
-    private CheckBox showControlPanelCheckbox;
+    private CheckBox showControlPanelCheckbox, showKeyboardCheckbox;
     private VersionDatabase versionTable;
     private boolean show_panel = false;
+    private boolean show_keyboard = false;
     private String login_id = "";
     private String login_password = "";
 
@@ -163,6 +165,9 @@ public class EntranceActivity extends AppCompatActivity {
         showControlPanelCheckbox = findViewById(R.id.layout_control);
         showControlPanelCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> show_panel = isChecked);
 
+        showKeyboardCheckbox = findViewById(R.id.layout_keyboard);
+        showKeyboardCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> show_keyboard = isChecked);
+
         startButton = findViewById(R.id.webview_start);
         startButton.setOnClickListener(v -> {
             String connector_ = sharedPref.getString(PREF_CONNECTOR, null);
@@ -171,7 +176,10 @@ public class EntranceActivity extends AppCompatActivity {
             } else {
                 Intent intent = new Intent(EntranceActivity.this, FullscreenActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                if (showControlPanelCheckbox.isChecked()) intent.setAction(ACTION_SHOWPANEL);
+                String action = "";
+                if (showControlPanelCheckbox.isChecked()) action = action.concat(ACTION_SHOWPANEL);
+                if (showKeyboardCheckbox.isChecked()) action = action.concat(ACTION_SHOWKEYBOARD);
+                intent.setAction(action);
                 intent.putExtra("login_id", login_id);
                 intent.putExtra("login_pw", login_password);
                 intent.setAction(OPEN_KANCOLLE);
