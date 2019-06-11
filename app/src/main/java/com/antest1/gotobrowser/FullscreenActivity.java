@@ -1179,10 +1179,15 @@ public class FullscreenActivity extends AppCompatActivity {
                         } else {
                             setSubtitle(ship_id, voiceline);
                             if (ship_id.equals("9999") && voiceline_value >= 411 && voiceline_value <= 424) {
-                                if (isMuteMode) new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
+                                if (isMuteMode) return new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
+                                else return null;
+                            }
+                            if (voiceline_value / 10 == 14 || voiceline_value / 10 == 24 || voiceline_value / 10 == 34 ) {
+                                if (isMuteMode) return new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
                                 else return null;
                             }
                             if (ship_id.equals("9998") && false) { // temp code: play abyssal sound from browser
+                                if (isMuteMode) return new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
                                 return null;
                             } else {
                                 playVoice(file, voiceVolume);
