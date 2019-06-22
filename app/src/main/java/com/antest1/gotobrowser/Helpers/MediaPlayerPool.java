@@ -128,7 +128,6 @@ public class MediaPlayerPool {
         }
 
         players.add(player);
-        player.start();
     }
 
     private void removeOldestTrack() {
