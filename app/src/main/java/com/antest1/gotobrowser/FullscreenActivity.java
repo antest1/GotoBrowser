@@ -512,7 +512,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     if (OPEN_KANCOLLE.equals(action)) {
                         boolean is_image = accept != null && accept.contains("image") && source.toString().contains("kcs2");
                         boolean is_audio = accept != null && source.toString().contains(".mp3");
-                        boolean is_json = accept != null && accept.contains("json") && source.toString().contains(".json")
+                        boolean is_json = accept != null && (accept.contains("json") || accept.equals("*/*")) && source.toString().contains(".json")
                                 && source.toString().contains("kcs2");
                         boolean is_js = source.toString().contains("/js/") && source.toString().contains(".js");
                         WebResourceResponse response = processWebRequest(source, is_image, is_audio, is_json, is_js);
@@ -1047,16 +1047,21 @@ public class FullscreenActivity extends AppCompatActivity {
                 String source_path = source.getPath();
                 stopMp3(bgmPlayer, filepath);
 
+                String version = "";
                 if (is_image || is_audio || is_json) {
-                    String version = "";
                     if (source.getQueryParameterNames().contains("version")) {
                         version = source.getQueryParameter("version");
                     }
                     Log.e("GOTO-R", "check resource " + source_path +  ": " + version);
-                    if ((is_image || is_audio) && !versionTable.getValue(source_path).equals(version)) {
+
+                    Boolean versionMatches = versionTable.getValue(source_path).equals(version);
+                    if ((is_image || is_audio) && !versionMatches) {
                         update_flag = true;
                         versionTable.putValue(source_path, version);
                         Log.e("GOTO-R", "cache resource " + source_path +  ": " + version);
+                    } else if (is_json && !versionMatches) {
+                        update_flag = true;
+                        Log.e("GOTO-R", "cache json " + source_path +  ": " + version);
                     } else {
                         Log.e("GOTO-R", "resource " + source_path +  " found: " + version);
                     }
@@ -1112,15 +1117,23 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
 
                 if (is_json) {
-                    File dir = new File(outputpath);
-                    if (!dir.exists()) dir.mkdirs();
-                    File file = new File(filepath);
-                    String last_modified_json = downloadResourceWithLastModified(resourceClient, fullpath, file);
-                    if (last_modified_json != null && !last_modified_json.equals(versionTable.getValue(source_path))) {
-                        File img_file = new File(filepath.replace(".json", ".png"));
-                        downloadResourceWithLastModified(resourceClient, fullpath.replace(".json", ".png"), img_file);
+                    if (update_flag) {
+                        File dir = new File(outputpath);
+                        if (!dir.exists()) dir.mkdirs();
+                        File file = new File(filepath);
+
+                        String image_source_path = fullpath.replace(".json", ".png");
+                        String last_modified_json = downloadResourceWithLastModified(resourceClient, fullpath, file);
+
+                        if (last_modified_json != null && !last_modified_json.equals(versionTable.getValue(image_source_path))) {
+                            File img_file = new File(filepath.replace(".json", ".png"));
+                            downloadResourceWithLastModified(resourceClient, image_source_path, img_file);
+                        }
+
+                        versionTable.putValue(source_path, version);
+                        versionTable.putValue(image_source_path, last_modified_json);
                     }
-                    versionTable.putValue(source_path, last_modified_json);
+
                     return null;
                 }
 
