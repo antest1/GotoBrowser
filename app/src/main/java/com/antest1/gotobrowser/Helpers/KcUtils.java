@@ -118,11 +118,11 @@ public class KcUtils {
             Response response = client.newCall(request).execute();
             String last_modified = response.header("Last-Modified", "none");
             ResponseBody body = response.body();
-            // InputStream in = new BufferedInputStream(new URL(fullpath).openStream());
             if (body != null) {
                 InputStream in = body.byteStream();
                 byte[] buffer = new byte[8 * 1024];
                 int bytes;
+                file.getParentFile().mkdirs();
                 FileOutputStream fos = new FileOutputStream(file);
                 while ((bytes = in.read(buffer)) != -1) {
                     fos.write(buffer, 0, bytes);
