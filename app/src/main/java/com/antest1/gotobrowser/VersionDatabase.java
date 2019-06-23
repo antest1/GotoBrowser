@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.gson.JsonObject;
 
 import java.util.Locale;
@@ -97,6 +98,7 @@ public class VersionDatabase extends SQLiteOpenHelper {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            Crashlytics.logException(e);
         } finally {
             if (c != null) c.close();
         }

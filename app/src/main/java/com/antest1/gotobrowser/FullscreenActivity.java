@@ -40,6 +40,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.antest1.gotobrowser.Helpers.KcUtils;
+import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -680,6 +681,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         });
                     } catch (NullPointerException | IOException e) {
                         e.printStackTrace();
+                        Crashlytics.logException(e);
                         runOnUiThread(() -> {
                             Toast.makeText(FullscreenActivity.this, getStringFromException(e), Toast.LENGTH_LONG).show();
                             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -1226,6 +1228,7 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            Crashlytics.logException(e);
         }
         return null;
     }
@@ -1275,6 +1278,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                 connect_mode);
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
+                        Crashlytics.logException(e);
                     }
                     Log.e("GOTO", postdata);
                     mContentView.postUrl(connector_url, postdata.getBytes());
@@ -1450,6 +1454,7 @@ public class FullscreenActivity extends AppCompatActivity {
             player.start();
             if (tag.equals("bgm")) isBgmPlaying = true;
         } catch (IOException e) {
+            Crashlytics.logException(e);
             e.printStackTrace();
         }
     }
@@ -1513,6 +1518,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     timer.purge();
                     isFadeoutRunning = false;
                     isBgmPlaying = false;
+                    Crashlytics.logException(e);
                     // _player.setVolume(bgmVolume, bgmVolume);
                 }
             }
@@ -1542,6 +1548,7 @@ public class FullscreenActivity extends AppCompatActivity {
         } catch (IOException e) {
             Log.e("GOTO", "playTitleCall Error:");
             e.printStackTrace();
+            Crashlytics.logException(e);
         }
     }
 

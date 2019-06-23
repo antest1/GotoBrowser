@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -171,6 +172,7 @@ public class KcSoundUtils {
                     as.open("quotes_label.json")));
             quoteLabel = gson.fromJson(reader, JsonObject.class);
         } catch (IOException e) {
+            Crashlytics.logException(e);
             e.printStackTrace();
         }
         Log.e("GOTO", "quote_meta: " + quoteLabel.size());
@@ -190,6 +192,7 @@ public class KcSoundUtils {
             quoteTimingData = quoteData.getAsJsonObject("timing");
         } catch (IOException e) {
             e.printStackTrace();
+            Crashlytics.logException(e);
             return false;
         }
         Log.e("GOTO", "quote_data: " + quoteData.size());
@@ -275,6 +278,7 @@ public class KcSoundUtils {
             if (current_special_flag) voicedata_base.addProperty("special", true);
         } catch (Exception e){
             e.printStackTrace();
+            Crashlytics.logException(e);
             voicedata_base.addProperty("0", e.getMessage());
         }
 

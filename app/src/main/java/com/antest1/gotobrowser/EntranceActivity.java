@@ -14,6 +14,8 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
+
 import java.io.File;
 import java.util.Locale;
 
@@ -220,6 +222,7 @@ public class EntranceActivity extends AppCompatActivity {
                 if (child.isDirectory()) clearApplicationCache(context, child);
                 else child.delete();
         } catch (Exception e) {
+            Crashlytics.logException(e);
         }
     }
 }

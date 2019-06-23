@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -175,6 +176,7 @@ public class SettingsActivity extends AppCompatActivity {
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
+                    Crashlytics.logException(e);
                     Toast.makeText(getApplicationContext(),
                             "IOException while saving quotes_".concat(locale_code).concat(".json")
                             , Toast.LENGTH_LONG).show();
