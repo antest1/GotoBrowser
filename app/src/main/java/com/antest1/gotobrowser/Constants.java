@@ -18,8 +18,8 @@ public class Constants {
     public static final String PREF_DMM_PASS = "pref_autocomplete_pass";
     public static final String PREF_SUBTITLE_LOCALE = "pref_subtitle_locale";
 
-    public static final String ACTION_SHOWPANEL = "with_layout_control";
-    public static final String ACTION_SHOWKEYBOARD = "with_keyboard";
+    public static final String ACTION_SHOWPANEL = "with_layout_control_";
+    public static final String ACTION_SHOWKEYBOARD = "with_keyboard_";
 
     public static final String CONN_DMM = "DMM direct";
     public static final String CONN_KANSU = "kancolle.su";

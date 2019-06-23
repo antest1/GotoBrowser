@@ -178,10 +178,10 @@ public class EntranceActivity extends AppCompatActivity {
             } else {
                 Intent intent = new Intent(EntranceActivity.this, FullscreenActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                String action = "";
-                if (showControlPanelCheckbox.isChecked()) action = action.concat(ACTION_SHOWPANEL);
-                if (showKeyboardCheckbox.isChecked()) action = action.concat(ACTION_SHOWKEYBOARD);
-                intent.setAction(action);
+                String options = "";
+                if (showControlPanelCheckbox.isChecked()) options = options.concat(ACTION_SHOWPANEL);
+                if (showKeyboardCheckbox.isChecked()) options = options.concat(ACTION_SHOWKEYBOARD);
+                intent.putExtra("options", options);
                 intent.putExtra("login_id", login_id);
                 intent.putExtra("login_pw", login_password);
                 intent.setAction(OPEN_KANCOLLE);

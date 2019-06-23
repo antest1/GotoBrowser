@@ -285,9 +285,12 @@ public class FullscreenActivity extends AppCompatActivity {
         mVerticalControlView = findViewById(R.id.vcontrol_component);
         mVerticalControlView.setVisibility(View.GONE);
 
-        if (intent != null && intent.getAction() != null) {
-            isPanelActive = intent.getAction().contains(ACTION_SHOWPANEL);
-            isKeyboardActive = intent.getAction().contains(ACTION_SHOWKEYBOARD);
+        if (intent != null) {
+            String options = intent.getStringExtra("options");
+            if (options != null) {
+                isPanelActive = options.contains(ACTION_SHOWPANEL);
+                isKeyboardActive = options.contains(ACTION_SHOWKEYBOARD);
+            }
         }
 
         // setMemoryCache(getFilesDir().getAbsolutePath().concat("/cache/"));
