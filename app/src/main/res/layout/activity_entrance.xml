@@ -31,16 +31,6 @@
         android:scrollY="-35dp"
         app:srcCompat="@mipmap/gotland_full" />
 
-    <ImageView
-        android:id="@+id/icon_setting"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:background="@color/black_overlay"
-        android:padding="8dp"
-        android:src="@mipmap/settings"
-        app:srcCompat="@mipmap/settings" />
-
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -220,5 +210,15 @@
         android:text="version_info"
         android:textColor="@color/white"
         android:textSize="12dp" />
+
+    <ImageView
+        android:id="@+id/icon_setting"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:background="@color/black_overlay"
+        android:padding="8dp"
+        android:src="@mipmap/settings"
+        app:srcCompat="@mipmap/settings" />
 
 </FrameLayout>
