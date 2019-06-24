@@ -139,8 +139,6 @@ public class FullscreenActivity extends AppCompatActivity {
     private String action;
 
     private VersionDatabase versionTable;
-    private AudioManager audioManager;
-    private final Handler mHideHandler = new Handler();
     private WebViewL mContentView;
     private View mHorizontalControlView, mVerticalControlView;
     private View broswerPanel;
@@ -151,7 +149,6 @@ public class FullscreenActivity extends AppCompatActivity {
     private boolean isPanelActive = false;
     private boolean isKeyboardActive = false;
     private boolean isStartedFlag = false;
-    private boolean savedStreamMuted = false;
     private String connector_url = "";
     private String connector_url_default = "";
     private String login_id = "";
@@ -185,57 +182,6 @@ public class FullscreenActivity extends AppCompatActivity {
     private List<String> titleFiles = new ArrayList<>();
     ScheduledExecutorService executor;
 
-    private final Runnable mHidePart2Runnable = new Runnable() {
-        @SuppressLint("InlinedApi")
-        @Override
-        public void run() {
-            // Delayed removal of status and navigation bar
-
-            // Note that some of these constants are new as of API 16 (Jelly Bean)
-            // and API 19 (KitKat). It is safe to use them, as they are inlined
-            // at compile-time and do nothing on earlier devices.
-            mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    // | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-            uiOption = mContentView.getSystemUiVisibility();
-        }
-    };
-    private final Runnable mShowPart2Runnable = new Runnable() {
-        @Override
-        public void run() {
-            // Delayed display of UI elements
-            ActionBar actionBar = getSupportActionBar();
-            if (actionBar != null) {
-                actionBar.show();
-            }
-            // mControlsView.setVisibility(View.VISIBLE);
-        }
-    };
-    private boolean mVisible;
-    private final Runnable mHideRunnable = new Runnable() {
-        @Override
-        public void run() {
-            hide();
-        }
-    };
-
-    private boolean checkImageCached(String url) {
-        if (url.contains("img/common")) return true;
-        if (url.contains("img/remodel")) return true;
-        if (url.contains("img/arsenal")) return true;
-        if (url.contains("img/repair")) return true;
-        if (url.contains("img/supply")) return true;
-        if (url.contains("img/sally")) return true;
-        if (url.contains("img/duty")) return true;
-        if (url.contains("img/map")) return true;
-        if (url.contains("img/battle")) return true;
-        if (url.contains("resources/map")) return true;
-        return false;
-    }
-
     private BackPressCloseHandler backPressCloseHandler;
 
     @SuppressLint({"SetJavaScriptEnabled", "ApplySharedPref"})
@@ -254,6 +200,9 @@ public class FullscreenActivity extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_fullscreen);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) actionBar.hide();
+
         Intent intent = getIntent();
         if (intent != null) action = intent.getAction();
 
@@ -274,8 +223,6 @@ public class FullscreenActivity extends AppCompatActivity {
         login_password = sharedPref.getString(PREF_DMM_PASS, "");
         versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
 
-        mVisible = true;
-        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mDetector = new GestureDetector(this, new SettingButtonGestureListener());
 
         mContentView = findViewById(R.id.main_browser);
@@ -292,9 +239,6 @@ public class FullscreenActivity extends AppCompatActivity {
                 isKeyboardActive = options.contains(ACTION_SHOWKEYBOARD);
             }
         }
-
-        // setMemoryCache(getFilesDir().getAbsolutePath().concat("/cache/"));
-        // Log.e("GOTO", "memory cache: " + image_cache.size());
 
         broswerPanel = findViewById(R.id.browser_panel);
         broswerPanel.setVisibility(isPanelActive ? View.VISIBLE : View.GONE);
@@ -720,8 +664,6 @@ public class FullscreenActivity extends AppCompatActivity {
         mVerticalControlView.findViewById(R.id.vcontrol_exit)
                 .setOnClickListener(v -> mVerticalControlView.setVisibility(View.GONE));
 
-        String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
-
         mContentView.setInitialScale(1);
         mContentView.getSettings().setLoadWithOverviewMode(true);
         mContentView.getSettings().setSaveFormData(true);
@@ -761,61 +703,13 @@ public class FullscreenActivity extends AppCompatActivity {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-
-        // Trigger the initial hide() shortly after the activity has been
-        // created, to briefly hint to the user that UI controls
-        // are available.
-        delayedHide(100);
-    }
-
-    private void toggle() {
-        if (mVisible) {
-            hide();
-        } else {
-            show();
-        }
-    }
-
-    private void hide() {
-        // Hide UI first
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.hide();
-        }
-        // mControlsView.setVisibility(View.GONE);
-        mVisible = false;
-
-        // Schedule a runnable to remove the status and navigation bar after a delay
-        mHideHandler.removeCallbacks(mShowPart2Runnable);
-        mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
-    }
-
-    @SuppressLint("InlinedApi")
-    private void show() {
-        // Show the system bar
-        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-        mVisible = true;
-
-        // Schedule a runnable to display UI elements after a delay
-        mHideHandler.removeCallbacks(mHidePart2Runnable);
-        mHideHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
-    }
-
-    /**
-     * Schedules a call to hide() in delay milliseconds, canceling any
-     * previously scheduled calls.
-     */
-    private void delayedHide(int delayMillis) {
-        mHideHandler.removeCallbacks(mHideRunnable);
-        mHideHandler.postDelayed(mHideRunnable, delayMillis);
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        if (hasFocus) {
-            mContentView.setSystemUiVisibility( uiOption );
-        }
+        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                // | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        uiOption = mContentView.getSystemUiVisibility();
     }
 
     @Override
@@ -850,6 +744,7 @@ public class FullscreenActivity extends AppCompatActivity {
         Log.e("GOTO", "onResume");
         pause_flag = false;
         mContentView.resumeTimers();
+        mContentView.getSettings().setTextZoom(100);
         if (isBgmPlaying && !KcUtils.checkIsPlaying(bgmPlayer)) bgmPlayer.start();
         if (isVoicePlaying && !voicePlayers.isAnyPlaying()) voicePlayers.startAll();
         sePlayer.autoResume();
@@ -867,6 +762,23 @@ public class FullscreenActivity extends AppCompatActivity {
         titleVoicePlayer.release();
         mContentView.removeAllViews();
         mContentView.destroy();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        if (hasFocus) mContentView.setSystemUiVisibility(uiOption);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mContentView.saveState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mContentView.restoreState(savedInstanceState);
     }
 
     @Override
@@ -1319,27 +1231,6 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
 
-    public void setVolumeMute(boolean is_mute) {
-        if (is_mute) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (!audioManager.isStreamMute(AudioManager.STREAM_MUSIC)) {
-                    savedStreamMuted = true;
-                    audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
-                }
-            } else {
-                audioManager.setStreamMute(AudioManager.STREAM_MUSIC, true);
-            }
-        } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (savedStreamMuted) {
-                    audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
-                    savedStreamMuted = false;
-                }
-            } else {
-                audioManager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-            }
-        }
-    }
     public InputStream getEmptyStream() {
         InputStream empty = new InputStream() {
             @Override
@@ -1670,17 +1561,5 @@ public class FullscreenActivity extends AppCompatActivity {
         FrameLayout.LayoutParams param = (FrameLayout.LayoutParams) subtitleText.getLayoutParams();
         param.setMargins(param.leftMargin + value, param.topMargin, param.rightMargin + value, param.bottomMargin);
         subtitleText.setLayoutParams(param);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        mContentView.saveState(outState);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        mContentView.restoreState(savedInstanceState);
     }
 }
