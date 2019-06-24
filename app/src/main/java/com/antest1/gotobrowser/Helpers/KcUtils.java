@@ -6,6 +6,7 @@ import android.media.MediaPlayer;
 import android.util.Log;
 
 import com.antest1.gotobrowser.VersionDatabase;
+import com.crashlytics.android.Crashlytics;
 import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
@@ -110,6 +111,24 @@ public class KcUtils {
             }
         }
         return null;
+    }
+
+    public static void clearApplicationCache(Context context, File file) {
+        File dir = null;
+        if (file == null) {
+            dir = context.getCacheDir();
+        } else {
+            dir = file;
+        }
+        if (dir == null) return;
+        File[] children = dir.listFiles();
+        try {
+            for (File child : children)
+                if (child.isDirectory()) clearApplicationCache(context, child);
+                else child.delete();
+        } catch (Exception e) {
+            Crashlytics.logException(e);
+        }
     }
 
     public static String downloadResourceWithLastModified(OkHttpClient client, String fullpath, File file) {
