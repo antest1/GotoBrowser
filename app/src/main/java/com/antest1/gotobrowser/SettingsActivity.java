@@ -66,7 +66,7 @@ public class SettingsActivity extends AppCompatActivity {
         versionText.setText(BuildConfig.VERSION_NAME);
 
         TextView latestCheck = findViewById(R.id.version_update);
-        latestCheck.setOnClickListener(v -> checkAppVersion());
+        latestCheck.setOnClickListener(v -> requestLatestAppVersion());
 
         TextView resourceDown = findViewById(R.id.resource_update);
         resourceDown.setOnClickListener(v -> openResourceDownloadPage());
@@ -205,7 +205,7 @@ public class SettingsActivity extends AppCompatActivity {
         return item;
     }
 
-    public void checkAppVersion() {
+    public void requestLatestAppVersion() {
         Call<JsonObject> call = updateCheck.version();
         call.enqueue(new Callback<JsonObject>() {
             @Override
