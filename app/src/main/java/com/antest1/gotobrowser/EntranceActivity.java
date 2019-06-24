@@ -14,6 +14,8 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.antest1.gotobrowser.Helpers.KcUtils;
+
 import java.io.File;
 import java.util.Locale;
 
@@ -132,7 +134,7 @@ public class EntranceActivity extends AppCompatActivity {
             editor.putString(PREF_LATEST_URL, URL_LIST[i]);
             editor.apply();
             selectButton.setText(listItems[i]);
-            Toast.makeText(getApplicationContext(), URL_LIST[i], Toast.LENGTH_LONG).show();
+            KcUtils.showToast(getApplicationContext(), URL_LIST[i]);
             dialogInterface.dismiss();
         });
         AlertDialog mDialog = mBuilder.create();
@@ -168,9 +170,7 @@ public class EntranceActivity extends AppCompatActivity {
                 .setPositiveButton(R.string.action_ok,
                         (dialog, id) -> {
                             clearBrowserCache();
-                            Toast.makeText(getApplicationContext(),
-                                    getString(R.string.cache_cleared_toast),
-                                    Toast.LENGTH_LONG).show();
+                            KcUtils.showToast(getApplicationContext(), R.string.cache_cleared_toast);
                             dialog.dismiss();
                         })
                 .setNegativeButton(R.string.action_cancel,
@@ -191,7 +191,7 @@ public class EntranceActivity extends AppCompatActivity {
     private void startBrowserActivity() {
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
         if (pref_connector == null) {
-            Toast.makeText(getApplicationContext(), getString(R.string.select_server_toast), Toast.LENGTH_LONG).show();
+            KcUtils.showToast(getApplicationContext(), R.string.select_server_toast);
         } else {
             Intent intent = new Intent(EntranceActivity.this, FullscreenActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP

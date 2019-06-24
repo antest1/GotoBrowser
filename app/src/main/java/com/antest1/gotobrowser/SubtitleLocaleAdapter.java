@@ -22,8 +22,8 @@ public class SubtitleLocaleAdapter extends RecyclerView.Adapter<SubtitleLocaleAd
         void onItemClick(JsonObject item);
     }
 
-    public SubtitleLocaleAdapter(ArrayList<JsonObject> items, OnItemClickListener selector, OnItemClickListener downloader) {
-        this.mItems = items;
+    public SubtitleLocaleAdapter(OnItemClickListener selector, OnItemClickListener downloader) {
+        this.mItems = new ArrayList<>();
         this.selector = selector;
         this.downloader = downloader;
     }

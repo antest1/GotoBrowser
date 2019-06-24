@@ -4,6 +4,7 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.antest1.gotobrowser.VersionDatabase;
 import com.crashlytics.android.Crashlytics;
@@ -21,16 +22,34 @@ import java.io.StringWriter;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+import static com.antest1.gotobrowser.Constants.CACHE_SIZE_BYTES;
 
 public class KcUtils {
+    public static void showToast(Context context, String message) {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+    }
+
+    public static void showToast(Context context, int resource_id) {
+        Toast.makeText(context, context.getString(resource_id), Toast.LENGTH_LONG).show();
+    }
+
     public static String getStringFromException(Exception ex) {
         StringWriter errors = new StringWriter();
         ex.printStackTrace(new PrintWriter(errors));
         return errors.toString().replaceAll("\n", " / ").replaceAll("\t", "");
+    }
+
+    public static void reportException(Exception e) {
+        e.printStackTrace();
+        Crashlytics.logException(e);
     }
 
     public static boolean checkIsPlaying (MediaPlayer player) {
@@ -157,5 +176,20 @@ public class KcUtils {
             return null;
         }
     }
+
+    public static Retrofit getRetrofitAdapter(Context context, String baseUrl) {
+        OkHttpClient.Builder builder = new OkHttpClient().newBuilder();
+        builder.cache(
+                new Cache(context.getCacheDir(), CACHE_SIZE_BYTES));
+        OkHttpClient client = builder.build();
+        Retrofit.Builder retrofitBuilder = new Retrofit.Builder();
+        retrofitBuilder
+                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl(baseUrl)
+                .client(client);
+        return retrofitBuilder.build();
+    }
+
+
 }
 

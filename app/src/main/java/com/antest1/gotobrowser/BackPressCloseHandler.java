@@ -32,16 +32,13 @@ public class BackPressCloseHandler {
                 activity);
         alertDialogBuilder.setTitle(activity.getString(R.string.app_name));
         alertDialogBuilder
-                .setOnKeyListener(new DialogInterface.OnKeyListener() {
-                    @Override
-                    public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                        if (keyCode == KeyEvent.KEYCODE_BACK) {
-                            activity.finish();
-                            dialog.dismiss();
-                            return true;
-                        }
-                        return false;
+                .setOnKeyListener((dialog, keyCode, event) -> {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        activity.finish();
+                        dialog.dismiss();
+                        return true;
                     }
+                    return false;
                 });
         alertDialogBuilder
                 .setCancelable(false)
