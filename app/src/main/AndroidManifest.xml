@@ -63,6 +63,7 @@
             android:name=".FullscreenActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout"
             android:label="@string/app_name"
+            android:alwaysRetainTaskState="true"
             android:theme="@style/FullscreenTheme">
             <layout
                 android:defaultWidth="400dp"

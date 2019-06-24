@@ -1671,4 +1671,16 @@ public class FullscreenActivity extends AppCompatActivity {
         param.setMargins(param.leftMargin + value, param.topMargin, param.rightMargin + value, param.bottomMargin);
         subtitleText.setLayoutParams(param);
     }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mContentView.saveState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mContentView.restoreState(savedInstanceState);
+    }
 }
