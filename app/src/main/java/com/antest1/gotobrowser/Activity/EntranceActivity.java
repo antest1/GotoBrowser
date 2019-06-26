@@ -1,6 +1,5 @@
-package com.antest1.gotobrowser;
+package com.antest1.gotobrowser.Activity;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,9 +11,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.antest1.gotobrowser.Browser.WebViewManager;
+import com.antest1.gotobrowser.BuildConfig;
+import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.KcUtils;
+import com.antest1.gotobrowser.Helpers.VersionDatabase;
+import com.antest1.gotobrowser.R;
 
 import java.io.File;
 import java.util.Locale;
@@ -34,7 +37,6 @@ import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.URL_LIST;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
-import static com.antest1.gotobrowser.FullscreenActivity.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Helpers.KcUtils.clearApplicationCache;
 
 public class EntranceActivity extends AppCompatActivity {
@@ -193,11 +195,11 @@ public class EntranceActivity extends AppCompatActivity {
         if (pref_connector == null) {
             KcUtils.showToast(getApplicationContext(), R.string.select_server_toast);
         } else {
-            Intent intent = new Intent(EntranceActivity.this, FullscreenActivity.class);
+            Intent intent = new Intent(EntranceActivity.this, BrowserActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
                     | Intent.FLAG_ACTIVITY_CLEAR_TASK
                     | Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setAction(OPEN_KANCOLLE);
+            intent.setAction(WebViewManager.OPEN_KANCOLLE);
 
             String options = "";
             CheckBox showControlPanelCheckbox = findViewById(R.id.layout_control);

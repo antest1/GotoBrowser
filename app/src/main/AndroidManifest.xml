@@ -29,7 +29,7 @@
         <meta-data android:name="com.sec.android.multiwindow.MINIMUM_SIZE_H" android:value="240dip" />
 
         <activity
-            android:name=".EntranceActivity"
+            android:name=".Activity.EntranceActivity"
             android:label="@string/app_name"
             android:theme="@style/FullscreenTheme">
             <layout
@@ -44,7 +44,7 @@
         </activity>
 
         <activity
-            android:name=".SettingsActivity"
+            android:name=".Activity.SettingsActivity"
             android:label="@string/app_name"
             android:theme="@style/FullscreenTheme">
             <layout
@@ -53,14 +53,14 @@
                 android:gravity="start|end"/>
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".EntranceActivity" />
+                android:value=".Activity.EntranceActivity" />
             <intent-filter>
                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity
-            android:name=".FullscreenActivity"
+            android:name=".Activity.BrowserActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout"
             android:label="@string/app_name"
             android:alwaysRetainTaskState="true"
@@ -71,7 +71,7 @@
                 android:gravity="start|end"/>
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".EntranceActivity" />
+                android:value=".Activity.EntranceActivity" />
             <intent-filter>
                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
             </intent-filter>

@@ -1,10 +1,13 @@
-package com.antest1.gotobrowser;
+package com.antest1.gotobrowser.Subtitle;
 
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import com.antest1.gotobrowser.R;
+import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.Collections;

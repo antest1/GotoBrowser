@@ -1,8 +1,10 @@
-package com.antest1.gotobrowser;
+package com.antest1.gotobrowser.Helpers;
 
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.view.KeyEvent;
+
+import com.antest1.gotobrowser.R;
 
 import androidx.appcompat.app.AlertDialog;
 

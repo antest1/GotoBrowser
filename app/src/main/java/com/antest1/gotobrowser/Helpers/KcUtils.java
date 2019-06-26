@@ -1,19 +1,19 @@
 package com.antest1.gotobrowser.Helpers;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.media.MediaPlayer;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.antest1.gotobrowser.VersionDatabase;
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,6 +52,15 @@ public class KcUtils {
         Crashlytics.logException(e);
     }
 
+    public static Request getDownloadRequest(String url, String userAgent, String mimetype) {
+        Request request = new Request.Builder().url(url)
+                .addHeader("User-Agent", userAgent)
+                .addHeader("Content-Type", mimetype)
+                .addHeader("Cache-Control", "no-cache")
+                .build();
+        return request;
+    }
+
     public static boolean checkIsPlaying (MediaPlayer player) {
         if (player == null) return false;
         try {
@@ -59,6 +68,21 @@ public class KcUtils {
         } catch (IllegalStateException e) {
             return false;
         }
+    }
+
+    public static InputStream getEmptyStream() {
+        return new InputStream() {
+            @Override
+            public int read() {
+                return -1;
+            }
+        };
+    }
+
+    public static DisplayMetrics getActivityDimension(Activity activity) {
+        DisplayMetrics dimension = new DisplayMetrics();
+        activity.getWindowManager().getDefaultDisplay().getMetrics(dimension);
+        return dimension;
     }
 
     public static boolean unzipResource(Context context, InputStream is, String path, VersionDatabase db, String version) {

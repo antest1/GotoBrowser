@@ -1,4 +1,4 @@
-package com.antest1.gotobrowser;
+package com.antest1.gotobrowser.Activity;
 
 import android.content.Context;
 import android.content.Intent;
@@ -10,7 +10,14 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.antest1.gotobrowser.Browser.WebViewManager;
+import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.KcUtils;
+import com.antest1.gotobrowser.Helpers.VersionDatabase;
+import com.antest1.gotobrowser.R;
+import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
+import com.antest1.gotobrowser.Subtitle.SubtitleLocaleAdapter;
+import com.antest1.gotobrowser.Subtitle.SubtitleRepo;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -36,7 +43,6 @@ import static com.antest1.gotobrowser.Constants.SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_PATH;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_ROOT;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
-import static com.antest1.gotobrowser.FullscreenActivity.OPEN_RES_DOWN;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -293,9 +299,9 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     public void openResourceDownloadPage() {
-        Intent intent = new Intent(SettingsActivity.this, FullscreenActivity.class);
+        Intent intent = new Intent(SettingsActivity.this, BrowserActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setAction(OPEN_RES_DOWN);
+        intent.setAction(WebViewManager.OPEN_RES_DOWN);
         startActivity(intent);
     }
 }

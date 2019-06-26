@@ -5,7 +5,7 @@
     android:id="@+id/web_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".FullscreenActivity">
+    tools:context=".Activity.BrowserActivity">
 
     <!-- The primary full-screen view. This can be replaced with whatever view
          is needed to present your content, e.g. VideoView, SurfaceView,
@@ -13,11 +13,11 @@
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
 
-    <com.antest1.gotobrowser.WebViewL
+    <com.antest1.gotobrowser.Browser.WebViewL
         android:id="@+id/main_browser"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    </com.antest1.gotobrowser.WebViewL>
+    </com.antest1.gotobrowser.Browser.WebViewL>
 
     <ImageView
         android:id="@+id/dmm_browser_close"
@@ -180,7 +180,7 @@
             android:textAlignment="center"
             android:textColor="@color/white" />
 
-        <com.antest1.gotobrowser.VerticalSeekBar
+        <com.antest1.gotobrowser.Helpers.VerticalSeekBar
             android:id="@+id/vcontrol_main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

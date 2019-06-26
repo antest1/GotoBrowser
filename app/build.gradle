@@ -9,7 +9,7 @@ android {
         minSdkVersion 19
         targetSdkVersion 28
         versionCode 19
-        versionName "1.0.2-rev1"
+        versionName "1.0.2-rev1-up"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 

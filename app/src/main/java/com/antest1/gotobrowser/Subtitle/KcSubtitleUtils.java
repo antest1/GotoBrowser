@@ -1,4 +1,4 @@
-package com.antest1.gotobrowser;
+package com.antest1.gotobrowser.Subtitle;
 
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -28,7 +28,7 @@ import java.util.Set;
 
 // Reference: https://github.com/KC3Kai/KC3Kai/issues/1180
 //            https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
-public class KcSoundUtils {
+public class KcSubtitleUtils {
     public static String specialVoiceCode = "";
     public static final int SPECIAL_VOICE_START_YEAR = 2014;
     public static final int SPECIAL_VOICE_END_YEAR = 2019;

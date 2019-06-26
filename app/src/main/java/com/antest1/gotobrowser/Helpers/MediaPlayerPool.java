@@ -115,6 +115,10 @@ public class MediaPlayerPool {
     }
 
     public void addToPool(MediaPlayer player) {
+        addToPool(player, false);
+    }
+
+    public void addToPool(MediaPlayer player, boolean start) {
         player.setOnCompletionListener(mp -> {
             players.remove(player);
 

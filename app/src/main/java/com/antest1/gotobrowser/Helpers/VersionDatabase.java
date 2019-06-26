@@ -1,4 +1,4 @@
-package com.antest1.gotobrowser;
+package com.antest1.gotobrowser.Helpers;
 
 import android.content.ContentValues;
 import android.content.Context;

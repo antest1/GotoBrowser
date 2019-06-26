@@ -1,6 +1,6 @@
 // Based on https://stackoverflow.com/questions/41025200/android-view-inflateexception-error-inflating-class-android-webkit-webview/41721789#41721789
 
-package com.antest1.gotobrowser;
+package com.antest1.gotobrowser.Browser;
 
 import android.annotation.TargetApi;
 import android.content.Context;

@@ -1,4 +1,4 @@
-package com.antest1.gotobrowser;
+package com.antest1.gotobrowser.Subtitle;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
