@@ -70,6 +70,14 @@ public class BrowserSoundPlayer {
         }
     }
 
+    public void setMuteAll(boolean is_mute) {
+        setmute(is_mute);
+        for (String key: volumes.keySet()) {
+            float volume = is_mute ? 0.0f : volumes.get(key);
+            players.get(key).setVolumeAll(volume, volume);
+        }
+    }
+
     public void setStreamsLimit(String player_set, int value) {
         try {
             if (PLAYER_ALL.equals(player_set)) {
@@ -218,6 +226,7 @@ public class BrowserSoundPlayer {
 
 
     public void fadeBgmOut() {
+        if (isMuteMode) return;
         final int FADE_DURATION = 720;
         final int FADE_INTERVAL = 80;
         final float MAX_VOLUME = volumes.get(PLAYER_BGM);
@@ -231,6 +240,7 @@ public class BrowserSoundPlayer {
             @Override
             public void run() {
                 try {
+                    if (isMuteMode) currentBgmVolume = 0.0f;
                     bgm_player.setVolumeAll(currentBgmVolume, currentBgmVolume);
                     currentBgmVolume -= deltaVolume;
                     if(currentBgmVolume < 0.0f){

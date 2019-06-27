@@ -388,7 +388,7 @@ public class BrowserActivity extends AppCompatActivity {
 
     private void setMuteMode(View v) {
         isMuteMode = !isMuteMode;
-        BrowserSoundPlayer.setmute(isMuteMode);
+        if (browserPlayer != null) browserPlayer.setMuteAll(isMuteMode);
         if (isMuteMode) {
             v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
             sharedPref.edit().putBoolean(PREF_MUTEMODE, true).apply();
