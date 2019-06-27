@@ -1,9 +1,7 @@
 package com.antest1.gotobrowser.Browser;
 
 import android.media.MediaPlayer;
-import android.media.SoundPool;
 import android.os.Handler;
-import android.util.Log;
 
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.MediaPlayerPool;
@@ -15,7 +13,6 @@ import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -28,10 +25,11 @@ public class BrowserSoundPlayer {
 
     public final static int AUDIO_POOL_LIMIT = 25;
 
-    private static boolean isMuteMode;
+    private static boolean isMuteMode = false;
     private Handler handler;
     private Map<String, MediaPlayerPool> players = new HashMap<>();
     private Map<String, Float> volumes = new HashMap<>();
+    private float currentBgmVolume;
 
 
     public static boolean ismute() { return isMuteMode; }
@@ -108,6 +106,7 @@ public class BrowserSoundPlayer {
         player.setOnAllCompletedListener((pool, lastPlayer) -> {
             play(player_id, file);
             handler.post(sr);
+            player.setOnAllCompletedListener(null);
         });
     }
 
@@ -118,6 +117,7 @@ public class BrowserSoundPlayer {
             MediaPlayer audio = new MediaPlayer();
             set(audio, file, volume);
             player.addToPool(audio);
+            audio.start();
         }
     }
 
@@ -199,7 +199,7 @@ public class BrowserSoundPlayer {
                     }
                 }
                 if (fadeout_flag) {
-                    fadeBgmOut(1000);
+                    fadeBgmOut();
                     break;
                 }
             }
@@ -214,49 +214,40 @@ public class BrowserSoundPlayer {
                 stop(PLAYER_VOICE);
             }
         }
-
     }
 
 
-    public void fadeBgmOut(final int duration) {
-        stop(PLAYER_BGM);
-        /*
-        if (_player == null || isFadeoutRunning || !isBgmPlaying) return;
-        isFadeoutRunning = true;
-        fadeOutBgmVolume = isMuteMode ? 0.0f : bgmVolume;
-        final int FADE_DURATION = duration;
-        final int FADE_INTERVAL = 100;
-        final float MAX_VOLUME = bgmVolume;
+    public void fadeBgmOut() {
+        final int FADE_DURATION = 720;
+        final int FADE_INTERVAL = 80;
+        final float MAX_VOLUME = volumes.get(PLAYER_BGM);
+        MediaPlayerPool bgm_player = players.get(PLAYER_BGM);
         int numberOfSteps = FADE_DURATION / FADE_INTERVAL;
         final float deltaVolume = MAX_VOLUME / (float) numberOfSteps;
+        currentBgmVolume = MAX_VOLUME;
 
         final Timer timer = new Timer(true);
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
                 try {
-                    _player.setVolume(fadeOutBgmVolume, fadeOutBgmVolume);
-                    fadeOutBgmVolume -= deltaVolume;
-                    if(fadeOutBgmVolume < 0.0f){
-                        _player.stop();
-                        _player.reset();
+                    bgm_player.setVolumeAll(currentBgmVolume, currentBgmVolume);
+                    currentBgmVolume -= deltaVolume;
+                    if(currentBgmVolume < 0.0f){
+                        stop(PLAYER_BGM);
                         timer.cancel();
                         timer.purge();
-                        isFadeoutRunning = false;
-                        isBgmPlaying = false;
-                        _player.setVolume(bgmVolume, bgmVolume);
+                        bgm_player.setVolumeAll(MAX_VOLUME, MAX_VOLUME);
                     }
                 } catch (IllegalStateException e) {
+                    stop(PLAYER_BGM);
                     timer.cancel();
                     timer.purge();
-                    isFadeoutRunning = false;
-                    isBgmPlaying = false;
+                    bgm_player.setVolumeAll(MAX_VOLUME, MAX_VOLUME);
                     Crashlytics.logException(e);
-                    // _player.setVolume(bgmVolume, bgmVolume);
                 }
             }
         };
         timer.schedule(timerTask, 0, FADE_INTERVAL);
-        */
     }
 }

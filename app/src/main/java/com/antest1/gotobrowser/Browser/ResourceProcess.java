@@ -62,10 +62,11 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResourceWithLastMo
 import static com.antest1.gotobrowser.Helpers.KcUtils.getEmptyStream;
 
 public class ResourceProcess {
-    private static final int RES_IMAGE = 0b0001;
-    private static final int RES_AUDIO = 0b010;
-    private static final int RES_JSON = 0b0100;
-    private static final int RES_JS = 0b1000;
+    private static final int RES_IMAGE = 0b00001;
+    private static final int RES_AUDIO = 0b00010;
+    private static final int RES_JSON = 0b00100;
+    private static final int RES_JS = 0b01000;
+    private static final int RES_KCSAPI = 0b10000;
 
     public static boolean isImage(int state) {
         return (state & RES_IMAGE) > 0;
@@ -78,6 +79,9 @@ public class ResourceProcess {
     }
     public static boolean isScript(int state) {
         return (state & RES_JS) > 0;
+    }
+    public static boolean isKcsApi(int state) {
+        return (state & RES_KCSAPI) > 0;
     }
 
     private BrowserActivity activity;
@@ -118,34 +122,39 @@ public class ResourceProcess {
         if (url.contains(".mp3")) {
             state |= RES_AUDIO;
         }
-        if (url.contains("json")) {
+        if (url.contains(".json")) {
             state |= RES_JSON;
         }
         if (url.contains("/js/") && url.contains(".js")) {
             state |= RES_JS;
         }
+
+        if (url.contains("kcsapi")) {
+            state |= RES_KCSAPI;
+        }
         return state;
     }
 
 
-    WebResourceResponse processWebRequest(Uri source) {
+    public WebResourceResponse processWebRequest(Uri source) {
         String url = source.toString();
         int resource_type = getCurrentState(url);
-
+        Log.e("GOTO", url + " - " + String.valueOf(resource_type));
         boolean is_image = ResourceProcess.isImage(resource_type);
         boolean is_audio = ResourceProcess.isAudio(resource_type);
         boolean is_json = ResourceProcess.isJson(resource_type);
         boolean is_js = ResourceProcess.isScript(resource_type);
+        boolean is_kcsapi = ResourceProcess.isKcsApi(resource_type);
+
+        if (checkBlockedContent(url)) return getEmptyResponse();
+        if (url.contains("kcscontents/css/common.css")) return getBlackBackgroundSheet();
+        if (resource_type == 0) return null;
 
         JsonObject file_info = getPathAndFileInfo(source);
         String path = file_info.get("path").getAsString();
         String filename = file_info.get("filename").getAsString();
-        String filepath = file_info.get("out_file_dir").getAsString();
-
+        String filepath = file_info.get("out_file_path").getAsString();
         setVolumeFromCookie(file_info);
-
-        if (checkBlockedContent(url)) return getEmptyResponse();
-        if (url.contains("kcscontents/css/common.css")) return getBlackBackgroundSheet();
 
         try {
             if (path != null && filename != null) {
@@ -160,7 +169,7 @@ public class ResourceProcess {
                 if (path.contains("ooi.css")) return getOoiSheetFromAsset();
 
                 // load game data
-                if (!path.contains("kcanotify") && path.contains("/api_start2")) {
+                if (is_kcsapi && path.contains("/api_start2")) {
                     checkSpecialSubtitleMode();
                     checkAndUpdateGameData();
                     loadGameDataFromStorage();
@@ -202,12 +211,21 @@ public class ResourceProcess {
 
         String url = source.toString();
         String host = source.getHost();
-        String path = source.getPath();
-        String filename = source.getLastPathSegment();
-        String fullpath = String.format(Locale.US, "http://%s%s", host, path);
-        String outputpath = context.getFilesDir().getAbsolutePath()
-                .concat("/cache/").concat(path.replace(filename, "").substring(1));
-        String filepath = outputpath.concat(filename);
+        String path = "";
+        String filename = "";
+        String fullpath = "";
+        String outputpath = "";
+        if (source.getPath() != null) {
+            path = source.getPath();
+            filename = source.getLastPathSegment();
+            fullpath = String.format(Locale.US, "http://%s%s", host, path);
+            outputpath = context.getFilesDir().getAbsolutePath().concat("/cache/");
+            if (filename != null) {
+                outputpath = outputpath.concat(path.replace(filename, "").substring(1));
+            }
+        }
+        String filepath = outputpath;
+        if (filename != null) filepath = filepath.concat(filename);
 
         file_info.addProperty("url", url);
         file_info.addProperty("host", host);
@@ -216,7 +234,6 @@ public class ResourceProcess {
         file_info.addProperty("full_url", fullpath);
         file_info.addProperty("out_folder_dir", outputpath);
         file_info.addProperty("out_file_path", filepath);
-
         return file_info;
     }
 
@@ -234,7 +251,7 @@ public class ResourceProcess {
         String path = file_info.get("path").getAsString();
         String host = file_info.get("host").getAsString();
         if (path.contains("/kcs2/img/") && host != null) {
-            String currentCookieHost = host.concat("/kcs2/");
+            currentCookieHost = host.concat("/kcs2/");
             String cookie = CookieManager.getInstance().getCookie(currentCookieHost);
             if (cookie != null) {
                 String[] data = cookie.split(";");
@@ -351,7 +368,9 @@ public class ResourceProcess {
             executor = Executors.newScheduledThreadPool(1);
             executor.scheduleAtFixedRate(portVolumeCheckRunnable, 0, 1, TimeUnit.SECONDS);
         } else if (path.contains("/api")) {
-            if (!executor.isShutdown()) executor.shutdown();
+            if (executor != null && !executor.isShutdown()) {
+                executor.shutdown();
+            }
         }
     }
 
@@ -445,11 +464,11 @@ public class ResourceProcess {
     private WebResourceResponse processJsonFile(JsonObject file_info, boolean update_flag, String version) {
         String url = file_info.get("url").getAsString();
         String path = file_info.get("path").getAsString();
-        String out_folder_path = file_info.get("out_folder_path").getAsString();
+        String out_folder_dir = file_info.get("out_folder_dir").getAsString();
         String out_file_path = file_info.get("out_file_path").getAsString();
 
         if (update_flag) {
-            File dir = new File(out_folder_path);
+            File dir = new File(out_folder_dir);
             if (!dir.exists()) dir.mkdirs();
             File file = new File(out_file_path);
 
@@ -469,10 +488,10 @@ public class ResourceProcess {
     private WebResourceResponse processAudioFile(JsonObject file_info, boolean update_flag) throws IOException, ParseException {
         String url = file_info.get("url").getAsString();
         String path = file_info.get("path").getAsString();
-        String out_folder_path = file_info.get("out_folder_path").getAsString();
+        String out_folder_dir = file_info.get("out_folder_dir").getAsString();
         String out_file_path = file_info.get("out_file_path").getAsString();
 
-        File dir = new File(out_folder_path);
+        File dir = new File(out_folder_dir);
         if (!dir.exists()) dir.mkdirs();
         File file = new File(out_file_path);
         if (!file.exists() || update_flag) {
@@ -503,7 +522,6 @@ public class ResourceProcess {
             if (filenameToShipId.containsKey(voice_filename)) {
                 ship_id = filenameToShipId.get(voice_filename);
                 voiceline = KcSubtitleUtils.getVoiceLineByFilename(ship_id, voice_code);
-
             } else {
                 voiceline = KcSubtitleUtils.getVoiceLineByFilename(voice_filename, voice_code);
             }
@@ -573,6 +591,7 @@ public class ResourceProcess {
             if (voice_special.body() != null) {
                 String voice_special_code = voice_special.body().string();
                 KcSubtitleUtils.specialVoiceCode = voice_special_code;
+                Log.e("GOTO", "special_voice: " + voice_special_code);
             }
         } catch (IOException e) {
             KcUtils.reportException(e);

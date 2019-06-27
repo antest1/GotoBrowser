@@ -92,6 +92,7 @@ public class BrowserActivity extends AppCompatActivity {
     private boolean isSubtitleLoaded = false;
     private TextView subtitleText;
     ScheduledExecutorService executor;
+    private final Handler clearSubHandler = new Handler();
 
     private BackPressCloseHandler backPressCloseHandler;
 
@@ -105,6 +106,9 @@ public class BrowserActivity extends AppCompatActivity {
         setContentView(R.layout.activity_fullscreen);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) actionBar.hide();
+
+        mContentView = findViewById(R.id.main_browser);
+        WebViewManager.setGestureDetector(this, mContentView);
 
         // panel, keyboard settings
         Intent intent = getIntent();
@@ -137,14 +141,10 @@ public class BrowserActivity extends AppCompatActivity {
 
         executor = Executors.newScheduledThreadPool(1);
 
-        VersionDatabase versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
-
-        mContentView = findViewById(R.id.main_browser);
-        WebViewManager.setGestureDetector(this, mContentView);
-
         if (isLandscapeMode) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
         if (isSilentMode) WebViewManager.setSoundMuteCookie(mContentView);
         if (isKeepMode) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        BrowserSoundPlayer.setmute(isMuteMode);
 
         mHorizontalControlView = findViewById(R.id.control_component);
         mHorizontalControlView.setVisibility(View.GONE);
@@ -182,6 +182,7 @@ public class BrowserActivity extends AppCompatActivity {
 
         subtitleText = findViewById(R.id.subtitle_view);
         subtitleText.setVisibility(isKcBrowserMode && isCaptionMode ? View.VISIBLE : View.GONE);
+        subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
 
         // defaultSubtitleMargin = getDefaultSubtitleMargin();
         setSubtitleMargin(sharedPref.getInt(PREF_PADDING, 0));
@@ -189,9 +190,9 @@ public class BrowserActivity extends AppCompatActivity {
         KcSubtitleUtils.loadQuoteAnnotation(getApplicationContext());
         isSubtitleLoaded = KcSubtitleUtils.loadQuoteData(getApplicationContext(), subtitle_local);
 
-        WebViewManager.setWebViewSettings(mContentView);
+        WebViewManager.setWebViewSettings(mContentView);;
         WebViewManager.enableBrowserCookie(mContentView);
-        WebViewManager.setWebViewClient(this, mContentView, connector_info);;
+        WebViewManager.setWebViewClient(this, mContentView, connector_info);
         WebViewManager.setWebViewDownloader(this, mContentView);
         WebViewManager.setPopupView(this, mContentView);
 
@@ -231,12 +232,12 @@ public class BrowserActivity extends AppCompatActivity {
             Log.e("GOTO", "is_not_multi");
             pause_flag = true;
             mContentView.pauseTimers();
-            browserPlayer.pauseAll();
+            if (browserPlayer != null) browserPlayer.pauseAll();
         } else {
             if (pause_flag) {
                 mContentView.resumeTimers();
                 pause_flag = false;
-                browserPlayer.startAll();
+                if (browserPlayer != null) browserPlayer.startAll();
             }
             Log.e("GOTO", "is_multi");
         }
@@ -249,16 +250,18 @@ public class BrowserActivity extends AppCompatActivity {
         pause_flag = false;
         mContentView.resumeTimers();
         mContentView.getSettings().setTextZoom(100);
-        browserPlayer.startAll();
+        if (browserPlayer != null) browserPlayer.startAll();
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-        browserPlayer.stopAll();
-        browserPlayer.releaseAll();
+        if (browserPlayer != null) {
+            browserPlayer.stopAll();
+            browserPlayer.releaseAll();
+        }
         mContentView.removeAllViews();
         mContentView.destroy();
+        super.onDestroy();
     }
 
     @Override
@@ -467,4 +470,11 @@ public class BrowserActivity extends AppCompatActivity {
         param.setMargins(param.leftMargin + value, param.topMargin, param.rightMargin + value, param.bottomMargin);
         subtitleText.setLayoutParams(param);
     }
+
+    private Runnable clearSubtitle = new Runnable() {
+        @Override
+        public void run() {
+            subtitleText.setText("");
+        }
+    };
 }
