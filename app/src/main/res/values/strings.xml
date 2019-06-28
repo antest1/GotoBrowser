@@ -4,34 +4,34 @@
     <string name="copyright_info" translatable="false">Copyright © 2019 antest1(IE10)</string>
 
     <string name="app_name">GotoBrowser</string>
-    <string name="action_ok">OK</string>
+    <string name="action_ok">Confirm</string>
     <string name="action_cancel">Cancel</string>
-    <string name="select_server">Select Connector</string>
-    <string name="select_server_toast">You must select the connector first.</string>
+    <string name="select_server">Select Web Based Proxy or Login Method</string>
+    <string name="select_server_toast">Login method must be chosen first</string>
     <string name="cache_clear_text">Clear Cache</string>
-    <string name="cache_cleared_toast">webview cache cleared</string>
-    <string name="clearcache_msg">Use this function only when the image or audio is not loaded properly. Do you really want to clear the cache?</string>
+    <string name="cache_cleared_toast">Webview cache cleared</string>
+    <string name="clearcache_msg">Only use this function when image or audio is not loaded properly. Do you really want to clear the cache?</string>
     <string name="backpress_msg">Do you really want to exit?</string>
     <string name="refresh_msg">Do you really want to refresh?</string>
     <string name="mode_landscape">Landscape Mode</string>
-    <string name="mode_adjustment">Layout Adjustment</string>
+    <string name="mode_adjustment">Auto Layout Adjustment</string>
     <string name="mode_silent">Start with Audio OFF</string>
-    <string name="mode_show_panel">show control panel</string>
-    <string name="mode_enable_keyboard">enable keyboard input</string>
+    <string name="mode_show_panel">Show Control Panel on Start</string>
+    <string name="mode_enable_keyboard">Enable Keyboard Input</string>
     <string name="button_start">START</string>
     <string name="text_save">Save</string>
     <string name="text_cancel">Cancel</string>
     <string name="subtitle_default">SUBTITLE AREA / TOUCH TO HIDE</string>
     <string name="autocomplete_title">Login Autocomplete</string>
-    <string name="autocomplete_msg">This information will be used to fill the login form.</string>
+    <string name="autocomplete_msg">This information will only be used to fill the login form</string>
     <string name="settings_version_label">Current Version</string>
     <string name="settings_version_check">Check Update</string>
     <string name="settings_subtitle_label">Download Subtitle Data</string>
     <string name="settings_subtitle_language" formatted="false">Current Language: %s</string>
     <string name="settings_appinfo_label">App Information</string>
-    <string name="no_subtitle_file">Please download subtitle file from the settings first.</string>
-    <string name="setting_latest_version">You have a latest version.</string>
-    <string name="setting_latest_download" formatted="false">An update is available. (%s)\nDo you wish to download it?</string>
+    <string name="no_subtitle_file">Please download subtitle Data from the settings first</string>
+    <string name="setting_latest_version">You have the latest version</string>
+    <string name="setting_latest_download" formatted="false">An update is available. (%s)\nDo you want to download it?</string>
 
     <string name="github_link" translatable="false">https://github.com/antest1/GotoBrowser/</string>
     <string name="license_link" translatable="false">http://www.apache.org/licenses/</string>
