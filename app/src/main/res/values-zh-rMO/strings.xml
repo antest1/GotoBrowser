@@ -2,32 +2,32 @@
     <string name="app_name">GotoBrowser</string>
     <string name="action_ok">確定</string>
     <string name="action_cancel">取消</string>
-    <string name="select_server">選擇連接點</string>
-    <string name="select_server_toast">你需要先選擇一個連接點。</string>
+    <string name="select_server">選擇在線緩存/登錄方式</string>
+    <string name="select_server_toast">必須先選擇一個登錄方式</string>
     <string name="cache_clear_text">清除快取</string>
-    <string name="cache_cleared_toast">webview 快取已清理</string>
-    <string name="clearcache_msg">僅當圖象或聲音未正確載入時使用此選項。確認清除快取嗎？</string>
+    <string name="cache_cleared_toast">Webview快取已清除</string>
+    <string name="clearcache_msg">僅當圖象或聲音未正確載入時使用此選項，確認清除快取嗎？</string>
     <string name="backpress_msg">要離開了嗎？</string>
-    <string name="refresh_msg">是否刷新頁面？</string>
-    <string name="mode_landscape">橫置模式</string>
-    <string name="mode_adjustment">佈局調節</string>
-    <string name="mode_silent">靜音模式啟動</string>
-    <string name="mode_show_panel">顯示控制台</string>
-    <string name="mode_enable_keyboard">激活鍵盤輸入</string>
+    <string name="refresh_msg">是否要刷新頁面？</string>
+    <string name="mode_landscape">橫向模式</string>
+    <string name="mode_adjustment">自動調整佈局</string>
+    <string name="mode_silent">在靜音模式下啟動</string>
+    <string name="mode_show_panel">啟動時顯示控制台</string>
+    <string name="mode_enable_keyboard">準許鍵盤輸入</string>
     <string name="button_start">開始遊戲</string>
     <string name="text_save">保存</string>
-    <string name="text_cancel">Cancel</string>
+    <string name="text_cancel">取消</string>
     <string name="subtitle_default">字幕區域 / 輕觸關閉</string>
     <string name="autocomplete_title">自動登錄</string>
-    <string name="autocomplete_msg">此信息將用於填入登錄框</string>
+    <string name="autocomplete_msg">此資料將只用於填寫登錄信息</string>
     <string name="settings_version_label">當前版本</string>
     <string name="settings_version_check">檢查更新</string>
     <string name="settings_subtitle_label">下載字幕數據</string>
     <string name="settings_subtitle_language" formatted="false">當前語言: %s</string>
-    <string name="settings_appinfo_label">程序信息</string>
-    <string name="no_subtitle_file">請先從設定中下載字幕數據。</string>
-    <string name="setting_latest_version">已是最新版本。</string>
-    <string name="setting_latest_download" formatted="false">有一個可用的更新。 (%s)\n是否要下載？</string>
+    <string name="settings_appinfo_label">應用信息</string>
+    <string name="no_subtitle_file">請先從設定中下載字幕數據</string>
+    <string name="setting_latest_version">已是最新版本</string>
+    <string name="setting_latest_download" formatted="false">有一個可用的更新 (%s)\n是否要下載？</string>
     <string name="settings_resource_label" translatable="false">下載圖像資源</string>
     <string name="settings_resource_btn">下載</string>
 </resources>
