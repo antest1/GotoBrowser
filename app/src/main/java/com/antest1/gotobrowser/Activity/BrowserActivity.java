@@ -118,8 +118,8 @@ public class BrowserActivity extends AppCompatActivity {
 
             String options = intent.getStringExtra("options");
             if (options != null) {
-                View broswerPanel = findViewById(R.id.browser_panel);
-                broswerPanel.setVisibility(options.contains(ACTION_SHOWPANEL)?  View.VISIBLE : View.GONE);
+                View browserPanel = findViewById(R.id.browser_panel);
+                browserPanel.setVisibility(options.contains(ACTION_SHOWPANEL)?  View.VISIBLE : View.GONE);
                 if (!options.contains(ACTION_SHOWKEYBOARD)) {
                     mContentView.setFocusableInTouchMode(false);
                     mContentView.setFocusable(false);
