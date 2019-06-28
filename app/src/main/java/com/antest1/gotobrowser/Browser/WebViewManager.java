@@ -352,45 +352,27 @@ public class WebViewManager {
                     REFRESH_DETECT_CALL, connector_info.get(0)), value -> {
                 if (value.equals("true")) {
                     sharedPref.edit().putString(PREF_LATEST_URL, connector_info.get(0)).apply();
-                    setDefaultPage(activity, webview, true);
+                    openPage(activity, webview, connector_info, true);
                 }
             });
         }
     }
 
-    public static List<String> setDefaultPage(BrowserActivity activity, WebViewL webview, boolean isKcBrowser) {
-        List<String> url_list = new ArrayList<>();
-        String connector_url = "";
-        String connector_url_default = "";
-
+    public static void openPage(BrowserActivity activity, WebViewL webview, List<String> connector_info, boolean isKcBrowser) {
         SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         String login_id = sharedPref.getString(PREF_DMM_ID, ""); // intent.getStringExtra("login_id");
         String login_password = sharedPref.getString(PREF_DMM_PASS, "");
-        webview.resumeTimers();
+        if (connector_info == null || connector_info.size() != 2) return;
+
+        String connector_url_default = connector_info.get(0);
+        String connector_url = connector_info.get(1);
 
         if (!isKcBrowser) {
-            String download_url = activity.getString(R.string.resource_download_link);
-            webview.loadUrl(download_url);
-            url_list.add(download_url);
-            url_list.add(download_url);
+            webview.loadUrl(connector_url);
         } else {
             String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
-            if (CONN_DMM.equals(pref_connector)) {
-                connector_url_default = URL_DMM;
-                connector_url = sharedPref.getString(PREF_LATEST_URL, URL_DMM);
-                webview.loadUrl(connector_url);
-                url_list.add(connector_url_default);
-                url_list.add(connector_url);
-            } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
-                if (CONN_KANSU.equals(pref_connector)) {
-                    connector_url_default = URL_KANSU;
-                    connector_url = URL_KANSU;
-                    sharedPref.getString(PREF_LATEST_URL, URL_KANSU);
-                } else {
-                    connector_url_default = URL_OOI;
-                    connector_url = URL_OOI;
-                }
+            if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
                 String postdata = "";
                 try {
                     int connect_mode = connector_url_default.equals(URL_OOI) ? 3 : 4;
@@ -402,14 +384,40 @@ public class WebViewManager {
                 } catch (UnsupportedEncodingException e) {
                     KcUtils.reportException(e);
                 }
+            } else {
+                webview.loadUrl(connector_url);
+            }
+        }
+    }
+
+    public static List<String> getDefaultPage(BrowserActivity activity, boolean isKcBrowser) {
+        List<String> url_list = new ArrayList<>();
+        SharedPreferences sharedPref = activity.getSharedPreferences(
+                activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
+        if (!isKcBrowser) {
+            String download_url = activity.getString(R.string.resource_download_link);
+            url_list.add(download_url);
+            url_list.add(download_url);
+        } else {
+            String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
+            if (CONN_DMM.equals(pref_connector)) {
+                url_list.add(URL_DMM);
+                url_list.add(sharedPref.getString(PREF_LATEST_URL, URL_DMM));
+            } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
+                String connector_url = "";
+                String connector_url_default = "";
+                if (CONN_KANSU.equals(pref_connector)) {
+                    connector_url_default = URL_KANSU;
+                    connector_url = URL_KANSU;
+                } else {
+                    connector_url_default = URL_OOI;
+                    connector_url = sharedPref.getString(PREF_LATEST_URL, URL_OOI);
+                }
                 url_list.add(connector_url_default);
                 url_list.add(connector_url);
             } else if (CONN_NITRABBIT.equals(pref_connector)) {
-                connector_url_default = URL_NITRABBIT;
-                connector_url = sharedPref.getString(PREF_LATEST_URL, URL_NITRABBIT);
-                webview.loadUrl(connector_url);
-                url_list.add(connector_url_default);
-                url_list.add(connector_url);
+                url_list.add(URL_NITRABBIT);
+                url_list.add(sharedPref.getString(PREF_LATEST_URL, URL_NITRABBIT));
             }
         }
         return url_list;

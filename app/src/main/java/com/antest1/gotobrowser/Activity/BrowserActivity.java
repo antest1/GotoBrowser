@@ -7,9 +7,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -27,40 +24,23 @@ import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.KcUtils;
-import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.KcSubtitleUtils;
-import com.crashlytics.android.Crashlytics;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.regex.Pattern;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import okhttp3.OkHttpClient;
-
-import com.antest1.gotobrowser.Helpers.MediaPlayerPool;
 
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
-import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
-import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
 import static com.antest1.gotobrowser.Constants.PREF_KEEPMODE;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
@@ -71,7 +51,6 @@ import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_VPADDING;
 import static com.antest1.gotobrowser.Constants.RESIZE_CALL;
-import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 
 public class BrowserActivity extends AppCompatActivity {
     private static final int AUDIO_POOL_LIMIT = 10;
@@ -189,15 +168,18 @@ public class BrowserActivity extends AppCompatActivity {
         String subtitle_local = sharedPref.getString(PREF_SUBTITLE_LOCALE, "en");
         KcSubtitleUtils.loadQuoteAnnotation(getApplicationContext());
         isSubtitleLoaded = KcSubtitleUtils.loadQuoteData(getApplicationContext(), subtitle_local);
+        connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
 
-        WebViewManager.setWebViewSettings(mContentView);;
-        WebViewManager.enableBrowserCookie(mContentView);
-        WebViewManager.setWebViewClient(this, mContentView, connector_info);
-        WebViewManager.setWebViewDownloader(this, mContentView);
-        WebViewManager.setPopupView(this, mContentView);
-
-        connector_info = WebViewManager.setDefaultPage(BrowserActivity.this, mContentView, isKcBrowserMode);
-        if (connector_info.size() == 0) finish();
+        if (connector_info != null && connector_info.size() == 2) {
+            WebViewManager.setWebViewSettings(mContentView);
+            WebViewManager.enableBrowserCookie(mContentView);
+            WebViewManager.setWebViewClient(this, mContentView, connector_info);
+            WebViewManager.setWebViewDownloader(this, mContentView);
+            WebViewManager.setPopupView(this, mContentView);
+            WebViewManager.openPage(BrowserActivity.this, mContentView, connector_info, isKcBrowserMode);
+        } else {
+            finish();
+        }
     }
 
     @Override
@@ -452,8 +434,12 @@ public class BrowserActivity extends AppCompatActivity {
                 .setPositiveButton(R.string.action_ok,
                         (dialog, id) -> {
                             browserPlayer.pauseAll();
-                            connector_info = WebViewManager.setDefaultPage(BrowserActivity.this, mContentView, isKcBrowserMode);
-                            if (connector_info.size() == 0) finish();
+                            connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
+                            if (connector_info != null && connector_info.size() == 2) {
+                                WebViewManager.openPage(BrowserActivity.this, mContentView, connector_info, isKcBrowserMode);
+                            } else {
+                                finish();
+                            }
                         })
                 .setNegativeButton(R.string.action_cancel,
                         (dialog, id) -> {
