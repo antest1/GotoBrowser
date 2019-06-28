@@ -51,12 +51,13 @@ public class Constants {
     public static final String AUTOCOMPLETE_OOI = "$(\"#login_id\").val(\"%s\");$(\"#password\").val(\"%s\");";
     public static final String AUTOCOMPLETE_NIT = "$(\"input[name=id]\").val(\"%s\");$(\"input[name=pw]\").val(\"%s\");";
 
-    public static final String[] SUBTITLE_LOCALE = {"en", "kr"};
+    public static final String[] SUBTITLE_LOCALE = {"en", "kr", "jp"};
     public static final String GITHUBAPI_ROOT = "https://api.github.com/";
     public static final String SUBTITLE_ROOT = "https://raw.githubusercontent.com/";
     public static final String[] SUBTITLE_PATH = {
             "data/en/quotes.json",
-            "data/kr/quotes.json"
+            "data/kr/quotes.json",
+            "data/jp/quotes.json"
     };
 
     public static final String[] REQUEST_BLOCK_RULES = {
