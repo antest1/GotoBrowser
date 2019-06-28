@@ -590,7 +590,7 @@ public class ResourceProcess {
             Response voice_special = resourceClient.newCall(voiceCodeRequest).execute();
             if (voice_special.body() != null) {
                 String voice_special_code = voice_special.body().string();
-                KcSubtitleUtils.specialVoiceCode = voice_special_code;
+                KcSubtitleUtils.specialVoiceCode = voice_special_code.trim();
                 Log.e("GOTO", "special_voice: " + voice_special_code);
             }
         } catch (IOException e) {

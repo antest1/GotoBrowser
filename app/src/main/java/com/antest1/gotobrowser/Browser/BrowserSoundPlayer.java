@@ -57,14 +57,16 @@ public class BrowserSoundPlayer {
         if (PLAYER_ALL.equals(player_set)) {
             for (String key: volumes.keySet()) {
                 volumes.put(key, value);
-                players.get(key).setVolumeAll(value, value);
+                if (isMuteMode) players.get(key).setVolumeAll(0.0f, 0.0f);
+                else players.get(key).setVolumeAll(value, value);
             }
         } else {
             String[] player_list = player_set.split(",");
             for (String key: player_list) {
                 if (volumes.containsKey(key)) {
                     volumes.put(key, value);
-                    players.get(key).setVolumeAll(value, value);
+                    if (isMuteMode) players.get(key).setVolumeAll(0.0f, 0.0f);
+                    else players.get(key).setVolumeAll(value, value);
                 }
             }
         }
