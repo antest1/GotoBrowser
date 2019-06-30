@@ -82,19 +82,34 @@ public class MediaPlayerPool {
                 continue;
             }
         }
-
         return false;
     }
 
     public void pauseAll() {
+        List<MediaPlayer> remove_target = new ArrayList<>();
         for (MediaPlayer player: players) {
-            player.pause();
+            try {
+                player.pause();
+            } catch (IllegalStateException e) {
+                remove_target.add(player);
+            }
+        }
+        for (MediaPlayer player: remove_target) {
+            players.remove(player);
         }
     }
 
     public void stopAll() {
+        List<MediaPlayer> remove_target = new ArrayList<>();
         for (MediaPlayer player: players) {
-            player.stop();
+            try {
+                player.stop();
+            } catch (IllegalStateException e) {
+                remove_target.add(player);
+            }
+        }
+        for (MediaPlayer player: remove_target) {
+            players.remove(player);
         }
     }
 
@@ -105,8 +120,16 @@ public class MediaPlayerPool {
     }
 
     public void setVolumeAll(float volumeLeft, float volumeRight) {
+        List<MediaPlayer> remove_target = new ArrayList<>();
         for (MediaPlayer player: players) {
-            player.setVolume(volumeLeft, volumeRight);
+            try {
+                player.setVolume(volumeLeft, volumeRight);
+            } catch (IllegalStateException e) {
+                remove_target.add(player);
+            }
+        }
+        for (MediaPlayer player: remove_target) {
+            players.remove(player);
         }
     }
 

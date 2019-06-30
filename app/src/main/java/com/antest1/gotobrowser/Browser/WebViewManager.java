@@ -460,7 +460,9 @@ public class WebViewManager {
                     String finish_message = message;
                     activity.runOnUiThread(() -> {
                         activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                        if (downloadDialog != null && downloadDialog.isShowing()) downloadDialog.dismiss();
+                        if (!activity.isFinishing() && downloadDialog != null && downloadDialog.isShowing()) {
+                            downloadDialog.dismiss();
+                        }
                         KcUtils.showToast(context, finish_message);
                     });
                     versionTable.close();
