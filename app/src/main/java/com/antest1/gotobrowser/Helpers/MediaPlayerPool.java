@@ -64,6 +64,7 @@ public class MediaPlayerPool {
             try {
                 player.start();
             } catch (IllegalStateException e) {
+                KcUtils.reportException(e);
                 remove_target.add(player);
             }
         }
@@ -79,6 +80,7 @@ public class MediaPlayerPool {
                     return true;
                 }
             } catch (IllegalStateException e) {
+                KcUtils.reportException(e);
                 continue;
             }
         }
@@ -91,6 +93,7 @@ public class MediaPlayerPool {
             try {
                 player.pause();
             } catch (IllegalStateException e) {
+                KcUtils.reportException(e);
                 remove_target.add(player);
             }
         }
@@ -105,6 +108,7 @@ public class MediaPlayerPool {
             try {
                 player.stop();
             } catch (IllegalStateException e) {
+                KcUtils.reportException(e);
                 remove_target.add(player);
             }
         }
@@ -125,6 +129,7 @@ public class MediaPlayerPool {
             try {
                 player.setVolume(volumeLeft, volumeRight);
             } catch (IllegalStateException e) {
+                KcUtils.reportException(e);
                 remove_target.add(player);
             }
         }
@@ -153,7 +158,6 @@ public class MediaPlayerPool {
         if( players.size() >= streamsLimit ) {
             removeOldestTrack();
         }
-
         players.add(player);
     }
 
@@ -163,6 +167,7 @@ public class MediaPlayerPool {
             oldestPlayer.stop();
             oldestPlayer.release();
         } catch (IllegalStateException e) {
+            KcUtils.reportException(e);
             // possibly already released: do nothing
         }
         players.removeFirst();

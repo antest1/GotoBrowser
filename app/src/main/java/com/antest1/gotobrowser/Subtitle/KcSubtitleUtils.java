@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
 
+import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -191,8 +192,7 @@ public class KcSubtitleUtils {
             quoteData = gson.fromJson(sb.toString(), JsonObject.class);
             quoteTimingData = quoteData.getAsJsonObject("timing");
         } catch (IOException e) {
-            e.printStackTrace();
-            Crashlytics.logException(e);
+            KcUtils.reportException(e);
             return false;
         }
         Log.e("GOTO", "quote_data: " + quoteData.size());

@@ -389,7 +389,9 @@ public class ResourceProcess {
         }
         Log.e("GOTO-R", "check resource " + path + ": " + version);
 
-        boolean versionMatches = versionTable.getValue(path).equals(version);
+
+        String version_tb = versionTable.getValue(path);
+        boolean versionMatches =  version_tb != null && version_tb.equals(version);
         if ((is_image || is_audio) && !versionMatches) {
             update_flag = true;
             versionTable.putValue(path, version);

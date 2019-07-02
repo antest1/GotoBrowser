@@ -53,7 +53,6 @@ import static com.antest1.gotobrowser.Constants.PREF_VPADDING;
 import static com.antest1.gotobrowser.Constants.RESIZE_CALL;
 
 public class BrowserActivity extends AppCompatActivity {
-    private static final int AUDIO_POOL_LIMIT = 10;
     private int uiOption;
 
     private SharedPreferences sharedPref;
@@ -82,103 +81,115 @@ public class BrowserActivity extends AppCompatActivity {
         uiOption = getWindow().getDecorView().getSystemUiVisibility();
         WebViewManager.setHardwardAcceleratedFlag(this);
         WebViewManager.setDataDirectorySuffix(this);
-        setContentView(R.layout.activity_fullscreen);
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) actionBar.hide();
+        try {
+            setContentView(R.layout.activity_fullscreen);
 
-        mContentView = findViewById(R.id.main_browser);
-        WebViewManager.setGestureDetector(this, mContentView);
+            ActionBar actionBar = getSupportActionBar();
+            if (actionBar != null) actionBar.hide();
 
-        // panel, keyboard settings
-        Intent intent = getIntent();
-        if (intent != null) {
-            String action = intent.getAction();
-            isKcBrowserMode = OPEN_KANCOLLE.equals(action);
+            mContentView = findViewById(R.id.main_browser);
+            WebViewManager.setGestureDetector(this, mContentView);
 
-            String options = intent.getStringExtra("options");
-            if (options != null) {
-                View browserPanel = findViewById(R.id.browser_panel);
-                browserPanel.setVisibility(options.contains(ACTION_SHOWPANEL)?  View.VISIBLE : View.GONE);
-                if (!options.contains(ACTION_SHOWKEYBOARD)) {
-                    mContentView.setFocusableInTouchMode(false);
-                    mContentView.setFocusable(false);
-                    mContentView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+            // panel, keyboard settings
+            Intent intent = getIntent();
+            if (intent != null) {
+                String action = intent.getAction();
+                isKcBrowserMode = OPEN_KANCOLLE.equals(action);
+
+                String options = intent.getStringExtra("options");
+                if (options != null) {
+                    View browserPanel = findViewById(R.id.browser_panel);
+                    browserPanel.setVisibility(options.contains(ACTION_SHOWPANEL)?  View.VISIBLE : View.GONE);
+                    if (!options.contains(ACTION_SHOWKEYBOARD)) {
+                        mContentView.setFocusableInTouchMode(false);
+                        mContentView.setFocusable(false);
+                        mContentView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+                    }
                 }
             }
-        }
 
-        backPressCloseHandler = new BackPressCloseHandler(this);
-        sharedPref = getSharedPreferences(
-                getString(R.string.preference_key), Context.MODE_PRIVATE);
+            backPressCloseHandler = new BackPressCloseHandler(this);
+            sharedPref = getSharedPreferences(
+                    getString(R.string.preference_key), Context.MODE_PRIVATE);
 
-        boolean isLandscapeMode = sharedPref.getBoolean(PREF_LANDSCAPE, false);
-        boolean isSilentMode = sharedPref.getBoolean(PREF_SILENT, false);
-        isMuteMode = sharedPref.getBoolean(PREF_MUTEMODE, false);
-        isLockMode = sharedPref.getBoolean(PREF_LOCKMODE, false);
-        isKeepMode = sharedPref.getBoolean(PREF_KEEPMODE, false);
-        isCaptionMode = sharedPref.getBoolean(PREF_SHOWCC, false);
+            boolean isLandscapeMode = sharedPref.getBoolean(PREF_LANDSCAPE, false);
+            boolean isSilentMode = sharedPref.getBoolean(PREF_SILENT, false);
+            isMuteMode = sharedPref.getBoolean(PREF_MUTEMODE, false);
+            isLockMode = sharedPref.getBoolean(PREF_LOCKMODE, false);
+            isKeepMode = sharedPref.getBoolean(PREF_KEEPMODE, false);
+            isCaptionMode = sharedPref.getBoolean(PREF_SHOWCC, false);
 
-        executor = Executors.newScheduledThreadPool(1);
+            executor = Executors.newScheduledThreadPool(1);
 
-        if (isLandscapeMode) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
-        if (isSilentMode) WebViewManager.setSoundMuteCookie(mContentView);
-        if (isKeepMode) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        BrowserSoundPlayer.setmute(isMuteMode);
+            if (isLandscapeMode) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+            if (isSilentMode) WebViewManager.setSoundMuteCookie(mContentView);
+            if (isKeepMode) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            BrowserSoundPlayer.setmute(isMuteMode);
 
-        mHorizontalControlView = findViewById(R.id.control_component);
-        mHorizontalControlView.setVisibility(View.GONE);
-        mVerticalControlView = findViewById(R.id.vcontrol_component);
-        mVerticalControlView.setVisibility(View.GONE);
+            mHorizontalControlView = findViewById(R.id.control_component);
+            mHorizontalControlView.setVisibility(View.GONE);
+            mVerticalControlView = findViewById(R.id.vcontrol_component);
+            mVerticalControlView.setVisibility(View.GONE);
 
-        downloadDialog = new ProgressDialog(BrowserActivity.this);
+            downloadDialog = new ProgressDialog(BrowserActivity.this);
 
-        // Browser Panel Buttons
-        View menuRefresh = findViewById(R.id.menu_refresh);
-        menuRefresh.setOnClickListener(v -> showRefreshDialog());
+            // Browser Panel Buttons
+            View menuRefresh = findViewById(R.id.menu_refresh);
+            menuRefresh.setOnClickListener(v -> showRefreshDialog());
 
-        View menuAspect = findViewById(R.id.menu_aspect);
-        menuAspect.setOnClickListener(v -> showLayoutAspectControls());
-        setLayoutAspectController();
+            View menuAspect = findViewById(R.id.menu_aspect);
+            menuAspect.setOnClickListener(v -> showLayoutAspectControls());
+            setLayoutAspectController();
 
-        View menuMute = findViewById(R.id.menu_mute);
-        menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isMuteMode ? R.color.panel_red : R.color.black));
-        menuMute.setOnClickListener(this::setMuteMode);
+            View menuMute = findViewById(R.id.menu_mute);
+            menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isMuteMode ? R.color.panel_red : R.color.black));
+            menuMute.setOnClickListener(this::setMuteMode);
 
-        View menuLock = findViewById(R.id.menu_lock);
-        menuLock.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isLockMode ? R.color.panel_red : R.color.black));
-        menuLock.setOnClickListener(this::setOrientationLockMode);
+            View menuLock = findViewById(R.id.menu_lock);
+            menuLock.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isLockMode ? R.color.panel_red : R.color.black));
+            menuLock.setOnClickListener(this::setOrientationLockMode);
 
-        View menuBrightOn = findViewById(R.id.menu_brighton);
-        menuBrightOn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isKeepMode ? R.color.panel_red : R.color.black));
-        menuBrightOn.setOnClickListener(this::setBrightOnMode);
+            View menuBrightOn = findViewById(R.id.menu_brighton);
+            menuBrightOn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isKeepMode ? R.color.panel_red : R.color.black));
+            menuBrightOn.setOnClickListener(this::setBrightOnMode);
 
-        View menuCaption = findViewById(R.id.menu_cc);
-        menuCaption.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isCaptionMode ? R.color.panel_red : R.color.black));
-        menuCaption.setOnClickListener(this::setCaptionMode);
+            View menuCaption = findViewById(R.id.menu_cc);
+            menuCaption.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isCaptionMode ? R.color.panel_red : R.color.black));
+            menuCaption.setOnClickListener(this::setCaptionMode);
 
-        View menuClose = findViewById(R.id.menu_close);
-        menuClose.setOnClickListener(v -> { findViewById(R.id.browser_panel).setVisibility(View.GONE); });
+            View menuClose = findViewById(R.id.menu_close);
+            menuClose.setOnClickListener(v -> { findViewById(R.id.browser_panel).setVisibility(View.GONE); });
 
-        subtitleText = findViewById(R.id.subtitle_view);
-        subtitleText.setVisibility(isKcBrowserMode && isCaptionMode ? View.VISIBLE : View.GONE);
-        subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
+            subtitleText = findViewById(R.id.subtitle_view);
+            subtitleText.setVisibility(isKcBrowserMode && isCaptionMode ? View.VISIBLE : View.GONE);
+            subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
 
-        // defaultSubtitleMargin = getDefaultSubtitleMargin();
-        setSubtitleMargin(sharedPref.getInt(PREF_PADDING, 0));
-        String subtitle_local = sharedPref.getString(PREF_SUBTITLE_LOCALE, "en");
-        KcSubtitleUtils.loadQuoteAnnotation(getApplicationContext());
-        isSubtitleLoaded = KcSubtitleUtils.loadQuoteData(getApplicationContext(), subtitle_local);
-        connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
+            // defaultSubtitleMargin = getDefaultSubtitleMargin();
+            setSubtitleMargin(sharedPref.getInt(PREF_PADDING, 0));
+            String subtitle_local = sharedPref.getString(PREF_SUBTITLE_LOCALE, "en");
+            KcSubtitleUtils.loadQuoteAnnotation(getApplicationContext());
+            isSubtitleLoaded = KcSubtitleUtils.loadQuoteData(getApplicationContext(), subtitle_local);
+            connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
 
-        if (connector_info != null && connector_info.size() == 2) {
-            WebViewManager.setWebViewSettings(mContentView);
-            WebViewManager.enableBrowserCookie(mContentView);
-            WebViewManager.setWebViewClient(this, mContentView, connector_info);
-            WebViewManager.setWebViewDownloader(this, mContentView);
-            WebViewManager.setPopupView(this, mContentView);
-            WebViewManager.openPage(BrowserActivity.this, mContentView, connector_info, isKcBrowserMode);
-        } else {
-            finish();
+            if (connector_info != null && connector_info.size() == 2) {
+                WebViewManager.setWebViewSettings(mContentView);
+                WebViewManager.enableBrowserCookie(mContentView);
+                WebViewManager.setWebViewClient(this, mContentView, connector_info);
+                WebViewManager.setWebViewDownloader(this, mContentView);
+                WebViewManager.setPopupView(this, mContentView);
+                WebViewManager.openPage(BrowserActivity.this, mContentView, connector_info, isKcBrowserMode);
+            } else {
+                finish();
+            }
+        } catch (Exception e) {
+            String exception_str = KcUtils.getStringFromException(e);
+            setContentView(R.layout.activity_empty);
+            TextView tv = findViewById(R.id.error_text);
+            tv.setText(exception_str);
+            KcUtils.reportException(e);
+            if (exception_str.toLowerCase().contains("no webview")) {
+                KcUtils.showToast(getApplicationContext(), "WebView not installed");
+            }
         }
     }
 

@@ -58,7 +58,7 @@ public class VersionDatabase extends SQLiteOpenHelper {
                 value = c.getString(c.getColumnIndex("VALUE"));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            KcUtils.reportException(e);
         } finally {
             if (c != null) c.close();
         }
@@ -97,8 +97,7 @@ public class VersionDatabase extends SQLiteOpenHelper {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            Crashlytics.logException(e);
+            KcUtils.reportException(e);
         } finally {
             if (c != null) c.close();
         }

@@ -97,7 +97,7 @@ public class BrowserSoundPlayer {
         }
     }
 
-    private void set(MediaPlayer player, File file, float volume) {
+    private boolean set(MediaPlayer player, File file, float volume) {
         if (isMuteMode) volume = 0.0f;
         try {
             String path = file.getAbsolutePath();
@@ -105,9 +105,10 @@ public class BrowserSoundPlayer {
             player.setLooping(shouldAudioLoop(path));
             player.setDataSource(path);
             player.prepare();
+            return true;
         } catch (IOException e) {
-            Crashlytics.logException(e);
-            e.printStackTrace();
+            KcUtils.reportException(e);
+            return false;
         }
     }
 
@@ -125,9 +126,11 @@ public class BrowserSoundPlayer {
         float volume = ismute() ? 0.0f : volumes.get(player_id);
         if (player != null) {
             MediaPlayer audio = new MediaPlayer();
-            set(audio, file, volume);
-            player.addToPool(audio);
-            audio.start();
+            boolean result = set(audio, file, volume);
+            if (result) {
+                player.addToPool(audio);
+                audio.start();
+            }
         }
     }
 
