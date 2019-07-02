@@ -174,31 +174,43 @@ public class KcUtils {
         }
     }
 
-    public static String downloadResourceWithLastModified(OkHttpClient client, String fullpath, File file) {
-        Request request = new Request.Builder().url(fullpath).build();
+    public static String downloadResource(OkHttpClient client, String fullpath, String last_modified, File file) {
+        Request.Builder builder = new Request.Builder().url(fullpath);
+        if (last_modified != null && !VersionDatabase.isDefaultValue(last_modified)) {
+            builder.addHeader("If-Modified-Since", last_modified);
+            Log.e("GOTO", "If-Modified-Since: " + last_modified);
+        } else {
+            builder.addHeader("Cache-Control", "no-cache");
+        }
+        Request request = builder.build();
         try {
             Response response = client.newCall(request).execute();
-            String last_modified = response.header("Last-Modified", "none");
-            ResponseBody body = response.body();
-            if (body != null) {
-                InputStream in = body.byteStream();
-                byte[] buffer = new byte[8 * 1024];
-                int bytes;
-                file.getParentFile().mkdirs();
-                FileOutputStream fos = new FileOutputStream(file);
-                while ((bytes = in.read(buffer)) != -1) {
-                    fos.write(buffer, 0, bytes);
+            if (response.code() == 200) {
+                Log.e("GOTO", "200 OK " + fullpath);
+                String new_last_modified = response.header("Last-Modified", "none");
+                ResponseBody body = response.body();
+                if (body != null) {
+                    InputStream in = body.byteStream();
+                    byte[] buffer = new byte[8 * 1024];
+                    int bytes;
+                    file.getParentFile().mkdirs();
+                    FileOutputStream fos = new FileOutputStream(file);
+                    while ((bytes = in.read(buffer)) != -1) {
+                        fos.write(buffer, 0, bytes);
+                    }
+                    fos.close();
+                    body.close();
                 }
-                fos.close();
-                body.close();
-                return last_modified;
-            } else {
-                return "";
+                return new_last_modified;
+            } else if (response.code() == 304) {
+                Log.e("GOTO", "304 Not Modified " + fullpath);
+                return "304";
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            KcUtils.reportException(e);
             return null;
         }
+        return null;
     }
 
     public static Retrofit getRetrofitAdapter(Context context, String baseUrl) {

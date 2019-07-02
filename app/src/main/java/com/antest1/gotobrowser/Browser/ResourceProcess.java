@@ -58,7 +58,7 @@ import static com.antest1.gotobrowser.Browser.BrowserSoundPlayer.PLAYER_SE;
 import static com.antest1.gotobrowser.Browser.BrowserSoundPlayer.PLAYER_VOICE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
-import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResourceWithLastModified;
+import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResource;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getEmptyStream;
 
 public class ResourceProcess {
@@ -139,7 +139,7 @@ public class ResourceProcess {
     public WebResourceResponse processWebRequest(Uri source) {
         String url = source.toString();
         int resource_type = getCurrentState(url);
-        Log.e("GOTO", url + " - " + String.valueOf(resource_type));
+        if (resource_type > 0) Log.e("GOTO", url + " - " + String.valueOf(resource_type));
         boolean is_image = ResourceProcess.isImage(resource_type);
         boolean is_audio = ResourceProcess.isAudio(resource_type);
         boolean is_json = ResourceProcess.isJson(resource_type);
@@ -191,14 +191,10 @@ public class ResourceProcess {
                 browserPlayer.stopSound(source_path, isOnPractice, currentMapId, currentBattleBgmId);
                 // browserPlayer.stopMp3(bgmPlayer, filepath);
 
-                JsonObject update_info = checkResourceUpdate(source, resource_type);
-                String version = update_info.get("version").getAsString();
-                boolean update_flag = update_info.get("update_flag").getAsBoolean();
-
-                if (is_image) return processImageResource(file_info, update_flag);
+                JsonObject update_info = checkResourceUpdate(source);
+                if (is_image || is_json) return processImageDataResource(file_info, update_info, resource_type);
                 if (is_js) return processScriptFile(file_info);
-                if (is_json) return processJsonFile(file_info, update_flag, version);
-                if (is_audio) return processAudioFile(file_info, update_flag);
+                if (is_audio) return processAudioFile(file_info, update_info);
             }
         } catch (Exception e) {
             KcUtils.reportException(e);
@@ -374,37 +370,28 @@ public class ResourceProcess {
         }
     }
 
-    private JsonObject checkResourceUpdate(Uri source, int resource_type) {
+    private JsonObject checkResourceUpdate(Uri source) {
         JsonObject update_info = new JsonObject();
         String version = "";
-        boolean update_flag = false;
+        boolean is_last_modified = false;
 
         String path = source.getPath();
-        boolean is_image = isImage(resource_type);
-        boolean is_audio = isAudio(resource_type);
-        boolean is_json = isJson(resource_type);
-
         if (source.getQueryParameterNames().contains("version")) {
             version = source.getQueryParameter("version");
+            if (version == null) version = "";
+            if (version.length() == 0) is_last_modified = true;
+        } else {
+            is_last_modified = true;
         }
-        Log.e("GOTO-R", "check resource " + path + ": " + version);
-
 
         String version_tb = versionTable.getValue(path);
-        boolean versionMatches =  version_tb != null && version_tb.equals(version);
-        if ((is_image || is_audio) && !versionMatches) {
-            update_flag = true;
-            versionTable.putValue(path, version);
-            Log.e("GOTO-R", "cache resource " + path + ": " + version);
-        } else if (is_json && !versionMatches) {
-            update_flag = true;
-            Log.e("GOTO-R", "cache json " + path + ": " + version);
-        } else {
-            Log.e("GOTO-R", "resource " + path + " found: " + version);
-        }
-
-        update_info.addProperty("version", version);
+        boolean update_flag = version_tb == null || !version_tb.equals(version);
+        update_info.addProperty("version", is_last_modified ? version_tb : version);
+        update_info.addProperty("is_last_modified", is_last_modified);
         update_info.addProperty("update_flag", update_flag);
+        Log.e("GOTO-R", "check resource " + path + ": " + version);
+        Log.e("GOTO-R", update_info.toString());
+
         return update_info;
     }
 
@@ -428,17 +415,46 @@ public class ResourceProcess {
         }
     }
 
-    private WebResourceResponse processImageResource(JsonObject file_info, boolean update_flag) throws FileNotFoundException {
+    private WebResourceResponse processImageDataResource(JsonObject file_info, JsonObject update_info, int resource_type) {
+        String version = update_info.get("version").getAsString();
+        boolean is_last_modified = update_info.get("is_last_modified").getAsBoolean();
+        boolean update_flag = update_info.get("update_flag").getAsBoolean();
+        String last_modified = is_last_modified ? version : null;
+
+        String path = file_info.get("path").getAsString();
         String resource_url = file_info.get("full_url").getAsString();
         String out_file_path = file_info.get("out_file_path").getAsString();
+
         File file = new File(out_file_path);
-        if (!file.exists() || update_flag) {
-            String result = downloadResourceWithLastModified(resourceClient, resource_url, file);
-            if (result == null) return null;
+        if (update_flag) {
+            String result = downloadResource(resourceClient, resource_url, last_modified, file);
+            String new_value = version;
+            if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value)) new_value = result;
+            if (result == null) {
+                Log.e("GOTO", "return null: " + path + " " + new_value);
+                return null;
+            } else if (result.equals("304")) {
+                Log.e("GOTO", "load cached resource: " + path + " " + new_value);
+            } else {
+                Log.e("GOTO", "cache resource: " + path + " " + new_value);
+                versionTable.putValue(path, new_value);
+            }
+        } else {
+            Log.e("GOTO", "load cached resource: " + path + " " + version);
         }
-        // Log.e("GOTO", "load from disk: " + path);
-        InputStream is = new BufferedInputStream(new FileInputStream(file));
-        return new WebResourceResponse("image/png", "utf-8", is);
+
+        try {
+            InputStream is = new BufferedInputStream(new FileInputStream(file));
+            Log.e("GOTO" , out_file_path + " " + is.available());
+            if (ResourceProcess.isImage(resource_type)) {
+                return new WebResourceResponse("image/png", "utf-8", is);
+            } else if (ResourceProcess.isJson(resource_type)) {
+                return new WebResourceResponse("application/json", "utf-8", is);
+            }
+        } catch (IOException e) {
+            KcUtils.reportException(e);
+        }
+        return null;
     }
 
     private WebResourceResponse processScriptFile(JsonObject file_info) throws IOException {
@@ -463,54 +479,33 @@ public class ResourceProcess {
         }
     }
 
-    private WebResourceResponse processJsonFile(JsonObject file_info, boolean update_flag, String version) {
+    private WebResourceResponse processAudioFile(JsonObject file_info, JsonObject update_info) throws IOException, ParseException {
         String url = file_info.get("url").getAsString();
+        String version = update_info.get("version").getAsString();
+        boolean is_last_modified = update_info.get("is_last_modified").getAsBoolean();
+        boolean update_flag = update_info.get("update_flag").getAsBoolean();
+        String last_modified = is_last_modified ? version : null;
+
         String path = file_info.get("path").getAsString();
-        String out_folder_dir = file_info.get("out_folder_dir").getAsString();
+        String resource_url = file_info.get("full_url").getAsString();
         String out_file_path = file_info.get("out_file_path").getAsString();
 
-        if (update_flag) {
-            File dir = new File(out_folder_dir);
-            if (!dir.exists()) dir.mkdirs();
-            File file = new File(out_file_path);
-
-            String image_source_path = url.replace(".json", ".png");
-            String last_modified_json = downloadResourceWithLastModified(resourceClient, url, file);
-            if (last_modified_json != null && !last_modified_json.equals(versionTable.getValue(image_source_path))) {
-                File img_file = new File(out_file_path.replace(".json", ".png"));
-                downloadResourceWithLastModified(resourceClient, image_source_path, img_file);
-            }
-
-            versionTable.putValue(path, version);
-            versionTable.putValue(image_source_path, last_modified_json);
-        }
-        return null;
-    }
-
-    private WebResourceResponse processAudioFile(JsonObject file_info, boolean update_flag) throws IOException, ParseException {
-        String url = file_info.get("url").getAsString();
-        String path = file_info.get("path").getAsString();
-        String out_folder_dir = file_info.get("out_folder_dir").getAsString();
-        String out_file_path = file_info.get("out_file_path").getAsString();
-
-        File dir = new File(out_folder_dir);
-        if (!dir.exists()) dir.mkdirs();
         File file = new File(out_file_path);
-        if (!file.exists() || update_flag) {
-            Request imageRequest = new Request.Builder().url(url).build();
-            Response response = resourceClient.newCall(imageRequest).execute();
-            ResponseBody body = response.body();
-            InputStream in = body.byteStream();
-
-            byte[] buffer = new byte[8 * 1024];
-            int bytes;
-            FileOutputStream fos = new FileOutputStream(file);
-            while ((bytes = in.read(buffer)) != -1) {
-                fos.write(buffer, 0, bytes);
+        if (update_flag) {
+            String result = downloadResource(resourceClient, resource_url, last_modified, file);
+            String new_value = version;
+            if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value)) new_value = result;
+            if (result == null) {
+                Log.e("GOTO", "return null: " + path + " " + new_value);
+                return null;
+            } else if (result.equals("304")) {
+                Log.e("GOTO", "load cached resource: " + path + " " + new_value);
+            } else {
+                Log.e("GOTO", "cache resource: " + path + " " + new_value);
+                versionTable.putValue(path, new_value);
             }
-            fos.close();
         } else {
-            Log.e("GOTO", "load from disk: " + out_file_path);
+            Log.e("GOTO", "load cached resource: " + path + " " + version);
         }
 
         if (url.contains("resources/se")) browserPlayer.play(PLAYER_SE, file);
