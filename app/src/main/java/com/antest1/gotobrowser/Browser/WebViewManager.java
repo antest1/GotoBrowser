@@ -368,6 +368,8 @@ public class WebViewManager {
         String connector_url_default = connector_info.get(0);
         String connector_url = connector_info.get(1);
 
+        webview.resumeTimers();
+        webview.getSettings().setTextZoom(100);
         if (!isKcBrowser) {
             webview.loadUrl(connector_url);
         } else {
