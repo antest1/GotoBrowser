@@ -16,8 +16,8 @@
     <com.antest1.gotobrowser.Browser.WebViewL
         android:id="@+id/main_browser"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </com.antest1.gotobrowser.Browser.WebViewL>
+        android:layout_height="match_parent"
+        android:background="@color/black"></com.antest1.gotobrowser.Browser.WebViewL>
 
     <ImageView
         android:id="@+id/dmm_browser_close"
