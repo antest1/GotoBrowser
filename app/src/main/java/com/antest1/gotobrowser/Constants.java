@@ -51,6 +51,8 @@ public class Constants {
     public static final String AUTOCOMPLETE_OOI = "$(\"#login_id\").val(\"%s\");$(\"#password\").val(\"%s\");";
     public static final String AUTOCOMPLETE_NIT = "$(\"input[name=id]\").val(\"%s\");$(\"input[name=pw]\").val(\"%s\");";
 
+    public static final String BROWSER_USERAGENT = String.format("Goto/%s ", BuildConfig.VERSION_NAME);
+
     public static final String[] SUBTITLE_LOCALE = {"en", "kr", "jp"};
     public static final String GITHUBAPI_ROOT = "https://api.github.com/";
     public static final String SUBTITLE_ROOT = "https://raw.githubusercontent.com/";

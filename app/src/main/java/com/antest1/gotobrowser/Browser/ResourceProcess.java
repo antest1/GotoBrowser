@@ -129,7 +129,7 @@ public class ResourceProcess {
             state |= RES_JS;
         }
 
-        if (url.contains("kcsapi")) {
+        if (url.contains("kcsapi") && !url.contains("osapi.dmm.com")) {
             state |= RES_KCSAPI;
         }
         return state;
@@ -147,6 +147,7 @@ public class ResourceProcess {
         boolean is_kcsapi = ResourceProcess.isKcsApi(resource_type);
 
         if (checkBlockedContent(url)) return getEmptyResponse();
+        if (url.contains("ooi.css")) return getOoiSheetFromAsset();
         if (url.contains("kcscontents/css/common.css")) return getBlackBackgroundSheet();
         if (resource_type == 0) return null;
 
@@ -164,9 +165,6 @@ public class ResourceProcess {
                     titleFiles.clear();
                     return null;
                 }
-
-                // block ooi.moe background
-                if (path.contains("ooi.css")) return getOoiSheetFromAsset();
 
                 // load game data
                 if (is_kcsapi && path.contains("/api_start2")) {

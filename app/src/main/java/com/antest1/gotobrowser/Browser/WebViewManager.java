@@ -24,10 +24,15 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
 
+import androidx.webkit.ProxyConfig;
+import androidx.webkit.ProxyController;
+import androidx.webkit.WebViewFeature;
+
 import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Constants;
 import com.antest1.gotobrowser.Helpers.KcUtils;
+import com.antest1.gotobrowser.Proxy.LocalProxyServer;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.Subtitle.KcSubtitleUtils;
@@ -40,6 +45,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executor;
 import java.util.regex.Pattern;
 
 import okhttp3.OkHttpClient;
@@ -82,6 +88,20 @@ public class WebViewManager {
     public static final String OPEN_KANCOLLE = "open_kancolle";
     public static final String OPEN_RES_DOWN = "open_res_down";
     public static final String userAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0";
+
+    public static void setProxy(Context context) {
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
+            ProxyConfig proxyConfig = new ProxyConfig.Builder()
+                    .addProxyRule(LocalProxyServer.getServerAddress())
+                    .build();
+            Executor executor = command -> { };
+            Runnable runnable = () -> { };
+            ProxyController.getInstance().setProxyOverride(proxyConfig, executor, runnable);
+            KcUtils.showToast(context, "PROXY_OVERRIDE_SUPPORTED");
+        } else {
+            KcUtils.showToast(context, "proxy_override_not_supported");
+        }
+    }
 
     public static void setHardwardAcceleratedFlag(BrowserActivity activity) {
         activity.getWindow().setFlags( WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
@@ -270,9 +290,6 @@ public class WebViewManager {
             }
         });
     }
-
-
-
 
     public static String getResourceDownloadOutputPath(Context context, Uri uri) {
         String outputpath = "";

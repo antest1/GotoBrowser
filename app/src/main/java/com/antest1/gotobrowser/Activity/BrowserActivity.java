@@ -18,17 +18,20 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.antest1.gotobrowser.Browser.BrowserSoundPlayer;
 import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.KcUtils;
+import com.antest1.gotobrowser.Proxy.LocalProxyServer;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.KcSubtitleUtils;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -36,6 +39,9 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.webkit.ProxyConfig;
+import androidx.webkit.ProxyController;
+import androidx.webkit.WebViewFeature;
 
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
@@ -60,6 +66,7 @@ public class BrowserActivity extends AppCompatActivity {
     private ProgressDialog downloadDialog;
     private View mHorizontalControlView, mVerticalControlView;
     private SeekBar mSeekBarH, mSeekBarV;
+    private LocalProxyServer proxy;
     private BrowserSoundPlayer browserPlayer;
 
     private boolean isKcBrowserMode = false;
@@ -81,6 +88,10 @@ public class BrowserActivity extends AppCompatActivity {
         uiOption = getWindow().getDecorView().getSystemUiVisibility();
         WebViewManager.setHardwardAcceleratedFlag(this);
         WebViewManager.setDataDirectorySuffix(this);
+
+        proxy = new LocalProxyServer(this);
+        proxy.start();
+
         try {
             setContentView(R.layout.activity_fullscreen);
 
@@ -254,6 +265,7 @@ public class BrowserActivity extends AppCompatActivity {
         }
         mContentView.removeAllViews();
         mContentView.destroy();
+        proxy.stop();
         super.onDestroy();
     }
 

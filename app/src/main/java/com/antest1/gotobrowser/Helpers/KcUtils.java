@@ -9,9 +9,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+import com.google.common.io.ByteStreams;
 import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -19,6 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -226,6 +230,27 @@ public class KcUtils {
         return retrofitBuilder.build();
     }
 
+    public static String joinStr(List<String> list, String delim) {
+        String resultStr = "";
+        if (list.size() > 0) {
+            int i;
+            for (i = 0; i < list.size() - 1; i++) {
+                resultStr = resultStr.concat(list.get(i));
+                resultStr = resultStr.concat(delim);
+            }
+            resultStr = resultStr.concat(list.get(i));
+        }
+        return resultStr;
+    }
 
+    public static byte[] gzipdecompress(byte[] contentBytes) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            ByteStreams.copy(new GZIPInputStream(new ByteArrayInputStream(contentBytes)), out);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return out.toByteArray();
+    }
 }
 

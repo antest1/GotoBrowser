@@ -17,14 +17,19 @@ import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
+import com.antest1.gotobrowser.Proxy.LocalProxyServer;
 import com.antest1.gotobrowser.R;
 
 import java.io.File;
 import java.util.Locale;
+import java.util.concurrent.Executor;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.webkit.ProxyConfig;
+import androidx.webkit.ProxyController;
+import androidx.webkit.WebViewFeature;
 
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
@@ -101,6 +106,8 @@ public class EntranceActivity extends AppCompatActivity {
 
         TextView versionText = findViewById(R.id.version_info);
         versionText.setText(String.format(Locale.US, getString(R.string.version_format), BuildConfig.VERSION_NAME));
+
+        WebViewManager.setProxy(getApplicationContext());
     }
 
     @Override
