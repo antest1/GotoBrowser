@@ -49,6 +49,7 @@ import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_KEEPMODE;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
+import static com.antest1.gotobrowser.Constants.PREF_LOCALPROXY;
 import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
 import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
 import static com.antest1.gotobrowser.Constants.PREF_PADDING;
@@ -69,6 +70,7 @@ public class BrowserActivity extends AppCompatActivity {
     private LocalProxyServer proxy;
     private BrowserSoundPlayer browserPlayer;
 
+    boolean isLocalProxyEnabled = false;
     private boolean isKcBrowserMode = false;
     private boolean isStartedFlag = false;
     private List<String> connector_info;
@@ -89,8 +91,15 @@ public class BrowserActivity extends AppCompatActivity {
         WebViewManager.setHardwardAcceleratedFlag(this);
         WebViewManager.setDataDirectorySuffix(this);
 
-        proxy = new LocalProxyServer(this);
-        proxy.start();
+        backPressCloseHandler = new BackPressCloseHandler(this);
+        sharedPref = getSharedPreferences(
+                getString(R.string.preference_key), Context.MODE_PRIVATE);
+
+        isLocalProxyEnabled = sharedPref.getBoolean(PREF_LOCALPROXY, false);
+        if (isLocalProxyEnabled) {
+            proxy = new LocalProxyServer(this);
+            proxy.start();
+        }
 
         try {
             setContentView(R.layout.activity_fullscreen);
@@ -118,10 +127,6 @@ public class BrowserActivity extends AppCompatActivity {
                     }
                 }
             }
-
-            backPressCloseHandler = new BackPressCloseHandler(this);
-            sharedPref = getSharedPreferences(
-                    getString(R.string.preference_key), Context.MODE_PRIVATE);
 
             boolean isLandscapeMode = sharedPref.getBoolean(PREF_LANDSCAPE, false);
             boolean isSilentMode = sharedPref.getBoolean(PREF_SILENT, false);
@@ -263,9 +268,9 @@ public class BrowserActivity extends AppCompatActivity {
             browserPlayer.stopAll();
             browserPlayer.releaseAll();
         }
+        if (isLocalProxyEnabled) proxy.stop();
         mContentView.removeAllViews();
         mContentView.destroy();
-        proxy.stop();
         super.onDestroy();
     }
 

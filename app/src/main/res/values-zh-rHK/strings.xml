@@ -12,6 +12,7 @@
     <string name="mode_landscape">橫向模式</string>
     <string name="mode_adjustment">自動調整佈局</string>
     <string name="mode_silent">在靜音模式下啟動</string>
+    <string name="mode_localproxy">使用本地代理</string>
     <string name="mode_show_panel">啟動時顯示控制台</string>
     <string name="mode_enable_keyboard">準許鍵盤輸入</string>
     <string name="button_start">開始遊戲</string>

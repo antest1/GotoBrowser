@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -17,19 +18,15 @@ import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
-import com.antest1.gotobrowser.Proxy.LocalProxyServer;
 import com.antest1.gotobrowser.R;
 
 import java.io.File;
 import java.util.Locale;
-import java.util.concurrent.Executor;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.webkit.ProxyConfig;
-import androidx.webkit.ProxyController;
-import androidx.webkit.WebViewFeature;
+import androidx.core.content.ContextCompat;
 
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
@@ -39,6 +36,7 @@ import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
+import static com.antest1.gotobrowser.Constants.PREF_LOCALPROXY;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.URL_LIST;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
@@ -86,6 +84,14 @@ public class EntranceActivity extends AppCompatActivity {
         silentSwitch.setOnCheckedChangeListener((buttonView, isChecked)
                 -> editor.putBoolean(PREF_SILENT, isChecked).apply());
 
+        Switch localproxySwitch = findViewById(R.id.switch_localproxy);
+        localproxySwitch.setChecked(sharedPref.getBoolean(PREF_LOCALPROXY, false));
+        localproxySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            editor.putBoolean(PREF_LOCALPROXY, isChecked).apply();
+            if (isChecked) WebViewManager.setProxy();
+            else WebViewManager.clearProxy();
+        });
+
         selectButton = findViewById(R.id.connector_select);
         selectButton.setOnClickListener(v -> showConnectorSelectionDialog());
         String connector = sharedPref.getString(PREF_CONNECTOR, null);
@@ -107,7 +113,20 @@ public class EntranceActivity extends AppCompatActivity {
         TextView versionText = findViewById(R.id.version_info);
         versionText.setText(String.format(Locale.US, getString(R.string.version_format), BuildConfig.VERSION_NAME));
 
-        WebViewManager.setProxy(getApplicationContext());
+        TextView proxyText = findViewById(R.id.proxy_override_enabled);
+        if (WebViewManager.checkProxy()) {
+            localproxySwitch.setEnabled(true);
+            proxyText.setText("PROXY_OVERRIDE_ENABLED");
+            proxyText.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorEnabled));
+        } else {
+            localproxySwitch.setEnabled(false);
+            proxyText.setText("PROXY_OVERRIDE_DISABLED");
+            proxyText.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorDisabled));
+        }
+
+        boolean proxy_enable = sharedPref.getBoolean(PREF_LOCALPROXY, false);
+        if (proxy_enable) WebViewManager.setProxy();
+        else WebViewManager.clearProxy();
     }
 
     @Override

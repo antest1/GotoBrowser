@@ -11,4 +11,6 @@
     <color name="panel_red">#B00020</color>
     <color name="colorListItem">#FAFAFA</color>
     <color name="gray">#9E9E9E</color>
+    <color name="colorEnabled">#A5D6A7</color>
+    <color name="colorDisabled">#F48FB1</color>
 </resources>

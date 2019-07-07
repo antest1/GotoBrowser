@@ -89,17 +89,29 @@ public class WebViewManager {
     public static final String OPEN_RES_DOWN = "open_res_down";
     public static final String userAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0";
 
-    public static void setProxy(Context context) {
-        if (WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
+    public static boolean checkProxy() {
+        return WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE);
+    }
+
+    public static boolean setProxy() {
+        boolean enabled = WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE);
+        if (enabled) {
             ProxyConfig proxyConfig = new ProxyConfig.Builder()
                     .addProxyRule(LocalProxyServer.getServerAddress())
                     .build();
             Executor executor = command -> { };
             Runnable runnable = () -> { };
             ProxyController.getInstance().setProxyOverride(proxyConfig, executor, runnable);
-            KcUtils.showToast(context, "PROXY_OVERRIDE_SUPPORTED");
-        } else {
-            KcUtils.showToast(context, "proxy_override_not_supported");
+        }
+        return enabled;
+    }
+
+    public static void clearProxy() {
+        boolean enabled = WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE);
+        if (enabled) {
+            Executor executor = command -> { };
+            Runnable runnable = () -> { };
+            ProxyController.getInstance().clearProxyOverride(executor, runnable);
         }
     }
 
