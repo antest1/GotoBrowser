@@ -72,16 +72,12 @@
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
 
-#LittleProxy
--keepnames class io.netty.** { *; }
--keepnames class org.littleshoot.** { *; }
+#littleproxy
+-keep class org.littleshoot.proxy.** { *; }
 
--dontwarn io.netty.**
--dontwarn org.apache.commons.**
--keep class org.apache.http.** { *; }
--dontwarn org.apache.http.**
--dontwarn org.apache.log4j.**
--dontwarn org.littleshoot.**
+# netty
+-keepclasseswithmembers class io.netty.** { *; }
+-keepnames class io.netty.** { *; }
 
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
