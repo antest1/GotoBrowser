@@ -6,8 +6,13 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.google.gson.JsonObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class KcaPacketStore extends SQLiteOpenHelper {
@@ -44,6 +49,22 @@ public class KcaPacketStore extends SQLiteOpenHelper {
 
     public void record(String url, String request, String response) {
         SQLiteDatabase db = this.getWritableDatabase();
+
+        // filter out api_token
+        String[] request_data = request.split("&");
+        List<String> new_request_data = new ArrayList<>();
+        for (String s: request_data) {
+            String decodedData = null;
+            try {
+                decodedData = URLDecoder.decode(s, "utf-8");
+                if (!decodedData.startsWith("api_token")) {
+                    new_request_data.add(s);
+                }
+            } catch (UnsupportedEncodingException e) {
+                KcUtils.reportException(e);
+            }
+        }
+        request = KcUtils.joinStr(new_request_data, "&");
 
         // insert value to db
         ContentValues values = new ContentValues();
