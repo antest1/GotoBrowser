@@ -114,13 +114,20 @@ public class EntranceActivity extends AppCompatActivity {
         versionText.setText(String.format(Locale.US, getString(R.string.version_format), BuildConfig.VERSION_NAME));
 
         TextView proxyText = findViewById(R.id.proxy_override_enabled);
-        if (WebViewManager.checkProxy()) {
-            localproxySwitch.setEnabled(true);
-            proxyText.setText("PROXY_OVERRIDE_ENABLED");
-            proxyText.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorEnabled));
-        } else {
+        try {
+            if (WebViewManager.checkProxy()) {
+                localproxySwitch.setEnabled(true);
+                proxyText.setText("PROXY_OVERRIDE_ENABLED");
+                proxyText.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorEnabled));
+            } else {
+                localproxySwitch.setEnabled(false);
+                proxyText.setText("PROXY_OVERRIDE_DISABLED");
+                proxyText.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorDisabled));
+            }
+        } catch (ExceptionInInitializerError e) {
+            KcUtils.reportException(e);
             localproxySwitch.setEnabled(false);
-            proxyText.setText("PROXY_OVERRIDE_DISABLED");
+            proxyText.setText("WEBVIEW_PACKAGE_NOT_FOUND");
             proxyText.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorDisabled));
         }
 

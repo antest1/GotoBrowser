@@ -170,6 +170,8 @@ public class MediaPlayerPool {
             KcUtils.reportException(e);
             // possibly already released: do nothing
         }
-        players.removeFirst();
+        if (!players.isEmpty()) {
+            players.removeFirst();
+        }
     }
 }

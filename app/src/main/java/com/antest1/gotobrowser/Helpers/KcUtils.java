@@ -56,6 +56,11 @@ public class KcUtils {
         Crashlytics.logException(e);
     }
 
+    public static void reportException(ExceptionInInitializerError e) {
+        e.printStackTrace();
+        Crashlytics.logException(e);
+    }
+
     public static Request getDownloadRequest(String url, String userAgent, String mimetype) {
         Request request = new Request.Builder().url(url)
                 .addHeader("User-Agent", userAgent)

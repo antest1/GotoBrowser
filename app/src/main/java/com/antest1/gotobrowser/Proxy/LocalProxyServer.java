@@ -41,7 +41,7 @@ import static com.antest1.gotobrowser.ContentProvider.KcaContentProvider.BROADCA
 import static com.antest1.gotobrowser.ContentProvider.KcaPacketStore.PACKETSTORE_VERSION;
 
 public class LocalProxyServer {
-    private static HttpProxyServer proxyServer;
+    private HttpProxyServer proxyServer;
     private static final int PORT = 33914;
     private static final int TIMEOUT = 20000;
     private static final int MAX_BUFFER_SIZE = 256 * 1024 * 1024;
@@ -62,7 +62,7 @@ public class LocalProxyServer {
         return "127.0.0.1:" + PORT;
     }
 
-    private static boolean is_on() {
+    private boolean is_on() {
         return proxyServer != null;
     }
 
