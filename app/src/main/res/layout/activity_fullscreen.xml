@@ -57,50 +57,71 @@
             android:src="@mipmap/refresh"
             app:srcCompat="@mipmap/refresh" />
 
-        <ImageView
-            android:id="@+id/menu_aspect"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:alpha="0.8"
-            android:padding="6dp"
-            android:src="@mipmap/aspect_ratio"
-            app:srcCompat="@mipmap/aspect_ratio" />
-
-        <ImageView
-            android:id="@+id/menu_mute"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:alpha="0.8"
-            android:padding="6dp"
-            android:src="@mipmap/mute"
-            app:srcCompat="@mipmap/mute" />
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
-        <ImageView
-            android:id="@+id/menu_lock"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:alpha="0.8"
-            android:padding="6dp"
-            android:src="@mipmap/lock"
-            app:srcCompat="@mipmap/lock" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/menu_brighton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:alpha="0.8"
-            android:padding="6dp"
-            android:src="@mipmap/brighton"
-            app:srcCompat="@mipmap/brighton" />
+                <ImageView
+                    android:id="@+id/menu_aspect"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.8"
+                    android:padding="6dp"
+                    android:src="@mipmap/aspect_ratio"
+                    app:srcCompat="@mipmap/aspect_ratio" />
 
-        <ImageView
-            android:id="@+id/menu_cc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:alpha="0.8"
-            android:padding="6dp"
-            android:src="@mipmap/caption"
-            app:srcCompat="@mipmap/caption" />
+                <ImageView
+                    android:id="@+id/menu_mute"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.8"
+                    android:padding="6dp"
+                    android:src="@mipmap/mute"
+                    app:srcCompat="@mipmap/mute" />
+
+                <ImageView
+                    android:id="@+id/menu_lock"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.8"
+                    android:padding="6dp"
+                    android:src="@mipmap/lock"
+                    app:srcCompat="@mipmap/lock" />
+
+                <ImageView
+                    android:id="@+id/menu_brighton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.8"
+                    android:padding="6dp"
+                    android:src="@mipmap/brighton"
+                    app:srcCompat="@mipmap/brighton" />
+
+                <ImageView
+                    android:id="@+id/menu_cc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.8"
+                    android:padding="6dp"
+                    android:src="@mipmap/caption"
+                    app:srcCompat="@mipmap/caption" />
+
+                <ImageView
+                    android:id="@+id/menu_logout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.8"
+                    android:padding="6dp"
+                    android:src="@mipmap/logout"
+                    app:srcCompat="@mipmap/logout" />
+            </LinearLayout>
+        </ScrollView>
 
         <ImageView
             android:id="@+id/menu_close"
