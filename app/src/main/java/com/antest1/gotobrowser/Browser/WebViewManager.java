@@ -416,7 +416,7 @@ public class WebViewManager {
                     KcUtils.reportException(e);
                 }
             } else {
-                webview.loadUrl(connector_url);
+                webview.loadUrl(connector_url_default);
             }
         }
     }
@@ -433,7 +433,7 @@ public class WebViewManager {
             String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
             if (CONN_DMM.equals(pref_connector)) {
                 url_list.add(URL_DMM);
-                url_list.add(sharedPref.getString(PREF_LATEST_URL, URL_DMM));
+                url_list.add(URL_DMM);
             } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
                 String connector_url = "";
                 String connector_url_default = "";
