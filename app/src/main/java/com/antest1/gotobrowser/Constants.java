@@ -33,7 +33,7 @@ public class Constants {
     public static final String URL_KANSU = "http://kancolle.su/";
     public static final String URL_NITRABBIT = "http://connector.usagi.space/kancolle/";
 
-    public static final String[] URL_LIST = {URL_DMM, URL_KANSU, URL_OOI, URL_NITRABBIT};
+    public static final String[] URL_LIST = {URL_DMM, URL_KANSU, URL_OOI};
 
     public static final String URL_DMM_LOGIN = "www.dmm.com/my/-/login/";
     public static final String URL_DMM_FOREIGN = "www.dmm.com/netgame/foreign";
