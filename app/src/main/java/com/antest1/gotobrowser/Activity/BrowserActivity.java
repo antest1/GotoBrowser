@@ -63,6 +63,7 @@ public class BrowserActivity extends AppCompatActivity {
     private int uiOption;
 
     private SharedPreferences sharedPref;
+    private WebViewManager manager;
     private WebViewL mContentView;
     private ProgressDialog downloadDialog;
     private View mHorizontalControlView, mVerticalControlView;
@@ -86,10 +87,14 @@ public class BrowserActivity extends AppCompatActivity {
     @SuppressLint({"SetJavaScriptEnabled", "ApplySharedPref", "ClickableViewAccessibility"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.e("GOTO", "enter");
         super.onCreate(savedInstanceState);
         uiOption = getWindow().getDecorView().getSystemUiVisibility();
-        WebViewManager.setHardwardAcceleratedFlag(this);
-        WebViewManager.setDataDirectorySuffix(this);
+        setContentView(R.layout.activity_fullscreen);
+
+        manager = new WebViewManager(BrowserActivity.this);
+        manager.setDataDirectorySuffix();
+        Log.e("GOTO", "manager init");
 
         backPressCloseHandler = new BackPressCloseHandler(this);
         sharedPref = getSharedPreferences(
@@ -101,14 +106,15 @@ public class BrowserActivity extends AppCompatActivity {
             proxy.start();
         }
 
-        try {
-            setContentView(R.layout.activity_fullscreen);
 
+        Log.e("GOTO", "start action bar");
+        try {
             ActionBar actionBar = getSupportActionBar();
             if (actionBar != null) actionBar.hide();
 
             mContentView = findViewById(R.id.main_browser);
-            WebViewManager.setGestureDetector(this, mContentView);
+            manager.setHardwardAcceleratedFlag();
+            manager.setGestureDetector(mContentView);
 
             // panel, keyboard settings
             Intent intent = getIntent();
@@ -190,14 +196,15 @@ public class BrowserActivity extends AppCompatActivity {
             if (connector_info != null && connector_info.size() == 2) {
                 WebViewManager.setWebViewSettings(mContentView);
                 WebViewManager.enableBrowserCookie(mContentView);
-                WebViewManager.setWebViewClient(this, mContentView, connector_info);
-                WebViewManager.setWebViewDownloader(this, mContentView);
-                WebViewManager.setPopupView(this, mContentView);
-                WebViewManager.openPage(BrowserActivity.this, mContentView, connector_info, isKcBrowserMode);
+                manager.setWebViewClient(this, mContentView, connector_info);
+                manager.setWebViewDownloader(mContentView);
+                manager.setPopupView(mContentView);
+                manager.openPage(mContentView, connector_info, isKcBrowserMode);
             } else {
                 finish();
             }
         } catch (Exception e) {
+            e.printStackTrace();
             String exception_str = KcUtils.getStringFromException(e);
             setContentView(R.layout.activity_empty);
             TextView tv = findViewById(R.id.error_text);
@@ -268,6 +275,7 @@ public class BrowserActivity extends AppCompatActivity {
             browserPlayer.stopAll();
             browserPlayer.releaseAll();
         }
+        manager.saveCacheStatus();
         if (isLocalProxyEnabled) proxy.stop();
         mContentView.removeAllViews();
         mContentView.destroy();
@@ -463,8 +471,8 @@ public class BrowserActivity extends AppCompatActivity {
                         (dialog, id) -> {
                             browserPlayer.pauseAll();
                             connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
-                            if (connector_info != null && connector_info.size() == 2) {
-                                WebViewManager.openPage(BrowserActivity.this, mContentView, connector_info, isKcBrowserMode);
+                            if (manager != null && connector_info != null && connector_info.size() == 2) {
+                                manager.openPage(mContentView, connector_info, isKcBrowserMode);
                             } else {
                                 finish();
                             }

@@ -1,11 +1,13 @@
 package com.antest1.gotobrowser.Browser;
 
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
+import android.util.LruCache;
 import android.webkit.CookieManager;
 import android.webkit.WebResourceResponse;
 import android.widget.TextView;
@@ -30,6 +32,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -67,6 +71,7 @@ public class ResourceProcess {
     private static final int RES_JSON = 0b00100;
     private static final int RES_JS = 0b01000;
     private static final int RES_KCSAPI = 0b10000;
+    private static final int CACHE_MAX = 60;
 
     public static boolean isImage(int state) {
         return (state & RES_IMAGE) > 0;
@@ -104,6 +109,8 @@ public class ResourceProcess {
     private final Handler clearSubHandler = new Handler();
     private ScheduledExecutorService executor;
 
+    LruCache<String, byte[]> resCache;
+
     ResourceProcess(BrowserActivity activity) {
         this.activity = activity;
         context = activity.getApplicationContext();
@@ -112,6 +119,7 @@ public class ResourceProcess {
         subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
         browserPlayer = new BrowserSoundPlayer(shipVoiceHandler);
         activity.setBrowserPlayer(browserPlayer);
+        loadLRUCache();
     }
 
     public static int getCurrentState(String url) {
@@ -135,6 +143,40 @@ public class ResourceProcess {
         return state;
     }
 
+    public void loadLRUCache() {
+        ObjectInputStream objectinputstream = null;
+        String cache_dump_dir = context.getFilesDir().getAbsolutePath()
+                .concat("/cache/").concat("lru_cache.dmp");
+        resCache = new LruCache<>(CACHE_MAX);
+        try {
+            FileInputStream streamIn = new FileInputStream(cache_dump_dir);
+            objectinputstream = new ObjectInputStream(streamIn);
+            Map<String, byte[]> cached_data = (Map<String, byte[]>) objectinputstream.readObject();
+            for (Map.Entry<String, byte[]> entry: cached_data.entrySet()) {
+                resCache.put(entry.getKey(), entry.getValue());
+            }
+            objectinputstream.close();
+            Log.e("CACHE", "loaded, size: " + resCache.size());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("CACHE", "fail to load dump: " + KcUtils.getStringFromException(e));
+        }
+    }
+
+    public void dumpLRUCache() {
+        String cache_dump_dir = context.getFilesDir().getAbsolutePath()
+                .concat("/cache/").concat("lru_cache.dmp");
+        try (
+            FileOutputStream fout = new FileOutputStream(cache_dump_dir);
+            ObjectOutputStream oos = new ObjectOutputStream(fout);
+        ) {
+            oos.writeObject(resCache.snapshot());
+            Log.e("CACHE", "cache dump successful: " + resCache.size());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("CACHE", "fail to save dump file: " + KcUtils.getStringFromException(e));
+        }
+    }
 
     public WebResourceResponse processWebRequest(Uri source) {
         String url = source.toString();
@@ -422,32 +464,43 @@ public class ResourceProcess {
         String path = file_info.get("path").getAsString();
         String resource_url = file_info.get("full_url").getAsString();
         String out_file_path = file_info.get("out_file_path").getAsString();
-
-        File file = new File(out_file_path);
-        if (update_flag) {
-            String result = downloadResource(resourceClient, resource_url, last_modified, file);
-            String new_value = version;
-            if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value)) new_value = result;
-            if (result == null) {
-                Log.e("GOTO", "return null: " + path + " " + new_value);
-                return null;
-            } else if (result.equals("304")) {
-                Log.e("GOTO", "load cached resource: " + path + " " + new_value);
-            } else {
-                Log.e("GOTO", "cache resource: " + path + " " + new_value);
-                versionTable.putValue(path, new_value);
-            }
-        } else {
-            Log.e("GOTO", "load cached resource: " + path + " " + version);
-        }
-
         try {
-            InputStream is = new BufferedInputStream(new FileInputStream(file));
-            Log.e("GOTO" , out_file_path + " " + is.available());
-            if (ResourceProcess.isImage(resource_type)) {
+            byte[] cached = resCache.get(path);
+            Log.e("CACHE", path + " " + String.valueOf(cached != null));
+            if (cached != null) {
+                InputStream is = new ByteArrayInputStream(cached);
                 return new WebResourceResponse("image/png", "utf-8", is);
-            } else if (ResourceProcess.isJson(resource_type)) {
-                return new WebResourceResponse("application/json", "utf-8", is);
+            } else {
+                File file = new File(out_file_path);
+                if (update_flag) {
+                    String result = downloadResource(resourceClient, resource_url, last_modified, file);
+                    String new_value = version;
+                    if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value)) new_value = result;
+                    if (result == null) {
+                        Log.e("GOTO", "return null: " + path + " " + new_value);
+                        return null;
+                    } else if (result.equals("304")) {
+                        Log.e("GOTO", "load cached resource: " + path + " " + new_value);
+                    } else {
+                        Log.e("GOTO", "cache resource: " + path + " " + new_value);
+                        versionTable.putValue(path, new_value);
+                    }
+                } else {
+                    Log.e("GOTO", "load cached resource: " + path + " " + version);
+                }
+
+                InputStream is = new BufferedInputStream(new FileInputStream(file));
+                Log.e("GOTO" , out_file_path + " " + is.available());
+                if (ResourceProcess.isImage(resource_type)) {
+                    cached = new byte[(int) file.length()];
+                    FileInputStream fis = new FileInputStream(file);
+                    fis.read(cached);
+                    fis.close();
+                    resCache.put(path, cached);
+                    return new WebResourceResponse("image/png", "utf-8", is);
+                } else if (ResourceProcess.isJson(resource_type)) {
+                    return new WebResourceResponse("application/json", "utf-8", is);
+                }
             }
         } catch (IOException e) {
             KcUtils.reportException(e);
@@ -623,6 +676,10 @@ public class ResourceProcess {
     }
 
     private String patchMainScript(String main_js) {
+        // Low Frame Rate Issue
+        main_js = main_js.replaceAll(
+                "createjs\\.Ticker\\.TIMEOUT",
+                "createjs.Ticker.RAF");
         // LABS Targeting
         main_js = main_js.replaceAll(
                 "this\\._panel\\.on\\(a\\.EventType\\.MOUSEOVER,this\\._onMouseOver\\)",

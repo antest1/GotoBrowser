@@ -35,8 +35,6 @@ import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Proxy.LocalProxyServer;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
-import com.antest1.gotobrowser.Subtitle.KcSubtitleUtils;
-import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,7 +44,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executor;
-import java.util.regex.Pattern;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -88,6 +85,13 @@ public class WebViewManager {
     public static final String OPEN_KANCOLLE = "open_kancolle";
     public static final String OPEN_RES_DOWN = "open_res_down";
     public static final String userAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0";
+    BrowserActivity activity;
+    ResourceProcess resourceProcess;
+
+    public WebViewManager (BrowserActivity ac) {
+        activity = ac;
+        resourceProcess = new ResourceProcess(ac);
+    }
 
     public static boolean checkProxy() {
         return WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE);
@@ -115,21 +119,21 @@ public class WebViewManager {
         }
     }
 
-    public static void setHardwardAcceleratedFlag(BrowserActivity activity) {
+    public void setHardwardAcceleratedFlag() {
         activity.getWindow().setFlags( WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
     }
 
-    public static void setDataDirectorySuffix(Context context) {
+    public void setDataDirectorySuffix() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            String processName = KcUtils.getProcessName(context);
+            String processName = KcUtils.getProcessName(activity.getApplicationContext());
             if (!BuildConfig.APPLICATION_ID.equals(processName)) {
                 WebView.setDataDirectorySuffix(processName);
             }
         }
     }
 
-    public static void setGestureDetector(BrowserActivity activity, WebViewL webview) {
+    public void setGestureDetector(WebViewL webview) {
         View broswerPanel = activity.findViewById(R.id.browser_panel);
         GestureDetector mDetector = new GestureDetector(activity, new BrowserGestureListener(broswerPanel));
         webview.setOnTouchListener((v, event) -> mDetector.onTouchEvent(event));
@@ -160,12 +164,15 @@ public class WebViewManager {
         WebView.setWebContentsDebuggingEnabled(true);
     }
 
-    public static void setWebViewClient(BrowserActivity activity, WebViewL webview, List<String> connector_info) {
+    public void saveCacheStatus() {
+        resourceProcess.dumpLRUCache();
+    }
+
+    public void setWebViewClient(BrowserActivity activity, WebViewL webview, List<String> connector_info) {
         SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         Context context = activity.getApplicationContext();
         boolean is_kcbrowser_mode = activity.isKcMode();
-        ResourceProcess res_process = new ResourceProcess(activity);
 
         webview.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
@@ -174,7 +181,7 @@ public class WebViewManager {
                     WebViewManager.runLoginScript(activity, webview, url);
                     if (url.contains(Constants.URL_OSAPI) || url.contains(Constants.URL_OOI_3) || url.contains(URL_DMM)) {
                         activity.setStartedFlag();
-                        runLayoutAdjustmentScript(activity, webview, url, connector_info);
+                        runLayoutAdjustmentScript(webview, url, connector_info);
                     }
                 }
             }
@@ -183,7 +190,7 @@ public class WebViewManager {
             public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
                 Uri source = Uri.parse(url);
                 if (is_kcbrowser_mode) {
-                    WebResourceResponse response = res_process.processWebRequest(source);
+                    WebResourceResponse response = resourceProcess.processWebRequest(source);
                     if (response != null) return response;
                 }
                 return super.shouldInterceptRequest(view, url);
@@ -194,7 +201,7 @@ public class WebViewManager {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     Uri source = request.getUrl();
                     if (is_kcbrowser_mode) {
-                        WebResourceResponse response = res_process.processWebRequest(source);
+                        WebResourceResponse response = resourceProcess.processWebRequest(source);
                         if (response != null) return response;
                     }
                 }
@@ -203,7 +210,7 @@ public class WebViewManager {
         });
     }
 
-    public static void setWebViewDownloader(BrowserActivity activity, WebViewL webview) {
+    public void setWebViewDownloader(WebViewL webview) {
         ProgressDialog downloadDialog = activity.getDownloadDialog();
         webview.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
             Uri uri = Uri.parse(url);
@@ -250,7 +257,7 @@ public class WebViewManager {
     }
 
 
-    public static void setPopupView(BrowserActivity activity, WebViewL webview) {
+    public void setPopupView(WebViewL webview) {
         webview.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
@@ -358,7 +365,7 @@ public class WebViewManager {
         }
     }
 
-    public static void runLayoutAdjustmentScript(BrowserActivity activity, WebViewL webview, String url, List<String> connector_info) {
+    public void runLayoutAdjustmentScript(WebViewL webview, String url, List<String> connector_info) {
         SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         DisplayMetrics dimension = new DisplayMetrics();
@@ -381,13 +388,13 @@ public class WebViewManager {
                     REFRESH_DETECT_CALL, connector_info.get(0)), value -> {
                 if (value.equals("true")) {
                     sharedPref.edit().putString(PREF_LATEST_URL, connector_info.get(0)).apply();
-                    openPage(activity, webview, connector_info, true);
+                    openPage(webview, connector_info, true);
                 }
             });
         }
     }
 
-    public static void openPage(BrowserActivity activity, WebViewL webview, List<String> connector_info, boolean isKcBrowser) {
+    public void openPage(WebViewL webview, List<String> connector_info, boolean isKcBrowser) {
         SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         String login_id = sharedPref.getString(PREF_DMM_ID, ""); // intent.getStringExtra("login_id");
