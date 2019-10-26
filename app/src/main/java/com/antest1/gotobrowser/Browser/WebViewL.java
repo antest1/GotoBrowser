@@ -7,9 +7,12 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.view.View;
 import android.webkit.WebView;
 
 public class WebViewL extends WebView {
+    private boolean alwaysVisible = false;
+
     public WebViewL(Context context) {
         super(getFixedContext(context));
     }
@@ -33,5 +36,27 @@ public class WebViewL extends WebView {
 
     public static Context getFixedContext(Context context) {
         return context.createConfigurationContext(new Configuration());
+    }
+
+    /**
+     * Set whether the WebView should ignore invisible state.
+     * WebView will draw new frames even in background if it is in visible state.
+     *
+     * @param alwaysVisible <code>true</code> to ignore invisible state; <code>false</code> is the default behavior
+     */
+    public void setAlwaysVisible(boolean alwaysVisible) {
+        this.alwaysVisible = alwaysVisible;
+    }
+
+    @Override
+    protected void onWindowVisibilityChanged(int visibility) {
+        if (visibility != View.GONE && alwaysVisible) {
+            // Webview only draws new frames when visible
+            // We want our frame-based animations to work even when user switches to another app
+            // So we prevent webview from entering invisible state
+            super.onWindowVisibilityChanged(View.VISIBLE);
+        } else {
+            super.onWindowVisibilityChanged(visibility);
+        }
     }
 }

@@ -523,6 +523,12 @@ public class ResourceProcess {
 
             byte[] byteArray = buffer.toByteArray();
             String main_js = patchMainScript(new String(byteArray, StandardCharsets.UTF_8));
+
+            // Inject the main.js file
+            // Change the animations from tick-based to frame-based
+            // It will make all KC animation smoother especially on webview >=68
+            main_js = main_js.replace("createjs.Ticker.TIMEOUT", "createjs.Ticker.RAF");
+
             InputStream is = new ByteArrayInputStream(main_js.getBytes());
             return new WebResourceResponse("application/javascript", "utf-8", is);
         } else {
