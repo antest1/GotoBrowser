@@ -65,8 +65,15 @@ public class BrowserSoundPlayer {
             for (String key: player_list) {
                 if (volumes.containsKey(key)) {
                     volumes.put(key, value);
-                    if (isMuteMode) players.get(key).setVolumeAll(0.0f, 0.0f);
-                    else players.get(key).setVolumeAll(value, value);
+                    MediaPlayerPool targetPlayer = players.get(key);
+
+                    if (targetPlayer != null && targetPlayer.isAnyPlaying()) {
+                        if (isMuteMode) {
+                            targetPlayer.setVolumeAll(0.0f, 0.0f);
+                        } else {
+                            targetPlayer.setVolumeAll(value, value);
+                        }
+                    }
                 }
             }
         }

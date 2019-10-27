@@ -247,13 +247,14 @@ public class BrowserActivity extends AppCompatActivity {
         if (!is_multi) {
             Log.e("GOTO", "is_not_multi");
             pause_flag = true;
-            mContentView.pauseTimers();
-            if (browserPlayer != null) browserPlayer.pauseAll();
+            manager.runMuteScript(mContentView, true);
+            new Handler().postDelayed(() -> mContentView.pauseTimers(), 500);
         } else {
             if (pause_flag) {
                 mContentView.resumeTimers();
+                manager.runMuteScript(mContentView, isMuteMode);
                 pause_flag = false;
-                if (browserPlayer != null) browserPlayer.startAll();
+                //if (browserPlayer != null) browserPlayer.startAll();
             }
             Log.e("GOTO", "is_multi");
         }
@@ -266,7 +267,8 @@ public class BrowserActivity extends AppCompatActivity {
         pause_flag = false;
         mContentView.resumeTimers();
         mContentView.getSettings().setTextZoom(100);
-        if (browserPlayer != null) browserPlayer.startAll();
+        manager.runMuteScript(mContentView, isMuteMode);
+        //if (browserPlayer != null) browserPlayer.startAll();
     }
 
     @Override
@@ -322,6 +324,7 @@ public class BrowserActivity extends AppCompatActivity {
 
     public ProgressDialog getDownloadDialog() { return downloadDialog; }
     public boolean isKcMode() { return isKcBrowserMode; }
+    public boolean isMuteMode() { return isMuteMode; }
     public boolean isCaptionAvailable() { return isCaptionMode; }
     public boolean isSubtitleAvailable() { return isSubtitleLoaded; }
     public boolean isBrowserPaused() { return pause_flag; }
@@ -406,7 +409,9 @@ public class BrowserActivity extends AppCompatActivity {
 
     private void setMuteMode(View v) {
         isMuteMode = !isMuteMode;
-        if (browserPlayer != null) browserPlayer.setMuteAll(isMuteMode);
+        if (manager != null && mContentView != null) {
+            manager.runMuteScript(mContentView, isMuteMode);
+        }
         if (isMuteMode) {
             v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
             sharedPref.edit().putBoolean(PREF_MUTEMODE, true).apply();

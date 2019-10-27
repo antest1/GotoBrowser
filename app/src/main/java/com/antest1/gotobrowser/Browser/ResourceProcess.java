@@ -1,10 +1,10 @@
 package com.antest1.gotobrowser.Browser;
 
 import android.annotation.SuppressLint;
-import android.app.ActivityManager;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
 import android.util.LruCache;
@@ -27,7 +27,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,6 +59,8 @@ import static com.antest1.gotobrowser.Browser.BrowserSoundPlayer.AUDIO_POOL_LIMI
 import static com.antest1.gotobrowser.Browser.BrowserSoundPlayer.PLAYER_BGM;
 import static com.antest1.gotobrowser.Browser.BrowserSoundPlayer.PLAYER_SE;
 import static com.antest1.gotobrowser.Browser.BrowserSoundPlayer.PLAYER_VOICE;
+import static com.antest1.gotobrowser.Constants.MUTE_LISTEN;
+import static com.antest1.gotobrowser.Constants.MUTE_SET;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResource;
@@ -118,7 +119,6 @@ public class ResourceProcess {
         subtitleText = activity.findViewById(R.id.subtitle_view);
         subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
         browserPlayer = new BrowserSoundPlayer(shipVoiceHandler);
-        activity.setBrowserPlayer(browserPlayer);
         loadLRUCache();
     }
 
@@ -190,6 +190,7 @@ public class ResourceProcess {
 
         if (checkBlockedContent(url)) return getEmptyResponse();
         if (url.contains("ooi.css")) return getOoiSheetFromAsset();
+        if (url.contains("gadget_html5/script/rollover.js")) return getMuteInjectedRolloverJs();
         if (url.contains("kcscontents/css/common.css")) return getBlackBackgroundSheet();
         if (resource_type == 0) return null;
 
@@ -220,16 +221,6 @@ public class ResourceProcess {
 
                 checkPortVolume(path);
                 updateCurrentMapInfo(path, filename);
-
-                isBattleMode = checkBattleMode(path, isBattleMode);
-                isOnPractice = checkPracticeMode(path, isOnPractice);
-                browserPlayer.setStreamsLimit(PLAYER_VOICE, isBattleMode ? AUDIO_POOL_LIMIT : 1);
-                Log.e("GOTO ", "isBattleMode: " + isBattleMode);
-                Log.e("GOTO", "voicePlayers: streams_limit " + (isBattleMode ? AUDIO_POOL_LIMIT : 1));
-
-                String source_path = source.getPath();
-                browserPlayer.stopSound(source_path, isOnPractice, currentMapId, currentBattleBgmId);
-                // browserPlayer.stopMp3(bgmPlayer, filepath);
 
                 JsonObject update_info = checkResourceUpdate(source);
                 if (is_image || is_json) return processImageDataResource(file_info, update_info, resource_type);
@@ -467,7 +458,7 @@ public class ResourceProcess {
         try {
             byte[] cached = resCache.get(path);
             Log.e("CACHE", path + " " + String.valueOf(cached != null));
-            if (cached != null) {
+            if (!update_flag && cached != null) {
                 InputStream is = new ByteArrayInputStream(cached);
                 return new WebResourceResponse("image/png", "utf-8", is);
             } else {
@@ -545,7 +536,8 @@ public class ResourceProcess {
         if (update_flag) {
             String result = downloadResource(resourceClient, resource_url, last_modified, file);
             String new_value = version;
-            if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value)) new_value = result;
+            if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value))
+                new_value = result;
             if (result == null) {
                 Log.e("GOTO", "return null: " + path + " " + new_value);
                 return null;
@@ -559,8 +551,7 @@ public class ResourceProcess {
             Log.e("GOTO", "load cached resource: " + path + " " + version);
         }
 
-        if (url.contains("resources/se")) browserPlayer.play(PLAYER_SE, file);
-        else if (url.contains("/kcs/sound/kc")) {
+        if (url.contains("/kcs/sound/kc")) {
             String info = path.replace("/kcs/sound/kc", "").replace(".mp3", "");
             String[] fn_code = info.split("/");
             String voiceline = "";
@@ -584,50 +575,21 @@ public class ResourceProcess {
                 Date time_tgt = time_fmt.parse(voiceline_time);
                 long diff_msec = time_tgt.getTime() - time_src.getTime();
                 if (voiceline_value == 30) diff_msec += 86400000;
-                //KcSubtitleUtils.setHourlyVoiceInfo(file.getAbsolutePath(), ship_id, voiceline);
-                Runnable r = new VoiceSubtitleRunnable(file.getAbsolutePath(), ship_id, voiceline);
+                Runnable r = new VoiceSubtitleRunnable(ship_id, voiceline);
                 shipVoiceHandler.removeCallbacks(r);
                 shipVoiceHandler.postDelayed(r, diff_msec);
                 Log.e("GOTO", "playHourVoice after: " + diff_msec + " msec");
             } else {
                 setSubtitle(ship_id, voiceline);
-                if (ship_id.equals("9999") && voiceline_value >= 411 && voiceline_value <= 424) {
-                    if (BrowserSoundPlayer.ismute())
-                        return new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
-                    else return null;
-                }
-                if (voiceline_value / 10 == 14 || voiceline_value / 10 == 24 || voiceline_value / 10 == 34) {
-                    if (BrowserSoundPlayer.ismute())
-                        return new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
-                    else return null;
-                }
-                if (ship_id.equals("9998") && false) { // temp code: play abyssal sound from browser
-                    if (BrowserSoundPlayer.ismute())
-                        return new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
-                    return null;
-                } else {
-                    browserPlayer.play(PLAYER_VOICE, file);
-                }
             }
         } else if (url.contains("/voice/titlecall_")) {
             String info = path.replace("/kcs2/resources/voice/", "").replace(".mp3", "");
-            titlePath.add(info);
-            titleFiles.add(file);
-            if (titleFiles.size() == 2) {
-                String[] first = titlePath.get(0).split("/");
-                browserPlayer.play(PLAYER_VOICE, titleFiles.get(0));
-                setSubtitle(first[0], first[1]);
-
-                String[] second = titlePath.get(1).split("/");
-                String next_subtitle = KcSubtitleUtils.getQuoteString(second[0], second[1]).get("0").getAsString();
-                SubtitleRunnable sr_next = new SubtitleRunnable(next_subtitle);
-                browserPlayer.setNextPlay(PLAYER_VOICE, titleFiles.get(1), sr_next);
-            }
-        } else if (url.contains("resources/bgm")) {
-            browserPlayer.stop(PLAYER_BGM);
-            browserPlayer.play(PLAYER_BGM, file);
+            String[] fn_code = info.split("/");
+            setSubtitle(fn_code[0], fn_code[1]);
         }
-        return new WebResourceResponse("audio/mpeg", "binary", getEmptyStream());
+
+        InputStream is = new BufferedInputStream(new FileInputStream(file));
+        return new WebResourceResponse("audio/mpeg", "binary", is);
     }
 
     private void checkSpecialSubtitleMode() {
@@ -670,6 +632,16 @@ public class ResourceProcess {
             AssetManager as = context.getAssets();
             InputStream is = as.open("ooi.css");
             return new WebResourceResponse("text/css", "utf-8", is);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private WebResourceResponse getMuteInjectedRolloverJs() {
+        try {
+            AssetManager as = context.getAssets();
+            InputStream is = as.open("rollover.js");
+            return new WebResourceResponse("application/x-javascript", "utf-8", is);
         } catch (IOException e) {
             return null;
         }
@@ -734,7 +706,9 @@ public class ResourceProcess {
         // Reusing original names will cause a lot of conflict issues
         main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
         main_js = main_js.replace("out:n.pointer?\"pointerout\":\"mouseout\"", "out:\"touchout\"");
-
+        main_js = main_js.replace("html5:a\\.HTML5_AUDIO", "html5:true");
+        main_js = main_js.concat(MUTE_LISTEN);
+        if (activity.isMuteMode()) main_js = main_js.concat(MUTE_SET);
         return main_js;
     }
 
@@ -812,22 +786,15 @@ public class ResourceProcess {
     }
 
     class VoiceSubtitleRunnable implements Runnable {
-        String path, ship_id, voiceline;
+        String ship_id, voiceline;
 
-        VoiceSubtitleRunnable(String path, String ship_id, String voiceline) {
+        VoiceSubtitleRunnable(String ship_id, String voiceline) {
             this.ship_id = ship_id;
-            this.path = path;
             this.voiceline = voiceline;
         }
 
         @Override
         public void run() {
-            if (path != null) {
-                if (!activity.isBrowserPaused()) {
-                    File file = new File(path);
-                    browserPlayer.play(PLAYER_VOICE, file);
-                }
-            }
             setSubtitle(ship_id, voiceline);
         }
     }

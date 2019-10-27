@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Message;
@@ -24,6 +25,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
 
+import androidx.annotation.RequiresApi;
 import androidx.webkit.ProxyConfig;
 import androidx.webkit.ProxyController;
 import androidx.webkit.WebViewFeature;
@@ -41,8 +43,10 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 import okhttp3.OkHttpClient;
@@ -58,6 +62,7 @@ import static com.antest1.gotobrowser.Constants.CONN_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.CONN_OOI;
 import static com.antest1.gotobrowser.Constants.DMM_COOKIE;
 import static com.antest1.gotobrowser.Constants.KANCOLLE_SERVER_LIST;
+import static com.antest1.gotobrowser.Constants.MUTE_SEND;
 import static com.antest1.gotobrowser.Constants.OOI_SERVER_LIST;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
@@ -68,7 +73,7 @@ import static com.antest1.gotobrowser.Constants.PREF_PADDING;
 import static com.antest1.gotobrowser.Constants.PREF_VPADDING;
 import static com.antest1.gotobrowser.Constants.REFRESH_DETECT_CALL;
 import static com.antest1.gotobrowser.Constants.RESIZE_DMM;
-import static com.antest1.gotobrowser.Constants.RESIZE_OOI_3;
+import static com.antest1.gotobrowser.Constants.RESIZE_OOI_1;
 import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI;
 import static com.antest1.gotobrowser.Constants.URL_DMM;
 import static com.antest1.gotobrowser.Constants.URL_DMM_FOREIGN;
@@ -76,7 +81,7 @@ import static com.antest1.gotobrowser.Constants.URL_DMM_LOGIN;
 import static com.antest1.gotobrowser.Constants.URL_KANSU;
 import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.URL_OOI;
-import static com.antest1.gotobrowser.Constants.URL_OOI_3;
+import static com.antest1.gotobrowser.Constants.URL_OOI_1;
 import static com.antest1.gotobrowser.Constants.URL_OSAPI;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
@@ -84,7 +89,7 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
 public class WebViewManager {
     public static final String OPEN_KANCOLLE = "open_kancolle";
     public static final String OPEN_RES_DOWN = "open_res_down";
-    public static final String userAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0";
+    public static final String userAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.70 Safari/537.36";
     BrowserActivity activity;
     ResourceProcess resourceProcess;
 
@@ -156,7 +161,7 @@ public class WebViewManager {
         view.getSettings().setUserAgentString(userAgent);
         view.setScrollbarFadingEnabled(true);
         view.getSettings().setAppCacheEnabled(false);
-        view.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        view.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             view.getSettings().setOffscreenPreRaster(true);
         }
@@ -179,7 +184,7 @@ public class WebViewManager {
                 if (is_kcbrowser_mode) {
                     sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
                     WebViewManager.runLoginScript(activity, webview, url);
-                    if (url.contains(Constants.URL_OSAPI) || url.contains(Constants.URL_OOI_3) || url.contains(URL_DMM)) {
+                    if (url.contains(Constants.URL_OSAPI) || url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
                         activity.setStartedFlag();
                         runLayoutAdjustmentScript(webview, url, connector_info);
                     }
@@ -200,10 +205,6 @@ public class WebViewManager {
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     Uri source = request.getUrl();
-                    if (is_kcbrowser_mode) {
-                        WebResourceResponse response = resourceProcess.processWebRequest(source);
-                        if (response != null) return response;
-                    }
                 }
                 return super.shouldInterceptRequest(view, request);
             }
@@ -365,6 +366,10 @@ public class WebViewManager {
         }
     }
 
+    public void runMuteScript(WebViewL webview, boolean is_mute) {
+        webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND, is_mute ? 1 : 0), null);
+    }
+
     public void runLayoutAdjustmentScript(WebViewL webview, String url, List<String> connector_info) {
         SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
@@ -378,12 +383,12 @@ public class WebViewManager {
         if (adjust_layout) {
             if (url.contains(URL_OSAPI)) webview.evaluateJavascript(String.format(
                     Locale.US, RESIZE_OSAPI, adjust_padding, adjust_vpadding), null);
-            else if (url.contains(URL_OOI_3)) webview.evaluateJavascript(String.format(
-                    Locale.US, RESIZE_OOI_3, adjust_padding, adjust_vpadding), null);
+            else if (url.contains(URL_OOI_1)) webview.evaluateJavascript(String.format(
+                    Locale.US, RESIZE_OOI_1, adjust_padding, adjust_vpadding), null);
             else if (url.contains(URL_DMM)) webview.evaluateJavascript(String.format(
                     Locale.US, RESIZE_DMM, adjust_padding, adjust_vpadding), null);
         }
-        if (url.contains(URL_OSAPI) || url.contains(URL_OOI_3)) {
+        if (url.contains(URL_OSAPI) || url.contains(URL_OOI_1)) {
             webview.evaluateJavascript(String.format(Locale.US,
                     REFRESH_DETECT_CALL, connector_info.get(0)), value -> {
                 if (value.equals("true")) {
