@@ -182,7 +182,7 @@
                     android:paddingEnd="20dp"
                     android:paddingRight="20dp"
                     android:paddingBottom="5dp"
-                    android:text="START"
+                    android:text="@string/button_start"
                     android:textAlignment="center"
                     android:textColor="@color/white"
                     android:textSize="24sp" />

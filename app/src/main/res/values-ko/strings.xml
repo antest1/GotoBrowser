@@ -16,7 +16,7 @@
     <string name="mode_localproxy">로컬 프록시 사용</string>
     <string name="mode_show_panel">패널 보이기</string>
     <string name="mode_enable_keyboard">키보드 입력 활성화</string>
-    <string name="button_start">ㄱㄱ</string>
+    <string name="button_start">게임시작</string>
     <string name="text_save">저장</string>
     <string name="text_cancel">취소</string>
     <string name="subtitle_default">자막 영역 / 터치하여 숨기기</string>

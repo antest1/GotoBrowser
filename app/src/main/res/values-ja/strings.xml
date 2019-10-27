@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GotoBrowser</string>
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">キャンセル</string>
+    <string name="select_server">接続方式選択</string>
+    <string name="select_server_toast">接続方式を先に選択してください。</string>
+    <string name="cache_clear_text">キャッシュ削除</string>
+    <string name="cache_cleared_toast">WebViewのキャッシュを削除しました。</string>
+    <string name="clearcache_msg">画像や音声などが正しく表示されない場合にのみ使用してください。本当にキャッシュを削除しますか？</string>
+    <string name="backpress_msg">本当に終了しますか？</string>
+    <string name="refresh_msg">リフレッシュしますか？</string>
+    <string name="mode_landscape">横固定モード</string>
+    <string name="mode_adjustment">レイアウト自動調整</string>
+    <string name="mode_silent">音量OFFでスタート</string>
+    <string name="mode_localproxy">ローカルプロキシを使用</string>
+    <string name="mode_show_panel">起動時にパネルを表示</string>
+    <string name="mode_enable_keyboard">キーボード入力を有効に</string>
+    <string name="button_start">スタート</string>
+    <string name="text_save">保存</string>
+    <string name="text_cancel">キャンセル</string>
+    <string name="subtitle_default">字幕表示エリア/タッチして非表示</string>
+    <string name="autocomplete_title">ログインオートコンプリート</string>
+    <string name="autocomplete_msg">ログインフォームに入力するアカウント情報を入力してください。</string>
+    <string name="settings_version_label">現在のバージョン</string>
+    <string name="settings_version_check">更新の確認</string>
+    <string name="settings_subtitle_label">字幕データのダウンロード</string>
+    <string name="settings_subtitle_language" formatted="false">現在のロケール: %s</string>
+    <string name="settings_appinfo_label">アプリケーション情報</string>
+    <string name="no_subtitle_file">設定で字幕データをダウンロードしてください。</string>
+    <string name="setting_latest_version">最新バージョンです。</string>
+    <string name="setting_latest_download" formatted="false">アップデートがあります。(%s)\nダウンロードしますか？</string>
+    <string name="settings_resource_label" translatable="false">リソースのダウンロード</string>
+    <string name="settings_resource_btn">ダウンロード</string>
+</resources>
