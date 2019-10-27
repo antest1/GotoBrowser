@@ -45,8 +45,8 @@
 
             <ImageView
                 android:id="@+id/logo_image"
-                android:layout_width="180dp"
-                android:layout_height="180dp"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="20dp"
@@ -75,10 +75,17 @@
 
                 <TextView
                     android:id="@+id/webview_autocomplete"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="5dp"
+                    android:background="@color/colorSiteSelection"
+                    android:paddingStart="12dp"
+                    android:paddingLeft="12dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="12dp"
+                    android:paddingRight="8dp"
+                    android:paddingBottom="4dp"
                     android:text="@string/autocomplete_title"
                     android:textAlignment="center"
                     android:textColor="@color/colorAccent"
