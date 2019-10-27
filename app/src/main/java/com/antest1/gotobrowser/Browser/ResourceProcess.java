@@ -680,22 +680,61 @@ public class ResourceProcess {
         main_js = main_js.replaceAll(
                 "createjs\\.Ticker\\.TIMEOUT",
                 "createjs.Ticker.RAF");
-        // LABS Targeting
-        main_js = main_js.replaceAll(
-                "this\\._panel\\.on\\(a\\.EventType\\.MOUSEOVER,this\\._onMouseOver\\)",
-                "this._panel.on(a.EventType.MOUSEDOWN,this._onMouseOver)");
-        main_js = main_js.replaceAll(
-                "this\\._panel\\.off\\(a\\.EventType\\.MOUSEOVER,this\\._onMouseOver\\)",
-                "this._panel.off(a.EventType.MOUSEDOWN,this._onMouseOver)");
-        // preset check
-        main_js = main_js.replaceAll("expandButton\\.addListener\\(r\\.EventType\\.MOUSEOVER",
-                "expandButton.addListener(r.EventType.MOUSEDOWN");
-        main_js = main_js.replaceAll("expandButton\\.addListener\\(r\\.EventType\\.MOUSEOUT",
-                "expandButton.addListener(r.EventType.CLICK");
-        main_js = main_js.replaceAll("on\\(s\\.EventType\\.MOUSEOUT, i\\._onMouseOut\\)",
-                "on(s.EventType.CLICK, i._onMouseOut)");
-        main_js = main_js.replaceAll("on\\(s\\.EventType\\.MOUSEOVER, i\\._onMouseOver\\)",
-                "on(s.EventType.MOUSEDOWN, i._onMouseOver)");
+
+        // Simulate mouse hover effects by dispatching new custom events "touchover" and "touchout"
+        main_js +=  "function patchInteractionManager () {\n" +
+                    "  var proto = PIXI.interaction.InteractionManager.prototype;\n" +
+                    "\n" +
+                    "  function extendMethod (method, extFn) {\n" +
+                    "    var old = proto[method];\n" +
+                    "    proto[method] = function () {\n" +
+                    "      old.call(this, ...arguments);\n" +
+                    "      extFn.call(this, ...arguments);\n" +
+                    "    };\n" +
+                    "  }\n" +
+                    "  proto.update = mobileUpdate;\n" +
+                    "\n" +
+                    "  function mobileUpdate(deltaTime) {\n" +
+                    "    if (!this.interactionDOMElement) {\n" +
+                    "      return;\n" +
+                    "    }\n" +
+                         // Only trigger "touchout" when there is another object start "touchover", do nothing when "touchend"
+                         // So that alert bubbles persist after a simple tap, do not disappear when the finger leaves
+                    "    if (this.eventData.data && (this.eventData.type == 'touchmove' || this.eventData.type == 'touchstart')) {\n" +
+                    "      window.__eventData = this.eventData;\n" +
+                    "      this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
+                    "    }\n" +
+                    "  }\n" +
+                    "\n" +
+                    "  extendMethod('processTouchMove', function(displayObject, hit) {\n" +
+                    "      this.processTouchOverOut('processTouchMove', displayObject, hit);\n" +
+                    "  });\n" +
+                    "  extendMethod('processTouchStart', function(displayObject, hit) {\n" +
+                    "      this.processTouchOverOut('processTouchStart', displayObject, hit);\n" +
+                    "  });\n" +
+                    "\n" +
+                    "  proto.processTouchOverOut = function (interactionEvent, displayObject, hit) {\n" +
+                    "    if(hit) {\n" +
+                    "      if(!displayObject.__over) {\n" +
+                    "        displayObject.__over = true;\n" +
+                    "        proto.dispatchEvent( displayObject, 'touchover', window.__eventData);\n" +
+                    "      }\n" +
+                    "    } else {\n" +
+                             // Only trigger "touchout" when user starts touching another object
+                    "        if(displayObject.__over && interactionEvent.target != displayObject) {\n" +
+                    "            displayObject.__over = false;\n" +
+                    "            proto.dispatchEvent( displayObject, 'touchout', window.__eventData);\n" +
+                    "        }\n" +
+                    "    }\n" +
+                    "  };\n" +
+                    "}\n" +
+                    "patchInteractionManager();";
+
+        // Rename the original "mouseout" and "mouseover" event name to custom names for objects to listen on
+        // Reusing original names will cause a lot of conflict issues
+        main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
+        main_js = main_js.replace("out:n.pointer?\"pointerout\":\"mouseout\"", "out:\"touchout\"");
+
         return main_js;
     }
 
