@@ -74,8 +74,8 @@ public class SettingsActivity extends AppCompatActivity {
         TextView latestCheck = findViewById(R.id.version_update);
         latestCheck.setOnClickListener(v -> requestLatestAppVersion());
 
-        TextView resourceDown = findViewById(R.id.resource_update);
-        resourceDown.setOnClickListener(v -> openResourceDownloadPage());
+        //TextView resourceDown = findViewById(R.id.resource_update);
+        //resourceDown.setOnClickListener(v -> openResourceDownloadPage());
 
         ImageView exitButton = findViewById(R.id.button_exit);
         exitButton.setOnClickListener(v -> finish());
@@ -298,10 +298,11 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    /*
     public void openResourceDownloadPage() {
         Intent intent = new Intent(SettingsActivity.this, BrowserActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setAction(WebViewManager.OPEN_RES_DOWN);
         startActivity(intent);
-    }
+    }*/
 }
