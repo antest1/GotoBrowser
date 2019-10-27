@@ -34,9 +34,11 @@ import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
+import static com.antest1.gotobrowser.Constants.PREF_KEYBOARD;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_LOCALPROXY;
+import static com.antest1.gotobrowser.Constants.PREF_PANELSTART;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.URL_LIST;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
@@ -91,6 +93,16 @@ public class EntranceActivity extends AppCompatActivity {
             if (isChecked) WebViewManager.setProxy();
             else WebViewManager.clearProxy();
         });
+
+        CheckBox showControlPanelCheckbox = findViewById(R.id.layout_control);
+        showControlPanelCheckbox.setChecked(sharedPref.getBoolean(PREF_PANELSTART, false));
+        showControlPanelCheckbox.setOnCheckedChangeListener((buttonView, isChecked)
+                -> editor.putBoolean(PREF_PANELSTART, isChecked).apply());
+
+        CheckBox showKeyboardCheckbox = findViewById(R.id.layout_keyboard);
+        showKeyboardCheckbox.setChecked(sharedPref.getBoolean(PREF_KEYBOARD, false));
+        showKeyboardCheckbox.setOnCheckedChangeListener((buttonView, isChecked)
+                -> editor.putBoolean(PREF_KEYBOARD, isChecked).apply());
 
         selectButton = findViewById(R.id.connector_select);
         selectButton.setOnClickListener(v -> showConnectorSelectionDialog());
