@@ -18,9 +18,7 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.antest1.gotobrowser.Browser.BrowserSoundPlayer;
 import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
@@ -31,7 +29,6 @@ import com.antest1.gotobrowser.Subtitle.KcSubtitleUtils;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -39,9 +36,6 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.webkit.ProxyConfig;
-import androidx.webkit.ProxyController;
-import androidx.webkit.WebViewFeature;
 
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
@@ -69,7 +63,6 @@ public class BrowserActivity extends AppCompatActivity {
     private View mHorizontalControlView, mVerticalControlView;
     private SeekBar mSeekBarH, mSeekBarV;
     private LocalProxyServer proxy;
-    private BrowserSoundPlayer browserPlayer;
 
     boolean isLocalProxyEnabled = false;
     private boolean isKcBrowserMode = false;
@@ -146,7 +139,6 @@ public class BrowserActivity extends AppCompatActivity {
             if (isLandscapeMode) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
             if (isSilentMode) WebViewManager.setSoundMuteCookie(mContentView);
             if (isKeepMode) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            BrowserSoundPlayer.setmute(isMuteMode);
 
             mHorizontalControlView = findViewById(R.id.control_component);
             mHorizontalControlView.setVisibility(View.GONE);
@@ -254,7 +246,6 @@ public class BrowserActivity extends AppCompatActivity {
                 mContentView.resumeTimers();
                 manager.runMuteScript(mContentView, isMuteMode);
                 pause_flag = false;
-                //if (browserPlayer != null) browserPlayer.startAll();
             }
             Log.e("GOTO", "is_multi");
         }
@@ -268,15 +259,10 @@ public class BrowserActivity extends AppCompatActivity {
         mContentView.resumeTimers();
         mContentView.getSettings().setTextZoom(100);
         manager.runMuteScript(mContentView, isMuteMode);
-        //if (browserPlayer != null) browserPlayer.startAll();
     }
 
     @Override
     protected void onDestroy() {
-        if (browserPlayer != null) {
-            browserPlayer.stopAll();
-            browserPlayer.releaseAll();
-        }
         manager.saveCacheStatus();
         if (isLocalProxyEnabled) proxy.stop();
         mContentView.removeAllViews();
@@ -329,7 +315,6 @@ public class BrowserActivity extends AppCompatActivity {
     public boolean isSubtitleAvailable() { return isSubtitleLoaded; }
     public boolean isBrowserPaused() { return pause_flag; }
     public void setStartedFlag() { isStartedFlag = true; }
-    public void setBrowserPlayer(BrowserSoundPlayer player) { browserPlayer = player; }
 
     private int getHorizontalProgressFromPref(int value) { return value / 2; }
     private int convertHorizontalProgress(int progress) { return progress * 2; }
@@ -474,7 +459,6 @@ public class BrowserActivity extends AppCompatActivity {
                 .setMessage(getString(R.string.refresh_msg))
                 .setPositiveButton(R.string.action_ok,
                         (dialog, id) -> {
-                            browserPlayer.pauseAll();
                             connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
                             if (manager != null && connector_info != null && connector_info.size() == 2) {
                                 manager.openPage(mContentView, connector_info, isKcBrowserMode);
@@ -485,7 +469,6 @@ public class BrowserActivity extends AppCompatActivity {
                 .setNegativeButton(R.string.action_cancel,
                         (dialog, id) -> {
                             dialog.cancel();
-                            browserPlayer.startAll();
                             mContentView.resumeTimers();
                         });
         AlertDialog alertDialog = alertDialogBuilder.create();

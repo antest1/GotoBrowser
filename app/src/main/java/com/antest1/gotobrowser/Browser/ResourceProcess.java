@@ -55,10 +55,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-import static com.antest1.gotobrowser.Browser.BrowserSoundPlayer.AUDIO_POOL_LIMIT;
-import static com.antest1.gotobrowser.Browser.BrowserSoundPlayer.PLAYER_BGM;
-import static com.antest1.gotobrowser.Browser.BrowserSoundPlayer.PLAYER_SE;
-import static com.antest1.gotobrowser.Browser.BrowserSoundPlayer.PLAYER_VOICE;
 import static com.antest1.gotobrowser.Constants.MUTE_LISTEN;
 import static com.antest1.gotobrowser.Constants.MUTE_SET;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
@@ -94,7 +90,6 @@ public class ResourceProcess {
     private Context context;
     private VersionDatabase versionTable;
     private final OkHttpClient resourceClient = new OkHttpClient();
-    private BrowserSoundPlayer browserPlayer;
 
     private boolean isBattleMode = false;
     private boolean isOnPractice = false;
@@ -118,7 +113,6 @@ public class ResourceProcess {
         versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
         subtitleText = activity.findViewById(R.id.subtitle_view);
         subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
-        browserPlayer = new BrowserSoundPlayer(shipVoiceHandler);
         loadLRUCache();
     }
 
@@ -198,7 +192,6 @@ public class ResourceProcess {
         String path = file_info.get("path").getAsString();
         String filename = file_info.get("filename").getAsString();
         String filepath = file_info.get("out_file_path").getAsString();
-        setVolumeFromCookie(file_info);
 
         try {
             if (path != null && filename != null) {
@@ -219,7 +212,6 @@ public class ResourceProcess {
                     return null;
                 }
 
-                checkPortVolume(path);
                 updateCurrentMapInfo(path, filename);
 
                 JsonObject update_info = checkResourceUpdate(source);
@@ -272,28 +264,6 @@ public class ResourceProcess {
             }
         }
         return false;
-    }
-
-    private void setVolumeFromCookie(JsonObject file_info) {
-        String path = file_info.get("path").getAsString();
-        String host = file_info.get("host").getAsString();
-        if (path.contains("/kcs2/img/") && host != null) {
-            currentCookieHost = host.concat("/kcs2/");
-            String cookie = CookieManager.getInstance().getCookie(currentCookieHost);
-            if (cookie != null) {
-                String[] data = cookie.split(";");
-                for (String item : data) {
-                    String[] row = item.trim().split("=");
-                    if (!row[1].matches("[0-9]+")) continue;
-                    String key = row[0];
-                    float value = (float) Integer.parseInt(row[1]) / 100;
-                    if (key.equals("vol_bgm")) browserPlayer.setVolume(PLAYER_BGM, value);
-                    if (key.equals("vol_voice")) browserPlayer.setVolume(PLAYER_VOICE, value);
-                    if (key.equals("vol_se")) browserPlayer.setVolume(PLAYER_SE, value);
-                }
-            }
-            // Log.e("GOTO", cookie);
-        }
     }
 
     private WebResourceResponse getEmptyResponse() {
@@ -385,19 +355,6 @@ public class ResourceProcess {
             }
         } catch (IOException e) {
             KcUtils.reportException(e);
-        }
-    }
-
-    private void checkPortVolume(String path) {
-        if (path.contains("/api_port/port")) {
-            currentMapId = 0;
-            Log.e("GOTO", "run executor");
-            executor = Executors.newScheduledThreadPool(1);
-            executor.scheduleAtFixedRate(portVolumeCheckRunnable, 0, 1, TimeUnit.SECONDS);
-        } else if (path.contains("/api")) {
-            if (executor != null && !executor.isShutdown()) {
-                executor.shutdown();
-            }
         }
     }
 
@@ -711,26 +668,6 @@ public class ResourceProcess {
         if (activity.isMuteMode()) main_js = main_js.concat(MUTE_SET);
         return main_js;
     }
-
-    private Runnable portVolumeCheckRunnable = () -> {
-        String cookie = CookieManager.getInstance().getCookie(currentCookieHost);
-        String[] data = cookie.split(";");
-        for (String item : data) {
-            String[] row = item.trim().split("=");
-            if (!row[1].matches("[0-9]+")) continue;
-            String key = row[0];
-            float value = (float) Integer.parseInt(row[1]) / 100;
-            if (key.equals("vol_bgm")) {
-                browserPlayer.setVolume(PLAYER_BGM, value);
-            }
-            if (key.equals("vol_voice")) {
-                browserPlayer.setVolume(PLAYER_VOICE, value);
-            }
-            if (key.equals("vol_se")) {
-                browserPlayer.setVolume(PLAYER_SE, value);
-            }
-        }
-    };
 
     // Reference: https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
     private Runnable clearSubtitle = new Runnable() {
