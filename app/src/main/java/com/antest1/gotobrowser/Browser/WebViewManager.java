@@ -5,7 +5,6 @@ import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Message;
@@ -25,16 +24,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
 
-import androidx.annotation.RequiresApi;
-import androidx.webkit.ProxyConfig;
-import androidx.webkit.ProxyController;
-import androidx.webkit.WebViewFeature;
-
 import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Constants;
 import com.antest1.gotobrowser.Helpers.KcUtils;
-import com.antest1.gotobrowser.Proxy.LocalProxyServer;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 
@@ -43,16 +36,14 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.Executor;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static com.antest1.gotobrowser.Browser.KcsInterface.GOTO_ANDROID;
 import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_NIT;
 import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_OOI;
 import static com.antest1.gotobrowser.Constants.CONNECT_NITRABBIT;
@@ -96,32 +87,6 @@ public class WebViewManager {
     public WebViewManager (BrowserActivity ac) {
         activity = ac;
         resourceProcess = new ResourceProcess(ac);
-    }
-
-    public static boolean checkProxy() {
-        return WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE);
-    }
-
-    public static boolean setProxy() {
-        boolean enabled = WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE);
-        if (enabled) {
-            ProxyConfig proxyConfig = new ProxyConfig.Builder()
-                    .addProxyRule(LocalProxyServer.getServerAddress())
-                    .build();
-            Executor executor = command -> { };
-            Runnable runnable = () -> { };
-            ProxyController.getInstance().setProxyOverride(proxyConfig, executor, runnable);
-        }
-        return enabled;
-    }
-
-    public static void clearProxy() {
-        boolean enabled = WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE);
-        if (enabled) {
-            Executor executor = command -> { };
-            Runnable runnable = () -> { };
-            ProxyController.getInstance().clearProxyOverride(executor, runnable);
-        }
     }
 
     public void setHardwardAcceleratedFlag() {
@@ -178,7 +143,7 @@ public class WebViewManager {
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         Context context = activity.getApplicationContext();
         boolean is_kcbrowser_mode = activity.isKcMode();
-
+        webview.addJavascriptInterface(new KcsInterface(activity), GOTO_ANDROID);
         webview.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
                 if (is_kcbrowser_mode) {

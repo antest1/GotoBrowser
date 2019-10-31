@@ -16,7 +16,7 @@
     <string name="mode_landscape">Landscape Mode</string>
     <string name="mode_adjustment">Auto Layout Adjustment</string>
     <string name="mode_silent">Start with Audio OFF</string>
-    <string name="mode_localproxy">Use Local Proxy</string>
+    <string name="mode_broadcast">Broadcast Mode</string>
     <string name="mode_show_panel">Show Control Panel on Start</string>
     <string name="mode_enable_keyboard">Enable Keyboard Input</string>
     <string name="button_start">START</string>

@@ -8,7 +8,7 @@ public class Constants {
     public static final String PREF_ADJUSTMENT = "pref_adjustment";
     public static final String PREF_CONNECTOR = "pref_connector";
     public static final String PREF_SILENT = "pref_silent";
-    public static final String PREF_LOCALPROXY = "pref_localproxy";
+    public static final String PREF_BROADCAST = "pref_broadcast";
     public static final String PREF_PANELSTART = "pref_panelstart";
     public static final String PREF_KEYBOARD = "pref_keyboard";
     public static final String PREF_MUTEMODE = "pref_mutemode";

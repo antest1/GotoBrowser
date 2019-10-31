@@ -12,7 +12,6 @@ android {
         versionName "1.2"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        multiDexEnabled true
 
         buildTypes {
             debug {
@@ -44,7 +43,5 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation 'androidx.webkit:webkit:1.1.0-rc01'
-    implementation group: 'org.littleshoot', name: 'littleproxy', version: '1.1.2'
-    implementation 'com.android.support:multidex:1.0.3'
 }
 

@@ -13,7 +13,7 @@
     <string name="mode_landscape">横固定モード</string>
     <string name="mode_adjustment">レイアウト自動調整</string>
     <string name="mode_silent">音量OFFでスタート</string>
-    <string name="mode_localproxy">ローカルプロキシを使用</string>
+    <string name="mode_broadcast">ブロードキャストモード</string>
     <string name="mode_show_panel">起動時にパネルを表示</string>
     <string name="mode_enable_keyboard">キーボード入力を有効に</string>
     <string name="button_start">スタート</string>

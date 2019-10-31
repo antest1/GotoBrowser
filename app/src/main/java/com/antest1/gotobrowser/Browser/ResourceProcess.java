@@ -2,13 +2,12 @@ package com.antest1.gotobrowser.Browser;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
 import android.util.LruCache;
-import android.webkit.CookieManager;
 import android.webkit.WebResourceResponse;
 import android.widget.TextView;
 
@@ -44,9 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
@@ -57,6 +54,7 @@ import okhttp3.ResponseBody;
 
 import static com.antest1.gotobrowser.Constants.MUTE_LISTEN;
 import static com.antest1.gotobrowser.Constants.MUTE_SET;
+import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResource;
@@ -457,6 +455,9 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processScriptFile(JsonObject file_info) throws IOException {
+        SharedPreferences sharedPref = activity.getSharedPreferences(
+                activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
+        boolean broadcast_mode = sharedPref.getBoolean(PREF_BROADCAST, false);
         String url = file_info.get("url").getAsString();
         if (url.contains("kcs2/js/main.js")) {
             InputStream in = new BufferedInputStream(new URL(url).openStream());
@@ -470,7 +471,7 @@ public class ResourceProcess {
             in.close();
 
             byte[] byteArray = buffer.toByteArray();
-            String main_js = patchMainScript(new String(byteArray, StandardCharsets.UTF_8));
+            String main_js = patchMainScript(new String(byteArray, StandardCharsets.UTF_8), broadcast_mode);
             InputStream is = new ByteArrayInputStream(main_js.getBytes());
             return new WebResourceResponse("application/javascript", "utf-8", is);
         } else {
@@ -604,7 +605,7 @@ public class ResourceProcess {
         }
     }
 
-    private String patchMainScript(String main_js) {
+    private String patchMainScript(String main_js, boolean broadcast_mode) {
         // Low Frame Rate Issue
         main_js = main_js.replaceAll(
                 "createjs\\.Ticker\\.TIMEOUT",
@@ -666,6 +667,8 @@ public class ResourceProcess {
         main_js = main_js.replace("html5:a\\.HTML5_AUDIO", "html5:true");
         main_js = main_js.concat(MUTE_LISTEN);
         if (activity.isMuteMode()) main_js = main_js.concat(MUTE_SET);
+
+        if (broadcast_mode) main_js = main_js.concat("\n").concat(KcsInterface.AXIOS_INTERCEPT_SCRIPT);
         return main_js;
     }
 

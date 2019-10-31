@@ -23,7 +23,6 @@ import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.KcUtils;
-import com.antest1.gotobrowser.Proxy.LocalProxyServer;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.KcSubtitleUtils;
 
@@ -43,7 +42,7 @@ import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_KEEPMODE;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
-import static com.antest1.gotobrowser.Constants.PREF_LOCALPROXY;
+import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
 import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
 import static com.antest1.gotobrowser.Constants.PREF_PADDING;
@@ -62,9 +61,7 @@ public class BrowserActivity extends AppCompatActivity {
     private ProgressDialog downloadDialog;
     private View mHorizontalControlView, mVerticalControlView;
     private SeekBar mSeekBarH, mSeekBarV;
-    private LocalProxyServer proxy;
 
-    boolean isLocalProxyEnabled = false;
     private boolean isKcBrowserMode = false;
     private boolean isStartedFlag = false;
     private List<String> connector_info;
@@ -92,13 +89,6 @@ public class BrowserActivity extends AppCompatActivity {
         backPressCloseHandler = new BackPressCloseHandler(this);
         sharedPref = getSharedPreferences(
                 getString(R.string.preference_key), Context.MODE_PRIVATE);
-
-        isLocalProxyEnabled = sharedPref.getBoolean(PREF_LOCALPROXY, false);
-        if (isLocalProxyEnabled) {
-            proxy = new LocalProxyServer(this);
-            proxy.start();
-        }
-
 
         Log.e("GOTO", "start action bar");
         try {
@@ -264,7 +254,6 @@ public class BrowserActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         manager.saveCacheStatus();
-        if (isLocalProxyEnabled) proxy.stop();
         mContentView.removeAllViews();
         mContentView.destroy();
         super.onDestroy();

@@ -12,7 +12,7 @@
     <string name="mode_landscape">横向模式</string>
     <string name="mode_adjustment">自动调整佈局</string>
     <string name="mode_silent">在静音模式下启动</string>
-    <string name="mode_localproxy">使用本地代理</string>
+    <string name="mode_broadcast">使用传播方式</string>
     <string name="mode_show_panel">启动时显示控制台</string>
     <string name="mode_enable_keyboard">准许键盘输入</string>
     <string name="button_start">开始游戏</string>

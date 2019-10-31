@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Switch;
@@ -37,7 +36,7 @@ import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
 import static com.antest1.gotobrowser.Constants.PREF_KEYBOARD;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
-import static com.antest1.gotobrowser.Constants.PREF_LOCALPROXY;
+import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_PANELSTART;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.URL_LIST;
@@ -86,13 +85,11 @@ public class EntranceActivity extends AppCompatActivity {
         silentSwitch.setOnCheckedChangeListener((buttonView, isChecked)
                 -> editor.putBoolean(PREF_SILENT, isChecked).apply());
 
-        Switch localproxySwitch = findViewById(R.id.switch_localproxy);
-        localproxySwitch.setChecked(sharedPref.getBoolean(PREF_LOCALPROXY, false));
-        localproxySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            editor.putBoolean(PREF_LOCALPROXY, isChecked).apply();
-            if (isChecked) WebViewManager.setProxy();
-            else WebViewManager.clearProxy();
-        });
+        Switch broadcastSwitch = findViewById(R.id.switch_broadcast);
+        broadcastSwitch.setChecked(sharedPref.getBoolean(PREF_BROADCAST, false));
+        broadcastSwitch.setOnCheckedChangeListener((buttonView, isChecked)
+                -> editor.putBoolean(PREF_BROADCAST, isChecked).apply()
+        );
 
         CheckBox showControlPanelCheckbox = findViewById(R.id.layout_control);
         showControlPanelCheckbox.setChecked(sharedPref.getBoolean(PREF_PANELSTART, false));
@@ -124,28 +121,6 @@ public class EntranceActivity extends AppCompatActivity {
 
         TextView versionText = findViewById(R.id.version_info);
         versionText.setText(String.format(Locale.US, getString(R.string.version_format), BuildConfig.VERSION_NAME));
-
-        TextView proxyText = findViewById(R.id.proxy_override_enabled);
-        try {
-            if (WebViewManager.checkProxy()) {
-                localproxySwitch.setEnabled(true);
-                proxyText.setText("PROXY_OVERRIDE_ENABLED");
-                proxyText.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorEnabled));
-            } else {
-                localproxySwitch.setEnabled(false);
-                proxyText.setText("PROXY_OVERRIDE_DISABLED");
-                proxyText.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorDisabled));
-            }
-        } catch (ExceptionInInitializerError e) {
-            KcUtils.reportException(e);
-            localproxySwitch.setEnabled(false);
-            proxyText.setText("WEBVIEW_PACKAGE_NOT_FOUND");
-            proxyText.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorDisabled));
-        }
-
-        boolean proxy_enable = sharedPref.getBoolean(PREF_LOCALPROXY, false);
-        if (proxy_enable) WebViewManager.setProxy();
-        else WebViewManager.clearProxy();
     }
 
     @Override

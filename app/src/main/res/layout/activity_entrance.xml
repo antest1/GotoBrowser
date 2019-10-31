@@ -141,12 +141,12 @@
                     android:textSize="15dp" />
 
                 <Switch
-                    android:id="@+id/switch_localproxy"
+                    android:id="@+id/switch_broadcast"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="3dp"
                     android:switchPadding="18dp"
-                    android:text="@string/mode_localproxy"
+                    android:text="@string/mode_broadcast"
                     android:textColor="@color/white"
                     android:textSize="15dp" />
 
