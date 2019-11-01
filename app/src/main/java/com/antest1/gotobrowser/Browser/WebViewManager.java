@@ -54,6 +54,8 @@ import static com.antest1.gotobrowser.Constants.CONN_OOI;
 import static com.antest1.gotobrowser.Constants.DMM_COOKIE;
 import static com.antest1.gotobrowser.Constants.KANCOLLE_SERVER_LIST;
 import static com.antest1.gotobrowser.Constants.MUTE_SEND;
+import static com.antest1.gotobrowser.Constants.MUTE_SEND_DMM;
+import static com.antest1.gotobrowser.Constants.MUTE_SEND_OOI;
 import static com.antest1.gotobrowser.Constants.OOI_SERVER_LIST;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
@@ -73,6 +75,7 @@ import static com.antest1.gotobrowser.Constants.URL_KANSU;
 import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.URL_OOI;
 import static com.antest1.gotobrowser.Constants.URL_OOI_1;
+import static com.antest1.gotobrowser.Constants.URL_OOI_LOGOUT;
 import static com.antest1.gotobrowser.Constants.URL_OSAPI;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
@@ -83,10 +86,13 @@ public class WebViewManager {
     public static final String userAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.70 Safari/537.36";
     BrowserActivity activity;
     ResourceProcess resourceProcess;
+    SharedPreferences sharedPref;
 
     public WebViewManager (BrowserActivity ac) {
         activity = ac;
         resourceProcess = new ResourceProcess(ac);
+        sharedPref = activity.getSharedPreferences(
+                activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
     }
 
     public void setHardwardAcceleratedFlag() {
@@ -135,8 +141,6 @@ public class WebViewManager {
     }
 
     public void setWebViewClient(BrowserActivity activity, WebViewL webview, List<String> connector_info) {
-        SharedPreferences sharedPref = activity.getSharedPreferences(
-                activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         Context context = activity.getApplicationContext();
         boolean is_kcbrowser_mode = activity.isKcMode();
         webview.addJavascriptInterface(new KcsInterface(activity), GOTO_ANDROID);
@@ -144,7 +148,7 @@ public class WebViewManager {
             public void onPageFinished(WebView view, String url) {
                 if (is_kcbrowser_mode) {
                     sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
-                    WebViewManager.runLoginScript(activity, webview, url);
+                    runLoginScript(webview, url);
                     if (url.contains(Constants.URL_OSAPI) || url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
                         activity.setStartedFlag();
                         runLayoutAdjustmentScript(webview, url, connector_info);
@@ -301,9 +305,7 @@ public class WebViewManager {
         }
     }
 
-    public static void runLoginScript(BrowserActivity activity, WebViewL webview, String url) {
-        SharedPreferences sharedPref = activity.getSharedPreferences(
-                activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
+    public void runLoginScript(WebViewL webview, String url) {
         String login_id = sharedPref.getString(PREF_DMM_ID, ""); // intent.getStringExtra("login_id");
         String login_password = sharedPref.getString(PREF_DMM_PASS, "");
 
@@ -328,7 +330,14 @@ public class WebViewManager {
     }
 
     public void runMuteScript(WebViewL webview, boolean is_mute) {
-        webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND, is_mute ? 1 : 0), null);
+        String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
+        if (CONN_DMM.equals(pref_connector)) {
+            webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_DMM, is_mute ? 1 : 0), null);
+        } else if (CONN_KANSU.equals(pref_connector)) {
+            webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND, is_mute ? 1 : 0), null);
+        } else if (CONN_OOI.equals(pref_connector)) {
+            webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_OOI, is_mute ? 1 : 0), null);
+        }
     }
 
     public void runLayoutAdjustmentScript(WebViewL webview, String url, List<String> connector_info) {
@@ -349,7 +358,7 @@ public class WebViewManager {
             else if (url.contains(URL_DMM)) webview.evaluateJavascript(String.format(
                     Locale.US, RESIZE_DMM, adjust_padding, adjust_vpadding), null);
         }
-        if (url.contains(URL_OSAPI) || url.contains(URL_OOI_1)) {
+        if (url.contains(URL_OSAPI)) {
             webview.evaluateJavascript(String.format(Locale.US,
                     REFRESH_DETECT_CALL, connector_info.get(0)), value -> {
                 if (value.equals("true")) {
@@ -361,8 +370,6 @@ public class WebViewManager {
     }
 
     public void openPage(WebViewL webview, List<String> connector_info, boolean isKcBrowser) {
-        SharedPreferences sharedPref = activity.getSharedPreferences(
-                activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         String login_id = sharedPref.getString(PREF_DMM_ID, ""); // intent.getStringExtra("login_id");
         String login_password = sharedPref.getString(PREF_DMM_PASS, "");
         if (connector_info == null || connector_info.size() != 2) return;
@@ -379,7 +386,7 @@ public class WebViewManager {
             if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
                 String postdata = "";
                 try {
-                    int connect_mode = connector_url_default.equals(URL_OOI) ? 3 : 4;
+                    int connect_mode = connector_url_default.equals(URL_OOI) ? 1 : 4;
                     postdata = String.format(Locale.US, "login_id=%s&password=%s&mode=%d",
                             URLEncoder.encode(login_id, "utf-8"),
                             URLEncoder.encode(login_password, "utf-8"),
@@ -415,7 +422,7 @@ public class WebViewManager {
                     connector_url = URL_KANSU;
                 } else {
                     connector_url_default = URL_OOI;
-                    connector_url = sharedPref.getString(PREF_LATEST_URL, URL_OOI);
+                    connector_url = sharedPref.getString(URL_OOI_LOGOUT, URL_OOI);
                 }
                 url_list.add(connector_url_default);
                 url_list.add(connector_url);
@@ -426,7 +433,6 @@ public class WebViewManager {
         }
         return url_list;
     }
-
 
     public static Thread getResourceDownloadThread(BrowserActivity activity, String url, String userAgent, String mimetype) {
         Context context = activity.getApplicationContext();

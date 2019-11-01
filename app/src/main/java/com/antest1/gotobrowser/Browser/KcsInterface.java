@@ -15,13 +15,7 @@ import com.antest1.gotobrowser.Subtitle.KcSubtitleUtils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.ContentProvider.KcaContentProvider.BROADCAST_ACTION;
@@ -41,7 +35,6 @@ public class KcsInterface {
         SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         broadcast_mode = sharedPref.getBoolean(PREF_BROADCAST, false);
-
     }
 
     @JavascriptInterface

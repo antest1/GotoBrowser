@@ -253,6 +253,7 @@ public class ResourceProcess {
         try {
             File file = getImageFile(out_file_path);
             if (update_flag) {
+                KcPngCompress.removeCompressedFile(out_file_path);
                 String result = downloadResource(resourceClient, resource_url, last_modified, file);
                 String new_value = version;
                 if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value)) new_value = result;

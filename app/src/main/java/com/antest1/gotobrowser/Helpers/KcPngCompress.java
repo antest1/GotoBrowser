@@ -51,4 +51,10 @@ public class KcPngCompress {
         File outfile = new File(path.replace(".png", FILE_POSTFIX));
         return file.length() < 1048576 || outfile.exists();
     }
+
+    public static boolean removeCompressedFile(String path) {
+        File target = new File(path.replace(".png", FILE_POSTFIX));
+        if (target.exists()) return target.delete();
+        else return true;
+    }
 }
