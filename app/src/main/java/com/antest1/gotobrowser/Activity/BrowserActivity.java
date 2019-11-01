@@ -253,7 +253,6 @@ public class BrowserActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        manager.saveCacheStatus();
         mContentView.removeAllViews();
         mContentView.destroy();
         super.onDestroy();

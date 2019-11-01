@@ -134,10 +134,6 @@ public class WebViewManager {
         WebView.setWebContentsDebuggingEnabled(true);
     }
 
-    public void saveCacheStatus() {
-        resourceProcess.dumpLRUCache();
-    }
-
     public void setWebViewClient(BrowserActivity activity, WebViewL webview, List<String> connector_info) {
         SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);

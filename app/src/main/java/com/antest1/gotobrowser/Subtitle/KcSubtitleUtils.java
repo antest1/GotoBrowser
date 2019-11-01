@@ -21,6 +21,7 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -94,6 +95,7 @@ public class KcSubtitleUtils {
         496,           // Zara due
     };
 
+    public static Map<String, String> filenameToShipId = new HashMap<>();
     public static JsonObject shipDataGraph = new JsonObject();
     public static JsonObject mapBgmGraph = new JsonObject();
     public static JsonObject quoteLabel = new JsonObject();
