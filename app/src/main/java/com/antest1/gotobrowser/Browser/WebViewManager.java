@@ -132,7 +132,7 @@ public class WebViewManager {
         view.getSettings().setUserAgentString(userAgent);
         view.setScrollbarFadingEnabled(true);
         view.getSettings().setAppCacheEnabled(false);
-        view.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
+        view.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             view.getSettings().setOffscreenPreRaster(true);
         }
