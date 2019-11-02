@@ -252,7 +252,8 @@ public class ResourceProcess {
         String out_file_path = file_info.get("out_file_path").getAsString();
         try {
             File file = getImageFile(out_file_path);
-            if (update_flag) {
+            Log.e("GOTO", "requested: " + file.getPath());
+            if (update_flag || !file.exists()) {
                 KcPngCompress.removeCompressedFile(out_file_path);
                 String result = downloadResource(resourceClient, resource_url, last_modified, file);
                 String new_value = version;
@@ -261,17 +262,17 @@ public class ResourceProcess {
                     Log.e("GOTO", "return null: " + path + " " + new_value);
                     return null;
                 } else if (result.equals("304")) {
-                    Log.e("GOTO", "load cached resource: " + path + " " + new_value);
+                    Log.e("GOTO", "load 304 resource: " + path + " " + new_value);
                 } else {
                     Log.e("GOTO", "cache resource: " + path + " " + new_value);
                     versionTable.putValue(path, new_value);
                 }
             } else {
-                Log.e("GOTO", "load cached resource: " + path + " " + version);
+                Log.e("GOTO", "load cached resource: " + file.getPath() + " " + version);
             }
 
             // Compress Image if possible
-            if (ResourceProcess.isImage(resource_type) && !KcPngCompress.isCompressed(out_file_path)) {
+            if (ResourceProcess.isImage(resource_type) && KcPngCompress.shouldBeCompressed(out_file_path)) {
                 KcPngCompress.execQuantTask(out_file_path);
             }
 
@@ -385,7 +386,11 @@ public class ResourceProcess {
     }
 
     private File getImageFile(String path) {
-        return new File(KcPngCompress.getCompressedFilePath(path));
+        if (KcPngCompress.isCompressed(path)) {
+            return new File(KcPngCompress.getCompressedFilePath(path));
+        } else {
+            return new File(path);
+        }
     }
 
     private void checkSpecialSubtitleMode() {

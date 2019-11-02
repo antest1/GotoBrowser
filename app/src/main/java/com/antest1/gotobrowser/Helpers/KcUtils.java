@@ -188,6 +188,7 @@ public class KcUtils {
         } else {
             builder.addHeader("Cache-Control", "no-cache");
         }
+        Log.e("GOTO", "download " + fullpath);
         Request request = builder.build();
         try {
             Response response = client.newCall(request).execute();
