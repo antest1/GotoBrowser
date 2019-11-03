@@ -50,9 +50,9 @@ public class Constants {
     public static final String RESIZE_CALL = "resize_triggered&&setTimeout(resize,300,%d,%d);";
     public static final String REFRESH_DETECT_CALL = "(function(){return document.getElementById(\"flashWrap\")==null})();";
     public static final String MUTE_SET = "Howler.mute(true);";
-    public static final String MUTE_SEND_DMM = "var msg=\"sound\\t%d\";var origin=\"*\";document.getElementById(\"game_frame\").contentWindow.postMessage(msg,origin);";
-    public static final String MUTE_SEND_OOI = "var msg=\"sound\\t%d\";var origin=\"*\";document.getElementById(\"externalswf\").contentWindow.postMessage(msg,origin);";
-    public static final String MUTE_SEND = "var msg=\"sound\\t%d\";var origin=\"*\";var doc=document.getElementById(\"htmlWrap\");if(doc){doc.contentWindow.postMessage(msg,origin)}else{document.getElementsByTagName(\"iframe\")[0].contentWindow.postMessage(msg,origin)}";
+    public static final String MUTE_SEND_DMM = "(function(){var msg=\"sound\\t%d\";var origin=\"*\";document.getElementById(\"game_frame\").contentWindow.postMessage(msg,origin);return \"done\"})()";
+    public static final String MUTE_SEND_OOI = "(function(){var msg=\"sound\\t%d\";var origin=\"*\";document.getElementById(\"externalswf\").contentWindow.postMessage(msg,origin);return \"done\"})()";
+    public static final String MUTE_SEND = "(function(){var msg=\"sound\\t%d\";var origin=\"*\";var doc=document.getElementById(\"htmlWrap\");if(doc){doc.contentWindow.postMessage(msg,origin)}else{document.getElementsByTagName(\"iframe\")[0].contentWindow.postMessage(msg,origin)};return \"done\"})()";
     public static final String MUTE_LISTEN = "\nwindow.addEventListener(\"message\",function(e){Howler.mute(parseInt(e.data.split(\"\\t\")[1]));});";
     public static final String DMM_COOKIE = "document.cookie='ckcy=1;expires=Thu, 16-Jan-2023 00:00:00 GMT;path=/netgame;domain=.dmm.com';";
 

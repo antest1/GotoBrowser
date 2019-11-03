@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -16,6 +17,7 @@ import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.JsResult;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -330,13 +332,21 @@ public class WebViewManager {
     }
 
     public void runMuteScript(WebViewL webview, boolean is_mute) {
+        runMuteScript(webview, is_mute, false);
+    }
+
+    public void runMuteScript(WebViewL webview, boolean is_mute, boolean force_pause) {
+        ValueCallback<String> callback = s -> {
+            if (force_pause) new Handler().postDelayed(webview::pauseTimers, 500);
+        };
+
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
         if (CONN_DMM.equals(pref_connector)) {
-            webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_DMM, is_mute ? 1 : 0), null);
+            webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_DMM, is_mute ? 1 : 0), callback);
         } else if (CONN_KANSU.equals(pref_connector)) {
-            webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND, is_mute ? 1 : 0), null);
+            webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND, is_mute ? 1 : 0), callback);
         } else if (CONN_OOI.equals(pref_connector)) {
-            webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_OOI, is_mute ? 1 : 0), null);
+            webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_OOI, is_mute ? 1 : 0), callback);
         }
     }
 

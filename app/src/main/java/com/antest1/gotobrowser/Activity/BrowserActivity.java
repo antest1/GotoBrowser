@@ -229,8 +229,7 @@ public class BrowserActivity extends AppCompatActivity {
         if (!is_multi) {
             Log.e("GOTO", "is_not_multi");
             pause_flag = true;
-            manager.runMuteScript(mContentView, true);
-            new Handler().postDelayed(() -> mContentView.pauseTimers(), 500);
+            manager.runMuteScript(mContentView, true, true);
         } else {
             if (pause_flag) {
                 mContentView.resumeTimers();
