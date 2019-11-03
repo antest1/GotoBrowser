@@ -435,6 +435,15 @@ public class ResourceProcess {
                 "createjs\\.Ticker\\.TIMEOUT",
                 "createjs.Ticker.RAF");
 
+        // handling port button behavior (sally)
+        main_js = main_js.replaceAll(
+                "_.EventType\\.MOUSEUP,this\\._onMouseUp",
+                "_.EventType.MOUSEDOWN,this._onMouseUp");
+        // handling port button behavior (others)
+        main_js = main_js.replaceAll(
+                "c.EventType\\.MOUSEUP,this\\._onMouseUp",
+                "c.EventType.MOUSEDOWN,this._onMouseUp");
+
         // Simulate mouse hover effects by dispatching new custom events "touchover" and "touchout"
         main_js +=  "function patchInteractionManager () {\n" +
                     "  var proto = PIXI.interaction.InteractionManager.prototype;\n" +
