@@ -194,7 +194,7 @@
                         android:paddingEnd="8dp"
                         android:paddingRight="8dp"
                         android:paddingBottom="4dp"
-                        android:text="LICENSE (Apache 2.0)"
+                        android:text="LICENSE (GPL-3.0)"
                         android:textAlignment="center"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
