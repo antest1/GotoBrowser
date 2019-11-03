@@ -29,6 +29,8 @@
     <string name="no_subtitle_file">請先從設定中下載字幕數據</string>
     <string name="setting_latest_version">已是最新版本</string>
     <string name="setting_latest_download" formatted="false">有一個可用的更新 (%s)\n是否要下載？</string>
-    <string name="settings_resource_label" translatable="false">下載圖像資源</string>
+    <string name="settings_resource_label">下載圖像資源</string>
     <string name="settings_resource_btn">下載</string>
+    <string name="settings_appinfo_browsersettings">瀏覽器設定</string>
+    <string name="browser_useimagecompress">壓縮大圖像</string>
 </resources>

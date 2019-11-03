@@ -40,4 +40,6 @@
     <string name="resource_download_prefix" translatable="false">/antest1/kcs2-resources/master</string>
     <string name="settings_resource_label">Download Resources</string>
     <string name="settings_resource_btn">Download</string>
+    <string name="settings_appinfo_browsersettings">Browser Settings</string>
+    <string name="browser_useimagecompress">Compress Large Images</string>
 </resources>

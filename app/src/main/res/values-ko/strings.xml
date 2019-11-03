@@ -30,6 +30,8 @@
     <string name="no_subtitle_file">설정에서 자막 데이터를 다운로드하세요.</string>
     <string name="setting_latest_version">최신 버전입니다.</string>
     <string name="setting_latest_download" formatted="false">업데이트가 있습니다. (%s)\n다운로드하시겠습니까?</string>
-    <string name="settings_resource_label" translatable="false">리소스 다운로드</string>
+    <string name="settings_resource_label">리소스 다운로드</string>
     <string name="settings_resource_btn">다운로드</string>
+    <string name="settings_appinfo_browsersettings">브라우저 설정</string>
+    <string name="browser_useimagecompress">고용량 이미지 압축</string>
 </resources>

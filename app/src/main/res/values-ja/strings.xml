@@ -30,6 +30,8 @@
     <string name="no_subtitle_file">設定で字幕データをダウンロードしてください。</string>
     <string name="setting_latest_version">最新バージョンです。</string>
     <string name="setting_latest_download" formatted="false">アップデートがあります。(%s)\nダウンロードしますか？</string>
-    <string name="settings_resource_label" translatable="false">リソースのダウンロード</string>
+    <string name="settings_resource_label">リソースのダウンロード</string>
     <string name="settings_resource_btn">ダウンロード</string>
+    <string name="settings_appinfo_browsersettings">ブラウザ設定</string>
+    <string name="browser_useimagecompress">大きな画像を圧縮する</string>
 </resources>

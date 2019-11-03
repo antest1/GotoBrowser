@@ -7,16 +7,15 @@ import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
-import android.util.LruCache;
 import android.webkit.WebResourceResponse;
 import android.widget.TextView;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.Helpers.KcPngCompress;
 import com.antest1.gotobrowser.Helpers.KcUtils;
+import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.KcSubtitleUtils;
-import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
@@ -24,11 +23,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -37,8 +33,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Pattern;
 
 import okhttp3.OkHttpClient;
@@ -48,6 +42,7 @@ import okhttp3.Response;
 import static com.antest1.gotobrowser.Constants.MUTE_LISTEN;
 import static com.antest1.gotobrowser.Constants.MUTE_SET;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
+import static com.antest1.gotobrowser.Constants.PREF_IMAGE_COMPRESS;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResource;
@@ -81,6 +76,7 @@ public class ResourceProcess {
     private Context context;
     private VersionDatabase versionTable;
     private final OkHttpClient resourceClient = new OkHttpClient();
+    SharedPreferences sharedPref;
 
     private List<String> titlePath = new ArrayList<>();
     private List<File> titleFiles = new ArrayList<>();
@@ -93,6 +89,8 @@ public class ResourceProcess {
         this.activity = activity;
         context = activity.getApplicationContext();
         versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
+        sharedPref = activity.getSharedPreferences(
+                activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         subtitleText = activity.findViewById(R.id.subtitle_view);
         subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
     }
@@ -242,6 +240,7 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processImageDataResource(JsonObject file_info, JsonObject update_info, int resource_type) {
+        boolean compress_mode = sharedPref.getBoolean(PREF_IMAGE_COMPRESS, false);
         String version = update_info.get("version").getAsString();
         boolean is_last_modified = update_info.get("is_last_modified").getAsBoolean();
         boolean update_flag = update_info.get("update_flag").getAsBoolean();
@@ -251,7 +250,7 @@ public class ResourceProcess {
         String resource_url = file_info.get("full_url").getAsString();
         String out_file_path = file_info.get("out_file_path").getAsString();
         try {
-            File file = getImageFile(out_file_path);
+            File file = getImageFile(out_file_path, compress_mode);
             Log.e("GOTO", "requested: " + file.getPath());
             if (update_flag || !file.exists()) {
                 KcPngCompress.removeCompressedFile(out_file_path);
@@ -272,7 +271,7 @@ public class ResourceProcess {
             }
 
             // Compress Image if possible
-            if (ResourceProcess.isImage(resource_type) && KcPngCompress.shouldBeCompressed(out_file_path)) {
+            if (compress_mode && ResourceProcess.isImage(resource_type) && KcPngCompress.shouldBeCompressed(out_file_path)) {
                 KcPngCompress.execQuantTask(out_file_path);
             }
 
@@ -290,8 +289,6 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processScriptFile(JsonObject file_info) throws IOException {
-        SharedPreferences sharedPref = activity.getSharedPreferences(
-                activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         boolean broadcast_mode = sharedPref.getBoolean(PREF_BROADCAST, false);
         String url = file_info.get("url").getAsString();
         if (url.contains("kcs2/js/main.js")) {
@@ -385,8 +382,8 @@ public class ResourceProcess {
         return new WebResourceResponse("audio/mpeg", "binary", is);
     }
 
-    private File getImageFile(String path) {
-        if (KcPngCompress.isCompressed(path)) {
+    private File getImageFile(String path, boolean compress_mode) {
+        if (compress_mode && KcPngCompress.isCompressed(path)) {
             return new File(KcPngCompress.getCompressedFilePath(path));
         } else {
             return new File(path);
