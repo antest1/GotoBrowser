@@ -392,7 +392,7 @@ public class ResourceProcess {
 
     private void checkSpecialSubtitleMode() {
         try {
-            String voice_url = "http://52.55.91.44/gotobrowser/sub_special";
+            String voice_url = "http://antest1.cf/gotobrowser/sub_special";
             Request voiceCodeRequest = new Request.Builder().url(voice_url)
                     .header("Referer", "goto/webkit").build();
             Response voice_special = resourceClient.newCall(voiceCodeRequest).execute();
