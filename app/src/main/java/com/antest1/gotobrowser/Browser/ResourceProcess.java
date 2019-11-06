@@ -427,6 +427,15 @@ public class ResourceProcess {
     }
 
     private String patchMainScript(String main_js, boolean broadcast_mode) {
+        // manage bgm loading strategy with global mute variable for audio focus issue
+        if (activity.isMuteMode()) {
+            main_js = "var global_mute=1;Howler.mute(true);\n".concat(main_js);
+        } else {
+            main_js = "var global_mute=0;Howler.mute(false);\n".concat(main_js);
+        }
+        main_js = "var gb_h=null;\nfunction add_bgm(b){b.onend=function(){(gb_h.mute()||gb_h.volume()==0)&&(gb_h.unload(),console.log('unload'))};global_mute&&(b.autoplay=false);gb_h=new Howl(b);return gb_h;}\n" + main_js;
+        main_js = main_js.replaceAll("new Howl\\(d\\)", "add_bgm(d)");
+
         // Low Frame Rate Issue
         main_js = main_js.replaceAll(
                 "createjs\\.Ticker\\.TIMEOUT",
@@ -494,9 +503,7 @@ public class ResourceProcess {
         // Reusing original names will cause a lot of conflict issues
         main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
         main_js = main_js.replace("out:n.pointer?\"pointerout\":\"mouseout\"", "out:\"touchout\"");
-        main_js = main_js.replace("html5:a\\.HTML5_AUDIO", "html5:true");
         main_js = main_js.concat(MUTE_LISTEN);
-        if (activity.isMuteMode()) main_js = main_js.concat(MUTE_SET);
 
         if (broadcast_mode) main_js = main_js.concat("\n").concat(KcsInterface.AXIOS_INTERCEPT_SCRIPT);
         return main_js;
