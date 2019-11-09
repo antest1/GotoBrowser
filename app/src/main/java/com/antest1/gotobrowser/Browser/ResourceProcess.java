@@ -40,7 +40,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static com.antest1.gotobrowser.Constants.MUTE_LISTEN;
-import static com.antest1.gotobrowser.Constants.MUTE_SET;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_IMAGE_COMPRESS;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
@@ -129,6 +128,7 @@ public class ResourceProcess {
         if (checkBlockedContent(url)) return getEmptyResponse();
         if (url.contains("ooi.css")) return getOoiSheetFromAsset();
         if (url.contains("gadget_html5/script/rollover.js")) return getMuteInjectedRolloverJs();
+        if (url.contains("gadget_html5/js/kcs_cda.js")) return getInjectedKcaCdaJs();
         if (url.contains("kcscontents/css/common.css")) return getBlackBackgroundSheet();
         if (resource_type == 0) return null;
 
@@ -426,6 +426,16 @@ public class ResourceProcess {
         }
     }
 
+    private WebResourceResponse getInjectedKcaCdaJs() {
+        try {
+            AssetManager as = context.getAssets();
+            InputStream is = as.open("kcs_cda.js");
+            return new WebResourceResponse("application/x-javascript", "utf-8", is);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     private String patchMainScript(String main_js, boolean broadcast_mode) {
         // manage bgm loading strategy with global mute variable for audio focus issue
         if (activity.isMuteMode()) {
@@ -433,9 +443,11 @@ public class ResourceProcess {
         } else {
             main_js = "var global_mute=0;Howler.mute(false);\n".concat(main_js);
         }
-        main_js = "var gb_h=null;\nfunction add_bgm(b){b.onend=function(){(gb_h.mute()||gb_h.volume()==0)&&(gb_h.unload(),console.log('unload'))};global_mute&&(b.autoplay=false);gb_h=new Howl(b);return gb_h;}\n" + main_js;
+        main_js = "var gb_h=null;\nfunction add_bgm(b){b.onend=function(){(global_mute||gb_h.volume()==0)&&(gb_h.unload(),console.log('unload'))};global_mute&&(b.autoplay=false);gb_h=new Howl(b);return gb_h;}\n" + main_js;
         main_js = main_js.replaceAll("new Howl\\(d\\)", "add_bgm(d)");
 
+        // main_js = main_js.replaceAll("var t=this;if\\(0==this\\._list\\.length\\)", "var t=this;console.log(JSON.stringify(this._list));if(0==this._list.length)");
+        main_js = main_js.replaceAll("catch\\(function\\(e\\)\\{", "catch(function(e){console.error(e,e.stack);");
         // Low Frame Rate Issue
         main_js = main_js.replaceAll(
                 "createjs\\.Ticker\\.TIMEOUT",

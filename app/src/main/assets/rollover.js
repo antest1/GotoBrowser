@@ -21,7 +21,8 @@ $(function() {
    $('.rollover a img').rollover();
    $('.bnr_request a img').rollover();
    window.addEventListener("message", function (e) {
-	  console.log("receive data from rollover:" + e.data);
+	  //console.log("receive data from rollover:");
+	  //console.log(e);
       var doc = document.getElementsByTagName("iframe")[0];
       doc.contentWindow.postMessage(e.data, "*")
    });
