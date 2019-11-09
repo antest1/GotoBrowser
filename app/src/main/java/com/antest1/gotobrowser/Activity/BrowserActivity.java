@@ -448,6 +448,7 @@ public class BrowserActivity extends AppCompatActivity {
                         (dialog, id) -> {
                             connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
                             if (manager != null && connector_info != null && connector_info.size() == 2) {
+                                ((TextView) findViewById(R.id.kc_error_text)).setText("");
                                 manager.openPage(mContentView, connector_info, isKcBrowserMode);
                             } else {
                                 finish();

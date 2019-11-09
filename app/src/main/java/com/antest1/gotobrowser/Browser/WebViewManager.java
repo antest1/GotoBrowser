@@ -139,7 +139,7 @@ public class WebViewManager {
             view.getSettings().setOffscreenPreRaster(true);
         }
         view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        WebView.setWebContentsDebuggingEnabled(true);
+        WebView.setWebContentsDebuggingEnabled(BuildConfig.enableWebDebug);
     }
 
     public void setWebViewClient(BrowserActivity activity, WebViewL webview, List<String> connector_info) {

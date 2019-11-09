@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
+import android.widget.TextView;
 
 import com.antest1.gotobrowser.ContentProvider.KcaPacketStore;
 import com.antest1.gotobrowser.Helpers.KcUtils;
@@ -16,6 +18,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
+import java.util.Locale;
 
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.ContentProvider.KcaContentProvider.BROADCAST_ACTION;
@@ -45,12 +49,20 @@ public class KcsInterface {
         };
     }
 
+    @JavascriptInterface
+    public void kcs_axios_error(String error) {
+        activity.runOnUiThread(() -> {
+            String text = String.format(Locale.US, "[Error] %s", error);
+            ((TextView) activity.findViewById(R.id.kc_error_text)).setText(text);
+        });
+    }
+
     public void processXHR(String url, String request, String response) {
-        if (broadcast_mode) sendBroadcast(url, request, response);
-        if (url.contains("api_start2")) {
+        try {
             response = response.replace("svdata=", "");
-            try {
-                JsonObject api_data = new JsonParser().parse(response).getAsJsonObject().getAsJsonObject("api_data");
+            JsonObject response_obj = new JsonParser().parse(response).getAsJsonObject();
+            if (url.contains("api_start2")) {
+                JsonObject api_data = response_obj.getAsJsonObject("api_data");
                 JsonArray api_mst_shipgraph = api_data.getAsJsonArray("api_mst_shipgraph");
                 JsonArray api_mst_ship = api_data.getAsJsonArray("api_mst_ship");
                 JsonArray api_mst_mapbgm = api_data.getAsJsonArray("api_mst_mapbgm");
@@ -63,10 +75,19 @@ public class KcsInterface {
                     KcSubtitleUtils.filenameToShipId.put(shipFn, shipId);
                 }
                 Log.e("GOTO", "filenameToShipId: " + KcSubtitleUtils.filenameToShipId.size());
-            } catch (Exception e) {
-                KcUtils.reportException(e);
             }
+
+            String finalResponse = response;
+            activity.runOnUiThread(() -> {
+                int result = response_obj.get("api_result").getAsInt();
+                String message = response_obj.get("api_result_msg").getAsString();
+                String text = (result == 1) ? "" : String.format(Locale.US, "[%d] %s\n%s (%d)", result, message, url, finalResponse.length());
+                ((TextView) activity.findViewById(R.id.kc_error_text)).setText(text);
+            });
+        } catch (Exception e) {
+            KcUtils.reportException(e);
         }
+        if (broadcast_mode) sendBroadcast(url, request, response);
     }
 
     public void sendBroadcast(String url, String request, String response) {
@@ -74,6 +95,25 @@ public class KcsInterface {
         packetTable.record(url, request, response);
         Intent intent = new Intent();
         intent.setAction(BROADCAST_ACTION);
+
+        Bundle bundle = new Bundle();
+        bundle.putString("url", url);
+        bundle.putString("request", request);
+        byte[] responseBytes;
+        responseBytes = response.getBytes();
+        if (responseBytes.length > 150000) {
+            try {
+                responseBytes = KcUtils.gzipcompress(response);
+                bundle.putBoolean("gzipped", true);
+            } catch (Exception e) {
+                // do nothing
+                bundle.putBoolean("gzipped", false);
+            }
+        } else {
+            bundle.putBoolean("gzipped", false);
+        }
+        bundle.putByteArray("response", responseBytes);
+        intent.putExtras(bundle);
         Log.e("GOTO", "broadcast sent: " + url);
         activity.sendBroadcast(intent);
     }

@@ -447,7 +447,7 @@ public class ResourceProcess {
         main_js = main_js.replaceAll("new Howl\\(d\\)", "add_bgm(d)");
 
         // main_js = main_js.replaceAll("var t=this;if\\(0==this\\._list\\.length\\)", "var t=this;console.log(JSON.stringify(this._list));if(0==this._list.length)");
-        main_js = main_js.replaceAll("catch\\(function\\(e\\)\\{", "catch(function(e){console.error(e,e.stack);");
+        main_js = main_js.replaceAll("catch\\(function\\(e\\)\\{", "catch(function(e){GotoBrowser.kcs_axios_error(e.stack);");
         // Low Frame Rate Issue
         main_js = main_js.replaceAll(
                 "createjs\\.Ticker\\.TIMEOUT",

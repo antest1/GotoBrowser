@@ -12,14 +12,20 @@ import com.crashlytics.android.Crashlytics;
 import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -246,5 +252,32 @@ public class KcUtils {
         return resultStr;
     }
 
+    public static byte[] gzipcompress(String value) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        GZIPOutputStream gzipOutStream = new GZIPOutputStream(
+                new BufferedOutputStream(byteArrayOutputStream));
+        gzipOutStream.write(value.getBytes());
+        gzipOutStream.finish();
+        gzipOutStream.close();
+
+        return byteArrayOutputStream.toByteArray();
+    }
+
+    public static byte[] decompress(byte[] bytes) {
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+            GZIPInputStream gunzip = new GZIPInputStream(in);
+            byte[] buffer = new byte[256];
+            int n;
+            while ((n = gunzip.read(buffer)) >= 0) {
+                out.write(buffer, 0, n);
+            }
+            return out.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
 

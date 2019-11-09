@@ -248,6 +248,16 @@
         android:visibility="gone"
         app:srcCompat="@android:drawable/btn_star" />
 
+    <TextView
+        android:id="@+id/kc_error_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|top"
+        android:gravity="center"
+        android:minLines="2"
+        android:textAlignment="center"
+        android:textColor="@color/colorPrimary" />
+
     <!--<FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
