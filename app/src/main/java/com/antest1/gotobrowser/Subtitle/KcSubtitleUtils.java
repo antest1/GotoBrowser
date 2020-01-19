@@ -157,6 +157,7 @@ public class KcSubtitleUtils {
             if (ship_data.has("api_aftershipid")) {
                 String ship_id = ship_data.get("api_id").getAsString();
                 String ship_afterid = ship_data.get("api_aftershipid").getAsString();
+                if (ship_id.equals("624")) continue;
                 if (!checked.contains(ship_id+ "_" + ship_afterid) && !ship_afterid.equals("0")) {
                     shipDataGraph.addProperty(ship_afterid, ship_id);
                     checked.add(ship_afterid + "_" + ship_id);
