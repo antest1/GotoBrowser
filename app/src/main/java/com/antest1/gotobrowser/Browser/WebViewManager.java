@@ -73,6 +73,7 @@ import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI;
 import static com.antest1.gotobrowser.Constants.URL_DMM;
 import static com.antest1.gotobrowser.Constants.URL_DMM_FOREIGN;
 import static com.antest1.gotobrowser.Constants.URL_DMM_LOGIN;
+import static com.antest1.gotobrowser.Constants.URL_DMM_LOGIN_2;
 import static com.antest1.gotobrowser.Constants.URL_KANSU;
 import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.URL_OOI;
@@ -315,13 +316,12 @@ public class WebViewManager {
             webview.evaluateJavascript(DMM_COOKIE, null);
             webview.evaluateJavascript("location.href='".concat(URL_DMM).concat("';"), null);
         }
-        if (url.contains(URL_DMM_LOGIN) || url.equals(URL_KANSU) || url.equals(URL_OOI)) {
-            webview.evaluateJavascript(
-                    String.format(Locale.US, AUTOCOMPLETE_OOI,
-                            login_id, login_password), null);
-            if (url.contains(URL_DMM_LOGIN)) {
+        if (url.contains(URL_DMM_LOGIN) || url.contains(URL_DMM_LOGIN_2) || url.equals(URL_KANSU) || url.equals(URL_OOI)) {
+            if (url.contains(URL_DMM_LOGIN) || url.contains(URL_DMM_LOGIN_2)) {
                 webview.evaluateJavascript(DMM_COOKIE, null);
             }
+            webview.evaluateJavascript(
+                    String.format(Locale.US, AUTOCOMPLETE_OOI, login_id, login_password), null);
         }
         if (url.equals(Constants.URL_NITRABBIT)) {
             webview.evaluateJavascript(CONNECT_NITRABBIT, null);

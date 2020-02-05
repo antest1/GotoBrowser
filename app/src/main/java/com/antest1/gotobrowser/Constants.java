@@ -39,6 +39,7 @@ public class Constants {
     public static final String[] URL_LIST = {URL_DMM, URL_KANSU, URL_OOI};
 
     public static final String URL_DMM_LOGIN = "www.dmm.com/my/-/login/";
+    public static final String URL_DMM_LOGIN_2 = "accounts.dmm.com/service/login/password/";
     public static final String URL_DMM_FOREIGN = "www.dmm.com/netgame/foreign";
     public static final String URL_DMM_POINT = "point.dmm.com/choice";
     public static final String URL_OSAPI = "osapi.dmm.com/gadgets/";
