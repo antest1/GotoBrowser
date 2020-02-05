@@ -60,6 +60,7 @@ public class KcsInterface {
     public void processXHR(String url, String request, String response) {
         try {
             response = response.replace("svdata=", "");
+            Log.e("GOTO", "response: " + url);
             JsonObject response_obj = new JsonParser().parse(response).getAsJsonObject();
             if (url.contains("api_start2")) {
                 JsonObject api_data = response_obj.getAsJsonObject("api_data");
@@ -85,6 +86,7 @@ public class KcsInterface {
                 ((TextView) activity.findViewById(R.id.kc_error_text)).setText(text);
             });
         } catch (Exception e) {
+            e.printStackTrace();
             KcUtils.reportException(e);
         }
         if (broadcast_mode) sendBroadcast(url, request, response);

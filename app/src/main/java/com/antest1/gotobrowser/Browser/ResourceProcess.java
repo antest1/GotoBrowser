@@ -516,8 +516,7 @@ public class ResourceProcess {
         main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
         main_js = main_js.replace("out:n.pointer?\"pointerout\":\"mouseout\"", "out:\"touchout\"");
         main_js = main_js.concat(MUTE_LISTEN);
-
-        if (broadcast_mode) main_js = main_js.concat("\n").concat(KcsInterface.AXIOS_INTERCEPT_SCRIPT);
+        main_js = main_js.concat("\n").concat(KcsInterface.AXIOS_INTERCEPT_SCRIPT);
         return main_js;
     }
 
