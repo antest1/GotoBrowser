@@ -50,6 +50,7 @@ import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
 import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
 import static com.antest1.gotobrowser.Constants.PREF_PADDING;
+import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
@@ -485,7 +486,8 @@ public class BrowserActivity extends AppCompatActivity {
 
     @Override
     public void onUserLeaveHint() {
-        if (supportsPiPMode()) {
+        boolean pipEnabled = sharedPref.getBoolean(PREF_PIP_MODE, false);
+        if (supportsPiPMode() && pipEnabled) {
             PictureInPictureParams params = new PictureInPictureParams.Builder()
                     .setAspectRatio(new Rational(1200, 720)).build();
             enterPictureInPictureMode(params);

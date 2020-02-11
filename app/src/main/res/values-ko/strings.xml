@@ -34,4 +34,5 @@
     <string name="settings_resource_btn">다운로드</string>
     <string name="settings_appinfo_browsersettings">브라우저 설정</string>
     <string name="browser_useimagecompress">고용량 이미지 압축</string>
+    <string name="browser_enablepipmode">Enable picture-in-picture mode</string>
 </resources>
