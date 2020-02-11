@@ -1,6 +1,7 @@
 package com.antest1.gotobrowser.Activity;
 
 import android.annotation.SuppressLint;
+import android.app.PictureInPictureParams;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -12,10 +13,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.Rational;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.webkit.WebView;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -72,6 +76,8 @@ public class BrowserActivity extends AppCompatActivity {
     ScheduledExecutorService executor;
     private final Handler clearSubHandler = new Handler();
 
+    private boolean isInPictureInPictureMode = false;
+
     private BackPressCloseHandler backPressCloseHandler;
 
     @SuppressLint({"SetJavaScriptEnabled", "ApplySharedPref", "ClickableViewAccessibility"})
@@ -108,7 +114,7 @@ public class BrowserActivity extends AppCompatActivity {
                 String options = intent.getStringExtra("options");
                 if (options != null) {
                     View browserPanel = findViewById(R.id.browser_panel);
-                    browserPanel.setVisibility(options.contains(ACTION_SHOWPANEL)?  View.VISIBLE : View.GONE);
+                    browserPanel.setVisibility(options.contains(ACTION_SHOWPANEL) ? View.VISIBLE : View.GONE);
                     if (!options.contains(ACTION_SHOWKEYBOARD)) {
                         mContentView.setFocusableInTouchMode(false);
                         mContentView.setFocusable(false);
@@ -248,6 +254,7 @@ public class BrowserActivity extends AppCompatActivity {
         mContentView.resumeTimers();
         mContentView.getSettings().setTextZoom(100);
         manager.runMuteScript(mContentView, isMuteMode);
+        WebView.setWebContentsDebuggingEnabled(true);
     }
 
     @Override
@@ -289,7 +296,7 @@ public class BrowserActivity extends AppCompatActivity {
         int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
         if (mSeekBarH != null) mSeekBarH.setProgress(adjust_padding);
         setSubtitleMargin(adjust_padding);
-        if (isStartedFlag) {
+        if (isStartedFlag && !isInPictureInPictureMode) {
             if (adjust_layout) mContentView.evaluateJavascript(
                     String.format(Locale.US, RESIZE_CALL, adjust_padding, adjust_vpadding), null);
         }
@@ -475,4 +482,44 @@ public class BrowserActivity extends AppCompatActivity {
             subtitleText.setText("");
         }
     };
+
+    @Override
+    public void onUserLeaveHint() {
+        if (supportsPiPMode()) {
+            PictureInPictureParams params = new PictureInPictureParams.Builder()
+                    .setAspectRatio(new Rational(1200, 720)).build();
+            enterPictureInPictureMode(params);
+        }
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean newMode, Configuration newConfig) {
+        isInPictureInPictureMode = newMode;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP || !isStartedFlag) {
+            return;
+        }
+        boolean adjust_layout = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
+        if (isInPictureInPictureMode) {
+            // Bring the webview to the top while in picture-in-picture mode
+            // i.e. blocking all other controls
+            mContentView.setZ(100);
+            if (adjust_layout) {
+                mContentView.evaluateJavascript(String.format(Locale.US, RESIZE_CALL, 0, 0), null);
+            }
+        } else {
+            if (adjust_layout) {
+                DisplayMetrics dimension = KcUtils.getActivityDimension(this);
+                int width = dimension.widthPixels;
+                int height = dimension.heightPixels;
+                int adjust_padding = sharedPref.getInt(PREF_PADDING, WebViewManager.getDefaultPadding(width, height));
+                int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
+
+                mContentView.evaluateJavascript(String.format(Locale.US, RESIZE_CALL, adjust_padding, adjust_vpadding), null);
+            }
+            mContentView.setZ(0);
+        }
+    }
+    public boolean supportsPiPMode () {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+    }
 }
