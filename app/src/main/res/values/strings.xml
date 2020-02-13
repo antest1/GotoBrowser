@@ -42,4 +42,5 @@
     <string name="settings_resource_btn">Download</string>
     <string name="settings_appinfo_browsersettings">Browser Settings</string>
     <string name="browser_useimagecompress">Compress Large Images</string>
+    <string name="browser_enablepipmode">Enable picture-in-picture mode</string>
 </resources>
