@@ -108,7 +108,7 @@ public class ResourceProcess {
         if (url.contains(".json")) {
             state |= RES_JSON;
         }
-        if (url.contains("/js/") && url.contains(".js")) {
+        if ((url.contains("/js/") || url.contains("/script/")) && url.contains(".js")) {
             state |= RES_JS;
         }
 
