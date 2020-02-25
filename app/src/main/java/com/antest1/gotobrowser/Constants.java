@@ -23,6 +23,7 @@ public class Constants {
     public static final String PREF_SUBTITLE_LOCALE = "pref_subtitle_locale";
     public static final String PREF_IMAGE_COMPRESS = "pref_image_compress";
     public static final String PREF_PIP_MODE = "pref_pip_mode";
+    public static final String PREF_ALTER_GADGET = "pref_alter_gadget";
 
     public static final String ACTION_SHOWPANEL = "with_layout_control_";
     public static final String ACTION_SHOWKEYBOARD = "with_keyboard_";
@@ -45,6 +46,7 @@ public class Constants {
     public static final String URL_DMM_POINT = "point.dmm.com/choice";
     public static final String URL_OSAPI = "osapi.dmm.com/gadgets/";
     public static final String URL_OOI_1 = "ooi.moe/kancolle";
+    public static final String URL_DMM_LOGOUT = "https://www.dmm.com/my/-/login/logout/=/path=Sg9VTQFXDFcXFl5bWlcKGExKUVdUXgFNEU0KSVMVR28MBQ0BUwJZBwxK";
     public static final String URL_OOI_LOGOUT = "ooi.moe/logout";
 
     private static final String ADD_VIEWPORT_META = "var metaTag=document.createElement('meta');metaTag.name='viewport',metaTag.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes',document.getElementsByTagName('head')[0].appendChild(metaTag);";
@@ -116,4 +118,7 @@ public class Constants {
             "104.27.146.101",
             "104.27.146.101"
     };
+
+    public static final String GADGET_URL = "203.104.209.7";
+    public static final String ALTER_GADGET_URL = "18.176.189.52";
 }

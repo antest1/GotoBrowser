@@ -39,6 +39,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_IMAGE_COMPRESS;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
@@ -106,6 +107,11 @@ public class SettingsActivity extends AppCompatActivity {
         browserPipModeSetting.setChecked(sharedPref.getBoolean(PREF_PIP_MODE, false));
         browserPipModeSetting.setOnCheckedChangeListener((buttonView, isChecked)
                 -> sharedPref.edit().putBoolean(PREF_PIP_MODE, isChecked).apply());
+
+        Switch browserAlterGadgetSetting = findViewById(R.id.browser_altergadget);
+        browserAlterGadgetSetting.setChecked(sharedPref.getBoolean(PREF_ALTER_GADGET, false));
+        browserAlterGadgetSetting.setOnCheckedChangeListener((buttonView, isChecked)
+                -> sharedPref.edit().putBoolean(PREF_ALTER_GADGET, isChecked).apply());
 
         subtitleLoading = findViewById(R.id.subtitle_loading);
         subtitleLoading.setVisibility(View.VISIBLE);

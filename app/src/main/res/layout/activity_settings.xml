@@ -141,6 +141,13 @@
                         android:layout_weight="1"
                         android:text="@string/browser_enablepipmode" />
 
+                    <Switch
+                        android:id="@+id/browser_altergadget"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/broswer_altergadget" />
+
                 </LinearLayout>
 
             </LinearLayout>

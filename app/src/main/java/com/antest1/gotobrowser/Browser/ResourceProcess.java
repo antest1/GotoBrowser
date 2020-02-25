@@ -39,7 +39,10 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static com.antest1.gotobrowser.Constants.ALTER_GADGET_URL;
+import static com.antest1.gotobrowser.Constants.GADGET_URL;
 import static com.antest1.gotobrowser.Constants.MUTE_LISTEN;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_IMAGE_COMPRESS;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
@@ -289,8 +292,25 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processScriptFile(JsonObject file_info) throws IOException {
+        boolean pref_alter_gadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false);
         boolean broadcast_mode = sharedPref.getBoolean(PREF_BROADCAST, false);
         String url = file_info.get("url").getAsString();
+        if (pref_alter_gadget && url.contains("gadget_html5")) {
+            url = url.replace(GADGET_URL, ALTER_GADGET_URL);
+            InputStream in = new BufferedInputStream(new URL(url).openStream());
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            int nRead;
+            byte[] data = new byte[1024];
+            while ((nRead = in.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+            buffer.flush();
+            in.close();
+            byte[] byteArray = buffer.toByteArray();
+            InputStream is = new ByteArrayInputStream(byteArray);
+            return new WebResourceResponse("application/javascript", "utf-8", is);
+        }
+
         if (url.contains("kcs2/js/main.js")) {
             InputStream in = new BufferedInputStream(new URL(url).openStream());
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
