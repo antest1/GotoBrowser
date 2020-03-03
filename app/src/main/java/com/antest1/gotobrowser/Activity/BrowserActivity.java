@@ -255,7 +255,6 @@ public class BrowserActivity extends AppCompatActivity {
         mContentView.resumeTimers();
         mContentView.getSettings().setTextZoom(100);
         manager.runMuteScript(mContentView, isMuteMode);
-        WebView.setWebContentsDebuggingEnabled(true);
     }
 
     @Override
