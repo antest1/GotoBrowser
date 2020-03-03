@@ -256,8 +256,7 @@ public class SettingsActivity extends AppCompatActivity {
         if (version_info != null && version_info.has("tag_name")) {
             Log.e("GOTO", version_info.toString());
             String tag = version_info.get("tag_name").getAsString().substring(1);
-            String latest_file = version_info.getAsJsonArray("assets")
-                    .get(0).getAsJsonObject().get("browser_download_url").getAsString();
+            String latest_file = String.format(Locale.US, "http://18.176.189.52/GotoBrowser/files/gotobrowser-%s-release.apk", tag);
             if (BuildConfig.VERSION_NAME.equals(tag)) {
                 KcUtils.showToast(getApplicationContext(), R.string.setting_latest_version);
             } else {
