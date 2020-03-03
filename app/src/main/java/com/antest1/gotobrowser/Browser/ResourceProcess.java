@@ -489,9 +489,9 @@ public class ResourceProcess {
         // main_js = main_js.replaceAll("var t=this;if\\(0==this\\._list\\.length\\)", "var t=this;console.log(JSON.stringify(this._list));if(0==this._list.length)");
         main_js = main_js.replaceAll("catch\\(function\\(e\\)\\{", "catch(function(e){GotoBrowser.kcs_axios_error(e.stack);");
         // Low Frame Rate Issue
-        main_js = main_js.replaceAll(
-                "createjs\\.Ticker\\.TIMEOUT",
-                "createjs.Ticker.RAF");
+        main_js = main_js.replace(
+                "createjs[_0x30d0('0x37')][_0x30d0('0x234e')]=createjs[_0x30d0('0x37')][_0x30d0('0x18d')]",
+                "createjs[_0x30d0('0x37')][_0x30d0('0x234e')]=createjs.Ticker.RAF");
 
         // handling port button behavior (sally)
         main_js = main_js.replaceAll(
