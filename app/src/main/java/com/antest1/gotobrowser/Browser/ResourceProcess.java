@@ -484,23 +484,27 @@ public class ResourceProcess {
             main_js = "var global_mute=0;Howler.mute(false);\n".concat(main_js);
         }
         main_js = "var gb_h=null;\nfunction add_bgm(b){b.onend=function(){(global_mute||gb_h.volume()==0)&&(gb_h.unload(),console.log('unload'))};global_mute&&(b.autoplay=false);gb_h=new Howl(b);return gb_h;}\n" + main_js;
-        main_js = main_js.replaceAll("new Howl\\(d\\)", "add_bgm(d)");
+
+        // main_js = main_js.replaceAll("new Howl\\(d\\)", "add_bgm(d)");
+        main_js = main_js.replaceAll("new Howl\\(_0x2d083d\\)", "add_bgm(_0x2d083d)");
 
         // main_js = main_js.replaceAll("var t=this;if\\(0==this\\._list\\.length\\)", "var t=this;console.log(JSON.stringify(this._list));if(0==this._list.length)");
-        main_js = main_js.replaceAll("catch\\(function\\(e\\)\\{", "catch(function(e){GotoBrowser.kcs_axios_error(e.stack);");
+        main_js = main_js.replaceAll("function\\(_0x17657d\\)\\{", "function(_0x17657d){GotoBrowser.kcs_axios_error(_0x17657d['stack']);");
         // Low Frame Rate Issue
         main_js = main_js.replace(
                 "createjs[_0x30d0('0x37')][_0x30d0('0x234e')]=createjs[_0x30d0('0x37')][_0x30d0('0x18d')]",
                 "createjs[_0x30d0('0x37')][_0x30d0('0x234e')]=createjs.Ticker.RAF");
 
         // handling port button behavior (sally)
-        main_js = main_js.replaceAll(
-                "_.EventType\\.MOUSEUP,this\\._onMouseUp",
-                "_.EventType.MOUSEDOWN,this._onMouseUp");
         // handling port button behavior (others)
-        main_js = main_js.replaceAll(
-                "c.EventType\\.MOUSEUP,this\\._onMouseUp",
-                "c.EventType.MOUSEDOWN,this._onMouseUp");
+        // main_js = main_js.replaceAll("_.EventType\\.MOUSEUP,this\\._onMouseUp", "_.EventType.MOUSEDOWN,this._onMouseUp");
+        // main_js = main_js.replaceAll("c.EventType\\.MOUSEUP,this\\._onMouseUp", "c.EventType.MOUSEDOWN,this._onMouseUp");
+        main_js = main_js.replaceAll("_0x4298f4\\[_0x30d0\\('0x23c6'\\)]\\[_0x30d0\\('0x2538'\\)],this\\[_0x30d0\\('0x24d3'\\)]",
+                "_0x4298f4[_0x30d0('0x23c6')][_0x30d0('0x1856')],this[_0x30d0('0x24d3')]");
+        main_js = main_js.replaceAll("_0x2419e3\\[_0x30d0\\('0x23c6'\\)]\\[_0x30d0\\('0x2538'\\)],this\\[_0x30d0\\('0x24d3'\\)]",
+                "_0x2419e3[_0x30d0('0x23c6')][_0x30d0('0x1856')],this[_0x30d0('0x24d3')]");
+        main_js = main_js.replaceAll("_0x4862e7\\[_0x30d0\\('0x23c6'\\)]\\[_0x30d0\\('0x2538'\\)],this\\[_0x30d0\\('0x24d3'\\)]",
+                "_0x4862e7[_0x30d0('0x23c6')][_0x30d0('0x1856')],this[_0x30d0('0x24d3')]");
 
         // Simulate mouse hover effects by dispatching new custom events "touchover" and "touchout"
         main_js +=  "function patchInteractionManager () {\n" +
@@ -553,8 +557,11 @@ public class ResourceProcess {
 
         // Rename the original "mouseout" and "mouseover" event name to custom names for objects to listen on
         // Reusing original names will cause a lot of conflict issues
-        main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
-        main_js = main_js.replace("out:n.pointer?\"pointerout\":\"mouseout\"", "out:\"touchout\"");
+        //main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
+        //main_js = main_js.replace("out:n.pointer?\"pointerout\":\"mouseout\"", "out:\"touchout\"");
+        main_js = main_js.replace("'over':_0x4a83c8[_0x30d0('0x1593')]?_0x30d0('0x170a'):_0x30d0('0x22b1')", "'over':'touchover'");
+        main_js = main_js.replace("'out':_0x4a83c8[_0x30d0('0x1593')]?_0x30d0('0x1545'):_0x30d0('0xdba')", "'out':'touchout'");
+
         main_js = main_js.concat(MUTE_LISTEN);
         main_js = main_js.concat("\n").concat(KcsInterface.AXIOS_INTERCEPT_SCRIPT);
         return main_js;
