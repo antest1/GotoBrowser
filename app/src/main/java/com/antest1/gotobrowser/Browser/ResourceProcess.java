@@ -86,13 +86,15 @@ public class ResourceProcess {
     private TextView subtitleText;
     private final Handler shipVoiceHandler = new Handler();
     private final Handler clearSubHandler = new Handler();
-
+    boolean prefAlterGadget = false;
+    
     ResourceProcess(BrowserActivity activity) {
         this.activity = activity;
         context = activity.getApplicationContext();
         versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
         sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
+        prefAlterGadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false);
         subtitleText = activity.findViewById(R.id.subtitle_view);
         subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
     }
@@ -133,6 +135,10 @@ public class ResourceProcess {
         if (url.contains("gadget_html5/script/rollover.js")) return getMuteInjectedRolloverJs();
         if (url.contains("gadget_html5/js/kcs_cda.js")) return getInjectedKcaCdaJs();
         if (url.contains("kcscontents/css/common.css")) return getBlackBackgroundSheet();
+        if (prefAlterGadget) {
+            if (url.contains("html/maintenance.html")) return getMaintenanceFiles(false);
+            if (url.contains("html/maintenance.png")) return getMaintenanceFiles(true);
+        }
         if (resource_type == 0) return null;
 
         JsonObject file_info = getPathAndFileInfo(source);
@@ -292,10 +298,9 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processScriptFile(JsonObject file_info) throws IOException {
-        boolean pref_alter_gadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false);
         boolean broadcast_mode = sharedPref.getBoolean(PREF_BROADCAST, false);
         String url = file_info.get("url").getAsString();
-        if (pref_alter_gadget && url.contains("gadget_html5")) {
+        if (prefAlterGadget && url.contains("gadget_html5")) {
             url = url.replace(GADGET_URL, ALTER_GADGET_URL);
             InputStream in = new BufferedInputStream(new URL(url).openStream());
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -451,6 +456,21 @@ public class ResourceProcess {
             AssetManager as = context.getAssets();
             InputStream is = as.open("kcs_cda.js");
             return new WebResourceResponse("application/x-javascript", "utf-8", is);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private WebResourceResponse getMaintenanceFiles(boolean is_image) {
+        try {
+            AssetManager as = context.getAssets();
+            if (is_image) {
+                InputStream is = as.open("maintenance.png");
+                return new WebResourceResponse("image/png", "utf-8", is);
+            } else {
+                InputStream is = as.open("maintenance.html");
+                return new WebResourceResponse("text/html", "utf-8", is);
+            }
         } catch (IOException e) {
             return null;
         }
