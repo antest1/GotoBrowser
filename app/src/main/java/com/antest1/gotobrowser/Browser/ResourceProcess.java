@@ -51,11 +51,12 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResource;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getEmptyStream;
 
 public class ResourceProcess {
-    private static final int RES_IMAGE = 0b00001;
-    private static final int RES_AUDIO = 0b00010;
-    private static final int RES_JSON = 0b00100;
-    private static final int RES_JS = 0b01000;
-    private static final int RES_KCSAPI = 0b10000;
+    private static final int RES_IMAGE = 0b000001;
+    private static final int RES_AUDIO = 0b000010;
+    private static final int RES_JSON  = 0b000100;
+    private static final int RES_JS    = 0b001000;
+    private static final int RES_FONT  = 0b010000;
+    private static final int RES_KCSAPI = 0b100000;
     private static final int CACHE_MAX = 60;
 
     public static boolean isImage(int state) {
@@ -69,6 +70,9 @@ public class ResourceProcess {
     }
     public static boolean isScript(int state) {
         return (state & RES_JS) > 0;
+    }
+    public static boolean isFont(int state) {
+        return (state & RES_FONT) > 0;
     }
     public static boolean isKcsApi(int state) {
         return (state & RES_KCSAPI) > 0;
@@ -113,7 +117,9 @@ public class ResourceProcess {
         if ((url.contains("/js/") || url.contains("/script/")) && url.contains(".js")) {
             state |= RES_JS;
         }
-
+        if (url.contains(".woff2")) {
+            state |= RES_FONT;
+        }
         if (url.contains("kcsapi") && !url.contains("osapi.dmm.com")) {
             state |= RES_KCSAPI;
         }
@@ -128,10 +134,12 @@ public class ResourceProcess {
         boolean is_audio = ResourceProcess.isAudio(resource_type);
         boolean is_json = ResourceProcess.isJson(resource_type);
         boolean is_js = ResourceProcess.isScript(resource_type);
+        boolean is_font = ResourceProcess.isFont(resource_type);
         boolean is_kcsapi = ResourceProcess.isKcsApi(resource_type);
 
         if (checkBlockedContent(url)) return getEmptyResponse();
         if (url.contains("ooi.css")) return getOoiSheetFromAsset();
+        if (url.contains("tweenjs-0.6.2")) return getTweenJs();
         if (url.contains("gadget_html5/script/rollover.js")) return getMuteInjectedRolloverJs();
         if (url.contains("gadget_html5/js/kcs_cda.js")) return getInjectedKcaCdaJs();
         if (url.contains("kcscontents/css/common.css")) return getBlackBackgroundSheet();
@@ -165,6 +173,7 @@ public class ResourceProcess {
                 if (is_image || is_json) return processImageDataResource(file_info, update_info, resource_type);
                 if (is_js) return processScriptFile(file_info);
                 if (is_audio) return processAudioFile(file_info, update_info);
+                if (is_font) return getFontFile(filename);
             }
         } catch (Exception e) {
             KcUtils.reportException(e);
@@ -456,6 +465,26 @@ public class ResourceProcess {
             AssetManager as = context.getAssets();
             InputStream is = as.open("kcs_cda.js");
             return new WebResourceResponse("application/x-javascript", "utf-8", is);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private WebResourceResponse getTweenJs() {
+        try {
+            AssetManager as = context.getAssets();
+            InputStream is = as.open("tweenjs-0.6.2.min.js");
+            return new WebResourceResponse("application/x-javascript", "utf-8", is);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private WebResourceResponse getFontFile(String filename) {
+        try {
+            AssetManager as = context.getAssets();
+            InputStream is = as.open(filename);
+            return new WebResourceResponse("application/octet-stream", "utf-8", is);
         } catch (IOException e) {
             return null;
         }
