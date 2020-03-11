@@ -3,11 +3,11 @@ apply plugin: 'com.google.gms.google-services'
 apply plugin: 'io.fabric'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     defaultConfig {
         applicationId "com.antest1.gotobrowser"
         minSdkVersion 19
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 34
         versionName "2.0-rev7"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
@@ -32,7 +32,7 @@ android {
         it.buildConfigField 'boolean', 'enableWebDebug', enableWebDebug
     }
 
-    buildToolsVersion '28.0.3'
+    buildToolsVersion '29.0.3'
 }
 
 dependencies {
@@ -42,12 +42,12 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.12.3'
     implementation 'com.squareup.retrofit2:retrofit:2.5.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
-    implementation 'com.google.firebase:firebase-core:17.2.1'
+    implementation 'com.google.firebase:firebase-core:17.2.3'
     implementation 'com.crashlytics.sdk.android:crashlytics:2.10.1'
     implementation 'com.google.code.gson:gson:2.8.5'
     testImplementation 'junit:junit:4.12'
-    implementation 'androidx.recyclerview:recyclerview:1.0.0'
-    implementation 'androidx.webkit:webkit:1.1.0-rc01'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'androidx.webkit:webkit:1.2.0'
     implementation project(':pngquant-android')
 }
 
