@@ -76,7 +76,7 @@ public class SettingsActivity extends AppCompatActivity {
         versionText.setText(BuildConfig.VERSION_NAME);
 
         TextView latestCheck = findViewById(R.id.version_update);
-        latestCheck.setOnClickListener(v -> requestLatestAppVersion());
+        latestCheck.setOnClickListener(v -> KcUtils.requestLatestAppVersion(this, updateCheck, true));
 
         //TextView resourceDown = findViewById(R.id.resource_update);
         //resourceDown.setOnClickListener(v -> openResourceDownloadPage());
@@ -228,60 +228,6 @@ public class SettingsActivity extends AppCompatActivity {
         item.addProperty("latest_commit", latest);
         item.addProperty("download_url", path);
         return item;
-    }
-
-    public void requestLatestAppVersion() {
-        Call<JsonObject> call = updateCheck.version();
-        call.enqueue(new Callback<JsonObject>() {
-            @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                Log.e("GOTO", response.headers().toString());
-                if (response.code() == 200) {
-                    checkAppUpdate(response);
-                } else {
-                    String message = "HTTP: " + response.code();
-                    if (response.code() == 404) message = "No update found.";
-                    KcUtils.showToast(getApplicationContext(), message);
-                }
-            }
-            @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                KcUtils.showToast(getApplicationContext(), t.getLocalizedMessage());
-            }
-        });
-    }
-
-    private void checkAppUpdate(Response<JsonObject> response) {
-        JsonObject version_info = response.body();
-        if (version_info != null && version_info.has("tag_name")) {
-            Log.e("GOTO", version_info.toString());
-            String tag = version_info.get("tag_name").getAsString().substring(1);
-            String latest_file = String.format(Locale.US, "http://18.176.189.52/GotoBrowser/files/gotobrowser-%s-release.apk", tag);
-            if (BuildConfig.VERSION_NAME.equals(tag)) {
-                KcUtils.showToast(getApplicationContext(), R.string.setting_latest_version);
-            } else {
-                showAppUpdateDownloadDialog(tag, latest_file);
-            }
-        }
-    }
-
-    private void showAppUpdateDownloadDialog(String tag, String latest_file) {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                SettingsActivity.this);
-        alertDialogBuilder.setTitle(getString(R.string.app_name));
-        alertDialogBuilder
-                .setCancelable(false)
-                .setMessage(String.format(Locale.US, getString(R.string.setting_latest_download), tag))
-                .setPositiveButton(R.string.action_ok,
-                        (dialog, id) -> {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(latest_file));
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
-                        })
-                .setNegativeButton(R.string.action_cancel,
-                        (dialog, id) -> dialog.cancel());
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
     }
 
     private void saveQuotesFile(JsonObject item, Response<JsonObject> response) {

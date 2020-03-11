@@ -18,6 +18,7 @@ import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
+import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
 
 import java.io.File;
 import java.util.Locale;
@@ -29,6 +30,7 @@ import androidx.core.content.ContextCompat;
 
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
+import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
@@ -42,12 +44,14 @@ import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.URL_LIST;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.clearApplicationCache;
+import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
 
 public class EntranceActivity extends AppCompatActivity {
     private BackPressCloseHandler backPressCloseHandler;
     private SharedPreferences sharedPref;
     private TextView selectButton;
     private VersionDatabase versionTable;
+    private SubtitleCheck updateCheck;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +61,9 @@ public class EntranceActivity extends AppCompatActivity {
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) actionBar.hide();
+
+        updateCheck = getRetrofitAdapter(getApplicationContext(), GITHUBAPI_ROOT).create(SubtitleCheck.class);
+        KcUtils.requestLatestAppVersion(this, updateCheck, true);
 
         versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
         backPressCloseHandler = new BackPressCloseHandler(this);

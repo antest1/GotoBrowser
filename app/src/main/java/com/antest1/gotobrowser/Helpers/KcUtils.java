@@ -3,12 +3,22 @@ package com.antest1.gotobrowser.Helpers;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.Intent;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
+
+import com.antest1.gotobrowser.Activity.SettingsActivity;
+import com.antest1.gotobrowser.BuildConfig;
+import com.antest1.gotobrowser.R;
+import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
 import com.crashlytics.android.Crashlytics;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
@@ -24,6 +34,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.Locale;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -34,6 +45,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -278,6 +291,60 @@ public class KcUtils {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static void requestLatestAppVersion(Activity ac, SubtitleCheck updateCheck, boolean show_toast) {
+        Call<JsonObject> call = updateCheck.version();
+        call.enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, retrofit2.Response<JsonObject> response) {
+                Log.e("GOTO", response.headers().toString());
+                if (response.code() == 200) {
+                    checkAppUpdate(ac, response, show_toast);
+                } else {
+                    String message = "HTTP: " + response.code();
+                    if (response.code() == 404) message = "No update found.";
+                    Snackbar.make(ac.findViewById(R.id.main_container), message, Snackbar.LENGTH_LONG).show();
+                }
+            }
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                Snackbar.make(ac.findViewById(R.id.main_container), String.valueOf(t.getLocalizedMessage()), Snackbar.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private static void checkAppUpdate(Activity ac, retrofit2.Response<JsonObject> response, boolean show_toast) {
+        JsonObject version_info = response.body();
+        if (version_info != null && version_info.has("tag_name")) {
+            Log.e("GOTO", version_info.toString());
+            String tag = version_info.get("tag_name").getAsString().substring(1);
+            String latest_file = String.format(Locale.US, "http://18.176.189.52/GotoBrowser/files/gotobrowser-%s-release.apk", tag);
+            if (BuildConfig.VERSION_NAME.equals(tag)) {
+                if (show_toast) Snackbar.make(ac.findViewById(R.id.main_container), R.string.setting_latest_version, Snackbar.LENGTH_LONG).show();
+            } else {
+                showAppUpdateDownloadDialog(ac, tag, latest_file);
+            }
+        }
+    }
+
+    private static void showAppUpdateDownloadDialog(Activity ac, String tag, String latest_file) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                ac);
+        alertDialogBuilder.setTitle(ac.getString(R.string.app_name));
+        alertDialogBuilder
+                .setCancelable(false)
+                .setMessage(String.format(Locale.US, ac.getString(R.string.setting_latest_download), tag))
+                .setPositiveButton(R.string.action_ok,
+                        (dialog, id) -> {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(latest_file));
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            ac.startActivity(intent);
+                        })
+                .setNegativeButton(R.string.action_cancel,
+                        (dialog, id) -> dialog.cancel());
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
     }
 }
 
