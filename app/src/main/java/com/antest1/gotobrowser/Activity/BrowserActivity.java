@@ -148,6 +148,9 @@ public class BrowserActivity extends AppCompatActivity {
             View menuRefresh = findViewById(R.id.menu_refresh);
             menuRefresh.setOnClickListener(v -> showRefreshDialog());
 
+            View menuLogout = findViewById(R.id.menu_logout);
+            menuLogout.setOnClickListener(v -> showLogoutDialog());
+
             View menuAspect = findViewById(R.id.menu_aspect);
             menuAspect.setOnClickListener(v -> showLayoutAspectControls());
             setLayoutAspectController();
@@ -457,6 +460,32 @@ public class BrowserActivity extends AppCompatActivity {
                             if (manager != null && connector_info != null && connector_info.size() == 2) {
                                 ((TextView) findViewById(R.id.kc_error_text)).setText("");
                                 manager.openPage(mContentView, connector_info, isKcBrowserMode);
+                            } else {
+                                finish();
+                            }
+                        })
+                .setNegativeButton(R.string.action_cancel,
+                        (dialog, id) -> {
+                            dialog.cancel();
+                            mContentView.resumeTimers();
+                        });
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+    }
+
+    public void showLogoutDialog() {
+        mContentView.pauseTimers();
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                BrowserActivity.this);
+        alertDialogBuilder.setTitle(getString(R.string.app_name));
+        alertDialogBuilder
+                .setCancelable(false)
+                .setMessage(getString(R.string.logout_msg))
+                .setPositiveButton(R.string.action_ok,
+                        (dialog, id) -> {
+                            if (manager != null) {
+                                ((TextView) findViewById(R.id.kc_error_text)).setText("");
+                                manager.logoutGame(mContentView);
                             } else {
                                 finish();
                             }

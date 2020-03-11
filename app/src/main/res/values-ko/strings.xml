@@ -35,4 +35,5 @@
     <string name="settings_appinfo_browsersettings">브라우저 설정</string>
     <string name="browser_useimagecompress">고용량 이미지 압축</string>
     <string name="browser_enablepipmode">PIP 모드 활성화</string>
+    <string name="logout_msg">로그아웃하시겠습니까?</string>
 </resources>

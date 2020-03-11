@@ -119,7 +119,7 @@
                     android:alpha="0.8"
                     android:padding="6dp"
                     android:src="@mipmap/logout"
-                    android:visibility="gone"
+                    android:visibility="visible"
                     app:srcCompat="@mipmap/logout" />
             </LinearLayout>
         </ScrollView>

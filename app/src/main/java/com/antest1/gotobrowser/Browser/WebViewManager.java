@@ -4,7 +4,9 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -27,6 +29,7 @@ import android.webkit.WebViewClient;
 import android.widget.ImageView;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
+import com.antest1.gotobrowser.Activity.EntranceActivity;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Constants;
 import com.antest1.gotobrowser.Helpers.KcUtils;
@@ -54,6 +57,7 @@ import static com.antest1.gotobrowser.Constants.CONN_KANSU;
 import static com.antest1.gotobrowser.Constants.CONN_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.CONN_OOI;
 import static com.antest1.gotobrowser.Constants.DMM_COOKIE;
+import static com.antest1.gotobrowser.Constants.DMM_REDIRECT_CODE;
 import static com.antest1.gotobrowser.Constants.KANCOLLE_SERVER_LIST;
 import static com.antest1.gotobrowser.Constants.MUTE_SEND;
 import static com.antest1.gotobrowser.Constants.MUTE_SEND_DMM;
@@ -74,6 +78,7 @@ import static com.antest1.gotobrowser.Constants.URL_DMM;
 import static com.antest1.gotobrowser.Constants.URL_DMM_FOREIGN;
 import static com.antest1.gotobrowser.Constants.URL_DMM_LOGIN;
 import static com.antest1.gotobrowser.Constants.URL_DMM_LOGIN_2;
+import static com.antest1.gotobrowser.Constants.URL_DMM_LOGOUT;
 import static com.antest1.gotobrowser.Constants.URL_KANSU;
 import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.URL_OOI;
@@ -87,12 +92,14 @@ public class WebViewManager {
     public static final String OPEN_KANCOLLE = "open_kancolle";
     public static final String OPEN_RES_DOWN = "open_res_down";
     public static final String userAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.70 Safari/537.36";
+    boolean logoutFlag;
     BrowserActivity activity;
     ResourceProcess resourceProcess;
     SharedPreferences sharedPref;
 
     public WebViewManager (BrowserActivity ac) {
         activity = ac;
+        logoutFlag = false;
         resourceProcess = new ResourceProcess(ac);
         sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
@@ -149,9 +156,9 @@ public class WebViewManager {
         webview.addJavascriptInterface(new KcsInterface(activity), GOTO_ANDROID);
         webview.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
+                runLoginLogoutScript(webview, url);
                 if (is_kcbrowser_mode) {
                     sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
-                    runLoginScript(webview, url);
                     if (url.contains(Constants.URL_OSAPI) || url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
                         activity.setStartedFlag();
                         runLayoutAdjustmentScript(webview, url, connector_info);
@@ -173,6 +180,10 @@ public class WebViewManager {
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     Uri source = request.getUrl();
+                    if (is_kcbrowser_mode) {
+                        WebResourceResponse response = resourceProcess.processWebRequest(source);
+                        if (response != null) return response;
+                    }
                 }
                 return super.shouldInterceptRequest(view, request);
             }
@@ -308,10 +319,11 @@ public class WebViewManager {
         }
     }
 
-    public void runLoginScript(WebViewL webview, String url) {
+    public void runLoginLogoutScript(WebViewL webview, String url) {
         String login_id = sharedPref.getString(PREF_DMM_ID, ""); // intent.getStringExtra("login_id");
         String login_password = sharedPref.getString(PREF_DMM_PASS, "");
 
+        // Login
         if (url.contains(URL_DMM_FOREIGN)) {
             webview.evaluateJavascript(DMM_COOKIE, null);
             webview.evaluateJavascript("location.href='".concat(URL_DMM).concat("';"), null);
@@ -323,12 +335,21 @@ public class WebViewManager {
             webview.evaluateJavascript(
                     String.format(Locale.US, AUTOCOMPLETE_OOI, login_id, login_password), null);
         }
-        if (url.equals(Constants.URL_NITRABBIT)) {
-            webview.evaluateJavascript(CONNECT_NITRABBIT, null);
-            webview.evaluateJavascript(
-                    String.format(Locale.US, AUTOCOMPLETE_NIT,
-                            login_id, login_password), null);
+
+        // Logout
+        if (logoutFlag && url.contains("rurl") && url.contains(DMM_REDIRECT_CODE)) {
+            closeWebView();
         }
+
+        if (logoutFlag && (url.contains(CONN_OOI) || url.contains(CONN_KANSU))) {
+            closeWebView();
+        }
+    }
+
+    public void closeWebView() {
+        Intent intent = new Intent(activity, EntranceActivity.class);
+        activity.startActivity(intent);
+        activity.finish();
     }
 
     public void runMuteScript(WebViewL webview, boolean is_mute) {
@@ -376,6 +397,18 @@ public class WebViewManager {
                     openPage(webview, connector_info, true);
                 }
             });
+        }
+    }
+
+    public void logoutGame(WebViewL webview) {
+        logoutFlag = true;
+        String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
+        if (CONN_DMM.equals(pref_connector)) {
+            webview.loadUrl(URL_DMM_LOGOUT);
+        } else if (CONN_OOI.equals(pref_connector)) {
+            webview.loadUrl(URL_OOI_LOGOUT);
+        } else if (CONN_KANSU.equals(pref_connector)) {
+            closeWebView();
         }
     }
 

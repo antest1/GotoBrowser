@@ -47,7 +47,9 @@ public class Constants {
     public static final String URL_OSAPI = "osapi.dmm.com/gadgets/";
     public static final String URL_OOI_1 = "ooi.moe/kancolle";
     public static final String URL_DMM_LOGOUT = "https://www.dmm.com/my/-/login/logout/=/path=Sg9VTQFXDFcXFl5bWlcKGExKUVdUXgFNEU0KSVMVR28MBQ0BUwJZBwxK";
-    public static final String URL_OOI_LOGOUT = "ooi.moe/logout";
+    public static final String URL_OOI_LOGOUT = "http://ooi.moe/logout";
+    public static final String URL_KANSU_LOGOUT = "http://kancolle.su/logout";
+    public static final String DMM_REDIRECT_CODE = "Sg9VTQFXDFcXFl5bWlcKGExKUVdUXgFNEU0KSVMVR28MBQ0BUwJZBwxK";
 
     private static final String ADD_VIEWPORT_META = "var metaTag=document.createElement('meta');metaTag.name='viewport',metaTag.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes',document.getElementsByTagName('head')[0].appendChild(metaTag);";
     public static final String RESIZE_OSAPI = ADD_VIEWPORT_META + "var width=1200,height=720,game_ratio=1200/height;function resize(e,i){resize_triggered=!0;var d=window.innerWidth,o=window.innerHeight;game_ratio<d/o?($(\"#flashWrap iframe\").css(\"padding\",\"0 \"+e+\"px\"),$(\"body\").css(\"padding-top\",\"0px\")):($(\"#flashWrap iframe\").css(\"padding\",\"0px\"),$(\"body\").css(\"padding-top\",i+\"px\"))}$(\"body\")[0].style.backgroundColor=\"black\",$(\"body\")[0].style.overflow=\"hidden\",$(\"body\")[0].style.margin=\"0px\",$(\"body\")[0].style.padding=\"0px\",resize_triggered=!1,setTimeout(function(){$(\"#spacing_top\").remove(),$(\"#sectionWrap\").hide()},1500),setTimeout(resize,1500,%d,%d);";

@@ -40,6 +40,9 @@
                 android:defaultWidth="400dp"
                 android:defaultHeight="240dp"
                 android:gravity="start|end"/>
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".Activity.BrowserActivity" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
