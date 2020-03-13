@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.WebResourceResponse;
 import android.widget.TextView;
@@ -29,9 +30,11 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import okhttp3.OkHttpClient;
@@ -503,25 +506,53 @@ public class ResourceProcess {
         main_js = "var gb_h=null;\nfunction add_bgm(b){b.onend=function(){(global_mute||gb_h.volume()==0)&&(gb_h.unload(),console.log('unload'))};global_mute&&(b.autoplay=false);gb_h=new Howl(b);return gb_h;}\n" + main_js;
 
         // main_js = main_js.replaceAll("new Howl\\(d\\)", "add_bgm(d)");
-        main_js = main_js.replaceAll("new Howl\\(_0x2d083d\\)", "add_bgm(_0x2d083d)");
+        Pattern howlPattern = Pattern.compile("new Howl\\((_0x\\w+)\\)");
+        Matcher howlPatternMatcher = howlPattern.matcher(main_js);
+        boolean howl_found = howlPatternMatcher.find();
+        if (howl_found) {
+            String _instance = howlPatternMatcher.group(1);
+            main_js = main_js.replaceAll("new Howl\\(".concat(_instance).concat("\\)"), "add_bgm(".concat(_instance).concat(")"));
+        }
 
-        // main_js = main_js.replaceAll("var t=this;if\\(0==this\\._list\\.length\\)", "var t=this;console.log(JSON.stringify(this._list));if(0==this._list.length)");
-        main_js = main_js.replaceAll("function\\(_0x17657d\\)\\{", "function(_0x17657d){GotoBrowser.kcs_axios_error(_0x17657d['stack']);");
+        // main_js = main_js.replaceAll("function\\(_0x17657d\\)\\{", "function(_0x17657d){GotoBrowser.kcs_axios_error(_0x17657d['stack']);");
+        Pattern axiosPattern = Pattern.compile("axios\\[.{10,300}\\(function\\(\\w+.{10,300}\\(function\\((\\w+)\\)\\{");
+        Matcher axiosPatternMatcher = axiosPattern.matcher(main_js);
+        boolean axios_found = axiosPatternMatcher.find();
+        if (axios_found) {
+            String _failureCode = axiosPatternMatcher.group(0);
+            String _var = axiosPatternMatcher.group(1);
+            main_js = main_js.replace(_failureCode, _failureCode.concat("GotoBrowser.kcs_axios_error(".concat(_var).concat("['stack']);")));
+        }
+
         // Low Frame Rate Issue
-        main_js = main_js.replace(
-                "createjs[_0x30d0('0x37')][_0x30d0('0x234e')]=createjs[_0x30d0('0x37')][_0x30d0('0x18d')]",
-                "createjs[_0x30d0('0x37')][_0x30d0('0x234e')]=createjs.Ticker.RAF");
+        main_js = main_js.replaceFirst(
+                "(createjs(?:\\[\\w+\\('\\w+'\\)\\]){2})\\=createjs(?:\\[\\w+\\('\\w+'\\)\\]){2},",
+                "$1=createjs.Ticker.RAF,");
 
         // handling port button behavior (sally)
         // handling port button behavior (others)
         // main_js = main_js.replaceAll("_.EventType\\.MOUSEUP,this\\._onMouseUp", "_.EventType.MOUSEDOWN,this._onMouseUp");
         // main_js = main_js.replaceAll("c.EventType\\.MOUSEUP,this\\._onMouseUp", "c.EventType.MOUSEDOWN,this._onMouseUp");
-        main_js = main_js.replaceAll("_0x4298f4\\[_0x30d0\\('0x23c6'\\)]\\[_0x30d0\\('0x2538'\\)],this\\[_0x30d0\\('0x24d3'\\)]",
-                "_0x4298f4[_0x30d0('0x23c6')][_0x30d0('0x1856')],this[_0x30d0('0x24d3')]");
-        main_js = main_js.replaceAll("_0x2419e3\\[_0x30d0\\('0x23c6'\\)]\\[_0x30d0\\('0x2538'\\)],this\\[_0x30d0\\('0x24d3'\\)]",
-                "_0x2419e3[_0x30d0('0x23c6')][_0x30d0('0x1856')],this[_0x30d0('0x24d3')]");
-        main_js = main_js.replaceAll("_0x4862e7\\[_0x30d0\\('0x23c6'\\)]\\[_0x30d0\\('0x2538'\\)],this\\[_0x30d0\\('0x24d3'\\)]",
-                "_0x4862e7[_0x30d0('0x23c6')][_0x30d0('0x1856')],this[_0x30d0('0x24d3')]");
+
+        String mouseup_detect_code = "=!0x1,".concat(TextUtils.join(",", Collections.nCopies(4,
+                "this(?:\\[\\w+\\('\\w+'\\)]){2}\\((\\w+\\[\\w+\\('\\w+'\\)\\])(\\[\\w+\\('\\w+'\\)\\]),this(\\[\\w+\\('\\w+'\\)\\])\\)")));
+        Pattern buttonMousePattern = Pattern.compile(mouseup_detect_code);
+        Matcher buttonPatternMatcher = buttonMousePattern.matcher(main_js);
+        while (buttonPatternMatcher.find()) {
+            try {
+                String _EventType = buttonPatternMatcher.group(1);
+                String _propMOUSEDOWN = buttonPatternMatcher.group(8);
+                String _propMOUSEUP = buttonPatternMatcher.group(11);
+                String _onMouseUp = buttonPatternMatcher.group(12);
+                String regexEventType = _EventType.concat(_propMOUSEUP).concat(",this").concat(_onMouseUp)
+                        .replace("(", "\\(").replace(")", "\\)").replace("[", "\\[");
+                String replaceEventType = _EventType.concat(_propMOUSEDOWN).concat(",this").concat(_onMouseUp);
+                main_js = main_js.replaceAll(regexEventType, replaceEventType);
+            } catch (NullPointerException e) {
+                KcUtils.reportException(e);;
+                // do nothing
+            }
+        }
 
         // Simulate mouse hover effects by dispatching new custom events "touchover" and "touchout"
         main_js +=  "function patchInteractionManager () {\n" +
@@ -576,8 +607,8 @@ public class ResourceProcess {
         // Reusing original names will cause a lot of conflict issues
         //main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
         //main_js = main_js.replace("out:n.pointer?\"pointerout\":\"mouseout\"", "out:\"touchout\"");
-        main_js = main_js.replace("'over':_0x4a83c8[_0x30d0('0x1593')]?_0x30d0('0x170a'):_0x30d0('0x22b1')", "'over':'touchover'");
-        main_js = main_js.replace("'out':_0x4a83c8[_0x30d0('0x1593')]?_0x30d0('0x1545'):_0x30d0('0xdba')", "'out':'touchout'");
+        main_js = main_js.replaceFirst("'over':\\w+\\[\\w+\\('\\w+'\\)]\\?\\w+\\('\\w+'\\):\\w+\\('\\w+'\\)", "'over':'touchover'");
+        main_js = main_js.replaceFirst("'out':\\w+\\[\\w+\\('\\w+'\\)]\\?\\w+\\('\\w+'\\):\\w+\\('\\w+'\\)", "'out':'touchout'");
 
         main_js = main_js.concat(MUTE_LISTEN);
         main_js = main_js.concat("\n").concat(KcsInterface.AXIOS_INTERCEPT_SCRIPT);
