@@ -11,7 +11,6 @@ import android.webkit.WebResourceResponse;
 import android.widget.TextView;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
-import com.antest1.gotobrowser.Helpers.KcPngCompress;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
@@ -44,7 +43,7 @@ import static com.antest1.gotobrowser.Constants.GADGET_URL;
 import static com.antest1.gotobrowser.Constants.MUTE_LISTEN;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
-import static com.antest1.gotobrowser.Constants.PREF_IMAGE_COMPRESS;
+import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResource;
@@ -173,7 +172,7 @@ public class ResourceProcess {
                 if (is_image || is_json) return processImageDataResource(file_info, update_info, resource_type);
                 if (is_js) return processScriptFile(file_info);
                 if (is_audio) return processAudioFile(file_info, update_info);
-                if (is_font) return getFontFile(filename);
+                if (is_font && sharedPref.getBoolean(PREF_FONT_PREFETCH, true)) return getFontFile(filename);
             }
         } catch (Exception e) {
             KcUtils.reportException(e);
@@ -258,7 +257,6 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processImageDataResource(JsonObject file_info, JsonObject update_info, int resource_type) {
-        boolean compress_mode = sharedPref.getBoolean(PREF_IMAGE_COMPRESS, false);
         String version = update_info.get("version").getAsString();
         boolean is_last_modified = update_info.get("is_last_modified").getAsBoolean();
         boolean update_flag = update_info.get("update_flag").getAsBoolean();
@@ -268,10 +266,9 @@ public class ResourceProcess {
         String resource_url = file_info.get("full_url").getAsString();
         String out_file_path = file_info.get("out_file_path").getAsString();
         try {
-            File file = getImageFile(out_file_path, compress_mode);
+            File file = getImageFile(out_file_path);
             Log.e("GOTO", "requested: " + file.getPath());
             if (update_flag || !file.exists()) {
-                KcPngCompress.removeCompressedFile(out_file_path);
                 String result = downloadResource(resourceClient, resource_url, last_modified, file);
                 String new_value = version;
                 if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value)) new_value = result;
@@ -286,11 +283,6 @@ public class ResourceProcess {
                 }
             } else {
                 Log.e("GOTO", "load cached resource: " + file.getPath() + " " + version);
-            }
-
-            // Compress Image if possible
-            if (compress_mode && ResourceProcess.isImage(resource_type) && KcPngCompress.shouldBeCompressed(out_file_path)) {
-                KcPngCompress.execQuantTask(out_file_path);
             }
 
             InputStream is = new BufferedInputStream(new FileInputStream(file));
@@ -416,12 +408,8 @@ public class ResourceProcess {
         return new WebResourceResponse("audio/mpeg", "binary", is);
     }
 
-    private File getImageFile(String path, boolean compress_mode) {
-        if (compress_mode && KcPngCompress.isCompressed(path)) {
-            return new File(KcPngCompress.getCompressedFilePath(path));
-        } else {
-            return new File(path);
-        }
+    private File getImageFile(String path) {
+        return new File(path);
     }
 
     private void checkSpecialSubtitleMode() {

@@ -33,7 +33,7 @@
     <string name="settings_resource_label">リソースのダウンロード</string>
     <string name="settings_resource_btn">ダウンロード</string>
     <string name="settings_appinfo_browsersettings">ブラウザ設定</string>
-    <string name="browser_useimagecompress">大きな画像を圧縮する</string>
+    <string name="browser_fontprefetch">フォントをプリロード</string>
     <string name="browser_enablepipmode">PIPモードを有効にする</string>
     <string name="logout_msg">本当にログアウトしますか？</string>
 </resources>

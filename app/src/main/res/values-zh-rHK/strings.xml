@@ -32,7 +32,7 @@
     <string name="settings_resource_label">下載圖像資源</string>
     <string name="settings_resource_btn">下載</string>
     <string name="settings_appinfo_browsersettings">瀏覽器設定</string>
-    <string name="browser_useimagecompress">壓縮大圖像</string>
+    <string name="browser_fontprefetch">預加載字體</string>
     <string name="browser_enablepipmode">啟用畫中畫模式</string>
     <string name="logout_msg">您確定要註銷嗎？</string>
 </resources>

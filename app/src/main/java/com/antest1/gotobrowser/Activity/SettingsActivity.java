@@ -12,7 +12,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -40,7 +39,7 @@ import retrofit2.Response;
 
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
-import static com.antest1.gotobrowser.Constants.PREF_IMAGE_COMPRESS;
+import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_LOCALE;
@@ -98,10 +97,10 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        Switch browserImageCompressSetting = findViewById(R.id.browser_imagecompress);
-        browserImageCompressSetting.setChecked(sharedPref.getBoolean(PREF_IMAGE_COMPRESS, false));
-        browserImageCompressSetting.setOnCheckedChangeListener((buttonView, isChecked)
-                -> sharedPref.edit().putBoolean(PREF_IMAGE_COMPRESS, isChecked).apply());
+        Switch browserFontPrefetch = findViewById(R.id.browser_fontprefetch);
+        browserFontPrefetch.setChecked(sharedPref.getBoolean(PREF_FONT_PREFETCH, true));
+        browserFontPrefetch.setOnCheckedChangeListener((buttonView, isChecked)
+                -> sharedPref.edit().putBoolean(PREF_FONT_PREFETCH, isChecked).apply());
 
         Switch browserPipModeSetting = findViewById(R.id.browser_pipmode);
         browserPipModeSetting.setChecked(sharedPref.getBoolean(PREF_PIP_MODE, false));

@@ -21,7 +21,7 @@ public class Constants {
     public static final String PREF_DMM_ID = "pref_autocomplete_id";
     public static final String PREF_DMM_PASS = "pref_autocomplete_pass";
     public static final String PREF_SUBTITLE_LOCALE = "pref_subtitle_locale";
-    public static final String PREF_IMAGE_COMPRESS = "pref_image_compress";
+    public static final String PREF_FONT_PREFETCH = "pref_font_prefetch";
     public static final String PREF_PIP_MODE = "pref_pip_mode";
     public static final String PREF_ALTER_GADGET = "pref_alter_gadget";
 

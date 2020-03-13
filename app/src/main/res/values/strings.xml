@@ -41,7 +41,7 @@
     <string name="settings_resource_label">Download Resources</string>
     <string name="settings_resource_btn">Download</string>
     <string name="settings_appinfo_browsersettings">Browser Settings</string>
-    <string name="browser_useimagecompress">Compress Large Images</string>
+    <string name="browser_fontprefetch">Prefetch Font Asset</string>
     <string name="browser_enablepipmode">Enable picture-in-picture mode</string>
     <string name="broswer_altergadget" translatable="false">Alter Gadget URL</string>
     <string name="logout_msg">Are you sure you want to Logout?</string>

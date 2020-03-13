@@ -33,7 +33,7 @@
     <string name="settings_resource_label">리소스 다운로드</string>
     <string name="settings_resource_btn">다운로드</string>
     <string name="settings_appinfo_browsersettings">브라우저 설정</string>
-    <string name="browser_useimagecompress">고용량 이미지 압축</string>
+    <string name="browser_fontprefetch">폰트 파일 미리 로드</string>
     <string name="browser_enablepipmode">PIP 모드 활성화</string>
     <string name="logout_msg">로그아웃하시겠습니까?</string>
 </resources>
