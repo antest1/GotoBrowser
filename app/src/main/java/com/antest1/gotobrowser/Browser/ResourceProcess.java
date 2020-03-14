@@ -167,7 +167,7 @@ public class ResourceProcess {
 
                 // load game data
                 if (is_kcsapi && path.contains("/api_start2")) {
-                    checkSpecialSubtitleMode();
+                    // checkSpecialSubtitleMode();
                     return null;
                 }
 
@@ -370,6 +370,7 @@ public class ResourceProcess {
             Log.e("GOTO", "load cached resource: " + path + " " + version);
         }
 
+        String voicesize = String.valueOf(file.length());
         if (url.contains("/kcs/sound/kc")) {
             String info = path.replace("/kcs/sound/kc", "").replace(".mp3", "");
             String[] fn_code = info.split("/");
@@ -394,17 +395,17 @@ public class ResourceProcess {
                 Date time_tgt = time_fmt.parse(voiceline_time);
                 long diff_msec = time_tgt.getTime() - time_src.getTime();
                 if (voiceline_value == 30) diff_msec += 86400000;
-                Runnable r = new VoiceSubtitleRunnable(ship_id, voiceline);
+                Runnable r = new VoiceSubtitleRunnable(ship_id, voiceline, voicesize);
                 shipVoiceHandler.removeCallbacks(r);
                 shipVoiceHandler.postDelayed(r, diff_msec);
                 Log.e("GOTO", "playHourVoice after: " + diff_msec + " msec");
             } else {
-                setSubtitle(ship_id, voiceline);
+                setSubtitle(ship_id, voiceline, voicesize);
             }
         } else if (url.contains("/voice/titlecall_")) {
             String info = path.replace("/kcs2/resources/voice/", "").replace(".mp3", "");
             String[] fn_code = info.split("/");
-            setSubtitle(fn_code[0], fn_code[1]);
+            setSubtitle(fn_code[0], fn_code[1], voicesize);
         }
 
         InputStream is = new BufferedInputStream(new FileInputStream(file));
@@ -415,6 +416,7 @@ public class ResourceProcess {
         return new File(path);
     }
 
+    /*
     private void checkSpecialSubtitleMode() {
         try {
             String voice_url = "http://antest1.cf/gotobrowser/sub_special";
@@ -429,7 +431,7 @@ public class ResourceProcess {
         } catch (IOException e) {
             KcUtils.reportException(e);
         }
-    }
+    }*/
 
     private WebResourceResponse getOoiSheetFromAsset() {
         try {
@@ -623,10 +625,10 @@ public class ResourceProcess {
         }
     };
 
-    private void setSubtitle(String id, String code) {
+    private void setSubtitle(String id, String code, String size) {
         if (activity.isCaptionAvailable()) {
             shipVoiceHandler.removeCallbacksAndMessages(null);
-            JsonObject subtitle = KcSubtitleUtils.getQuoteString(id, code);
+            JsonObject subtitle = KcSubtitleUtils.getQuoteString(id, code, size);
             Log.e("GOTO", subtitle.toString());
             for (String key : subtitle.keySet()) {
                 String start_time = key.split(",")[0];
@@ -669,16 +671,17 @@ public class ResourceProcess {
     }
 
     class VoiceSubtitleRunnable implements Runnable {
-        String ship_id, voiceline;
+        String ship_id, voiceline, voicesize;
 
-        VoiceSubtitleRunnable(String ship_id, String voiceline) {
+        VoiceSubtitleRunnable(String ship_id, String voiceline, String voicesize) {
             this.ship_id = ship_id;
             this.voiceline = voiceline;
+            this.voicesize = voicesize;
         }
 
         @Override
         public void run() {
-            setSubtitle(ship_id, voiceline);
+            setSubtitle(ship_id, voiceline, voicesize);
         }
     }
 }

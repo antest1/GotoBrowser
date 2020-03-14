@@ -5,21 +5,23 @@ import android.content.res.AssetManager;
 import android.util.Log;
 
 import com.antest1.gotobrowser.Helpers.KcUtils;
+import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,10 +30,23 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import okhttp3.OkHttpClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
+import static com.antest1.gotobrowser.Constants.SUBTITLE_SIZE_PATH;
+import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
+import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
+
 // Reference: https://github.com/KC3Kai/KC3Kai/issues/1180
 //            https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
 public class KcSubtitleUtils {
-    public static String specialVoiceCode = "";
+    public static final String SUBTITLE_META_ROOT_FORMAT =
+            "https://raw.githubusercontent.com/KC3Kai/KC3Kai/%s/src/data/quotes_size.json";
+
+    public static JsonObject quoteSizeData = new JsonObject();
     public static final int SPECIAL_VOICE_START_YEAR = 2014;
     public static final int SPECIAL_VOICE_END_YEAR = 2019;
     public static final int[] resourceKeys = {
@@ -179,27 +194,79 @@ public class KcSubtitleUtils {
             Crashlytics.logException(e);
             e.printStackTrace();
         }
+
+        String filename = "quotes_size.json";
+        String folder = context.getFilesDir().getAbsolutePath().concat("/subtitle/");
+        String submeta_path = folder.concat(filename);
+        File submeta_file = new File(submeta_path);
+
+        VersionDatabase versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
+        SubtitleCheck updateCheck = getRetrofitAdapter(context, GITHUBAPI_ROOT).create(SubtitleCheck.class);
+
+        Call<JsonArray> call = updateCheck.checkMeta(SUBTITLE_SIZE_PATH);
+        call.enqueue(new Callback<JsonArray>() {
+            @Override
+            public void onResponse(Call<JsonArray> call, Response<JsonArray> response) {
+                JsonArray commit_log = response.body();
+                if (commit_log != null && !commit_log.isJsonNull() && commit_log.size() > 0) {
+                    Log.e("GOTO", response.headers().toString());
+                    Log.e("GOTO", commit_log.toString());
+                    String commit = commit_log.get(0).getAsJsonObject().get("sha").getAsString();
+                    downloadQuoteSizeData(versionTable, context, commit, submeta_file);
+                    loadQuoteSizeData(submeta_path);
+                    Log.e("GOTO", "quote_size: " + quoteSizeData.size());
+                }
+            }
+            @Override
+            public void onFailure(Call<JsonArray> call, Throwable t) {
+                loadQuoteSizeData(submeta_path);
+                Log.e("GOTO", "quote_size: " + quoteSizeData.size());
+            }
+        });
+
+
         Log.e("GOTO", "quote_meta: " + quoteLabel.size());
+    }
+
+    private static void downloadQuoteSizeData(VersionDatabase table, Context context, String commit, File file) {
+        String filename = "quotes_size.json";
+        String download_path = String.format(Locale.US, SUBTITLE_META_ROOT_FORMAT, commit);
+        OkHttpClient resourceClient = new OkHttpClient();
+        Thread downloadThread = new Thread() {
+            @Override
+            public void run() {
+                String last_modified = table.getValue(filename);
+                if (!last_modified.equals(commit)) {
+                    String new_last_modified = KcUtils.downloadResource(resourceClient, download_path, commit, file);
+                    if (new_last_modified != null && !new_last_modified.equals("304")) {
+                        table.putValue(filename, commit);
+                    }
+                }
+            }
+        };
+        try {
+            downloadThread.start();
+            downloadThread.join();
+        } catch (InterruptedException e) {
+            // do nothing
+        }
+    }
+
+    private static boolean loadQuoteSizeData(String filename) {
+        quoteSizeData = KcUtils.readJsonObjectFromFile(filename);
+        return quoteSizeData != null;
     }
 
     public static boolean loadQuoteData(Context context, String locale_code) {
         String filename = String.format(Locale.US, "quotes_%s.json", locale_code);
         String subtitle_path = context.getFilesDir().getAbsolutePath()
                 .concat("/subtitle/").concat(filename);
-        try {
-            final Gson gson = new Gson();
-            final BufferedReader reader = new BufferedReader(new FileReader(subtitle_path));
-            String line;
-            StringBuilder sb = new StringBuilder();
-            while ((line = reader.readLine()) != null) sb.append(line);
-            quoteData = gson.fromJson(sb.toString(), JsonObject.class);
+        quoteData = KcUtils.readJsonObjectFromFile(subtitle_path);
+        if (quoteData != null) {
             quoteTimingData = quoteData.getAsJsonObject("timing");
-        } catch (IOException e) {
-            KcUtils.reportException(e);
-            return false;
+            return true;
         }
-        Log.e("GOTO", "quote_data: " + quoteData.size());
-        return true;
+        return false;
     }
 
     public static int getDefaultTiming(String data) {
@@ -211,14 +278,56 @@ public class KcSubtitleUtils {
         return 3000;
     }
 
-    public static JsonObject getQuoteString(String ship_id, String voiceline) {
-        Log.e("GOTO", ship_id + " " +voiceline);
+    public static String findQuoteKeyByFileSize(String ship_id, String voiceline, String voiceSize) {
+        // Special seasonal key check by file size
+        JsonObject specialSeasonalKey = quoteLabel.getAsJsonObject("specialQuotesSizes");
+        String base_id = ship_id;
+        int find_limit = 7;
+        while (shipDataGraph.has(base_id) && find_limit > 0) {
+            base_id = shipDataGraph.get(ship_id).getAsString();
+            find_limit--;
+        }
+        if (specialSeasonalKey.has(base_id)) {
+            JsonObject shipData = specialSeasonalKey.getAsJsonObject(base_id);
+            if (shipData.has(voiceline)) {
+                JsonObject sizeTable = shipData.getAsJsonObject(voiceline);
+                if (sizeTable.has(voiceSize)) {
+                    JsonObject data = sizeTable.getAsJsonObject(voiceSize);
+                    for (String key: data.keySet()) {
+                        JsonArray months = data.getAsJsonArray(key);
+                        int month = Calendar.getInstance().get(Calendar.MONTH) + 1;
+                        if (months.contains(new JsonPrimitive(month))) {
+                            return voiceline + "@" + key;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Special key check by file size
+        JsonObject shipData = quoteSizeData.getAsJsonObject(ship_id);
+        if (shipData.has(voiceline)) {
+            JsonObject sizeTable = shipData.getAsJsonObject(voiceline);
+            if (sizeTable.has(voiceSize)) {
+                String value = sizeTable.get(voiceSize).getAsString();
+                if (value.length() > 0) {
+                    return voiceline + "@" + value;
+                } else {
+                    return voiceline;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static JsonObject getQuoteString(String ship_id, String voiceline, String voiceSize) {
+        Log.e("GOTO", ship_id + " " +voiceline + " " + voiceSize);
         String voiceline_original = voiceline;
         JsonObject voicedata_base = new JsonObject();
         voicedata_base.addProperty("0", "");
         if (shipDataGraph.has(ship_id)) {
             String before_id = shipDataGraph.get(ship_id).getAsString();
-            voicedata_base = getQuoteString(before_id, voiceline_original);
+            voicedata_base = getQuoteString(before_id, voiceline_original, voiceSize);
             Log.e("GOTO", "prev:" + voicedata_base.toString());
         }
 
@@ -240,34 +349,18 @@ public class KcSubtitleUtils {
                 if (specialDiffs.has(voiceline)) {
                     voiceline = specialDiffs.get(voiceline).getAsString();
                 }
-                if (specialVoiceCode.length() > 0) {
-                    voiceline_special = voiceline.concat("@").concat(specialVoiceCode);
+                String specialVoiceLine = findQuoteKeyByFileSize(ship_id, voiceline, voiceSize);
+                if (specialVoiceLine != null && !specialVoiceLine.equals(voiceline)) {
+                    current_special_flag = true;
+                    voiceline = specialVoiceLine;
+                } else {
+                    voiceline = quoteLabel.get(voiceline).getAsString();
                 }
-                voiceline = quoteLabel.get(voiceline).getAsString();
             }
 
             if (!quoteData.has(ship_id)) return voicedata_base;
             JsonObject ship_data = quoteData.getAsJsonObject(ship_id);
-            if (ship_data.has(voiceline_special)) {
-                voiceline = voiceline_special;
-                current_special_flag = true;
-            }
-
-            int year = SPECIAL_VOICE_END_YEAR;
-            for (year = SPECIAL_VOICE_END_YEAR; year >= SPECIAL_VOICE_START_YEAR; year--) {
-                if (ship_data.has(voiceline_special +  year)) {
-                    voiceline = voiceline_special + year;
-                    current_special_flag = true;
-                    break;
-                }
-            }
-
-            if (current_special_flag && ship_data.has(voiceline_special)
-                    && year != SPECIAL_VOICE_END_YEAR) {
-                voiceline = voiceline_special;
-            }
-
-            Log.e("GOTO", ship_id + " " +voiceline);
+            Log.e("GOTO", ship_id + " " +voiceline + " " + voiceSize);
             if (current_special_flag || !prev_special_flag) {
                 if (ship_data.has(voiceline)) {
                     JsonElement text_data = ship_data.get(voiceline);

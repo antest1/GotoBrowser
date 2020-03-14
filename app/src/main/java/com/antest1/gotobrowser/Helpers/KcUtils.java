@@ -19,6 +19,7 @@ import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
 import com.crashlytics.android.Crashlytics;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
@@ -28,6 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -263,6 +265,20 @@ public class KcUtils {
             resultStr = resultStr.concat(list.get(i));
         }
         return resultStr;
+    }
+
+    public static JsonObject readJsonObjectFromFile(String path) {
+        try {
+            final Gson gson = new Gson();
+            final BufferedReader reader = new BufferedReader(new FileReader(path));
+            String line;
+            StringBuilder sb = new StringBuilder();
+            while ((line = reader.readLine()) != null) sb.append(line);
+            return gson.fromJson(sb.toString(), JsonObject.class);
+        } catch (IOException e) {
+            KcUtils.reportException(e);
+        }
+        return null;
     }
 
     public static byte[] gzipcompress(String value) throws IOException {

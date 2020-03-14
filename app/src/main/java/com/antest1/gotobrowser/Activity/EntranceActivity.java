@@ -18,6 +18,7 @@ import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
+import com.antest1.gotobrowser.Subtitle.KcSubtitleUtils;
 import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
 
 import java.io.File;
