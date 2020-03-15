@@ -55,8 +55,8 @@ public class ScreenshotNotification {
 
         Notification notification = new NotificationCompat.Builder(activity, NOTI_CHANNEL_SCREENSHOT)
                 .setSmallIcon(R.drawable.ic_noti_screenshot)
-                .setContentTitle("Screenshot Captured")
-                .setContentText("Tap to view your screenshot")
+                .setContentTitle(activity.getString(R.string.noti_screenshot_title))
+                .setContentText(activity.getString(R.string.noti_screenshot_description))
                 .setContentIntent(contentIntent)
                 .setLargeIcon(bitmap)
                 .setStyle(new NotificationCompat.BigPictureStyle()

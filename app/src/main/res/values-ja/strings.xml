@@ -37,4 +37,6 @@
     <string name="browser_enablepipmode">PIPモードを有効にする</string>
     <string name="logout_msg">本当にログアウトしますか？</string>
     <string name="noti_screenshot_name">GotoBrowserスクリーンショット</string>
+    <string name="noti_screenshot_title">スクリーンショットを保存しました</string>
+    <string name="noti_screenshot_description">タップするとスクリーンショットが表示されます</string>
 </resources>

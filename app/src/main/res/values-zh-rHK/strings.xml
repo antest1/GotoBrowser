@@ -36,4 +36,6 @@
     <string name="browser_enablepipmode">啟用畫中畫模式</string>
     <string name="logout_msg">您確定要註銷嗎？</string>
     <string name="noti_screenshot_name">GotoBrowser截圖</string>
+    <string name="noti_screenshot_title">屏幕截圖已保存</string>
+    <string name="noti_screenshot_description">点按即可打开屏幕截图</string>
 </resources>

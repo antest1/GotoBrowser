@@ -46,4 +46,6 @@
     <string name="broswer_altergadget" translatable="false">Alter Gadget URL</string>
     <string name="logout_msg">Are you sure you want to Logout?</string>
     <string name="noti_screenshot_name">GotoBrowser Screenshot</string>
+    <string name="noti_screenshot_title">Screenshot Captured</string>
+    <string name="noti_screenshot_description">Tap to view your screenshot</string>
 </resources>

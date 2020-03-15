@@ -37,4 +37,6 @@
     <string name="browser_enablepipmode">PIP 모드 활성화</string>
     <string name="logout_msg">로그아웃하시겠습니까?</string>
     <string name="noti_screenshot_name">GotoBrowser 스크린샷</string>
+    <string name="noti_screenshot_title">스크린샷 저장됨</string>
+    <string name="noti_screenshot_description">탭하여 스크린샷 열기</string>
 </resources>
