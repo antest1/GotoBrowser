@@ -48,4 +48,7 @@
     <string name="noti_screenshot_name">GotoBrowser Screenshot</string>
     <string name="noti_screenshot_title">Screenshot Captured</string>
     <string name="noti_screenshot_description">Tap to view your screenshot</string>
+    <string name="noti_screenshot_permission_message">Storage permission is required to use the screenshot function.</string>
+    <string name="granted_true_storage_permission">Storage permission granted.</string>
+    <string name="granted_false_storage_permission">Storage permission not granted.</string>
 </resources>

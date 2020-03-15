@@ -4,6 +4,8 @@ public class Constants {
     public static final int VERSION_TABLE_VERSION = 1;
     public static final int CACHE_SIZE_BYTES = 1024 * 1024 * 2;
 
+    public static final int REQUEST_EXTERNAL_PERMISSION = 100;
+
     public static final String PREF_LANDSCAPE = "pref_landscape";
     public static final String PREF_ADJUSTMENT = "pref_adjustment";
     public static final String PREF_CONNECTOR = "pref_connector";

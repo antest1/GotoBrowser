@@ -38,4 +38,7 @@
     <string name="noti_screenshot_name">GotoBrowser截圖</string>
     <string name="noti_screenshot_title">屏幕截圖已保存</string>
     <string name="noti_screenshot_description">點按即可打開屏幕截圖</string>
+    <string name="noti_screenshot_permission_message">截圖功能需要儲存權限 。</string>
+    <string name="granted_false_storage_permission">未授予儲存權限。</string>
+    <string name="granted_true_storage_permission">已授予儲存權限。</string>
 </resources>

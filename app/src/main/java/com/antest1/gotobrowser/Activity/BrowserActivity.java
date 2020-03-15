@@ -1,5 +1,6 @@
 package com.antest1.gotobrowser.Activity;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.PictureInPictureParams;
 import android.app.ProgressDialog;
@@ -7,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -32,6 +34,7 @@ import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Notification.ScreenshotNotification;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.KcSubtitleUtils;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
 import java.util.Locale;
@@ -41,6 +44,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
@@ -58,6 +62,7 @@ import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_VPADDING;
+import static com.antest1.gotobrowser.Constants.REQUEST_EXTERNAL_PERMISSION;
 import static com.antest1.gotobrowser.Constants.RESIZE_CALL;
 
 public class BrowserActivity extends AppCompatActivity {
@@ -135,9 +140,9 @@ public class BrowserActivity extends AppCompatActivity {
             boolean isSilentMode = sharedPref.getBoolean(PREF_SILENT, false);
             isMuteMode = sharedPref.getBoolean(PREF_MUTEMODE, false);
             isLockMode = sharedPref.getBoolean(PREF_LOCKMODE, false);
-            isCaptureMode = sharedPref.getBoolean(PREF_CAPTURE, false);
             isKeepMode = sharedPref.getBoolean(PREF_KEEPMODE, false);
             isCaptionMode = sharedPref.getBoolean(PREF_SHOWCC, false);
+            isCaptureMode = checkStoragePermissionGrated() && sharedPref.getBoolean(PREF_CAPTURE, false);
 
             executor = Executors.newScheduledThreadPool(1);
 
@@ -319,6 +324,22 @@ public class BrowserActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_EXTERNAL_PERMISSION: {
+                boolean result = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                String message;
+                if (result) {
+                    message = getString(R.string.granted_true_storage_permission);
+                } else {
+                    message = getString(R.string.granted_false_storage_permission);
+                }
+                Snackbar.make(this.findViewById(R.id.main_container), message, Snackbar.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     public ProgressDialog getDownloadDialog() { return downloadDialog; }
     public boolean isKcMode() { return isKcBrowserMode; }
     public boolean isMuteMode() { return isMuteMode; }
@@ -418,16 +439,44 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     private void setCaptureMode(View v) {
-        isCaptureMode = !isCaptureMode;
-        if (isCaptureMode) {
-            findViewById(R.id.kc_camera).setVisibility(View.VISIBLE);
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
-            sharedPref.edit().putBoolean(PREF_CAPTURE, true).apply();
+        if (!checkStoragePermissionGrated()) {
+            showStoragePermissionDialog();
         } else {
-            findViewById(R.id.kc_camera).setVisibility(View.GONE);
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
-            sharedPref.edit().putBoolean(PREF_CAPTURE, false).apply();
+            isCaptureMode = !isCaptureMode;
+            if (isCaptureMode) {
+                findViewById(R.id.kc_camera).setVisibility(View.VISIBLE);
+                v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+                sharedPref.edit().putBoolean(PREF_CAPTURE, true).apply();
+            } else {
+                findViewById(R.id.kc_camera).setVisibility(View.GONE);
+                v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
+                sharedPref.edit().putBoolean(PREF_CAPTURE, false).apply();
+            }
         }
+    }
+
+    private boolean checkStoragePermissionGrated() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void showStoragePermissionDialog() {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle(getString(R.string.app_name));
+        alertDialogBuilder
+                .setCancelable(false)
+                .setMessage(getString(R.string.noti_screenshot_permission_message))
+                .setPositiveButton(R.string.action_ok,
+                        (dialog, id) -> {
+                            ActivityCompat.requestPermissions(this, new String[]{
+                                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            }, REQUEST_EXTERNAL_PERMISSION);
+                        })
+                .setNegativeButton(R.string.action_cancel,
+                        (dialog, id) -> dialog.cancel());
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
     }
 
     @SuppressLint("SourceLockedOrientationActivity")
