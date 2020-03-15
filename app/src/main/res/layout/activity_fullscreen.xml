@@ -86,6 +86,15 @@
                     app:srcCompat="@mipmap/mute" />
 
                 <ImageView
+                    android:id="@+id/menu_camera"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.8"
+                    android:padding="6dp"
+                    android:src="@mipmap/camera"
+                    app:srcCompat="@mipmap/camera" />
+
+                <ImageView
                     android:id="@+id/menu_lock"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -135,44 +144,58 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/control_component"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/subtitle_view"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:layout_margin="10dp"
-        android:alpha="0.75"
-        android:background="@color/black_overlay"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="5dp"
-        android:paddingLeft="5dp"
-        android:paddingEnd="5dp"
-        android:paddingRight="5dp">
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginStart="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="15dp"
+        android:maxLines="4"
+        android:shadowColor="@color/black"
+        android:shadowDx="2"
+        android:shadowDy="2"
+        android:shadowRadius="2"
+        android:text="@string/subtitle_default"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="18dp"
+        android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/control_text"
-            android:layout_width="32dp"
-            android:layout_height="wrap_content"
-            android:text="0"
-            android:textAlignment="center"
-            android:textColor="@color/white" />
+    <ImageView
+        android:id="@+id/cookietest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:alpha="0.5"
+        android:visibility="gone"
+        app:srcCompat="@android:drawable/btn_star" />
 
-        <SeekBar
-            android:id="@+id/control_main"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:max="150"
-            android:thumb="@android:drawable/radiobutton_off_background" />
+    <TextView
+        android:id="@+id/kc_error_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|top"
+        android:gravity="center"
+        android:minLines="2"
+        android:textAlignment="center"
+        android:textColor="@color/colorPrimary" />
 
-        <ImageView
-            android:id="@+id/control_exit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="2dp"
-            app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
-    </LinearLayout>
+    <ImageView
+        android:id="@+id/kc_camera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|top"
+        android:layout_margin="24dp"
+        android:alpha="0.4"
+        android:background="@drawable/capture_button"
+        android:padding="16dp"
+        android:src="@mipmap/capture_area"
+        android:visibility="gone"
+        app:srcCompat="@mipmap/capture_area" />
 
     <LinearLayout
         android:id="@+id/vcontrol_component"
@@ -218,45 +241,44 @@
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/subtitle_view"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/control_component"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginStart="30dp"
-        android:layout_marginLeft="30dp"
-        android:layout_marginTop="15dp"
-        android:layout_marginEnd="30dp"
-        android:layout_marginRight="30dp"
-        android:layout_marginBottom="15dp"
-        android:maxLines="4"
-        android:shadowColor="@color/black"
-        android:shadowDx="2"
-        android:shadowDy="2"
-        android:shadowRadius="2"
-        android:text="@string/subtitle_default"
-        android:textAlignment="center"
-        android:textColor="@color/white"
-        android:textSize="18dp"
-        android:textStyle="bold" />
+        android:layout_gravity="bottom"
+        android:layout_margin="10dp"
+        android:alpha="0.75"
+        android:background="@color/black_overlay"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="5dp"
+        android:paddingLeft="5dp"
+        android:paddingEnd="5dp"
+        android:paddingRight="5dp">
 
-    <ImageView
-        android:id="@+id/cookietest"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:alpha="0.5"
-        android:visibility="gone"
-        app:srcCompat="@android:drawable/btn_star" />
+        <TextView
+            android:id="@+id/control_text"
+            android:layout_width="32dp"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textAlignment="center"
+            android:textColor="@color/white" />
 
-    <TextView
-        android:id="@+id/kc_error_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal|top"
-        android:gravity="center"
-        android:minLines="2"
-        android:textAlignment="center"
-        android:textColor="@color/colorPrimary" />
+        <SeekBar
+            android:id="@+id/control_main"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="150"
+            android:thumb="@android:drawable/radiobutton_off_background" />
+
+        <ImageView
+            android:id="@+id/control_exit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="2dp"
+            app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
+    </LinearLayout>
 
     <!--<FrameLayout
         android:layout_width="match_parent"

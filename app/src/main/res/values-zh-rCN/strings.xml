@@ -35,4 +35,5 @@
     <string name="browser_fontprefetch">预加载字体</string>
     <string name="browser_enablepipmode">启用画中画模式</string>
     <string name="logout_msg">您确定要注销吗？</string>
+    <string name="noti_screenshot_name">GotoBrowser截图</string>
 </resources>

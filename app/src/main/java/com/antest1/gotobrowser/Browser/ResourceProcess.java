@@ -42,6 +42,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static com.antest1.gotobrowser.Constants.ALTER_GADGET_URL;
+import static com.antest1.gotobrowser.Constants.CAPTURE_LISTEN;
 import static com.antest1.gotobrowser.Constants.GADGET_URL;
 import static com.antest1.gotobrowser.Constants.MUTE_LISTEN;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
@@ -613,6 +614,7 @@ public class ResourceProcess {
         main_js = main_js.replaceFirst("'out':\\w+\\[\\w+\\('\\w+'\\)]\\?\\w+\\('\\w+'\\):\\w+\\('\\w+'\\)", "'out':'touchout'");
 
         main_js = main_js.concat(MUTE_LISTEN);
+        main_js = main_js.concat(CAPTURE_LISTEN);
         main_js = main_js.concat("\n").concat(KcsInterface.AXIOS_INTERCEPT_SCRIPT);
         return main_js;
     }

@@ -8,18 +8,20 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Rational;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.webkit.WebView;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -27,6 +29,7 @@ import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.KcUtils;
+import com.antest1.gotobrowser.Notification.ScreenshotNotification;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.KcSubtitleUtils;
 
@@ -44,9 +47,9 @@ import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
+import static com.antest1.gotobrowser.Constants.PREF_CAPTURE;
 import static com.antest1.gotobrowser.Constants.PREF_KEEPMODE;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
-import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
 import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
 import static com.antest1.gotobrowser.Constants.PREF_PADDING;
@@ -66,14 +69,16 @@ public class BrowserActivity extends AppCompatActivity {
     private ProgressDialog downloadDialog;
     private View mHorizontalControlView, mVerticalControlView;
     private SeekBar mSeekBarH, mSeekBarV;
+    private ScreenshotNotification screenshotNotification;
 
     private boolean isKcBrowserMode = false;
     private boolean isStartedFlag = false;
     private List<String> connector_info;
     private boolean pause_flag = false;
-    private boolean isMuteMode, isLockMode, isKeepMode, isCaptionMode;
+    private boolean isMuteMode, isCaptureMode, isLockMode, isKeepMode, isCaptionMode;
     private boolean isSubtitleLoaded = false;
     private TextView subtitleText;
+    private ImageView kcCameraButton;
     ScheduledExecutorService executor;
     private final Handler clearSubHandler = new Handler();
 
@@ -81,7 +86,7 @@ public class BrowserActivity extends AppCompatActivity {
 
     private BackPressCloseHandler backPressCloseHandler;
 
-    @SuppressLint({"SetJavaScriptEnabled", "ApplySharedPref", "ClickableViewAccessibility"})
+    @SuppressLint({"SetJavaScriptEnabled", "ApplySharedPref", "ClickableViewAccessibility", "SourceLockedOrientationActivity"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.e("GOTO", "enter");
@@ -96,6 +101,8 @@ public class BrowserActivity extends AppCompatActivity {
         backPressCloseHandler = new BackPressCloseHandler(this);
         sharedPref = getSharedPreferences(
                 getString(R.string.preference_key), Context.MODE_PRIVATE);
+
+        screenshotNotification = new ScreenshotNotification(this);
 
         Log.e("GOTO", "start action bar");
         try {
@@ -128,6 +135,7 @@ public class BrowserActivity extends AppCompatActivity {
             boolean isSilentMode = sharedPref.getBoolean(PREF_SILENT, false);
             isMuteMode = sharedPref.getBoolean(PREF_MUTEMODE, false);
             isLockMode = sharedPref.getBoolean(PREF_LOCKMODE, false);
+            isCaptureMode = sharedPref.getBoolean(PREF_CAPTURE, false);
             isKeepMode = sharedPref.getBoolean(PREF_KEEPMODE, false);
             isCaptionMode = sharedPref.getBoolean(PREF_SHOWCC, false);
 
@@ -141,6 +149,7 @@ public class BrowserActivity extends AppCompatActivity {
             mHorizontalControlView.setVisibility(View.GONE);
             mVerticalControlView = findViewById(R.id.vcontrol_component);
             mVerticalControlView.setVisibility(View.GONE);
+            kcCameraButton = findViewById(R.id.kc_camera);
 
             downloadDialog = new ProgressDialog(BrowserActivity.this);
 
@@ -158,6 +167,11 @@ public class BrowserActivity extends AppCompatActivity {
             View menuMute = findViewById(R.id.menu_mute);
             menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isMuteMode ? R.color.panel_red : R.color.black));
             menuMute.setOnClickListener(this::setMuteMode);
+
+            View menuCamera = findViewById(R.id.menu_camera);
+            menuCamera.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isCaptureMode ? R.color.panel_red : R.color.black));
+            menuCamera.setOnClickListener(this::setCaptureMode);
+            setCaptureButton();
 
             View menuLock = findViewById(R.id.menu_lock);
             menuLock.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isLockMode ? R.color.panel_red : R.color.black));
@@ -403,6 +417,20 @@ public class BrowserActivity extends AppCompatActivity {
         }
     }
 
+    private void setCaptureMode(View v) {
+        isCaptureMode = !isCaptureMode;
+        if (isCaptureMode) {
+            findViewById(R.id.kc_camera).setVisibility(View.VISIBLE);
+            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+            sharedPref.edit().putBoolean(PREF_CAPTURE, true).apply();
+        } else {
+            findViewById(R.id.kc_camera).setVisibility(View.GONE);
+            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
+            sharedPref.edit().putBoolean(PREF_CAPTURE, false).apply();
+        }
+    }
+
+    @SuppressLint("SourceLockedOrientationActivity")
     private void setOrientationLockMode(View v) {
         isLockMode = !isLockMode;
         if (isLockMode) {
@@ -444,6 +472,25 @@ public class BrowserActivity extends AppCompatActivity {
             v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
             sharedPref.edit().putBoolean(PREF_SHOWCC, false).apply();
         }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void setCaptureButton() {
+        kcCameraButton.setVisibility(isCaptureMode ? View.VISIBLE : View.GONE);
+        kcCameraButton.setOnTouchListener((v, event) -> {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    v.setAlpha(0.9f);
+                    manager.captureGameScreen(mContentView);
+                    break;
+                case MotionEvent.ACTION_UP:
+                    v.setAlpha(0.4f);
+                    break;
+                default:
+                    break;
+            }
+            return true;
+        });
     }
 
     public void showRefreshDialog() {
@@ -503,6 +550,10 @@ public class BrowserActivity extends AppCompatActivity {
         FrameLayout.LayoutParams param = (FrameLayout.LayoutParams) subtitleText.getLayoutParams();
         param.setMargins(param.leftMargin + value, param.topMargin, param.rightMargin + value, param.bottomMargin);
         subtitleText.setLayoutParams(param);
+    }
+
+    public void showScreenshotNotification(Bitmap bitmap, Uri uri) {
+        screenshotNotification.showNotification(bitmap, uri);
     }
 
     private Runnable clearSubtitle = new Runnable() {

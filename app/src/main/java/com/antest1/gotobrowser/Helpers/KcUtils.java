@@ -2,18 +2,25 @@ package com.antest1.gotobrowser.Helpers;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
+import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 
-import com.antest1.gotobrowser.Activity.SettingsActivity;
+import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
@@ -32,9 +39,9 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.zip.GZIPInputStream;
@@ -361,6 +368,63 @@ public class KcUtils {
                         (dialog, id) -> dialog.cancel());
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.show();
+    }
+
+    public static void processDataUriImage(BrowserActivity activity, String data) {
+        new Thread() {
+            @Override
+            public void run() {
+                Context context = activity.getApplicationContext();
+                SimpleDateFormat dateFormat = new SimpleDateFormat ("yyyy-MM-dd HH-mm-ss");
+                String date = dateFormat.format (System.currentTimeMillis());
+                String filename = "gtb-".concat(date);
+
+                String image = data.substring(data.indexOf(",") + 1);
+                byte[] decodedString = Base64.decode(image, Base64.DEFAULT);
+                Bitmap decodedImage = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                Uri fileUri = writeImageFile(context, filename, decodedImage);
+                Log.e("GOTO-DURL-P", "Path: " + fileUri.toString());
+                Log.e("GOTO-DURL-P", "Image Size: " + decodedImage.getWidth() + "x" + decodedImage.getHeight());
+                activity.runOnUiThread(() -> activity.showScreenshotNotification(decodedImage, fileUri));
+            }
+        }.run();
+    }
+
+    public static Uri writeImageFile(Context context, String filename, Bitmap bitmap) {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/GotoBrowser");
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, filename.concat(".png"));
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            values.put(MediaStore.Images.Media.IS_PENDING, 1);
+        }
+
+        ContentResolver contentResolver = context.getContentResolver();
+        Uri item = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        item.toString();
+        try {
+            ParcelFileDescriptor pd = contentResolver.openFileDescriptor(item, "w", null);
+            if (pd != null) {
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes);
+                FileOutputStream fos = new FileOutputStream(pd.getFileDescriptor());
+                fos.write(bytes.toByteArray());
+                fos.close();
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    values.clear();
+                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    contentResolver.update(item, values, null, null);
+                }
+                return item;
+            } else {
+                Log.e("GOTO", "writeImageFile pdf null");
+                return null;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
 

@@ -12,6 +12,7 @@ public class Constants {
     public static final String PREF_PANELSTART = "pref_panelstart";
     public static final String PREF_KEYBOARD = "pref_keyboard";
     public static final String PREF_MUTEMODE = "pref_mutemode";
+    public static final String PREF_CAPTURE = "pref_camera";
     public static final String PREF_LOCKMODE = "pref_lockmode";
     public static final String PREF_KEEPMODE = "pref_keepmode";
     public static final String PREF_PADDING = "pref_padding";
@@ -24,6 +25,7 @@ public class Constants {
     public static final String PREF_FONT_PREFETCH = "pref_font_prefetch";
     public static final String PREF_PIP_MODE = "pref_pip_mode";
     public static final String PREF_ALTER_GADGET = "pref_alter_gadget";
+    public static final String PREF_NC_SCREENSHOT_SET = "perf_nc_screenshot_set";
 
     public static final String ACTION_SHOWPANEL = "with_layout_control_";
     public static final String ACTION_SHOWKEYBOARD = "with_keyboard_";
@@ -64,6 +66,8 @@ public class Constants {
     public static final String MUTE_SEND = "(function(){var msg={sound:%d};var origin=\"*\";var doc=document.getElementById(\"htmlWrap\");if(doc){doc.contentWindow.postMessage(msg,origin)}else{document.getElementsByTagName(\"iframe\")[0].contentWindow.postMessage(msg,origin)};return \"done\"})()";
     public static final String MUTE_LISTEN = "\nwindow.addEventListener(\"message\",function(e){(e.data.sound!=null)&&(global_mute=e.data.sound,Howler.mute(global_mute),(!global_mute&&gb_h&&gb_h&&!gb_h.playing())&&gb_h.play())});";
     public static final String DMM_COOKIE = "document.cookie='ckcy=1;expires=Thu, 16-Jan-2023 00:00:00 GMT;path=/netgame;domain=.dmm.com';";
+    public static final String CAPUTRE_SEND = "(function(){var msg={capture:true};var origin=\"*\";var doc=document.getElementById(\"htmlWrap\");if(doc){doc.contentWindow.postMessage(msg,origin)}else{document.getElementsByTagName(\"iframe\")[0].contentWindow.postMessage(msg,origin)};return\"done\"})()";
+    public static final String CAPTURE_LISTEN = "window.addEventListener(\"message\",function(e){if(e.data.capture!=null){(async function(){{let canvas=document.querySelector('canvas');requestAnimationFrame(()=>{{if(canvas!=null){let dataurl=canvas.toDataURL('image/png');GotoBrowser.kcs_process_canvas_dataurl(dataurl);}}});}})();}});";
 
     public static final String CONNECT_NITRABBIT = "$(\"#viewform\").unbind(\"submit\");function connect(){var a=$(\"#viewform input[name=\\\"game_url\\\"]\").val();return location.href=a,!1}$(\"#viewform\").submit(connect);";
     public static final String AUTOCOMPLETE_OOI = "$(\"#login_id\").val(\"%s\");$(\"#password\").val(\"%s\");";

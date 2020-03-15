@@ -36,4 +36,5 @@
     <string name="browser_fontprefetch">フォントをプリロード</string>
     <string name="browser_enablepipmode">PIPモードを有効にする</string>
     <string name="logout_msg">本当にログアウトしますか？</string>
+    <string name="noti_screenshot_name">GotoBrowserスクリーンショット</string>
 </resources>

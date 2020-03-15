@@ -45,4 +45,5 @@
     <string name="browser_enablepipmode">Enable picture-in-picture mode</string>
     <string name="broswer_altergadget" translatable="false">Alter Gadget URL</string>
     <string name="logout_msg">Are you sure you want to Logout?</string>
+    <string name="noti_screenshot_name">GotoBrowser Screenshot</string>
 </resources>

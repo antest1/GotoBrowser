@@ -49,9 +49,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static com.antest1.gotobrowser.Browser.KcsInterface.GOTO_ANDROID;
-import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_NIT;
 import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_OOI;
-import static com.antest1.gotobrowser.Constants.CONNECT_NITRABBIT;
+import static com.antest1.gotobrowser.Constants.CAPUTRE_SEND;;
 import static com.antest1.gotobrowser.Constants.CONN_DMM;
 import static com.antest1.gotobrowser.Constants.CONN_KANSU;
 import static com.antest1.gotobrowser.Constants.CONN_NITRABBIT;
@@ -532,4 +531,8 @@ public class WebViewManager {
         return (ratio_val - 30) * 20;
     }
 
+    public static void captureGameScreen(WebViewL webview) {
+        Log.e("GOTO", "captureGameScreen");
+        webview.evaluateJavascript(CAPUTRE_SEND, null);
+    }
 }

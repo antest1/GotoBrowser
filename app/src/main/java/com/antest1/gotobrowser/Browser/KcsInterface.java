@@ -10,6 +10,7 @@ import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.widget.TextView;
 
+import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.ContentProvider.KcaPacketStore;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.R;
@@ -28,12 +29,12 @@ import static com.antest1.gotobrowser.ContentProvider.KcaPacketStore.PACKETSTORE
 public class KcsInterface {
     public static final String GOTO_ANDROID = "GotoBrowser";
     public static final String AXIOS_INTERCEPT_SCRIPT = "axios.interceptors.response.use(function(response){if(response.config.url.includes(\"kcsapi\")){var url=response.config.url;var request=response.config.data;var data=response.data;GotoBrowser.kcs_xhr_intercept(url,request,data);}return response;},function(error){return Promise.reject(error);});";
-    private Activity activity;
+    private BrowserActivity activity;
     private KcaPacketStore packetTable;
     private final Handler handler = new Handler();
     private boolean broadcast_mode = false;
 
-    public KcsInterface(Activity ac) {
+    public KcsInterface(BrowserActivity ac) {
         activity = ac;
         packetTable = new KcaPacketStore(ac.getApplicationContext(), null, PACKETSTORE_VERSION);
         SharedPreferences sharedPref = activity.getSharedPreferences(
@@ -47,6 +48,14 @@ public class KcsInterface {
             Log.e("GOTO-XHR", url);
             handler.post(() -> processXHR(url, requestHeader, responseRaw));
         };
+    }
+
+    @JavascriptInterface
+    public void kcs_process_canvas_dataurl(String dataurl) {
+        if (dataurl != null && dataurl.length() > 100) {
+            Log.e("GOTO-DURL", dataurl.substring(0, 100));
+            KcUtils.processDataUriImage(activity, dataurl);
+        }
     }
 
     @JavascriptInterface

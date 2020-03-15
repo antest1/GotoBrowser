@@ -1,8 +1,11 @@
 package com.antest1.gotobrowser.Activity;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebView;
@@ -17,6 +20,7 @@ import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
+import com.antest1.gotobrowser.Notification.ScreenshotNotification;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.KcSubtitleUtils;
 import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
@@ -40,6 +44,7 @@ import static com.antest1.gotobrowser.Constants.PREF_KEYBOARD;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
+import static com.antest1.gotobrowser.Constants.PREF_NC_SCREENSHOT_SET;
 import static com.antest1.gotobrowser.Constants.PREF_PANELSTART;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.URL_LIST;
@@ -245,4 +250,6 @@ public class EntranceActivity extends AppCompatActivity {
             finish();
         }
     }
+
+
 }
