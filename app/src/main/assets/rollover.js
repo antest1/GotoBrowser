@@ -23,7 +23,9 @@ $(function() {
    window.addEventListener("message", function (e) {
 	  //console.log("receive data from rollover:");
 	  //console.log(e);
-      var doc = document.getElementsByTagName("iframe")[0];
-      doc.contentWindow.postMessage(e.data, "*")
+	  if (e.data.hasOwnProperty("capture") || e.data.hasOwnProperty("sound")) {
+          var doc = document.getElementsByTagName("iframe")[0];
+          doc.contentWindow.postMessage(e.data, "*")
+	  }
    });
 });

@@ -532,6 +532,11 @@ public class ResourceProcess {
                 "(createjs(?:\\[\\w+\\('\\w+'\\)\\]){2})\\=createjs(?:\\[\\w+\\('\\w+'\\)\\]){2},",
                 "$1=createjs.Ticker.RAF,");
 
+        // Prevent Possible Item Purchase Crash
+        main_js = main_js.replaceFirst(
+                "function\\((\\w+)\\)\\{(window\\[\\w+\\('\\w+'\\)]\\(\\w+\\('\\w+'\\),\\w+\\[\\w+\\('\\w+'\\)]\\);)",
+                "function($1){if(typeof $1['data']=='number')$2");
+
         // handling port button behavior (sally)
         // handling port button behavior (others)
         // main_js = main_js.replaceAll("_.EventType\\.MOUSEUP,this\\._onMouseUp", "_.EventType.MOUSEDOWN,this._onMouseUp");

@@ -19,16 +19,6 @@
         android:layout_height="match_parent"
         android:background="@color/black"></com.antest1.gotobrowser.Browser.WebViewL>
 
-    <ImageView
-        android:id="@+id/dmm_browser_close"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:layout_margin="4dp"
-        android:src="@android:drawable/ic_menu_close_clear_cancel"
-        android:visibility="gone"
-        app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
-
     <!--<ImageView
         android:id="@+id/webview_camera"
         android:layout_width="wrap_content"
@@ -278,7 +268,18 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="2dp"
             app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
+
     </LinearLayout>
+
+    <ImageView
+        android:id="@+id/dmm_browser_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_margin="4dp"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:visibility="gone"
+        app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
 
     <!--<FrameLayout
         android:layout_width="match_parent"
