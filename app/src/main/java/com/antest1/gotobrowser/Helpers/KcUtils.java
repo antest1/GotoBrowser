@@ -3,14 +3,17 @@ package com.antest1.gotobrowser.Helpers;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.util.Base64;
@@ -382,7 +385,13 @@ public class KcUtils {
                 String image = data.substring(data.indexOf(",") + 1);
                 byte[] decodedString = Base64.decode(image, Base64.DEFAULT);
                 Bitmap decodedImage = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                Uri fileUri = writeImageFile(context, filename, decodedImage);
+                Uri fileUri;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    fileUri = writeImageFile(context, filename, decodedImage);
+                } else {
+                    fileUri = writeImageFileOld(context, filename, decodedImage);
+                }
+
                 Log.e("GOTO-DURL-P", "Path: " + fileUri.toString());
                 Log.e("GOTO-DURL-P", "Image Size: " + decodedImage.getWidth() + "x" + decodedImage.getHeight());
                 activity.runOnUiThread(() -> activity.showScreenshotNotification(decodedImage, fileUri));
@@ -401,7 +410,6 @@ public class KcUtils {
 
         ContentResolver contentResolver = context.getContentResolver();
         Uri item = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-        item.toString();
         try {
             ParcelFileDescriptor pd = contentResolver.openFileDescriptor(item, "w", null);
             if (pd != null) {
@@ -425,6 +433,34 @@ public class KcUtils {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static Uri writeImageFileOld(Context context, String filename, Bitmap bitmap) {
+        String root = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES).toString();
+        File myDir = new File(root + "/GotoBrowser");
+        myDir.mkdirs();
+        File file = new File (myDir, filename);
+        Log.e("GOTO", file.getAbsolutePath());
+
+        try {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes);
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(bytes.toByteArray());
+            fos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, filename.concat(".png"));
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+        values.put(MediaStore.Images.Media.DATA, file.getAbsolutePath());
+
+        ContentResolver contentResolver = context.getContentResolver();
+        Uri item = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        return item;
     }
 }
 
