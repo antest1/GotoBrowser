@@ -440,7 +440,7 @@ public class KcUtils {
                 Environment.DIRECTORY_PICTURES).toString();
         File myDir = new File(root + "/GotoBrowser");
         myDir.mkdirs();
-        File file = new File (myDir, filename);
+        File file = new File (myDir, filename.concat(".png"));
         Log.e("GOTO", file.getAbsolutePath());
 
         try {
