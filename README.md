@@ -19,7 +19,7 @@ Download
 
 Demo
 -------
-[![Youtube](https://img.youtube.com/vi/ocyKsU5qKWM/0.jpg)](https://www.youtube.com/watch?v=ocyKsU5qKWM)
+[![Youtube](https://img.youtube.com/vi/aSRbu9DH6uc/0.jpg)](https://www.youtube.com/watch?v=aSRbu9DH6uc)
 
 Main Features
 -------
@@ -29,6 +29,7 @@ Main Features
 - Start with Sound Off Mode
 - Subtitle for in-game voiceline
 - Web Proxy Support (like [OOI](http://ooi.moe/))
+- In-game Screenshot
 
 Language
 -------
