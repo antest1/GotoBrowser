@@ -68,7 +68,7 @@
 
         <activity
             android:name=".Activity.BrowserActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout|uiMode"
             android:label="@string/app_name"
             android:alwaysRetainTaskState="true"
             android:supportsPictureInPicture="true"
