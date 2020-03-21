@@ -306,7 +306,7 @@ public class KcSubtitleUtils {
 
         // Special key check by file size
         JsonObject shipData = quoteSizeData.getAsJsonObject(ship_id);
-        if (shipData.has(voiceline)) {
+        if (shipData != null && shipData.has(voiceline)) {
             JsonObject sizeTable = shipData.getAsJsonObject(voiceline);
             if (sizeTable.has(voiceSize)) {
                 String value = sizeTable.get(voiceSize).getAsString();
