@@ -1,1 +1,1 @@
-include ':app', ':pngquant-android'
+include ':app'
