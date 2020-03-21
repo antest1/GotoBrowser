@@ -355,22 +355,24 @@ public class KcUtils {
     }
 
     private static void showAppUpdateDownloadDialog(Activity ac, String tag, String latest_file) {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                ac);
-        alertDialogBuilder.setTitle(ac.getString(R.string.app_name));
-        alertDialogBuilder
-                .setCancelable(false)
-                .setMessage(String.format(Locale.US, ac.getString(R.string.setting_latest_download), tag))
-                .setPositiveButton(R.string.action_ok,
-                        (dialog, id) -> {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(latest_file));
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            ac.startActivity(intent);
-                        })
-                .setNegativeButton(R.string.action_cancel,
-                        (dialog, id) -> dialog.cancel());
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        if (!ac.isFinishing()) {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                    ac);
+            alertDialogBuilder.setTitle(ac.getString(R.string.app_name));
+            alertDialogBuilder
+                    .setCancelable(false)
+                    .setMessage(String.format(Locale.US, ac.getString(R.string.setting_latest_download), tag))
+                    .setPositiveButton(R.string.action_ok,
+                            (dialog, id) -> {
+                                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(latest_file));
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                ac.startActivity(intent);
+                            })
+                    .setNegativeButton(R.string.action_cancel,
+                            (dialog, id) -> dialog.cancel());
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+        }
     }
 
     public static void processDataUriImage(BrowserActivity activity, String data) {
