@@ -251,22 +251,16 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        pause_flag = true;
+        manager.runMuteScript(mContentView, true, true);
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         Log.e("GOTO", "onPause");
-        boolean is_multi = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode();
-        if (!is_multi) {
-            Log.e("GOTO", "is_not_multi");
-            pause_flag = true;
-            manager.runMuteScript(mContentView, true, true);
-        } else {
-            if (pause_flag) {
-                mContentView.resumeTimers();
-                manager.runMuteScript(mContentView, isMuteMode);
-                pause_flag = false;
-            }
-            Log.e("GOTO", "is_multi");
-        }
     }
 
     @Override
@@ -276,6 +270,7 @@ public class BrowserActivity extends AppCompatActivity {
         pause_flag = false;
         mContentView.resumeTimers();
         mContentView.getSettings().setTextZoom(100);
+        setAdjustPadding();
         manager.runMuteScript(mContentView, isMuteMode);
     }
 
@@ -306,22 +301,7 @@ public class BrowserActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        final SharedPreferences sharedPref = getSharedPreferences(
-                getString(R.string.preference_key), Context.MODE_PRIVATE);
-        boolean adjust_layout = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
-
-        DisplayMetrics dimension = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(dimension);
-        int width = dimension.widthPixels;
-        int height = dimension.heightPixels;
-        int adjust_padding = sharedPref.getInt(PREF_PADDING, WebViewManager.getDefaultPadding(width, height));
-        int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
-        if (mSeekBarH != null) mSeekBarH.setProgress(adjust_padding);
-        setSubtitleMargin(adjust_padding);
-        if (isStartedFlag && !pause_flag && !isInPictureInPictureMode) {
-            if (adjust_layout) mContentView.evaluateJavascript(
-                    String.format(Locale.US, RESIZE_CALL, adjust_padding, adjust_vpadding), null);
-        }
+        setAdjustPadding();
     }
 
     @Override
@@ -422,6 +402,24 @@ public class BrowserActivity extends AppCompatActivity {
         });
         mVerticalControlView.findViewById(R.id.vcontrol_exit)
                 .setOnClickListener(v -> mVerticalControlView.setVisibility(View.GONE));
+    }
+
+    private void setAdjustPadding() {
+        final SharedPreferences sharedPref = getSharedPreferences(
+                getString(R.string.preference_key), Context.MODE_PRIVATE);
+        boolean adjust_layout = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
+        DisplayMetrics dimension = KcUtils.getActivityDimension(this);
+        int width = dimension.widthPixels;
+        int height = dimension.heightPixels;
+        int adjust_padding = sharedPref.getInt(PREF_PADDING, WebViewManager.getDefaultPadding(width, height));
+        int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
+        if (mSeekBarH != null) mSeekBarH.setProgress(adjust_padding);
+        setSubtitleMargin(adjust_padding);
+        if (isStartedFlag && !pause_flag && !isInPictureInPictureMode) {
+            if (isMultiWindowMode()) adjust_padding = 0;
+            if (adjust_layout) mContentView.evaluateJavascript(
+                    String.format(Locale.US, RESIZE_CALL, adjust_padding, adjust_vpadding), null);
+        }
     }
 
     private void setMuteMode(View v) {
@@ -612,6 +610,10 @@ public class BrowserActivity extends AppCompatActivity {
         }
     };
 
+    public boolean isMultiWindowMode() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode();
+    }
+
     @Override
     public void onUserLeaveHint() {
         boolean pipEnabled = sharedPref.getBoolean(PREF_PIP_MODE, false);
@@ -638,13 +640,7 @@ public class BrowserActivity extends AppCompatActivity {
             }
         } else {
             if (adjust_layout) {
-                DisplayMetrics dimension = KcUtils.getActivityDimension(this);
-                int width = dimension.widthPixels;
-                int height = dimension.heightPixels;
-                int adjust_padding = sharedPref.getInt(PREF_PADDING, WebViewManager.getDefaultPadding(width, height));
-                int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
-
-                mContentView.evaluateJavascript(String.format(Locale.US, RESIZE_CALL, adjust_padding, adjust_vpadding), null);
+                setAdjustPadding();
             }
             mContentView.setZ(0);
         }
