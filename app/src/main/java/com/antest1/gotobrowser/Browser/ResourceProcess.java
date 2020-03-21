@@ -596,13 +596,14 @@ public class ResourceProcess {
                     "\n" +
                     "  proto.processTouchOverOut = function (interactionEvent, displayObject, hit) {\n" +
                     "    if(hit) {\n" +
-                    "      if(!displayObject.__over) {\n" +
+                    "      if(!displayObject.__over && displayObject._events.touchover) {\n" +
+                    "        if (displayObject.parent._onClickAll2) return;\n" +
                     "        displayObject.__over = true;\n" +
                     "        proto.dispatchEvent( displayObject, 'touchover', window.__eventData);\n" +
                     "      }\n" +
                     "    } else {\n" +
                              // Only trigger "touchout" when user starts touching another object
-                    "        if(displayObject.__over && interactionEvent.target != displayObject) {\n" +
+                    "        if(displayObject.__over && displayObject._events.touchover && interactionEvent.target != displayObject) {\n" +
                     "            displayObject.__over = false;\n" +
                     "            proto.dispatchEvent( displayObject, 'touchout', window.__eventData);\n" +
                     "        }\n" +
