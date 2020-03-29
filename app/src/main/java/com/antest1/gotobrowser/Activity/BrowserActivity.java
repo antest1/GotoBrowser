@@ -18,15 +18,16 @@ import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Rational;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.antest1.gotobrowser.Browser.BrowserGestureListener;
 import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
@@ -75,9 +76,12 @@ public class BrowserActivity extends AppCompatActivity {
     private View mHorizontalControlView, mVerticalControlView;
     private SeekBar mSeekBarH, mSeekBarV;
     private ScreenshotNotification screenshotNotification;
+    GestureDetector mDetector;
 
     private boolean isKcBrowserMode = false;
+    private boolean isPanelVisible = false;
     private boolean isStartedFlag = false;
+    private boolean isAdjustChangedByUser = false;
     private List<String> connector_info;
     private boolean pause_flag = false;
     private boolean isMuteMode, isCaptureMode, isLockMode, isKeepMode, isCaptionMode;
@@ -116,18 +120,19 @@ public class BrowserActivity extends AppCompatActivity {
 
             mContentView = findViewById(R.id.main_browser);
             manager.setHardwardAcceleratedFlag();
-            manager.setGestureDetector(mContentView);
 
             // panel, keyboard settings
             Intent intent = getIntent();
+
+            View browserPanel = findViewById(R.id.menu_list);
             if (intent != null) {
                 String action = intent.getAction();
                 isKcBrowserMode = OPEN_KANCOLLE.equals(action);
-
                 String options = intent.getStringExtra("options");
                 if (options != null) {
-                    View browserPanel = findViewById(R.id.browser_panel);
-                    browserPanel.setVisibility(options.contains(ACTION_SHOWPANEL) ? View.VISIBLE : View.GONE);
+                    isPanelVisible = options.contains(ACTION_SHOWPANEL);
+                    browserPanel.setVisibility(isPanelVisible ? View.VISIBLE : View.GONE);
+                    setPanelVisible(findViewById(R.id.menu_close));
                     if (!options.contains(ACTION_SHOWKEYBOARD)) {
                         mContentView.setFocusableInTouchMode(false);
                         mContentView.setFocusable(false);
@@ -191,14 +196,14 @@ public class BrowserActivity extends AppCompatActivity {
             menuCaption.setOnClickListener(this::setCaptionMode);
 
             View menuClose = findViewById(R.id.menu_close);
-            menuClose.setOnClickListener(v -> { findViewById(R.id.browser_panel).setVisibility(View.GONE); });
+            menuClose.setOnClickListener(this::setPanelVisible);
 
             subtitleText = findViewById(R.id.subtitle_view);
             subtitleText.setVisibility(isKcBrowserMode && isCaptionMode ? View.VISIBLE : View.GONE);
             subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
 
             // defaultSubtitleMargin = getDefaultSubtitleMargin();
-            setSubtitleMargin(sharedPref.getInt(PREF_PADDING, 0));
+            //setSubtitleMargin(sharedPref.getInt(PREF_PADDING, 0));
             String subtitle_local = sharedPref.getString(PREF_SUBTITLE_LOCALE, "en");
             KcSubtitleUtils.loadQuoteAnnotation(getApplicationContext());
             isSubtitleLoaded = KcSubtitleUtils.loadQuoteData(getApplicationContext(), subtitle_local);
@@ -267,10 +272,13 @@ public class BrowserActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.e("GOTO", "onResume");
+        Log.e("GOTO", isAdjustChangedByUser + " " + isInPictureInPictureMode + " " + isMultiWindowMode());
         pause_flag = false;
         mContentView.resumeTimers();
-        mContentView.getSettings().setTextZoom(100);
-        setAdjustPadding();
+        if (isAdjustChangedByUser || isInPictureInPictureMode || isMultiWindowMode()) {
+            mContentView.getSettings().setTextZoom(100);
+            setAdjustPadding();
+        }
         manager.runMuteScript(mContentView, isMuteMode);
     }
 
@@ -301,7 +309,13 @@ public class BrowserActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        setAdjustPadding();
+        Log.e("GOTO", isAdjustChangedByUser + " " + isInPictureInPictureMode + " " + isMultiWindowMode());
+        View browserPanel = findViewById(R.id.browser_panel);
+        browserPanel.setVisibility(isMultiWindowMode() ? View.GONE : View.VISIBLE);
+        if (isAdjustChangedByUser || isInPictureInPictureMode || isMultiWindowMode()) {
+            mContentView.getSettings().setTextZoom(100);
+            setAdjustPadding();
+        }
     }
 
     @Override
@@ -366,7 +380,7 @@ public class BrowserActivity extends AppCompatActivity {
                     sharedPref.edit().putInt(PREF_PADDING, convertHorizontalProgress(progress)).apply();
                     ((TextView) mHorizontalControlView.findViewById(R.id.control_text))
                             .setText(String.valueOf(convertHorizontalProgress(progress)));
-                    setSubtitleMargin(adjust_padding);
+                    //setSubtitleMargin(adjust_padding);
                 }
             }
             @Override
@@ -405,6 +419,8 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     private void setAdjustPadding() {
+        /*
+        Log.e("GOTO", "setAdjustPadding");
         final SharedPreferences sharedPref = getSharedPreferences(
                 getString(R.string.preference_key), Context.MODE_PRIVATE);
         boolean adjust_layout = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
@@ -414,12 +430,17 @@ public class BrowserActivity extends AppCompatActivity {
         int adjust_padding = sharedPref.getInt(PREF_PADDING, WebViewManager.getDefaultPadding(width, height));
         int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
         if (mSeekBarH != null) mSeekBarH.setProgress(adjust_padding);
-        setSubtitleMargin(adjust_padding);
-        if (isStartedFlag && !pause_flag && !isInPictureInPictureMode) {
-            if (isMultiWindowMode()) adjust_padding = 0;
+        //setSubtitleMargin(adjust_padding);
+        if (isStartedFlag && !pause_flag) {
+            if (isMultiWindowMode()) {
+                isAdjustChangedByUser = true;
+                adjust_padding = 0;
+            } else {
+                isAdjustChangedByUser = false;
+            }
             if (adjust_layout) mContentView.evaluateJavascript(
                     String.format(Locale.US, RESIZE_CALL, adjust_padding, adjust_vpadding), null);
-        }
+        }*/
     }
 
     private void setMuteMode(View v) {
@@ -521,6 +542,13 @@ public class BrowserActivity extends AppCompatActivity {
         }
     }
 
+    private void setPanelVisible(View v) {
+        isPanelVisible = !isPanelVisible;
+        View browserPanel = findViewById(R.id.menu_list);
+        browserPanel.setVisibility(isPanelVisible ? View.VISIBLE : View.GONE);
+        ((ImageView) v).setImageResource(isPanelVisible ? R.mipmap.close : R.mipmap.menu);
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private void setCaptureButton() {
         kcCameraButton.setVisibility(isCaptureMode ? View.VISIBLE : View.GONE);
@@ -593,11 +621,12 @@ public class BrowserActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
+    /*
     public void setSubtitleMargin(int value) {
         FrameLayout.LayoutParams param = (FrameLayout.LayoutParams) subtitleText.getLayoutParams();
         param.setMargins(param.leftMargin + value, param.topMargin, param.rightMargin + value, param.bottomMargin);
         subtitleText.setLayoutParams(param);
-    }
+    }*/
 
     public void showScreenshotNotification(Bitmap bitmap, Uri uri) {
         screenshotNotification.showNotification(bitmap, uri);
@@ -637,11 +666,12 @@ public class BrowserActivity extends AppCompatActivity {
             mContentView.setZ(100);
             if (adjust_layout) {
                 mContentView.evaluateJavascript(String.format(Locale.US, RESIZE_CALL, 0, 0), null);
+                isAdjustChangedByUser = true;
             }
         } else {
-            if (adjust_layout) {
-                setAdjustPadding();
-            }
+            //if (adjust_layout) {
+            //    setAdjustPadding();
+            //}
             mContentView.setZ(0);
         }
     }

@@ -118,12 +118,6 @@ public class WebViewManager {
         }
     }
 
-    public void setGestureDetector(WebViewL webview) {
-        View broswerPanel = activity.findViewById(R.id.browser_panel);
-        GestureDetector mDetector = new GestureDetector(activity, new BrowserGestureListener(broswerPanel));
-        webview.setOnTouchListener((v, event) -> mDetector.onTouchEvent(event));
-    }
-
     @SuppressLint("SetJavaScriptEnabled")
     public static void setWebViewSettings(WebViewL view) {
         view.setInitialScale(1);
