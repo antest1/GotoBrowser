@@ -78,6 +78,7 @@
                         android:alpha="0.8"
                         android:padding="6dp"
                         android:src="@mipmap/aspect_ratio"
+                        android:visibility="gone"
                         app:srcCompat="@mipmap/aspect_ratio" />
 
                     <ImageView

@@ -44,9 +44,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -209,6 +214,36 @@ public class KcUtils {
         } catch (Exception e) {
             Crashlytics.logException(e);
         }
+    }
+
+    public static byte[] getBytesFromInputStream(InputStream in) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[1024];
+        while ((nRead = in.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        buffer.flush();
+        in.close();
+        return buffer.toByteArray();
+    }
+
+    public static String getStringFromInputStream(InputStream in) throws IOException {
+        return new String(getBytesFromInputStream(in), StandardCharsets.UTF_8);
+    }
+
+    public static byte[] downloadDataFromURL(String url) throws IOException {
+        InputStream in = new BufferedInputStream(new URL(url).openStream());
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[1024];
+        while ((nRead = in.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        buffer.flush();
+        in.close();
+        byte[] byteArray = buffer.toByteArray();
+        return byteArray;
     }
 
     public static String downloadResource(OkHttpClient client, String fullpath, String last_modified, File file) {
@@ -375,30 +410,27 @@ public class KcUtils {
         }
     }
 
-    public static void processDataUriImage(BrowserActivity activity, String data) {
-        new Thread() {
-            @Override
-            public void run() {
-                Context context = activity.getApplicationContext();
-                SimpleDateFormat dateFormat = new SimpleDateFormat ("yyyy-MM-dd HH-mm-ss");
-                String date = dateFormat.format (System.currentTimeMillis());
-                String filename = "gtb-".concat(date);
+    public static void processDataUriImage(ExecutorService executor, BrowserActivity activity, String data) {
+        executor.submit(() -> {
+            Context context = activity.getApplicationContext();
+            SimpleDateFormat dateFormat = new SimpleDateFormat ("yyyy-MM-dd HH-mm-ss");
+            String date = dateFormat.format (System.currentTimeMillis());
+            String filename = "gtb-".concat(date);
 
-                String image = data.substring(data.indexOf(",") + 1);
-                byte[] decodedString = Base64.decode(image, Base64.DEFAULT);
-                Bitmap decodedImage = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                Uri fileUri;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    fileUri = writeImageFile(context, filename, decodedImage);
-                } else {
-                    fileUri = writeImageFileOld(context, filename, decodedImage);
-                }
-
-                Log.e("GOTO-DURL-P", "Path: " + fileUri.toString());
-                Log.e("GOTO-DURL-P", "Image Size: " + decodedImage.getWidth() + "x" + decodedImage.getHeight());
-                activity.runOnUiThread(() -> activity.showScreenshotNotification(decodedImage, fileUri));
+            String image = data.substring(data.indexOf(",") + 1);
+            byte[] decodedString = Base64.decode(image, Base64.DEFAULT);
+            Bitmap decodedImage = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            Uri fileUri;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                fileUri = writeImageFile(context, filename, decodedImage);
+            } else {
+                fileUri = writeImageFileOld(context, filename, decodedImage);
             }
-        }.run();
+
+            Log.e("GOTO-DURL-P", "Path: " + fileUri.toString());
+            Log.e("GOTO-DURL-P", "Image Size: " + decodedImage.getWidth() + "x" + decodedImage.getHeight());
+            activity.runOnUiThread(() -> activity.showScreenshotNotification(decodedImage, fileUri));
+        });
     }
 
     public static Uri writeImageFile(Context context, String filename, Bitmap bitmap) {

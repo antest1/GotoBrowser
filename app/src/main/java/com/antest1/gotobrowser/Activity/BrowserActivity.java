@@ -15,7 +15,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Rational;
 import android.view.GestureDetector;
@@ -24,10 +23,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.antest1.gotobrowser.Browser.BrowserGestureListener;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.BuildConfig;
@@ -39,15 +42,8 @@ import com.antest1.gotobrowser.Subtitle.KcSubtitleUtils;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
@@ -58,14 +54,11 @@ import static com.antest1.gotobrowser.Constants.PREF_KEEPMODE;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
 import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
-import static com.antest1.gotobrowser.Constants.PREF_PADDING;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
-import static com.antest1.gotobrowser.Constants.PREF_VPADDING;
 import static com.antest1.gotobrowser.Constants.REQUEST_EXTERNAL_PERMISSION;
-import static com.antest1.gotobrowser.Constants.RESIZE_CALL;
 
 public class BrowserActivity extends AppCompatActivity {
     public static final String FOREGROUND_ACTION = BuildConfig.APPLICATION_ID + ".foreground";
@@ -75,8 +68,6 @@ public class BrowserActivity extends AppCompatActivity {
     private WebViewManager manager;
     private WebViewL mContentView;
     private ProgressDialog downloadDialog;
-    private View mHorizontalControlView, mVerticalControlView;
-    private SeekBar mSeekBarH, mSeekBarV;
     private ScreenshotNotification screenshotNotification;
     GestureDetector mDetector;
 
@@ -157,12 +148,7 @@ public class BrowserActivity extends AppCompatActivity {
             if (isSilentMode) WebViewManager.setSoundMuteCookie(mContentView);
             if (isKeepMode) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-            mHorizontalControlView = findViewById(R.id.control_component);
-            mHorizontalControlView.setVisibility(View.GONE);
-            mVerticalControlView = findViewById(R.id.vcontrol_component);
-            mVerticalControlView.setVisibility(View.GONE);
             kcCameraButton = findViewById(R.id.kc_camera);
-
             downloadDialog = new ProgressDialog(BrowserActivity.this);
 
             // Browser Panel Buttons
@@ -171,10 +157,6 @@ public class BrowserActivity extends AppCompatActivity {
 
             View menuLogout = findViewById(R.id.menu_logout);
             menuLogout.setOnClickListener(v -> showLogoutDialog());
-
-            View menuAspect = findViewById(R.id.menu_aspect);
-            menuAspect.setOnClickListener(v -> showLayoutAspectControls());
-            setLayoutAspectController();
 
             View menuMute = findViewById(R.id.menu_mute);
             menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isMuteMode ? R.color.panel_red : R.color.black));
@@ -281,7 +263,6 @@ public class BrowserActivity extends AppCompatActivity {
         sendIsFrontChanged(true);
         if (isAdjustChangedByUser || isInPictureInPictureMode || isMultiWindowMode()) {
             mContentView.getSettings().setTextZoom(100);
-            setAdjustPadding();
         }
         manager.runMuteScript(mContentView, isMuteMode);
     }
@@ -318,7 +299,6 @@ public class BrowserActivity extends AppCompatActivity {
         browserPanel.setVisibility(isMultiWindowMode() ? View.GONE : View.VISIBLE);
         if (isAdjustChangedByUser || isInPictureInPictureMode || isMultiWindowMode()) {
             mContentView.getSettings().setTextZoom(100);
-            setAdjustPadding();
         }
     }
 
@@ -345,107 +325,6 @@ public class BrowserActivity extends AppCompatActivity {
     public boolean isSubtitleAvailable() { return isSubtitleLoaded; }
     public boolean isBrowserPaused() { return pause_flag; }
     public void setStartedFlag() { isStartedFlag = true; }
-
-    private int getHorizontalProgressFromPref(int value) { return value / 2; }
-    private int convertHorizontalProgress(int progress) { return progress * 2; }
-    private int getVerticalProgressFromPref(int value) {return value / 2; }
-    private int convertVerticalProgress(int progress) { return progress * 2; }
-
-    private void showLayoutAspectControls() {
-        DisplayMetrics dimension = KcUtils.getActivityDimension(this);
-        int width = dimension.widthPixels;
-        int height = dimension.heightPixels;
-        int adjust_padding = sharedPref.getInt(PREF_PADDING, WebViewManager.getDefaultPadding(width, height));
-        int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
-        mHorizontalControlView.setVisibility(View.VISIBLE);
-        ((TextView) mHorizontalControlView.findViewById(R.id.control_text))
-                .setText(String.valueOf(adjust_padding));
-        mVerticalControlView.setVisibility(View.VISIBLE);
-        ((TextView) mVerticalControlView.findViewById(R.id.vcontrol_text))
-                .setText(String.valueOf(adjust_vpadding));
-    }
-
-    private void setLayoutAspectController() {
-        DisplayMetrics dimension = KcUtils.getActivityDimension(this);
-        int width = dimension.widthPixels;
-        int height = dimension.heightPixels;
-        int adjust_padding = sharedPref.getInt(PREF_PADDING, WebViewManager.getDefaultPadding(width, height));
-        int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
-
-        mSeekBarH = mHorizontalControlView.findViewById(R.id.control_main);
-        mSeekBarH.setProgress(getHorizontalProgressFromPref(adjust_padding));
-        mSeekBarH.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (isStartedFlag && fromUser) {
-                    int vprogress = sharedPref.getInt(PREF_VPADDING, 0);
-                    mContentView.evaluateJavascript(String.format(Locale.US,
-                            RESIZE_CALL, convertHorizontalProgress(progress), vprogress), null);
-                    sharedPref.edit().putInt(PREF_PADDING, convertHorizontalProgress(progress)).apply();
-                    ((TextView) mHorizontalControlView.findViewById(R.id.control_text))
-                            .setText(String.valueOf(convertHorizontalProgress(progress)));
-                    //setSubtitleMargin(adjust_padding);
-                }
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) { }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) { }
-        });
-
-
-        mHorizontalControlView.findViewById(R.id.control_exit)
-                .setOnClickListener(v -> mHorizontalControlView.setVisibility(View.GONE));
-
-        mSeekBarV = mVerticalControlView.findViewById(R.id.vcontrol_main);
-        mSeekBarV.setProgress(getVerticalProgressFromPref(adjust_vpadding));
-        mSeekBarV.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (isStartedFlag) {
-                    int hprogress = sharedPref.getInt(PREF_PADDING, WebViewManager.getDefaultPadding(width, height));
-                    mContentView.evaluateJavascript(String.format(Locale.US,
-                            RESIZE_CALL, hprogress, convertVerticalProgress(progress)), null);
-                    sharedPref.edit().putInt(PREF_VPADDING, convertVerticalProgress(progress)).apply();
-                    ((TextView) mVerticalControlView.findViewById(R.id.vcontrol_text))
-                            .setText(String.valueOf(convertVerticalProgress(progress)));
-                }
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) { }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) { }
-        });
-        mVerticalControlView.findViewById(R.id.vcontrol_exit)
-                .setOnClickListener(v -> mVerticalControlView.setVisibility(View.GONE));
-    }
-
-    private void setAdjustPadding() {
-        /*
-        Log.e("GOTO", "setAdjustPadding");
-        final SharedPreferences sharedPref = getSharedPreferences(
-                getString(R.string.preference_key), Context.MODE_PRIVATE);
-        boolean adjust_layout = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
-        DisplayMetrics dimension = KcUtils.getActivityDimension(this);
-        int width = dimension.widthPixels;
-        int height = dimension.heightPixels;
-        int adjust_padding = sharedPref.getInt(PREF_PADDING, WebViewManager.getDefaultPadding(width, height));
-        int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
-        if (mSeekBarH != null) mSeekBarH.setProgress(adjust_padding);
-        //setSubtitleMargin(adjust_padding);
-        if (isStartedFlag && !pause_flag) {
-            if (isMultiWindowMode()) {
-                isAdjustChangedByUser = true;
-                adjust_padding = 0;
-            } else {
-                isAdjustChangedByUser = false;
-            }
-            if (adjust_layout) mContentView.evaluateJavascript(
-                    String.format(Locale.US, RESIZE_CALL, adjust_padding, adjust_vpadding), null);
-        }*/
-    }
 
     private void setMuteMode(View v) {
         isMuteMode = !isMuteMode;
@@ -669,13 +548,9 @@ public class BrowserActivity extends AppCompatActivity {
             // i.e. blocking all other controls
             mContentView.setZ(100);
             if (adjust_layout) {
-                mContentView.evaluateJavascript(String.format(Locale.US, RESIZE_CALL, 0, 0), null);
                 isAdjustChangedByUser = true;
             }
         } else {
-            //if (adjust_layout) {
-            //    setAdjustPadding();
-            //}
             mContentView.setZ(0);
         }
     }

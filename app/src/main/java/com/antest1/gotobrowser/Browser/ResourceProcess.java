@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -45,6 +46,7 @@ import static com.antest1.gotobrowser.Constants.ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.CAPTURE_LISTEN;
 import static com.antest1.gotobrowser.Constants.GADGET_URL;
 import static com.antest1.gotobrowser.Constants.MUTE_LISTEN;
+import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
@@ -54,17 +56,16 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResource;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getEmptyStream;
 
 public class ResourceProcess {
-    private static final int RES_IMAGE = 0b000001;
-    private static final int RES_AUDIO = 0b000010;
-    private static final int RES_JSON  = 0b000100;
-    private static final int RES_JS    = 0b001000;
-    private static final int RES_FONT  = 0b010000;
-    private static final int RES_KCSAPI = 0b100000;
+    private static final int RES_IMAGE  = 0b0000001;
+    private static final int RES_AUDIO  = 0b0000010;
+    private static final int RES_JSON   = 0b0000100;
+    private static final int RES_JS     = 0b0001000;
+    private static final int RES_FONT   = 0b0010000;
+    private static final int RES_CSS    = 0b0100000;
+    private static final int RES_KCSAPI = 0b1000000;
     private static final int CACHE_MAX = 60;
 
-    public static boolean isImage(int state) {
-        return (state & RES_IMAGE) > 0;
-    }
+    public static boolean isImage(int state) { return (state & RES_IMAGE) > 0; }
     public static boolean isAudio(int state) {
         return (state & RES_AUDIO) > 0;
     }
@@ -76,6 +77,9 @@ public class ResourceProcess {
     }
     public static boolean isFont(int state) {
         return (state & RES_FONT) > 0;
+    }
+    public static boolean isStylesheet(int state) {
+        return (state & RES_CSS) > 0;
     }
     public static boolean isKcsApi(int state) {
         return (state & RES_KCSAPI) > 0;
@@ -123,6 +127,9 @@ public class ResourceProcess {
         if (url.contains(".woff2")) {
             state |= RES_FONT;
         }
+        if (url.contains(".css")) {
+            state |= RES_CSS;
+        }
         if (url.contains("kcsapi") && !url.contains("osapi.dmm.com")) {
             state |= RES_KCSAPI;
         }
@@ -138,6 +145,7 @@ public class ResourceProcess {
         boolean is_json = ResourceProcess.isJson(resource_type);
         boolean is_js = ResourceProcess.isScript(resource_type);
         boolean is_font = ResourceProcess.isFont(resource_type);
+        boolean is_css = ResourceProcess.isStylesheet(resource_type);
         boolean is_kcsapi = ResourceProcess.isKcsApi(resource_type);
 
         if (checkBlockedContent(url)) return getEmptyResponse();
@@ -176,6 +184,7 @@ public class ResourceProcess {
                 if (is_image || is_json) return processImageDataResource(file_info, update_info, resource_type);
                 if (is_js) return processScriptFile(file_info);
                 if (is_audio) return processAudioFile(file_info, update_info);
+                if (is_css) return processStylesheet(file_info);
                 if (is_font && sharedPref.getBoolean(PREF_FONT_PREFETCH, true)) return getFontFile(filename);
             }
         } catch (Exception e) {
@@ -307,38 +316,44 @@ public class ResourceProcess {
         String url = file_info.get("url").getAsString();
         if (prefAlterGadget && url.contains("gadget_html5")) {
             url = url.replace(GADGET_URL, ALTER_GADGET_URL);
-            InputStream in = new BufferedInputStream(new URL(url).openStream());
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            int nRead;
-            byte[] data = new byte[1024];
-            while ((nRead = in.read(data, 0, data.length)) != -1) {
-                buffer.write(data, 0, nRead);
-            }
-            buffer.flush();
-            in.close();
-            byte[] byteArray = buffer.toByteArray();
+            byte[] byteArray = KcUtils.downloadDataFromURL(url);
             InputStream is = new ByteArrayInputStream(byteArray);
             return new WebResourceResponse("application/javascript", "utf-8", is);
         }
 
         if (url.contains("kcs2/js/main.js")) {
-            InputStream in = new BufferedInputStream(new URL(url).openStream());
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            int nRead;
-            byte[] data = new byte[1024];
-            while ((nRead = in.read(data, 0, data.length)) != -1) {
-                buffer.write(data, 0, nRead);
-            }
-            buffer.flush();
-            in.close();
-
-            byte[] byteArray = buffer.toByteArray();
+            byte[] byteArray = KcUtils.downloadDataFromURL(url);
             String main_js = patchMainScript(new String(byteArray, StandardCharsets.UTF_8), broadcast_mode);
             InputStream is = new ByteArrayInputStream(main_js.getBytes());
             return new WebResourceResponse("application/javascript", "utf-8", is);
         } else {
             return null;
         }
+    }
+
+    private WebResourceResponse processStylesheet(JsonObject file_info) throws IOException {
+        String url = file_info.get("url").getAsString();
+        boolean is_adjustment = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
+        if (is_adjustment) {
+            AssetManager as = context.getAssets();
+            if (url.contains("kcscontents/css/import.css")) {
+                InputStream game_in = as.open("game_custom.css");
+                byte[] game_css = KcUtils.getBytesFromInputStream(game_in);
+                InputStream is = new ByteArrayInputStream(game_css);
+                return new WebResourceResponse("text/css", "utf-8", is);
+            }
+
+            if (url.contains("www.dmm.com.netgame.css")) {
+                byte[] byteArray = KcUtils.downloadDataFromURL(url);
+                String css = new String(byteArray, StandardCharsets.UTF_8);
+                InputStream dmm_in = as.open("dmm_custom.css");
+                String dmm_css = KcUtils.getStringFromInputStream(dmm_in);
+                css = css.concat("\n\n").concat(dmm_css);
+                InputStream is = new ByteArrayInputStream(css.getBytes());
+                return new WebResourceResponse("text/css", "utf-8", is);
+            }
+        }
+        return null;
     }
 
     private WebResourceResponse processAudioFile(JsonObject file_info, JsonObject update_info) throws IOException, ParseException {

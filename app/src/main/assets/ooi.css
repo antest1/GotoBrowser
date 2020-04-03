@@ -29,8 +29,16 @@
   margin-top: 15px;
 }
 
+#ooi-game {
+    width: 1200,
+	height: 720,
+}
+
 #ooi-game #externalswf {
-  margin: 0 auto 15px auto;
+  margin: 0px;
+  width: 1200px!important;
+  height: 720px!important;
+  border: 0px;
 }
 
 .statistics {
@@ -48,4 +56,21 @@ background-color:#7987A8;
 background-size:cover;
 opacity:0.15;
 z-index:-1;
+}
+
+#ooi-page ~ div, #ooi-game a {
+   display: none;
+}
+
+#ooi-header, #ooi-footer {
+   display: none;
+}
+
+#ooi-page, #ooi-content, #ooi-game {
+   margin: 0; padding: 0;
+}
+
+#ooi-game {
+    margin-left: -8px;
+    margin-top: -8px;
 }

@@ -1,0 +1,8 @@
+@charset "utf-8";
+
+@import "default.css";
+@import "common.css";
+@import "style.css";
+
+#globalNavi, #contentsWrap, #spacing_top, #sectionWrap {display: none!important;}
+body {background-color: black;}

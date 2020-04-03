@@ -21,6 +21,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.ContentProvider.KcaContentProvider.BROADCAST_ACTION;
@@ -32,6 +34,7 @@ public class KcsInterface {
     private BrowserActivity activity;
     private KcaPacketStore packetTable;
     private final Handler handler = new Handler();
+    ExecutorService executorService = Executors.newFixedThreadPool(30);
     private boolean broadcast_mode = false;
 
     public KcsInterface(BrowserActivity ac) {
@@ -54,7 +57,7 @@ public class KcsInterface {
     public void kcs_process_canvas_dataurl(String dataurl) {
         if (dataurl != null && dataurl.length() > 100) {
             Log.e("GOTO-DURL", dataurl.substring(0, 100));
-            KcUtils.processDataUriImage(activity, dataurl);
+            KcUtils.processDataUriImage(executorService, activity, dataurl);
         }
     }
 

@@ -6,14 +6,11 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
@@ -33,8 +30,8 @@ import com.antest1.gotobrowser.Activity.EntranceActivity;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Constants;
 import com.antest1.gotobrowser.Helpers.KcUtils;
-import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
+import com.antest1.gotobrowser.R;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,8 +46,10 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static com.antest1.gotobrowser.Browser.KcsInterface.GOTO_ANDROID;
+import static com.antest1.gotobrowser.Constants.ADD_VIEWPORT_META;
 import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_OOI;
-import static com.antest1.gotobrowser.Constants.CAPUTRE_SEND;;
+import static com.antest1.gotobrowser.Constants.CAPTURE_SEND_DMM;
+import static com.antest1.gotobrowser.Constants.CAPTURE_SEND_OOI;
 import static com.antest1.gotobrowser.Constants.CONN_DMM;
 import static com.antest1.gotobrowser.Constants.CONN_KANSU;
 import static com.antest1.gotobrowser.Constants.CONN_NITRABBIT;
@@ -58,34 +57,27 @@ import static com.antest1.gotobrowser.Constants.CONN_OOI;
 import static com.antest1.gotobrowser.Constants.DMM_COOKIE;
 import static com.antest1.gotobrowser.Constants.DMM_REDIRECT_CODE;
 import static com.antest1.gotobrowser.Constants.KANCOLLE_SERVER_LIST;
-import static com.antest1.gotobrowser.Constants.MUTE_SEND;
 import static com.antest1.gotobrowser.Constants.MUTE_SEND_DMM;
 import static com.antest1.gotobrowser.Constants.MUTE_SEND_OOI;
 import static com.antest1.gotobrowser.Constants.OOI_SERVER_LIST;
-import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
-import static com.antest1.gotobrowser.Constants.PREF_PADDING;
-import static com.antest1.gotobrowser.Constants.PREF_VPADDING;
-import static com.antest1.gotobrowser.Constants.REFRESH_DETECT_CALL;
-import static com.antest1.gotobrowser.Constants.RESIZE_DMM;
-import static com.antest1.gotobrowser.Constants.RESIZE_OOI_1;
-import static com.antest1.gotobrowser.Constants.RESIZE_OSAPI;
 import static com.antest1.gotobrowser.Constants.URL_DMM;
 import static com.antest1.gotobrowser.Constants.URL_DMM_FOREIGN;
 import static com.antest1.gotobrowser.Constants.URL_DMM_LOGIN;
 import static com.antest1.gotobrowser.Constants.URL_DMM_LOGIN_2;
 import static com.antest1.gotobrowser.Constants.URL_DMM_LOGOUT;
 import static com.antest1.gotobrowser.Constants.URL_KANSU;
+import static com.antest1.gotobrowser.Constants.URL_KANSU_LOGOUT;
 import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.URL_OOI;
-import static com.antest1.gotobrowser.Constants.URL_OOI_1;
 import static com.antest1.gotobrowser.Constants.URL_OOI_LOGOUT;
-import static com.antest1.gotobrowser.Constants.URL_OSAPI;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
+
+;
 
 public class WebViewManager {
     public static final String OPEN_KANCOLLE = "open_kancolle";
@@ -152,9 +144,9 @@ public class WebViewManager {
                 runLoginLogoutScript(webview, url);
                 if (is_kcbrowser_mode) {
                     sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
-                    if (url.contains(Constants.URL_OSAPI) || url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
+                    if (url.contains(Constants.URL_KANSU_1) || url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
                         activity.setStartedFlag();
-                        runLayoutAdjustmentScript(webview, url, connector_info);
+                        webview.evaluateJavascript(ADD_VIEWPORT_META, null);
                     }
                 }
             }
@@ -357,39 +349,8 @@ public class WebViewManager {
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
         if (CONN_DMM.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_DMM, is_mute ? 1 : 0), callback);
-        } else if (CONN_KANSU.equals(pref_connector)) {
-            webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND, is_mute ? 1 : 0), callback);
-        } else if (CONN_OOI.equals(pref_connector)) {
+        } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_OOI, is_mute ? 1 : 0), callback);
-        }
-    }
-
-    public void runLayoutAdjustmentScript(WebViewL webview, String url, List<String> connector_info) {
-        SharedPreferences sharedPref = activity.getSharedPreferences(
-                activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
-        DisplayMetrics dimension = new DisplayMetrics();
-        activity.getWindowManager().getDefaultDisplay().getMetrics(dimension);
-        int width = dimension.widthPixels;
-        int height = dimension.heightPixels;
-        int adjust_padding = sharedPref.getInt(PREF_PADDING, getDefaultPadding(width, height));
-        int adjust_vpadding = sharedPref.getInt(PREF_VPADDING, 0);
-        boolean adjust_layout = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
-        if (adjust_layout) {
-            if (url.contains(URL_OSAPI)) webview.evaluateJavascript(String.format(
-                    Locale.US, RESIZE_OSAPI, adjust_padding, adjust_vpadding), null);
-            else if (url.contains(URL_OOI_1)) webview.evaluateJavascript(String.format(
-                    Locale.US, RESIZE_OOI_1, adjust_padding, adjust_vpadding), null);
-            else if (url.contains(URL_DMM)) webview.evaluateJavascript(String.format(
-                    Locale.US, RESIZE_DMM, adjust_padding, adjust_vpadding), null);
-        }
-        if (url.contains(URL_OSAPI)) {
-            webview.evaluateJavascript(String.format(Locale.US,
-                    REFRESH_DETECT_CALL, connector_info.get(0)), value -> {
-                if (value.equals("true")) {
-                    sharedPref.edit().putString(PREF_LATEST_URL, connector_info.get(0)).apply();
-                    openPage(webview, connector_info, true);
-                }
-            });
         }
     }
 
@@ -401,7 +362,7 @@ public class WebViewManager {
         } else if (CONN_OOI.equals(pref_connector)) {
             webview.loadUrl(URL_OOI_LOGOUT);
         } else if (CONN_KANSU.equals(pref_connector)) {
-            closeWebView();
+            webview.loadUrl(URL_KANSU_LOGOUT);
         }
     }
 
@@ -422,7 +383,7 @@ public class WebViewManager {
             if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
                 String postdata = "";
                 try {
-                    int connect_mode = connector_url_default.equals(URL_OOI) ? 1 : 4;
+                    int connect_mode = connector_url_default.equals(URL_OOI) ? 1 : 1;
                     postdata = String.format(Locale.US, "login_id=%s&password=%s&mode=%d",
                             URLEncoder.encode(login_id, "utf-8"),
                             URLEncoder.encode(login_password, "utf-8"),
@@ -458,7 +419,7 @@ public class WebViewManager {
                     connector_url = URL_KANSU;
                 } else {
                     connector_url_default = URL_OOI;
-                    connector_url = sharedPref.getString(URL_OOI_LOGOUT, URL_OOI);
+                    connector_url = URL_OOI;
                 }
                 url_list.add(connector_url_default);
                 url_list.add(connector_url);
@@ -517,16 +478,17 @@ public class WebViewManager {
         };
     }
 
-    public static int getDefaultPadding(int width, int height) {
-        if (width < height) {
-            int temp = width; width = height; height = temp;
-        }
-        int ratio_val = width  * 18 / height;
-        return (ratio_val - 30) * 20;
-    }
-
-    public static void captureGameScreen(WebViewL webview) {
+    public void captureGameScreen(WebViewL webview) {
         Log.e("GOTO", "captureGameScreen");
-        webview.evaluateJavascript(CAPUTRE_SEND, null);
+        ValueCallback<String> callback = s -> {
+            Log.e("GOTO", "capture " + s);
+        };
+
+        String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
+        if (CONN_DMM.equals(pref_connector)) {
+            webview.evaluateJavascript(String.format(Locale.US, CAPTURE_SEND_DMM), callback);
+        } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
+            webview.evaluateJavascript(String.format(Locale.US, CAPTURE_SEND_OOI), callback);
+        }
     }
 }
