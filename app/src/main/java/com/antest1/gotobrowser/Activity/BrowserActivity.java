@@ -30,6 +30,7 @@ import android.widget.TextView;
 import com.antest1.gotobrowser.Browser.BrowserGestureListener;
 import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
+import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Notification.ScreenshotNotification;
@@ -67,8 +68,9 @@ import static com.antest1.gotobrowser.Constants.REQUEST_EXTERNAL_PERMISSION;
 import static com.antest1.gotobrowser.Constants.RESIZE_CALL;
 
 public class BrowserActivity extends AppCompatActivity {
-    private int uiOption;
+    public static final String FOREGROUND_ACTION = BuildConfig.APPLICATION_ID + ".foreground";
 
+    private int uiOption;
     private SharedPreferences sharedPref;
     private WebViewManager manager;
     private WebViewL mContentView;
@@ -112,8 +114,8 @@ public class BrowserActivity extends AppCompatActivity {
                 getString(R.string.preference_key), Context.MODE_PRIVATE);
 
         screenshotNotification = new ScreenshotNotification(this);
+        sendIsFrontChanged(true);
 
-        Log.e("GOTO", "start action bar");
         try {
             ActionBar actionBar = getSupportActionBar();
             if (actionBar != null) actionBar.hide();
@@ -260,6 +262,7 @@ public class BrowserActivity extends AppCompatActivity {
         super.onStop();
         pause_flag = true;
         manager.runMuteScript(mContentView, true, true);
+        sendIsFrontChanged(false);
     }
 
     @Override
@@ -275,6 +278,7 @@ public class BrowserActivity extends AppCompatActivity {
         Log.e("GOTO", isAdjustChangedByUser + " " + isInPictureInPictureMode + " " + isMultiWindowMode());
         pause_flag = false;
         mContentView.resumeTimers();
+        sendIsFrontChanged(true);
         if (isAdjustChangedByUser || isInPictureInPictureMode || isMultiWindowMode()) {
             mContentView.getSettings().setTextZoom(100);
             setAdjustPadding();
@@ -677,5 +681,11 @@ public class BrowserActivity extends AppCompatActivity {
     }
     public boolean supportsPiPMode () {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+    }
+
+    public void sendIsFrontChanged (boolean is_front) {
+        Intent intent = new Intent(FOREGROUND_ACTION);
+        intent.putExtra("is_front", is_front);
+        sendBroadcast(intent);
     }
 }
