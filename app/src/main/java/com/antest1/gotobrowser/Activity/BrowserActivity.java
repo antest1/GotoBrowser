@@ -22,6 +22,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -440,6 +443,23 @@ public class BrowserActivity extends AppCompatActivity {
                 case MotionEvent.ACTION_DOWN:
                     v.setAlpha(0.9f);
                     manager.captureGameScreen(mContentView);
+                    View screenshotLight = findViewById(R.id.screenshot_light);
+                    screenshotLight.setVisibility(View.VISIBLE);
+                    Animation fadeout = new AlphaAnimation(0.75f, 0.f);
+                    fadeout.setDuration(250);
+                    fadeout.setAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) { }
+
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                            screenshotLight.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) { }
+                    });
+                    screenshotLight.startAnimation(fadeout);
                     break;
                 case MotionEvent.ACTION_UP:
                     v.setAlpha(0.4f);

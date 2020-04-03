@@ -37,6 +37,19 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"></com.antest1.gotobrowser.Browser.WebViewL>
 
+    <View
+        android:id="@+id/screenshot_light"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/white"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/main_browser"
+        app:layout_constraintLeft_toLeftOf="@id/main_browser"
+        app:layout_constraintRight_toRightOf="@id/main_browser"
+        app:layout_constraintTop_toTopOf="@id/main_browser" />
+
     <RelativeLayout
         android:id="@+id/browser_panel"
         android:layout_width="wrap_content"
