@@ -6,6 +6,12 @@
         <item>日本語</item>
     </string-array>
 
+    <string-array name="subtitle_list_values" translatable="false">
+        <item>en</item>
+        <item>kr</item>
+        <item>jp</item>
+    </string-array>
+
     <string-array name="connector_list">
         <item>DMM direct</item>
         <item>kancolle.su</item>

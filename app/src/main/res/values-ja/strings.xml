@@ -24,12 +24,14 @@
     <string name="autocomplete_msg">ログインフォームに入力するアカウント情報を入力してください。</string>
     <string name="settings_version_label">現在のバージョン</string>
     <string name="settings_version_check">更新の確認</string>
-    <string name="settings_subtitle_label">字幕データのダウンロード</string>
-    <string name="settings_subtitle_language" formatted="false">現在のロケール: %s</string>
+    <string name="settings_subtitle_label">字幕設定</string>
+    <string name="settings_subtitle_download">字幕データのダウンロード</string>
+    <string name="settings_subtitle_language">字幕ロケール</string>
     <string name="settings_appinfo_label">アプリケーション情報</string>
     <string name="no_subtitle_file">設定で字幕データをダウンロードしてください。</string>
     <string name="setting_latest_version">最新バージョンです。</string>
     <string name="setting_latest_download" formatted="false">アップデートがあります。(%s)\nダウンロードしますか？</string>
+    <string name="setting_latest_download_subtitle" formatted="false">アップデートがあります。(%s)</string>
     <string name="settings_resource_label">リソースのダウンロード</string>
     <string name="settings_resource_btn">ダウンロード</string>
     <string name="settings_appinfo_browsersettings">ブラウザ設定</string>
@@ -42,4 +44,6 @@
     <string name="noti_screenshot_permission_message">スクリーンショット機能を使用するには、ストレージのアクセス許可が必要です。</string>
     <string name="granted_true_storage_permission">ストレージ権限を獲得しました。</string>
     <string name="granted_false_storage_permission">ストレージ権限を得ませんでした。</string>
+    <string name="settings_source_code">ソースコード</string>
+    <string name="subtitle_select_language">ロケールを先に選択してください。</string>
 </resources>

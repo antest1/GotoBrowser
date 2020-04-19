@@ -24,10 +24,20 @@ public class Constants {
     public static final String PREF_DMM_ID = "pref_autocomplete_id";
     public static final String PREF_DMM_PASS = "pref_autocomplete_pass";
     public static final String PREF_SUBTITLE_LOCALE = "pref_subtitle_locale";
+    public static final String PREF_SUBTITLE_UPDATE = "pref_subtitle_update";
     public static final String PREF_FONT_PREFETCH = "pref_font_prefetch";
     public static final String PREF_PIP_MODE = "pref_pip_mode";
     public static final String PREF_ALTER_GADGET = "pref_alter_gadget";
     public static final String PREF_NC_SCREENSHOT_SET = "perf_nc_screenshot_set";
+    public static final String PREF_APP_VERSION = "pref_app_version";
+    public static final String PREF_CHECK_UPDATE = "pref_check_update";
+
+    public static final String[] PREF_SETTINGS = {
+            PREF_FONT_PREFETCH,
+            PREF_PIP_MODE,
+            PREF_ALTER_GADGET,
+            PREF_SUBTITLE_LOCALE
+    };
 
     public static final String ACTION_SHOWPANEL = "with_layout_control_";
     public static final String ACTION_SHOWKEYBOARD = "with_keyboard_";
@@ -79,6 +89,8 @@ public class Constants {
     public static final String GITHUBAPI_ROOT = "https://api.github.com/";
     public static final String SUBTITLE_ROOT = "https://raw.githubusercontent.com/";
     public static final String SUBTITLE_SIZE_PATH = "src/data/quotes_size.json";
+    public static final String SUBTITLE_PATH_FORMAT = "data/%s/quotes.json";
+
     public static final String[] SUBTITLE_PATH = {
             "data/en/quotes.json",
             "data/kr/quotes.json",

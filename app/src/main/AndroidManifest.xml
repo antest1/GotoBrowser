@@ -2,10 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.antest1.gotobrowser">
+
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <permission
         android:name="com.antest1.gotobrowser.contentprovider.READ_DATA"
@@ -14,23 +15,36 @@
     <application
         android:name=".GotoApplication"
         android:allowBackup="true"
+        android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
         android:isGame="true"
+        android:label="@string/app_name"
+        android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:largeHeap="true"
-        android:hardwareAccelerated="true"
-        android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
 
-        <uses-library android:required="false" android:name="com.sec.android.app.multiwindow" />
-        <meta-data android:name="com.sec.android.support.multiwindow" android:value="true" />
-        <meta-data android:name="com.sec.android.multiwindow.DEFAULT_SIZE_W" android:value="400dip" />
-        <meta-data android:name="com.sec.android.multiwindow.DEFAULT_SIZE_H" android:value="240dip" />
-        <meta-data android:name="com.sec.android.multiwindow.MINIMUM_SIZE_W" android:value="400dip" />
-        <meta-data android:name="com.sec.android.multiwindow.MINIMUM_SIZE_H" android:value="240dip" />
+        <uses-library
+            android:name="com.sec.android.app.multiwindow"
+            android:required="false" />
+
+        <meta-data
+            android:name="com.sec.android.support.multiwindow"
+            android:value="true" />
+        <meta-data
+            android:name="com.sec.android.multiwindow.DEFAULT_SIZE_W"
+            android:value="400dip" />
+        <meta-data
+            android:name="com.sec.android.multiwindow.DEFAULT_SIZE_H"
+            android:value="240dip" />
+        <meta-data
+            android:name="com.sec.android.multiwindow.MINIMUM_SIZE_W"
+            android:value="400dip" />
+        <meta-data
+            android:name="com.sec.android.multiwindow.MINIMUM_SIZE_H"
+            android:value="240dip" />
 
         <activity
             android:name=".Activity.EntranceActivity"
@@ -39,13 +53,33 @@
             <layout
                 android:defaultWidth="400dp"
                 android:defaultHeight="240dp"
-                android:gravity="start|end"/>
+                android:gravity="start|end" />
+
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".Activity.BrowserActivity" />
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".Activity.LegacySettingsActivity"
+            android:label="@string/app_name"
+            android:theme="@style/FullscreenTheme">
+            <layout
+                android:defaultWidth="400dp"
+                android:defaultHeight="240dp"
+                android:gravity="start|end" />
+
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".Activity.EntranceActivity" />
+
+            <intent-filter>
                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
             </intent-filter>
         </activity>
@@ -57,29 +91,32 @@
             <layout
                 android:defaultWidth="400dp"
                 android:defaultHeight="240dp"
-                android:gravity="start|end"/>
+                android:gravity="start|end" />
+
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".Activity.EntranceActivity" />
+
             <intent-filter>
                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".Activity.BrowserActivity"
+            android:alwaysRetainTaskState="true"
             android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout|uiMode"
             android:label="@string/app_name"
-            android:alwaysRetainTaskState="true"
             android:supportsPictureInPicture="true"
             android:theme="@style/FullscreenTheme">
             <layout
                 android:defaultWidth="400dp"
                 android:defaultHeight="240dp"
-                android:gravity="start|end"/>
+                android:gravity="start|end" />
+
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".Activity.EntranceActivity" />
+
             <intent-filter>
                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
             </intent-filter>

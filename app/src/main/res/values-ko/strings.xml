@@ -24,12 +24,15 @@
     <string name="autocomplete_msg">로그인 폼에 입력할 계정 정보를 입력하세요.</string>
     <string name="settings_version_label">현재 버전</string>
     <string name="settings_version_check">업데이트 확인</string>
-    <string name="settings_subtitle_label">자막 데이터 다운로드</string>
-    <string name="settings_subtitle_language" formatted="false">현재 언어: %s</string>
+    <string name="settings_subtitle_label">자막 설정</string>
+    <string name="settings_subtitle_download">자막 데이터 다운로드</string>
+    <string name="settings_subtitle_language">자막 언어</string>
     <string name="settings_appinfo_label">어플리케이션 정보</string>
     <string name="no_subtitle_file">설정에서 자막 데이터를 다운로드하세요.</string>
     <string name="setting_latest_version">최신 버전입니다.</string>
     <string name="setting_latest_download" formatted="false">업데이트가 있습니다. (%s)\n다운로드하시겠습니까?</string>
+    <string name="setting_latest_download_subtitle" formatted="false">업데이트가 있습니다. (%s)</string>
+
     <string name="settings_resource_label">리소스 다운로드</string>
     <string name="settings_resource_btn">다운로드</string>
     <string name="settings_appinfo_browsersettings">브라우저 설정</string>
@@ -42,4 +45,6 @@
     <string name="noti_screenshot_permission_message">스크린샷 기능을 사용하기 위해서는 저장공간 권한이 필요합니다.</string>
     <string name="granted_true_storage_permission">저장소 권한이 설정됨</string>
     <string name="granted_false_storage_permission">저장소 권한이 설정되지 않음</string>
+    <string name="settings_source_code">소스 코드</string>
+    <string name="subtitle_select_language">언어를 먼저 선택해주세요.</string>
 </resources>

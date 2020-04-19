@@ -45,10 +45,10 @@ dependencies {
     implementation 'com.google.firebase:firebase-core:17.2.3'
     implementation 'com.crashlytics.sdk.android:crashlytics:2.10.1'
     implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'androidx.preference:preference:1.1.1'
     testImplementation 'junit:junit:4.12'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation "com.google.android.material:material:1.2.0-alpha05"
     implementation 'androidx.webkit:webkit:1.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 }
-

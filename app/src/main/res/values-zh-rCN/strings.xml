@@ -23,12 +23,14 @@
     <string name="autocomplete_msg">此资料将只用于填写登录信息</string>
     <string name="settings_version_label">当前版本</string>
     <string name="settings_version_check">检查更新</string>
-    <string name="settings_subtitle_label">下载字幕数据</string>
-    <string name="settings_subtitle_language" formatted="false">当前语言: %s</string>
+    <string name="settings_subtitle_label">字幕设定</string>
+    <string name="settings_subtitle_download">下载字幕数据</string>
+    <string name="settings_subtitle_language">字幕语言</string>
     <string name="settings_appinfo_label">应用信息</string>
     <string name="no_subtitle_file">请先从设定中下载字幕数据</string>
     <string name="setting_latest_version">已是最新版本</string>
     <string name="setting_latest_download" formatted="false">有一个可用的更新 (%s)\n是否要下载？</string>
+    <string name="setting_latest_download_subtitle" formatted="false">有一个可用的更新 (%s)</string>
     <string name="settings_resource_label">下载图像资源</string>
     <string name="settings_resource_btn">下载</string>
     <string name="settings_appinfo_browsersettings">浏览器设定</string>
@@ -41,4 +43,6 @@
     <string name="noti_screenshot_permission_message">截图功能需要储存权限。</string>
     <string name="granted_true_storage_permission">已授予储存权限。</string>
     <string name="granted_false_storage_permission">未授予储存权限。</string>
+    <string name="settings_source_code">源代码</string>
+    <string name="subtitle_select_language">必须先选择语言</string>
 </resources>

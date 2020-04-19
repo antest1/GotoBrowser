@@ -1,0 +1,73 @@
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:iconSpaceReserved="false">
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/settings_appinfo_browsersettings">
+
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="pref_font_prefetch"
+            app:title="@string/browser_fontprefetch" />
+
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="pref_pip_mode"
+            app:title="@string/browser_enablepipmode" />
+
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="pref_alter_gadget"
+            app:title="Alter Gadget URL" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/settings_subtitle_label">
+
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:key="pref_subtitle_locale"
+            app:title="@string/settings_subtitle_language"
+            app:useSimpleSummaryProvider="true"
+            app:entries="@array/subtitle_list"
+            app:entryValues="@array/subtitle_list_values" />
+
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_subtitle_update"
+            app:title="@string/settings_subtitle_download"
+            app:summary="checking updates..." />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/settings_appinfo_label">
+
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_app_version"
+            app:title="@string/settings_version_label" />
+
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_check_update"
+            app:title="@string/settings_version_check" />
+
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_github"
+            app:title="Source Code"
+            app:summary="@string/github_link">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/antest1/GotoBrowser"/>
+        </Preference>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

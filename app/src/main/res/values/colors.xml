@@ -13,4 +13,5 @@
     <color name="gray">#9E9E9E</color>
     <color name="colorEnabled">#A5D6A7</color>
     <color name="colorDisabled">#F48FB1</color>
+    <color name="colorSettingsBackground">#30384A</color>
 </resources>

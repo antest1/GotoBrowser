@@ -1,29 +1,25 @@
 package com.antest1.gotobrowser.Activity;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.Switch;
-import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.preference.ListPreference;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.SwitchPreferenceCompat;
 
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
-import com.antest1.gotobrowser.Subtitle.SubtitleLocaleAdapter;
 import com.antest1.gotobrowser.Subtitle.SubtitleRepo;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -32,6 +28,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -39,233 +36,223 @@ import retrofit2.Response;
 
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
+import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
+import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
+import static com.antest1.gotobrowser.Constants.PREF_SETTINGS;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
+import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_PATH;
+import static com.antest1.gotobrowser.Constants.SUBTITLE_PATH_FORMAT;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_ROOT;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
 
 public class SettingsActivity extends AppCompatActivity {
-    private VersionDatabase versionTable;
-    private TextView subtitleLoading, subtitleLang;
-    public RecyclerView subtitleList;
-    public SharedPreferences sharedPref;
-    private SubtitleLocaleAdapter adapter;
-    private SubtitleCheck updateCheck;
-    private SubtitleRepo subtitleRepo;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.settings, new SettingsFragment())
+                .commit();
         ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) actionBar.hide();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+    }
 
-        sharedPref = getSharedPreferences(
-                getString(R.string.preference_key), Context.MODE_PRIVATE);
+    public static void setInitialSettings(SharedPreferences sharedPref) {
+        SharedPreferences.Editor editor = sharedPref.edit();
+        for (String key: PREF_SETTINGS) {
+            if (!sharedPref.contains(key)) switch (key) {
+                case PREF_FONT_PREFETCH:
+                    editor.putBoolean(key, true);
+                    break;
+                case PREF_PIP_MODE:
+                case PREF_ALTER_GADGET:
+                    editor.putBoolean(key, false);
+                    break;
+                default:
+                    editor.putString(key, "");
+                    break;
+            }
+        }
+        editor.apply();
+    }
 
-        versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
-        updateCheck = getRetrofitAdapter(getApplicationContext(), GITHUBAPI_ROOT).create(SubtitleCheck.class);
-        subtitleRepo = getRetrofitAdapter(getApplicationContext(), SUBTITLE_ROOT).create(SubtitleRepo.class);
+    public static class SettingsFragment extends PreferenceFragmentCompat
+            implements SharedPreferences.OnSharedPreferenceChangeListener, Preference.OnPreferenceChangeListener {
+        private VersionDatabase versionTable;
+        private SubtitleCheck updateCheck;
+        private SubtitleRepo subtitleRepo;
+        private SharedPreferences sharedPref;
+        private JsonObject subtitleData = null;
 
-        TextView versionText = findViewById(R.id.version_text);
-        versionText.setText(BuildConfig.VERSION_NAME);
-
-        TextView latestCheck = findViewById(R.id.version_update);
-        latestCheck.setOnClickListener(v -> KcUtils.requestLatestAppVersion(this, updateCheck, true));
-
-        //TextView resourceDown = findViewById(R.id.resource_update);
-        //resourceDown.setOnClickListener(v -> openResourceDownloadPage());
-
-        ImageView exitButton = findViewById(R.id.button_exit);
-        exitButton.setOnClickListener(v -> finish());
-
-        TextView licenseButton = findViewById(R.id.license_button);
-        licenseButton.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.license_link)));
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-        });
-
-        TextView githubButton = findViewById(R.id.github_button);
-        githubButton.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.github_link)));
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-        });
-
-        Switch browserFontPrefetch = findViewById(R.id.browser_fontprefetch);
-        browserFontPrefetch.setChecked(sharedPref.getBoolean(PREF_FONT_PREFETCH, true));
-        browserFontPrefetch.setOnCheckedChangeListener((buttonView, isChecked)
-                -> sharedPref.edit().putBoolean(PREF_FONT_PREFETCH, isChecked).apply());
-
-        Switch browserPipModeSetting = findViewById(R.id.browser_pipmode);
-        browserPipModeSetting.setChecked(sharedPref.getBoolean(PREF_PIP_MODE, false));
-        browserPipModeSetting.setOnCheckedChangeListener((buttonView, isChecked)
-                -> sharedPref.edit().putBoolean(PREF_PIP_MODE, isChecked).apply());
-
-        Switch browserAlterGadgetSetting = findViewById(R.id.browser_altergadget);
-        browserAlterGadgetSetting.setChecked(sharedPref.getBoolean(PREF_ALTER_GADGET, false));
-        browserAlterGadgetSetting.setOnCheckedChangeListener((buttonView, isChecked)
-                -> sharedPref.edit().putBoolean(PREF_ALTER_GADGET, isChecked).apply());
-
-        subtitleLoading = findViewById(R.id.subtitle_loading);
-        subtitleLoading.setVisibility(View.VISIBLE);
-
-        String current_locale = sharedPref.getString(PREF_SUBTITLE_LOCALE, "");
-        subtitleLang = findViewById(R.id.subtitle_current_lang);
-
-        if (current_locale == null || current_locale.length() == 0) {
-            subtitleLang.setText(String.format(Locale.US,
-                    getString(R.string.settings_subtitle_language), "(none)"));
-            subtitleLang.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
-        } else {
-            subtitleLang.setText(String.format(Locale.US,
-                    getString(R.string.settings_subtitle_language), current_locale));
-            subtitleLang.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
+        @Override
+        public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+            setPreferencesFromResource(R.xml.root_preferences, rootKey);
+            sharedPref = getContext().getSharedPreferences(
+                    getString(R.string.preference_key), Context.MODE_PRIVATE);
+            sharedPref.registerOnSharedPreferenceChangeListener(this);
+            versionTable = new VersionDatabase(getContext(), null, VERSION_TABLE_VERSION);
+            updateCheck = getRetrofitAdapter(getContext(), GITHUBAPI_ROOT).create(SubtitleCheck.class);
+            subtitleRepo = getRetrofitAdapter(getContext(), SUBTITLE_ROOT).create(SubtitleRepo.class);
         }
 
-        subtitleList = findViewById(R.id.subtitle_list);
-        subtitleList.setLayoutManager(new LinearLayoutManager(this));
-        subtitleList.addItemDecoration(new DividerItemDecoration(getApplicationContext(),
-                DividerItemDecoration.VERTICAL));
+        @Override
+        public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+            findPreference(PREF_APP_VERSION).setSummary(BuildConfig.VERSION_NAME);
+            Map<String, ?> allEntries = sharedPref.getAll();
+            for (String key : allEntries.keySet()) {
+                Log.e("GOTO", key);
+                Preference preference = findPreference(key);
+                if (preference == null) continue;
+                if (preference instanceof ListPreference) {
 
-        adapter = new SubtitleLocaleAdapter(this::onLocaleItemSelected, this::onLocaleItemDownload);
-        subtitleList.setAdapter(adapter);
-        addLocaleToAdapter();
-    }
-
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    private void onLocaleItemSelected(JsonObject item) {
-        String locale_code = item.get("locale_code").getAsString();
-        subtitleLang.setText(String.format(Locale.US,
-                getString(R.string.settings_subtitle_language), locale_code));
-        subtitleLang.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
-        sharedPref.edit().putString(PREF_SUBTITLE_LOCALE, locale_code).apply();
-        adapter.notifyDataSetChanged();
-        KcUtils.showToast(getApplicationContext(), locale_code);
-    }
-
-    private void onLocaleItemDownload(JsonObject item) {
-        String commit = item.get("latest_commit").getAsString();
-        String path = item.get("download_url").getAsString();
-        Call<JsonObject> call = subtitleRepo.download(commit, path);
-        call.enqueue(new Callback<JsonObject>() {
-            @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                saveQuotesFile(item, response);
+                } else if (preference instanceof SwitchPreferenceCompat) {
+                    Log.e("GOTO", key + ": " + sharedPref.getBoolean(key, false));
+                    SwitchPreferenceCompat sp = (SwitchPreferenceCompat) preference;
+                    sp.setChecked(sharedPref.getBoolean(key, false));
+                }
+                preference.setOnPreferenceChangeListener(this);
             }
-            @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                KcUtils.showToast(getApplicationContext(), t.getLocalizedMessage());
-            }
-        });
-    }
 
-    private void addLocaleToAdapter() {
-        String[] subtitle_label = getResources().getStringArray(R.array.subtitle_list);
-        for (int i = 0; i < SUBTITLE_LOCALE.length; i++) {
-            String[] subtitle_info = {SUBTITLE_LOCALE[i], subtitle_label[i], SUBTITLE_PATH[i]};
-            Call<JsonArray> call = updateCheck.check(SUBTITLE_PATH[i]);
+            String subtitleLocale = sharedPref.getString(PREF_SUBTITLE_LOCALE, "");
+            if (subtitleLocale.length() > 0) {
+                setSubtitlePreference(subtitleLocale);
+            } else {
+                findPreference(PREF_SUBTITLE_UPDATE).setEnabled(false);
+                findPreference(PREF_SUBTITLE_UPDATE).setSummary(getString(R.string.subtitle_select_language));
+            }
+        }
+
+        @Override
+        public boolean onPreferenceTreeClick(Preference preference) {
+            String key = preference.getKey();
+            if (key.equals(PREF_CHECK_UPDATE)) {
+                KcUtils.requestLatestAppVersion(getActivity(), updateCheck, true);
+            } else if (key.equals(PREF_SUBTITLE_UPDATE) && subtitleData != null) {
+                onLocaleItemDownload(subtitleData);
+            }
+            return super.onPreferenceTreeClick(preference);
+        }
+
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+
+        }
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            String key = preference.getKey();
+            if (preference instanceof ListPreference) {
+                String stringValue = (String) newValue;
+                sharedPref.edit().putString(key, stringValue).apply();
+                if (key.equals(PREF_SUBTITLE_LOCALE)) {
+                    setSubtitlePreference(stringValue);
+                }
+            }
+            if (preference instanceof SwitchPreferenceCompat) {
+                sharedPref.edit().putBoolean(key, (boolean) newValue).apply();
+            }
+            return true;
+        }
+
+        private void setSubtitlePreference(String subtitleLocale) {
+            subtitleData = null;
+            Preference subtitleUpdate = findPreference(PREF_SUBTITLE_UPDATE);
+            subtitleUpdate.setSummary("checking updates...");
+            subtitleUpdate.setEnabled(false);
+            String subtitlePath = String.format(Locale.US, SUBTITLE_PATH_FORMAT, subtitleLocale);
+            Call<JsonArray> call = updateCheck.check(subtitlePath);
             call.enqueue(new Callback<JsonArray>() {
                 @Override
                 public void onResponse(Call<JsonArray> call, Response<JsonArray> response) {
-                    processLatestCommitLog(response, subtitle_info);
+                    if (getActivity() == null) return;
+                    JsonArray commit_log = response.body();
+                    if (commit_log != null && !commit_log.isJsonNull()) {
+                        String filename = String.format(Locale.US, "quotes_%s.json", subtitleLocale);
+                        String currentCommit = versionTable.getValue(filename);
+                        if (commit_log.size() > 0) {
+                            JsonObject latestData = commit_log.get(0).getAsJsonObject();
+                            String latestCommit = latestData.get("sha").getAsString();
+                            if (!currentCommit.equals(latestCommit)) {
+                                subtitleData = new JsonObject();
+                                subtitleData.addProperty("locale_code", subtitleLocale);
+                                subtitleData.addProperty("latest_commit", latestCommit);
+                                subtitleData.addProperty("download_url", subtitlePath);
+                                String summary = String.format(Locale.US,
+                                        getString(R.string.setting_latest_download_subtitle),
+                                        latestCommit.substring(0, 6));
+                                subtitleUpdate.setSummary(summary);
+                                subtitleUpdate.setEnabled(true);
+                            } else {
+                                subtitleUpdate.setSummary(getString(R.string.setting_latest_version));
+                            }
+                        } else {
+                            subtitleUpdate.setSummary("no data");
+                        }
+                    }
                 }
                 @Override
                 public void onFailure(Call<JsonArray> call, Throwable t) {
-                    KcUtils.showToast(getApplicationContext(), t.getLocalizedMessage());
+                    if (getActivity() == null) return;
+                    findPreference(PREF_SUBTITLE_UPDATE).setSummary("failed loading subtitle data");
                 }
             });
         }
-    }
 
-    private void processLatestCommitLog(Response<JsonArray> response, String[] subtitle_info) {
-        JsonArray commit_log = response.body();
-        if (commit_log != null && !commit_log.isJsonNull()) {
-            Log.e("GOTO", response.headers().toString());
-            Log.e("GOTO", commit_log.toString());
+        private void onLocaleItemDownload(JsonObject item) {
+            String commit = item.get("latest_commit").getAsString();
+            String path = item.get("download_url").getAsString();
+            Call<JsonObject> call = subtitleRepo.download(commit, path);
+            call.enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    saveQuotesFile(item, response);
+                }
+                @Override
+                public void onFailure(Call<JsonObject> call, Throwable t) {
+                    KcUtils.showToast(getContext(), t.getLocalizedMessage());
+                }
+            });
+        }
 
-            adapter.addLocaleData(generateLocaleItem(commit_log, subtitle_info));
-            adapter.notifyDataSetChanged();
-            if (adapter.getCount() > 0) {
-                subtitleLoading.setVisibility(View.GONE);
-            } else {
-                subtitleLoading.setVisibility(View.VISIBLE);
+        private void saveQuotesFile(JsonObject item, Response<JsonObject> response) {
+            String message = "";
+            String locale_code = item.get("locale_code").getAsString();
+            String commit = item.get("latest_commit").getAsString();
+            String filename = String.format(Locale.US, "quotes_%s.json", locale_code);
+
+            JsonObject data = response.body();
+            String subtitle_folder = getContext().getFilesDir().getAbsolutePath().concat("/subtitle/");
+            String subtitle_path = subtitle_folder.concat(filename);
+            File file = new File(subtitle_folder);
+            try {
+                if (!file.exists()) file.mkdirs();
+                if (data != null) {
+                    File subtitle_file = new File(subtitle_path);
+                    FileOutputStream fos = new FileOutputStream(subtitle_file);
+                    fos.write(data.toString().getBytes());
+                    fos.close();
+                    versionTable.putValue(filename, commit);
+                    Preference subtitleUpdate = findPreference(PREF_SUBTITLE_UPDATE);
+                    subtitleUpdate.setSummary(getString(R.string.setting_latest_version));
+                    subtitleUpdate.setEnabled(false);
+                } else {
+                    message = "No data to write: quotes_".concat(locale_code).concat(".json");
+                    KcUtils.showToast(getContext(), message);
+                }
+            } catch (IOException e) {
+                KcUtils.reportException(e);
+                message = "IOException while saving quotes_".concat(locale_code).concat(".json");
+                KcUtils.showToast(getContext(), message);
             }
-        } else {
-            KcUtils.showToast(getApplicationContext(), "communication error.");
         }
     }
-
-    private JsonObject generateLocaleItem(JsonArray commitLog, String[] subtitle_info) {
-        JsonObject item = new JsonObject();
-        String code = subtitle_info[0];
-        String label = subtitle_info[1];
-        String path = subtitle_info[2];
-
-        String filename = String.format(Locale.US, "quotes_%s.json", code);
-        String latest = commitLog.get(0).getAsJsonObject().get("sha").getAsString();
-        String current_locale = sharedPref.getString(PREF_SUBTITLE_LOCALE, "");
-
-        item.addProperty("locale_code", code);
-        item.addProperty("selected", code.equals(current_locale));
-        item.addProperty("locale_label", String.format(Locale.US, "%s (%s)", label, code));
-        item.addProperty("current_commit", versionTable.getValue(filename));
-        item.addProperty("latest_commit", latest);
-        item.addProperty("download_url", path);
-        return item;
-    }
-
-    private void saveQuotesFile(JsonObject item, Response<JsonObject> response) {
-        String message = "";
-        String locale_code = item.get("locale_code").getAsString();
-        String commit = item.get("latest_commit").getAsString();
-        String filename = String.format(Locale.US, "quotes_%s.json", locale_code);
-
-        JsonObject data = response.body();
-        String subtitle_folder = getApplicationContext().getFilesDir().getAbsolutePath().concat("/subtitle/");
-        String subtitle_path = subtitle_folder.concat(filename);
-        File file = new File(subtitle_folder);
-        try {
-            if (!file.exists()) file.mkdirs();
-            if (data != null) {
-                File subtitle_file = new File(subtitle_path);
-                FileOutputStream fos = new FileOutputStream(subtitle_file);
-                fos.write(data.toString().getBytes());
-                fos.close();
-                versionTable.putValue(filename, commit);
-                adapter.itemCommitUpdate(locale_code);
-                adapter.notifyDataSetChanged();
-                message = "Saved: quotes_".concat(locale_code).concat(".json");
-            } else {
-                message = "No data to write: quotes_".concat(locale_code).concat(".json");
-            }
-        } catch (IOException e) {
-            KcUtils.reportException(e);
-            message = "IOException while saving quotes_".concat(locale_code).concat(".json");
-        } finally {
-            KcUtils.showToast(getApplicationContext(), message);
-        }
-    }
-
-    /*
-    public void openResourceDownloadPage() {
-        Intent intent = new Intent(SettingsActivity.this, BrowserActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setAction(WebViewManager.OPEN_RES_DOWN);
-        startActivity(intent);
-    }*/
 }

@@ -27,12 +27,15 @@
     <string name="autocomplete_msg">This information will only be used to fill the login form</string>
     <string name="settings_version_label">Current Version</string>
     <string name="settings_version_check">Check Update</string>
-    <string name="settings_subtitle_label">Download Subtitle Data</string>
+    <string name="settings_subtitle_label">Subtitle Settings</string>
+    <string name="settings_subtitle_download">Download Subtitle Data</string>
     <string name="settings_subtitle_language" formatted="false">Current Language: %s</string>
+    <string name="settings_source_code">Source Code</string>
     <string name="settings_appinfo_label">App Information</string>
     <string name="no_subtitle_file">Please download subtitle data from the settings first</string>
     <string name="setting_latest_version">You have the latest version</string>
     <string name="setting_latest_download" formatted="false">An update is available. (%s)\nDo you want to download it?</string>
+    <string name="setting_latest_download_subtitle" formatted="false">An update is available. (%s)</string>
 
     <string name="github_link" translatable="false">https://github.com/antest1/GotoBrowser/</string>
     <string name="license_link" translatable="false">https://github.com/antest1/GotoBrowser/blob/master/LICENSE</string>
@@ -51,4 +54,5 @@
     <string name="noti_screenshot_permission_message">Storage permission is required to use the screenshot function.</string>
     <string name="granted_true_storage_permission">Storage permission granted.</string>
     <string name="granted_false_storage_permission">Storage permission not granted.</string>
+    <string name="subtitle_select_language">Language must be chosen first</string>
 </resources>
