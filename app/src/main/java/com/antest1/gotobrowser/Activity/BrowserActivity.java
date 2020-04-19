@@ -462,7 +462,7 @@ public class BrowserActivity extends AppCompatActivity {
                     screenshotLight.startAnimation(fadeout);
                     break;
                 case MotionEvent.ACTION_UP:
-                    v.setAlpha(0.4f);
+                    v.setAlpha(0.75f);
                     break;
                 default:
                     break;
