@@ -4,5 +4,10 @@
 @import "common.css";
 @import "style.css";
 
-#globalNavi, #contentsWrap, #spacing_top, #sectionWrap {display: none!important;}
-body {background-color: black;}
+#spacing_top {
+   display: none;
+}
+
+#sectionWrap {
+   display: none!important;
+}
