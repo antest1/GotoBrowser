@@ -119,13 +119,10 @@ public class Constants {
     };
 
     public static final String[] OOI_SERVER_LIST = {
-            "120.194.81.119",
-            "104.31.72.227",
-            "104.31.72.227",
-            "104.27.146.101",
-            "104.27.146.101"
+            "ooi.moe",
+            "kancolle.su"
     };
 
     public static final String GADGET_URL = "203.104.209.7";
-    public static final String ALTER_GADGET_URL = "18.176.189.52";
+    public static final String ALTER_GADGET_URL = "luckyjervis.com";
 }
