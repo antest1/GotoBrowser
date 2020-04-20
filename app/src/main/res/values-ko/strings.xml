@@ -48,4 +48,7 @@
     <string name="settings_source_code">소스 코드</string>
     <string name="subtitle_select_language">언어를 먼저 선택해주세요.</string>
     <string name="settings_mw_margin">[멀티윈도우] 분할 바로부터 여백 추가</string>
+    <string name="setting_panel_method_label">패널 여는 방법</string>
+    <string name="setting_panel_method_swipe">스와이프</string>
+    <string name="setting_panel_method_button">버튼</string>
 </resources>

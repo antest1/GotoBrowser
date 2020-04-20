@@ -40,12 +40,11 @@ import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
 import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
+import static com.antest1.gotobrowser.Constants.PREF_PANEL_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SETTINGS;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
-import static com.antest1.gotobrowser.Constants.SUBTITLE_LOCALE;
-import static com.antest1.gotobrowser.Constants.SUBTITLE_PATH;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_PATH_FORMAT;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_ROOT;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
@@ -77,6 +76,9 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_ALTER_GADGET:
                 case PREF_MULTIWIN_MARGIN:
                     editor.putBoolean(key, false);
+                    break;
+                case PREF_PANEL_METHOD:
+                    editor.putString(key, "1");
                     break;
                 default:
                     editor.putString(key, "");
@@ -115,7 +117,7 @@ public class SettingsActivity extends AppCompatActivity {
                 Preference preference = findPreference(key);
                 if (preference == null) continue;
                 if (preference instanceof ListPreference) {
-
+                    Log.e("GOTO", key + ": " + sharedPref.getString(key, ""));
                 } else if (preference instanceof SwitchPreferenceCompat) {
                     Log.e("GOTO", key + ": " + sharedPref.getBoolean(key, false));
                     SwitchPreferenceCompat sp = (SwitchPreferenceCompat) preference;

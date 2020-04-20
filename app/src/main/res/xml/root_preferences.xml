@@ -7,6 +7,14 @@
         app:iconSpaceReserved="false"
         app:title="@string/settings_appinfo_browsersettings">
 
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:key="pref_panel_method"
+            app:title="@string/setting_panel_method_label"
+            app:useSimpleSummaryProvider="true"
+            app:entries="@array/panel_method"
+            app:entryValues="@array/panel_method_values" />
+
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="pref_font_prefetch"

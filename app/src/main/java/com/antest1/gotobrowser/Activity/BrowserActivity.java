@@ -25,7 +25,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -35,6 +34,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.antest1.gotobrowser.Browser.BrowserGestureListener;
 import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.BuildConfig;
@@ -52,6 +52,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
+import static com.antest1.gotobrowser.Constants.PANEL_METHOD_BUTTON;
+import static com.antest1.gotobrowser.Constants.PANEL_METHOD_SWIPE;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CAPTURE;
 import static com.antest1.gotobrowser.Constants.PREF_KEEPMODE;
@@ -59,6 +61,7 @@ import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
+import static com.antest1.gotobrowser.Constants.PREF_PANEL_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
@@ -120,25 +123,7 @@ public class BrowserActivity extends AppCompatActivity {
             manager.setHardwardAcceleratedFlag();
 
             // panel, keyboard settings
-            Intent intent = getIntent();
-
-            View browserPanel = findViewById(R.id.menu_list);
-            browserPanel.setVisibility(isMultiWindowMode() ? View.GONE : View.VISIBLE);
-            if (intent != null) {
-                String action = intent.getAction();
-                isKcBrowserMode = OPEN_KANCOLLE.equals(action);
-                String options = intent.getStringExtra("options");
-                if (options != null) {
-                    isPanelVisible = options.contains(ACTION_SHOWPANEL);
-                    browserPanel.setVisibility(isPanelVisible ? View.VISIBLE : View.GONE);
-                    setPanelVisible(findViewById(R.id.menu_close));
-                    if (!options.contains(ACTION_SHOWKEYBOARD)) {
-                        mContentView.setFocusableInTouchMode(false);
-                        mContentView.setFocusable(false);
-                        mContentView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
-                    }
-                }
-            }
+            initPanelKeyboardFromIntent(getIntent());
 
             boolean isLandscapeMode = sharedPref.getBoolean(PREF_LANDSCAPE, false);
             boolean isSilentMode = sharedPref.getBoolean(PREF_SILENT, false);
@@ -309,8 +294,16 @@ public class BrowserActivity extends AppCompatActivity {
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         Log.e("GOTO", isAdjustChangedByUser + " " + isInPictureInPictureMode + " " + isMultiWindowMode());
-        View browserPanel = findViewById(R.id.browser_panel);
-        browserPanel.setVisibility(isMultiWindowMode() ? View.GONE : View.VISIBLE);
+        String panelOpenMethod = sharedPref.getString(PREF_PANEL_METHOD, PANEL_METHOD_BUTTON);
+
+        if (isMultiWindowMode()) {
+            findViewById(R.id.browser_panel).setVisibility(View.GONE);
+        } else {
+            findViewById(R.id.browser_panel).setVisibility(View.VISIBLE);
+            View browserPanel = findViewById(
+                    panelOpenMethod.equals(PANEL_METHOD_BUTTON) ? R.id.menu_list : R.id.browser_panel);
+            browserPanel.setVisibility(isPanelVisible ? View.VISIBLE : View.GONE);
+        }
 
         if (sharedPref.getBoolean(PREF_MULTIWIN_MARGIN, false)) {
             setMultiwindowMargin();
@@ -444,11 +437,50 @@ public class BrowserActivity extends AppCompatActivity {
         }
     }
 
+    private void initPanelKeyboardFromIntent(Intent intent) {
+        String panelOpenMethod = sharedPref.getString(PREF_PANEL_METHOD, PANEL_METHOD_BUTTON);
+        View browserPanel = findViewById(
+                panelOpenMethod.equals(PANEL_METHOD_BUTTON) ? R.id.menu_list : R.id.browser_panel);
+
+        if (intent != null) {
+            String action = intent.getAction();
+            isKcBrowserMode = OPEN_KANCOLLE.equals(action);
+            String options = intent.getStringExtra("options");
+            Log.e("GOTO", "options: " + options);
+            if (options != null) {
+                isPanelVisible = options.contains(ACTION_SHOWPANEL);
+                browserPanel.setVisibility(isPanelVisible && !isMultiWindowMode()
+                        ? View.VISIBLE : View.GONE);
+                if (!options.contains(ACTION_SHOWKEYBOARD)) {
+                    mContentView.setFocusableInTouchMode(false);
+                    mContentView.setFocusable(false);
+                    mContentView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+                }
+            }
+        }
+
+        if (panelOpenMethod.equals(PANEL_METHOD_SWIPE)) {
+            setGestureDetector(findViewById(R.id.main_container));
+        } else if (panelOpenMethod.equals(PANEL_METHOD_BUTTON)) {
+            ((ImageView) findViewById(R.id.menu_close)).setImageResource(
+                    isPanelVisible ? R.mipmap.close : R.mipmap.menu);
+        }
+
+    }
+
+    public void setPanelVisibleValue(boolean value) {
+        isPanelVisible = value;
+    }
+
     private void setPanelVisible(View v) {
         isPanelVisible = !isPanelVisible;
-        View browserPanel = findViewById(R.id.menu_list);
-        browserPanel.setVisibility(isPanelVisible ? View.VISIBLE : View.GONE);
-        ((ImageView) v).setImageResource(isPanelVisible ? R.mipmap.close : R.mipmap.menu);
+        String panelOpenMethod = sharedPref.getString(PREF_PANEL_METHOD, "1");
+        if (panelOpenMethod.equals(PANEL_METHOD_SWIPE)) {
+            findViewById(R.id.browser_panel).setVisibility(isPanelVisible ? View.VISIBLE : View.GONE);
+        } else if (panelOpenMethod.equals(PANEL_METHOD_BUTTON)) {
+            findViewById(R.id.menu_list).setVisibility(isPanelVisible ? View.VISIBLE : View.GONE);
+            ((ImageView) v).setImageResource(isPanelVisible ? R.mipmap.close : R.mipmap.menu);
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -555,8 +587,6 @@ public class BrowserActivity extends AppCompatActivity {
             View decorView = getWindow().getDecorView();
             decorView.getWindowVisibleDisplayFrame(windowRect);
             decorView.getGlobalVisibleRect(screenRect);
-            Log.e("GOTO", "windowRect: " + windowRect.toString());
-            Log.e("GOTO", "screenRect: " + screenRect.toString());
 
             int center = (screenRect.top + screenRect.bottom) / 2;
             if (windowRect.top > center) params.setMargins(0, 24, 0, 0);
@@ -611,6 +641,7 @@ public class BrowserActivity extends AppCompatActivity {
             mContentView.setZ(0);
         }
     }
+
     public boolean supportsPiPMode () {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
     }
@@ -619,5 +650,14 @@ public class BrowserActivity extends AppCompatActivity {
         Intent intent = new Intent(FOREGROUND_ACTION);
         intent.putExtra("is_front", is_front);
         sendBroadcast(intent);
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    public void setGestureDetector(View view) {
+        GestureDetector mDetector = new GestureDetector(this, new BrowserGestureListener(this));
+        view.setOnTouchListener((v, event) -> {
+            mDetector.onTouchEvent(event);
+            return event.getAction() != MotionEvent.ACTION_UP;
+        });
     }
 }

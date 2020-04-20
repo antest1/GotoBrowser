@@ -31,6 +31,7 @@ public class Constants {
     public static final String PREF_NC_SCREENSHOT_SET = "perf_nc_screenshot_set";
     public static final String PREF_APP_VERSION = "pref_app_version";
     public static final String PREF_CHECK_UPDATE = "pref_check_update";
+    public static final String PREF_PANEL_METHOD = "pref_panel_method";
     public static final String PREF_MULTIWIN_MARGIN = "pref_multiwin_margin";
 
     public static final String[] PREF_SETTINGS = {
@@ -38,8 +39,12 @@ public class Constants {
             PREF_PIP_MODE,
             PREF_ALTER_GADGET,
             PREF_SUBTITLE_LOCALE,
-            PREF_MULTIWIN_MARGIN
+            PREF_MULTIWIN_MARGIN,
+            PREF_PANEL_METHOD
     };
+
+    public static final String PANEL_METHOD_SWIPE = "0";
+    public static final String PANEL_METHOD_BUTTON = "1";
 
     public static final String ACTION_SHOWPANEL = "with_layout_control_";
     public static final String ACTION_SHOWKEYBOARD = "with_keyboard_";

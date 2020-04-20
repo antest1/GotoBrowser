@@ -12,6 +12,16 @@
         <item>jp</item>
     </string-array>
 
+    <string-array name="panel_method" translatable="false">
+        <item>@string/setting_panel_method_swipe</item>
+        <item>@string/setting_panel_method_button</item>
+    </string-array>
+
+    <string-array name="panel_method_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+
     <string-array name="connector_list">
         <item>DMM direct</item>
         <item>kancolle.su</item>

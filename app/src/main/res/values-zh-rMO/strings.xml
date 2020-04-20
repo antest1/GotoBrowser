@@ -46,4 +46,7 @@
     <string name="settings_source_code">源代碼</string>
     <string name="subtitle_select_language">必須先選擇語言</string>
     <string name="settings_mw_margin">[多窗口] 從拆分欄添加邊距</string>
+    <string name="setting_panel_method_button">按键</string>
+    <string name="setting_panel_method_swipe">輕掃</string>
+    <string name="setting_panel_method_label">控制台打開方式</string>
 </resources>

@@ -47,4 +47,7 @@
     <string name="settings_source_code">ソースコード</string>
     <string name="subtitle_select_language">ロケールを先に選択してください。</string>
     <string name="settings_mw_margin">[マルチウィンドウ] 分割バーから余白を追加</string>
+    <string name="setting_panel_method_label">パネルを開く方法</string>
+    <string name="setting_panel_method_swipe">スワイプ</string>
+    <string name="setting_panel_method_button">ボタン</string>
 </resources>
