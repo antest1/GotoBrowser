@@ -45,4 +45,5 @@
     <string name="granted_false_storage_permission">未授予储存权限。</string>
     <string name="settings_source_code">源代码</string>
     <string name="subtitle_select_language">必须先选择语言</string>
+    <string name="settings_mw_margin">[多窗口] 从拆分栏添加边距</string>
 </resources>

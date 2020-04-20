@@ -11,6 +11,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -56,6 +57,7 @@ import static com.antest1.gotobrowser.Constants.PREF_CAPTURE;
 import static com.antest1.gotobrowser.Constants.PREF_KEEPMODE;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
+import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
@@ -121,6 +123,7 @@ public class BrowserActivity extends AppCompatActivity {
             Intent intent = getIntent();
 
             View browserPanel = findViewById(R.id.menu_list);
+            browserPanel.setVisibility(isMultiWindowMode() ? View.GONE : View.VISIBLE);
             if (intent != null) {
                 String action = intent.getAction();
                 isKcBrowserMode = OPEN_KANCOLLE.equals(action);
@@ -243,6 +246,14 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        if (sharedPref.getBoolean(PREF_MULTIWIN_MARGIN, false)) {
+            setMultiwindowMargin();
+        }
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         pause_flag = true;
@@ -300,6 +311,11 @@ public class BrowserActivity extends AppCompatActivity {
         Log.e("GOTO", isAdjustChangedByUser + " " + isInPictureInPictureMode + " " + isMultiWindowMode());
         View browserPanel = findViewById(R.id.browser_panel);
         browserPanel.setVisibility(isMultiWindowMode() ? View.GONE : View.VISIBLE);
+
+        if (sharedPref.getBoolean(PREF_MULTIWIN_MARGIN, false)) {
+            setMultiwindowMargin();
+        }
+
         if (isAdjustChangedByUser || isInPictureInPictureMode || isMultiWindowMode()) {
             mContentView.getSettings().setTextZoom(100);
         }
@@ -530,6 +546,27 @@ public class BrowserActivity extends AppCompatActivity {
         param.setMargins(param.leftMargin + value, param.topMargin, param.rightMargin + value, param.bottomMargin);
         subtitleText.setLayoutParams(param);
     }*/
+
+    public void setMultiwindowMargin() {
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) mContentView.getLayoutParams();
+        if (isMultiWindowMode()) {
+            Rect windowRect = new Rect();
+            Rect screenRect = new Rect();
+            View decorView = getWindow().getDecorView();
+            decorView.getWindowVisibleDisplayFrame(windowRect);
+            decorView.getGlobalVisibleRect(screenRect);
+            Log.e("GOTO", "windowRect: " + windowRect.toString());
+            Log.e("GOTO", "screenRect: " + screenRect.toString());
+
+            int center = (screenRect.top + screenRect.bottom) / 2;
+            if (windowRect.top > center) params.setMargins(0, 24, 0, 0);
+            else if (windowRect.bottom < center) params.setMargins(0, 0, 0, 24);
+            else params.setMargins(0, 0, 0, 0);
+        } else {
+            params.setMargins(0, 0, 0, 0);
+        }
+        mContentView.requestLayout();
+    }
 
     public void showScreenshotNotification(Bitmap bitmap, Uri uri) {
         screenshotNotification.showNotification(bitmap, uri);

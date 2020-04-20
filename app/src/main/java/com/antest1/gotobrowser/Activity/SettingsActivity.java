@@ -39,6 +39,7 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
 import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
+import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SETTINGS;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
@@ -74,6 +75,7 @@ public class SettingsActivity extends AppCompatActivity {
                     break;
                 case PREF_PIP_MODE:
                 case PREF_ALTER_GADGET:
+                case PREF_MULTIWIN_MARGIN:
                     editor.putBoolean(key, false);
                     break;
                 default:

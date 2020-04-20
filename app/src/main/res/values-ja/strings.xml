@@ -46,4 +46,5 @@
     <string name="granted_false_storage_permission">ストレージ権限を得ませんでした。</string>
     <string name="settings_source_code">ソースコード</string>
     <string name="subtitle_select_language">ロケールを先に選択してください。</string>
+    <string name="settings_mw_margin">[マルチウィンドウ] 分割バーから余白を追加</string>
 </resources>

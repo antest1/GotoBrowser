@@ -55,4 +55,5 @@
     <string name="granted_true_storage_permission">Storage permission granted.</string>
     <string name="granted_false_storage_permission">Storage permission not granted.</string>
     <string name="subtitle_select_language">Language must be chosen first</string>
+    <string name="settings_mw_margin">[Multi-Window] Add Margin from Divider</string>
 </resources>

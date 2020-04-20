@@ -31,12 +31,14 @@ public class Constants {
     public static final String PREF_NC_SCREENSHOT_SET = "perf_nc_screenshot_set";
     public static final String PREF_APP_VERSION = "pref_app_version";
     public static final String PREF_CHECK_UPDATE = "pref_check_update";
+    public static final String PREF_MULTIWIN_MARGIN = "pref_multiwin_margin";
 
     public static final String[] PREF_SETTINGS = {
             PREF_FONT_PREFETCH,
             PREF_PIP_MODE,
             PREF_ALTER_GADGET,
-            PREF_SUBTITLE_LOCALE
+            PREF_SUBTITLE_LOCALE,
+            PREF_MULTIWIN_MARGIN
     };
 
     public static final String ACTION_SHOWPANEL = "with_layout_control_";

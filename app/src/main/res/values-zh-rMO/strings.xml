@@ -45,4 +45,5 @@
     <string name="granted_true_storage_permission">已授予儲存權限。</string>
     <string name="settings_source_code">源代碼</string>
     <string name="subtitle_select_language">必須先選擇語言</string>
+    <string name="settings_mw_margin">[多窗口] 從拆分欄添加邊距</string>
 </resources>

@@ -22,6 +22,11 @@
             app:key="pref_alter_gadget"
             app:title="Alter Gadget URL" />
 
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="pref_multiwin_margin"
+            app:title="@string/settings_mw_margin" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -61,7 +66,7 @@
         <Preference
             app:iconSpaceReserved="false"
             app:key="pref_github"
-            app:title="Source Code"
+            app:title="@string/settings_source_code"
             app:summary="@string/github_link">
             <intent
                 android:action="android.intent.action.VIEW"
