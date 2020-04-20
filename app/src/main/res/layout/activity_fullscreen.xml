@@ -54,7 +54,6 @@
         android:id="@+id/browser_panel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@color/black_overlay"
         android:orientation="vertical"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -71,6 +70,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:alpha="0.8"
+                android:background="@color/transparent"
                 android:padding="6dp"
                 android:src="@mipmap/refresh"
                 app:srcCompat="@mipmap/refresh" />
@@ -78,7 +78,8 @@
             <ScrollView
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
-                android:layout_weight="1">
+                android:layout_weight="1"
+                android:scrollbars="none">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -90,6 +91,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:alpha="0.8"
+                        android:background="@color/transparent"
                         android:padding="6dp"
                         android:src="@mipmap/aspect_ratio"
                         android:visibility="gone"
@@ -97,36 +99,40 @@
 
                     <ImageView
                         android:id="@+id/menu_mute"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:alpha="0.8"
+                        android:background="@color/transparent"
                         android:padding="6dp"
                         android:src="@mipmap/mute"
                         app:srcCompat="@mipmap/mute" />
 
                     <ImageView
                         android:id="@+id/menu_camera"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:alpha="0.8"
+                        android:background="@color/transparent"
                         android:padding="6dp"
                         android:src="@mipmap/camera"
                         app:srcCompat="@mipmap/camera" />
 
                     <ImageView
                         android:id="@+id/menu_lock"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:alpha="0.8"
+                        android:background="@color/transparent"
                         android:padding="6dp"
                         android:src="@mipmap/lock"
                         app:srcCompat="@mipmap/lock" />
 
                     <ImageView
                         android:id="@+id/menu_brighton"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:alpha="0.8"
+                        android:background="@color/transparent"
                         android:padding="6dp"
                         android:src="@mipmap/brighton"
                         app:srcCompat="@mipmap/brighton" />
@@ -136,15 +142,17 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:alpha="0.8"
+                        android:background="@color/transparent"
                         android:padding="6dp"
                         android:src="@mipmap/caption"
                         app:srcCompat="@mipmap/caption" />
 
                     <ImageView
                         android:id="@+id/menu_logout"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:alpha="0.8"
+                        android:background="@color/transparent"
                         android:padding="6dp"
                         android:src="@mipmap/logout"
                         android:visibility="visible"
@@ -161,6 +169,7 @@
             android:layout_alignWithParentIfMissing="true"
             android:layout_alignParentBottom="true"
             android:alpha="0.8"
+            android:background="@color/transparent"
             android:padding="6dp"
             android:src="@mipmap/close" />
 

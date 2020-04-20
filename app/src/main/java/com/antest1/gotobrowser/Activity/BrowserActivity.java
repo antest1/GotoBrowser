@@ -151,24 +151,24 @@ public class BrowserActivity extends AppCompatActivity {
             menuLogout.setOnClickListener(v -> showLogoutDialog());
 
             View menuMute = findViewById(R.id.menu_mute);
-            menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isMuteMode ? R.color.panel_red : R.color.black));
+            menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isMuteMode ? R.color.panel_red : R.color.transparent));
             menuMute.setOnClickListener(this::setMuteMode);
 
             View menuCamera = findViewById(R.id.menu_camera);
-            menuCamera.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isCaptureMode ? R.color.panel_red : R.color.black));
+            menuCamera.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isCaptureMode ? R.color.panel_red : R.color.transparent));
             menuCamera.setOnClickListener(this::setCaptureMode);
             setCaptureButton();
 
             View menuLock = findViewById(R.id.menu_lock);
-            menuLock.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isLockMode ? R.color.panel_red : R.color.black));
+            menuLock.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isLockMode ? R.color.panel_red : R.color.transparent));
             menuLock.setOnClickListener(this::setOrientationLockMode);
 
             View menuBrightOn = findViewById(R.id.menu_brighton);
-            menuBrightOn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isKeepMode ? R.color.panel_red : R.color.black));
+            menuBrightOn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isKeepMode ? R.color.panel_red : R.color.transparent));
             menuBrightOn.setOnClickListener(this::setBrightOnMode);
 
             View menuCaption = findViewById(R.id.menu_cc);
-            menuCaption.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isCaptionMode ? R.color.panel_red : R.color.black));
+            menuCaption.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isCaptionMode ? R.color.panel_red : R.color.transparent));
             menuCaption.setOnClickListener(this::setCaptionMode);
 
             View menuClose = findViewById(R.id.menu_close);
@@ -350,7 +350,7 @@ public class BrowserActivity extends AppCompatActivity {
             v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
             sharedPref.edit().putBoolean(PREF_MUTEMODE, true).apply();
         } else {
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
+            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
             sharedPref.edit().putBoolean(PREF_MUTEMODE, false).apply();
         }
     }
@@ -366,7 +366,7 @@ public class BrowserActivity extends AppCompatActivity {
                 sharedPref.edit().putBoolean(PREF_CAPTURE, true).apply();
             } else {
                 findViewById(R.id.kc_camera).setVisibility(View.GONE);
-                v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
+                v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
                 sharedPref.edit().putBoolean(PREF_CAPTURE, false).apply();
             }
         }
@@ -409,7 +409,7 @@ public class BrowserActivity extends AppCompatActivity {
             } else {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
             }
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
+            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
             sharedPref.edit().putBoolean(PREF_LOCKMODE, false).apply();
         }
     }
@@ -422,7 +422,7 @@ public class BrowserActivity extends AppCompatActivity {
             sharedPref.edit().putBoolean(PREF_KEEPMODE, true).apply();
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
+            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
             sharedPref.edit().putBoolean(PREF_KEEPMODE, false).apply();
         }
     }
@@ -435,7 +435,7 @@ public class BrowserActivity extends AppCompatActivity {
             sharedPref.edit().putBoolean(PREF_SHOWCC, true).apply();
         } else {
             subtitleText.setVisibility(View.GONE);
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.black));
+            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
             sharedPref.edit().putBoolean(PREF_SHOWCC, false).apply();
         }
     }
