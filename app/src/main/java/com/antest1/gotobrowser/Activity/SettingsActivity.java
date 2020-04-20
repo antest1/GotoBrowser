@@ -38,6 +38,7 @@ import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
 import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
+import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_PANEL_METHOD;
@@ -75,6 +76,7 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_PIP_MODE:
                 case PREF_ALTER_GADGET:
                 case PREF_MULTIWIN_MARGIN:
+                case PREF_DEVTOOLS_DEBUG:
                     editor.putBoolean(key, false);
                     break;
                 case PREF_PANEL_METHOD:

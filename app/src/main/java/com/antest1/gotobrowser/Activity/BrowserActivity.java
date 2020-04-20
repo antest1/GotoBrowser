@@ -56,6 +56,7 @@ import static com.antest1.gotobrowser.Constants.PANEL_METHOD_BUTTON;
 import static com.antest1.gotobrowser.Constants.PANEL_METHOD_SWIPE;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CAPTURE;
+import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
 import static com.antest1.gotobrowser.Constants.PREF_KEEPMODE;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
@@ -184,9 +185,11 @@ public class BrowserActivity extends AppCompatActivity {
             isSubtitleLoaded = KcSubtitleUtils.loadQuoteData(getApplicationContext(), subtitle_local);
             connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
 
+            boolean useDevTools = sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
             if (connector_info != null && connector_info.size() == 2) {
                 WebViewManager.setWebViewSettings(mContentView);
                 WebViewManager.enableBrowserCookie(mContentView);
+                WebViewManager.setWebViewDebugging(useDevTools);
                 manager.setWebViewClient(this, mContentView, connector_info);
                 manager.setWebViewDownloader(mContentView);
                 manager.setPopupView(mContentView);

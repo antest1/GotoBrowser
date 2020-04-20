@@ -59,4 +59,6 @@
     <string name="setting_panel_method_label">Panel Open Method</string>
     <string name="setting_panel_method_swipe">Swipe</string>
     <string name="setting_panel_method_button">Button</string>
+    <string name="setting_devtools_enable">Enable DevTools Debugging</string>
+    <string name="setting_devtools_description" translatable="false">chrome://inspect</string>
 </resources>

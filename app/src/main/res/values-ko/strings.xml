@@ -51,4 +51,5 @@
     <string name="setting_panel_method_label">패널 여는 방법</string>
     <string name="setting_panel_method_swipe">스와이프</string>
     <string name="setting_panel_method_button">버튼</string>
+    <string name="setting_devtools_enable">DevTools 디버깅 활성화</string>
 </resources>

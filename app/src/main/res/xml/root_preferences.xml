@@ -81,6 +81,12 @@
                 android:data="https://github.com/antest1/GotoBrowser"/>
         </Preference>
 
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="pref_devtools_debug"
+            app:title="@string/setting_devtools_enable"
+            app:summary="@string/setting_devtools_description" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

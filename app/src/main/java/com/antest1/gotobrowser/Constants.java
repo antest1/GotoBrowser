@@ -33,6 +33,7 @@ public class Constants {
     public static final String PREF_CHECK_UPDATE = "pref_check_update";
     public static final String PREF_PANEL_METHOD = "pref_panel_method";
     public static final String PREF_MULTIWIN_MARGIN = "pref_multiwin_margin";
+    public static final String PREF_DEVTOOLS_DEBUG = "pref_devtools_debug";
 
     public static final String[] PREF_SETTINGS = {
             PREF_FONT_PREFETCH,
@@ -40,7 +41,8 @@ public class Constants {
             PREF_ALTER_GADGET,
             PREF_SUBTITLE_LOCALE,
             PREF_MULTIWIN_MARGIN,
-            PREF_PANEL_METHOD
+            PREF_PANEL_METHOD,
+            PREF_DEVTOOLS_DEBUG
     };
 
     public static final String PANEL_METHOD_SWIPE = "0";

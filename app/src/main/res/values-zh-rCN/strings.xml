@@ -49,4 +49,5 @@
     <string name="setting_panel_method_button">按键</string>
     <string name="setting_panel_method_swipe">轻扫</string>
     <string name="setting_panel_method_label">控制台打开方式</string>
+    <string name="setting_devtools_enable">启用DevTools调试</string>
 </resources>
