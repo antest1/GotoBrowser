@@ -1,5 +1,17 @@
 body {
 	overflow-y: hidden;
+	background-color: #30384A;
+	color: #eeeeee;
+}
+
+a:link {
+  color: #FFC400;
+}
+
+input, textarea {
+    background-color : #424242;
+    border: 1px solid #888888;
+    color: #dddddd;
 }
 
 #ooi-page {
