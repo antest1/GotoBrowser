@@ -336,7 +336,7 @@ public class WebViewManager {
 
     public void closeWebView() {
         Intent intent = new Intent(activity, EntranceActivity.class);
-        activity.startActivity(intent);
+        activity.startActivity( intent);
         activity.finish();
     }
 
@@ -346,7 +346,7 @@ public class WebViewManager {
 
     public void runMuteScript(WebViewL webview, boolean is_mute, boolean force_pause) {
         ValueCallback<String> callback = s -> {
-            if (force_pause) new Handler().postDelayed(webview::pauseTimers, 50);
+            /// Do Nothing
         };
 
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
