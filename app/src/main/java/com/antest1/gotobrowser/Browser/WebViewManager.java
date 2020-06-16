@@ -346,7 +346,7 @@ public class WebViewManager {
 
     public void runMuteScript(WebViewL webview, boolean is_mute, boolean force_pause) {
         ValueCallback<String> callback = s -> {
-            if (force_pause) new Handler().postDelayed(webview::pauseTimers, 500);
+            if (force_pause) new Handler().postDelayed(webview::pauseTimers, 50);
         };
 
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
