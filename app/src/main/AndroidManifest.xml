@@ -67,24 +67,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Activity.LegacySettingsActivity"
-            android:label="@string/app_name"
-            android:theme="@style/FullscreenTheme">
-            <layout
-                android:defaultWidth="400dp"
-                android:defaultHeight="240dp"
-                android:gravity="start|end" />
-
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".Activity.EntranceActivity" />
-
-            <intent-filter>
-                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <activity
             android:name=".Activity.SettingsActivity"
             android:label="@string/app_name"
             android:theme="@style/FullscreenTheme">
