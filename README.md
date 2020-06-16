@@ -35,6 +35,8 @@ Language
 -------
 - Korean (한국어)
 - English
+- Simplified/Traditional Chinese (中文)
+- Japanese (日本語)
 
 Translations to other languages are welcomed. (please contact to developer to email)  
 
