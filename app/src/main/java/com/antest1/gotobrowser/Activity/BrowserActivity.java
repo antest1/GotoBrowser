@@ -20,6 +20,7 @@ import android.util.Log;
 import android.util.Rational;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -400,17 +401,26 @@ public class BrowserActivity extends AppCompatActivity {
     private void setOrientationLockMode(View v) {
         isLockMode = !isLockMode;
         if (isLockMode) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
             v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
             sharedPref.edit().putBoolean(PREF_LOCKMODE, true).apply();
         } else {
-            if (sharedPref.getBoolean(PREF_LANDSCAPE, false)) {
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
-            } else {
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
-            }
             v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
             sharedPref.edit().putBoolean(PREF_LOCKMODE, false).apply();
+        }
+
+        if (sharedPref.getBoolean(PREF_LANDSCAPE, false)) {
+            if (isLockMode) {
+                int rot = getWindowManager().getDefaultDisplay().getRotation();
+                if (rot == Surface.ROTATION_270) {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+                } else {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                }
+            }
+            else setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+        } else {
+            if (isLockMode) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+            else setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
         }
     }
 
