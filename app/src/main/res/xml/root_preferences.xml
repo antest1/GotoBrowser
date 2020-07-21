@@ -27,13 +27,34 @@
 
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
-            app:key="pref_alter_gadget"
-            app:title="Alter Gadget URL" />
+            app:key="pref_multiwin_margin"
+            app:title="@string/settings_mw_margin" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/setting_connection">
 
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
-            app:key="pref_multiwin_margin"
-            app:title="@string/settings_mw_margin" />
+            app:key="pref_alter_gadget"
+            app:title="@string/connection_use_alter" />
+
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:key="pref_alter_method"
+            app:title="@string/setting_alter_method"
+            app:useSimpleSummaryProvider="true"
+            app:entries="@array/alter_method"
+            app:entryValues="@array/alter_method_values"
+            android:dependency="pref_alter_gadget"/>
+
+        <EditTextPreference
+            android:key="pref_alter_endpoint"
+            app:iconSpaceReserved="false"
+            android:dependency="pref_alter_gadget"
+            android:title="@string/setting_alter_endpoint" />
 
     </PreferenceCategory>
 

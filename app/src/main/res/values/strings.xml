@@ -46,7 +46,7 @@
     <string name="settings_appinfo_browsersettings">Browser Settings</string>
     <string name="browser_fontprefetch">Prefetch Font Asset</string>
     <string name="browser_enablepipmode">Enable picture-in-picture mode</string>
-    <string name="broswer_altergadget" translatable="false">Alter Gadget URL</string>
+    <string name="connection_use_alter">Enable Gadget Server Block Bypass</string>
     <string name="logout_msg">Are you sure you want to Logout?</string>
     <string name="noti_screenshot_name">GotoBrowser Screenshot</string>
     <string name="noti_screenshot_title">Screenshot Captured</string>
@@ -61,4 +61,9 @@
     <string name="setting_panel_method_button">Button</string>
     <string name="setting_devtools_enable">Enable DevTools Debugging</string>
     <string name="setting_devtools_description" translatable="false">chrome://inspect</string>
+    <string name="setting_connection">Connection Settings</string>
+    <string name="setting_alter_method">Bypass Method</string>
+    <string name="setting_alter_method_url">URL Replacement</string>
+    <string name="setting_alter_method_proxy">KCCacheProxy (remote)</string>
+    <string name="setting_alter_endpoint">Endpoint Server</string>
 </resources>

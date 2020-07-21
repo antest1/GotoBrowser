@@ -52,4 +52,10 @@
     <string name="setting_panel_method_swipe">스와이프</string>
     <string name="setting_panel_method_button">버튼</string>
     <string name="setting_devtools_enable">DevTools 디버깅 활성화</string>
+    <string name="connection_use_alter" translatable="false">Gadget 서버 우회 활성화</string>
+    <string name="setting_connection">접속 설정</string>
+    <string name="setting_alter_method_url">URL 교체</string>
+    <string name="setting_alter_method_proxy">KCCacheProxy (remote)</string>
+    <string name="setting_alter_method">우회 방식</string>
+    <string name="setting_alter_endpoint">Endpoint 서버</string>
 </resources>

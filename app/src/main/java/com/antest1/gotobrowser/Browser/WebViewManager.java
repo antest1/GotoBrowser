@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
@@ -25,6 +24,9 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
 
+import androidx.webkit.ProxyConfig;
+import androidx.webkit.ProxyController;
+
 import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.Activity.EntranceActivity;
 import com.antest1.gotobrowser.BuildConfig;
@@ -40,6 +42,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executor;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -56,6 +59,7 @@ import static com.antest1.gotobrowser.Constants.CONN_NITRABBIT;
 import static com.antest1.gotobrowser.Constants.CONN_OOI;
 import static com.antest1.gotobrowser.Constants.DMM_COOKIE;
 import static com.antest1.gotobrowser.Constants.DMM_REDIRECT_CODE;
+import static com.antest1.gotobrowser.Constants.GADGET_URL;
 import static com.antest1.gotobrowser.Constants.KANCOLLE_SERVER_LIST;
 import static com.antest1.gotobrowser.Constants.MUTE_SEND_DMM;
 import static com.antest1.gotobrowser.Constants.MUTE_SEND_OOI;
@@ -399,6 +403,29 @@ public class WebViewManager {
                 webview.loadUrl(connector_url_default);
             }
         }
+    }
+
+    public static String replaceEndpoint(String url, String endpoint) {
+        return url.replace(GADGET_URL, endpoint);
+    }
+
+    @SuppressLint("RequiresFeature")
+    public static void setKcCacheProxy(String endpoint, Runnable listener) {
+        ProxyConfig proxyConfig = new ProxyConfig.Builder()
+                .addProxyRule(endpoint)
+                .addBypassRule("*com").addBypassRule("*jp")
+                .addDirect().build();
+        Executor executor = command -> {
+            command.run();
+        };
+        ProxyController.getInstance().setProxyOverride(proxyConfig, executor, listener);
+    }
+
+    @SuppressLint("RequiresFeature")
+    public static void clearKcCacheProxy() {
+        Executor executor = command -> { };
+        Runnable listener = () -> { };
+        ProxyController.getInstance().clearProxyOverride(executor, listener);
     }
 
     public static List<String> getDefaultPage(BrowserActivity activity, boolean isKcBrowser) {

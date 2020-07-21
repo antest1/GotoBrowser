@@ -34,6 +34,8 @@ public class Constants {
     public static final String PREF_PANEL_METHOD = "pref_panel_method";
     public static final String PREF_MULTIWIN_MARGIN = "pref_multiwin_margin";
     public static final String PREF_DEVTOOLS_DEBUG = "pref_devtools_debug";
+    public static final String PREF_ALTER_METHOD = "pref_alter_method";
+    public static final String PREF_ALTER_ENDPOINT = "pref_alter_endpoint";
 
     public static final String[] PREF_SETTINGS = {
             PREF_FONT_PREFETCH,
@@ -42,11 +44,16 @@ public class Constants {
             PREF_SUBTITLE_LOCALE,
             PREF_MULTIWIN_MARGIN,
             PREF_PANEL_METHOD,
-            PREF_DEVTOOLS_DEBUG
+            PREF_DEVTOOLS_DEBUG,
+            PREF_ALTER_METHOD,
+            PREF_ALTER_ENDPOINT
     };
 
     public static final String PANEL_METHOD_SWIPE = "0";
     public static final String PANEL_METHOD_BUTTON = "1";
+
+    public static final String PREF_ALTER_METHOD_URL = "1";
+    public static final String PREF_ALTER_METHOD_PROXY = "2";
 
     public static final String ACTION_SHOWPANEL = "with_layout_control_";
     public static final String ACTION_SHOWKEYBOARD = "with_keyboard_";
@@ -144,6 +151,6 @@ public class Constants {
             "kancolle.su"
     };
 
-    public static final String GADGET_URL = "203.104.209.7";
-    public static final String ALTER_GADGET_URL = "luckyjervis.com";
+    public static final String GADGET_URL = "http://203.104.209.7/";
+    public static final String DEFAULT_ALTER_GADGET_URL = "http://luckyjervis.com/";
 }

@@ -20,13 +20,10 @@ import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -39,15 +36,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
-import static com.antest1.gotobrowser.Constants.ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.CAPTURE_LISTEN;
-import static com.antest1.gotobrowser.Constants.GADGET_URL;
 import static com.antest1.gotobrowser.Constants.MUTE_LISTEN;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
@@ -97,7 +93,9 @@ public class ResourceProcess {
     private TextView subtitleText;
     private final Handler shipVoiceHandler = new Handler();
     private final Handler clearSubHandler = new Handler();
-    boolean prefAlterGadget = false;
+
+    boolean prefAlterGadget, isGadgetUrlReplaceMode;
+    String alterEndpoint;
     
     ResourceProcess(BrowserActivity activity) {
         this.activity = activity;
@@ -106,6 +104,9 @@ public class ResourceProcess {
         sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         prefAlterGadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false);
+        isGadgetUrlReplaceMode = sharedPref.getString(PREF_ALTER_METHOD, "")
+                .equals(PREF_ALTER_METHOD_URL);
+        alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, "");
         subtitleText = activity.findViewById(R.id.subtitle_view);
         subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
     }
@@ -154,10 +155,8 @@ public class ResourceProcess {
         if (url.contains("gadget_html5/script/rollover.js")) return getMuteInjectedRolloverJs();
         if (url.contains("gadget_html5/js/kcs_cda.js")) return getInjectedKcaCdaJs();
         if (url.contains("kcscontents/css/common.css")) return getBlackBackgroundSheet();
-        if (prefAlterGadget) {
-            if (url.contains("html/maintenance.html")) return getMaintenanceFiles(false);
-            if (url.contains("html/maintenance.png")) return getMaintenanceFiles(true);
-        }
+        if (url.contains("html/maintenance.html")) return getMaintenanceFiles(false);
+        if (url.contains("html/maintenance.png")) return getMaintenanceFiles(true);
         if (resource_type == 0) return null;
 
         JsonObject file_info = getPathAndFileInfo(source);
@@ -314,8 +313,8 @@ public class ResourceProcess {
     private WebResourceResponse processScriptFile(JsonObject file_info) throws IOException {
         boolean broadcast_mode = sharedPref.getBoolean(PREF_BROADCAST, false);
         String url = file_info.get("url").getAsString();
-        if (prefAlterGadget && url.contains("gadget_html5")) {
-            url = url.replace(GADGET_URL, ALTER_GADGET_URL);
+        if (prefAlterGadget && isGadgetUrlReplaceMode && url.contains("gadget_html5")) {
+            url = WebViewManager.replaceEndpoint(url, alterEndpoint);
             byte[] byteArray = KcUtils.downloadDataFromURL(url);
             InputStream is = new ByteArrayInputStream(byteArray);
             return new WebResourceResponse("application/javascript", "utf-8", is);

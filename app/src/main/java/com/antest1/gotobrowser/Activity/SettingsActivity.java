@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -34,8 +35,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
 import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
@@ -79,8 +83,12 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_DEVTOOLS_DEBUG:
                     editor.putBoolean(key, false);
                     break;
+                case PREF_ALTER_METHOD:
                 case PREF_PANEL_METHOD:
                     editor.putString(key, "1");
+                    break;
+                case PREF_ALTER_ENDPOINT:
+                    editor.putString(key, DEFAULT_ALTER_GADGET_URL);
                     break;
                 default:
                     editor.putString(key, "");
@@ -120,6 +128,10 @@ public class SettingsActivity extends AppCompatActivity {
                 if (preference == null) continue;
                 if (preference instanceof ListPreference) {
                     Log.e("GOTO", key + ": " + sharedPref.getString(key, ""));
+                } else if (preference instanceof EditTextPreference) {
+                    Log.e("GOTO", key + ": " + sharedPref.getString(key, ""));
+                    EditTextPreference ep = (EditTextPreference) preference;
+                    ep.setSummary(sharedPref.getString(key, ""));
                 } else if (preference instanceof SwitchPreferenceCompat) {
                     Log.e("GOTO", key + ": " + sharedPref.getBoolean(key, false));
                     SwitchPreferenceCompat sp = (SwitchPreferenceCompat) preference;
@@ -162,6 +174,12 @@ public class SettingsActivity extends AppCompatActivity {
                 if (key.equals(PREF_SUBTITLE_LOCALE)) {
                     setSubtitlePreference(stringValue);
                 }
+            }
+            if (preference instanceof EditTextPreference) {
+                String stringValue = (String) newValue;
+                if (stringValue.length() == 0) stringValue = DEFAULT_ALTER_GADGET_URL;
+                sharedPref.edit().putString(key, stringValue).apply();
+                preference.setSummary(stringValue);
             }
             if (preference instanceof SwitchPreferenceCompat) {
                 sharedPref.edit().putBoolean(key, (boolean) newValue).apply();

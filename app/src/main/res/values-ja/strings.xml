@@ -51,4 +51,10 @@
     <string name="setting_panel_method_swipe">スワイプ</string>
     <string name="setting_panel_method_button">ボタン</string>
     <string name="setting_devtools_enable">DevToolsデバッグを使用</string>
+    <string name="connection_use_alter">国外ブロックのバイパス</string>
+    <string name="setting_connection">接続設定</string>
+    <string name="setting_alter_method_url">URL置換</string>
+    <string name="setting_alter_method_proxy">KCCacheProxy（リモート）</string>
+    <string name="setting_alter_method">バイパス方式</string>
+    <string name="setting_alter_endpoint">エンドポイントサーバー</string>
 </resources>

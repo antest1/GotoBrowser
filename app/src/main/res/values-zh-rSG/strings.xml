@@ -50,4 +50,10 @@
     <string name="setting_panel_method_swipe">轻扫</string>
     <string name="setting_panel_method_label">控制台打开方式</string>
     <string name="setting_devtools_enable">启用DevTools调试</string>
+    <string name="connection_use_alter">启用登录伺服器封锁绕行</string>
+    <string name="setting_connection">连接设定</string>
+    <string name="setting_alter_method_url">网址替换</string>
+    <string name="setting_alter_method_proxy">KCCacheProxy（远程服务器）</string>
+    <string name="setting_alter_method">绕过方式</string>
+    <string name="setting_alter_endpoint">端点服务器</string>
 </resources>

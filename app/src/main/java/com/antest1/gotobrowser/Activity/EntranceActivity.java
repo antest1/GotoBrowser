@@ -29,8 +29,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
+import static com.antest1.gotobrowser.Constants.CONN_DMM;
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
@@ -129,6 +134,8 @@ public class EntranceActivity extends AppCompatActivity {
 
         TextView versionText = findViewById(R.id.version_info);
         versionText.setText(String.format(Locale.US, getString(R.string.version_format), BuildConfig.VERSION_NAME));
+
+        WebViewManager.clearKcCacheProxy();
     }
 
     @Override
@@ -241,8 +248,19 @@ public class EntranceActivity extends AppCompatActivity {
             intent.putExtra("login_id", login_id);
             intent.putExtra("login_pw", login_password);
 
-            startActivity(intent);
-            finish();
+            boolean prefAlterGadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false);
+            boolean isProxyMethod = sharedPref.getString(PREF_ALTER_METHOD, "").equals(PREF_ALTER_METHOD_PROXY);
+            String alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, "");
+
+            if (prefAlterGadget && isProxyMethod && pref_connector.equals(CONN_DMM)) {
+                WebViewManager.setKcCacheProxy(alterEndpoint, () -> {
+                    startActivity(intent);
+                    finish();
+                });
+            } else {
+                startActivity(intent);
+                finish();
+            }
         }
     }
 
