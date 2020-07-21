@@ -15,6 +15,7 @@ import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
+import androidx.webkit.WebViewFeature;
 
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.KcUtils;
@@ -22,6 +23,7 @@ import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
 import com.antest1.gotobrowser.Subtitle.SubtitleRepo;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -40,6 +42,7 @@ import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY;
 import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
 import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
@@ -170,6 +173,17 @@ public class SettingsActivity extends AppCompatActivity {
             String key = preference.getKey();
             if (preference instanceof ListPreference) {
                 String stringValue = (String) newValue;
+                if (key.equals(PREF_ALTER_METHOD)) {
+                    if (stringValue.equals(PREF_ALTER_METHOD_PROXY)
+                            && !WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
+                        if (getActivity() != null) {
+                            Snackbar.make(getActivity().findViewById(R.id.main_container),
+                                    "PROXY_OVERRIDE not supported, use other option",
+                                    Snackbar.LENGTH_LONG).show();
+                        }
+                        return false;
+                    }
+                }
                 sharedPref.edit().putString(key, stringValue).apply();
                 if (key.equals(PREF_SUBTITLE_LOCALE)) {
                     setSubtitlePreference(stringValue);
