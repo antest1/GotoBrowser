@@ -52,8 +52,8 @@
     <string name="setting_devtools_enable">啟用DevTools調試</string>
     <string name="connection_use_alter">啟用登錄伺服器封鎖繞行</string>
     <string name="setting_connection">連接設定</string>
-    <string name="setting_alter_method_url">網址替換</string>
+    <string name="setting_alter_method_url">URL替換</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（遠程服務器）</string>
-    <string name="setting_alter_method">繞過方式</string>
+    <string name="setting_alter_method">繞行方式</string>
     <string name="setting_alter_endpoint">端點服務器</string>
 </resources>
