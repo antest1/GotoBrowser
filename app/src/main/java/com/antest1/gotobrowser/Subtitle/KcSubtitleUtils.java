@@ -49,6 +49,7 @@ public class KcSubtitleUtils {
     public static JsonObject quoteSizeData = new JsonObject();
     public static final int SPECIAL_VOICE_START_YEAR = 2014;
     public static final int SPECIAL_VOICE_END_YEAR = 2019;
+    public static final int MAX_LOOP = 9;
     public static final int[] resourceKeys = {
             6657, 5699, 3371, 8909, 7719, 6229, 5449, 8561, 2987, 5501,
             3127, 9319, 4365, 9811, 9927, 2423, 3439, 1865, 5925, 4409,
@@ -167,18 +168,23 @@ public class KcSubtitleUtils {
 
         Set<String> checked = new HashSet<>();
         shipDataGraph = new JsonObject();
+
+        int count = 0;
         for (Map.Entry<Integer, JsonObject> item: list) {
             JsonObject ship_data = item.getValue();
             if (ship_data.has("api_aftershipid")) {
                 String ship_id = ship_data.get("api_id").getAsString();
                 String ship_afterid = ship_data.get("api_aftershipid").getAsString();
                 if (ship_id.equals("624")) continue;
+                if (ship_id.equals("646")) continue;
                 if (!checked.contains(ship_id+ "_" + ship_afterid) && !ship_afterid.equals("0")) {
                     shipDataGraph.addProperty(ship_afterid, ship_id);
                     checked.add(ship_afterid + "_" + ship_id);
                     // Log.e("GOTO-ship", "" + ship_afterid + " -> " + ship_id);
                 }
             }
+            count += 1;
+            if (count == MAX_LOOP) break;
         }
         Log.e("GOTO", "ship_graph: " + shipDataGraph.size());
     }
