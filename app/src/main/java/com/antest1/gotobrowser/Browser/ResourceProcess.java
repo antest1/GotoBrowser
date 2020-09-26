@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 import okhttp3.OkHttpClient;
 
 import static com.antest1.gotobrowser.Constants.CAPTURE_LISTEN;
+import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.MUTE_LISTEN;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
@@ -106,7 +107,7 @@ public class ResourceProcess {
         prefAlterGadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false);
         isGadgetUrlReplaceMode = sharedPref.getString(PREF_ALTER_METHOD, "")
                 .equals(PREF_ALTER_METHOD_URL);
-        alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, "");
+        alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL);
         subtitleText = activity.findViewById(R.id.subtitle_view);
         subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
     }
