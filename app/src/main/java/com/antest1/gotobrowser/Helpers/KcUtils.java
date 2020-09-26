@@ -380,7 +380,7 @@ public class KcUtils {
         if (version_info != null && version_info.has("tag_name")) {
             Log.e("GOTO", version_info.toString());
             String tag = version_info.get("tag_name").getAsString().substring(1);
-            String latest_file = String.format(Locale.US, "http://18.176.189.52/GotoBrowser/files/gotobrowser-%s-release.apk", tag);
+            String latest_file = String.format(Locale.US, "http://luckyjervis.com/GotoBrowser/apk_download.php?q=%s", tag);
             if (BuildConfig.VERSION_NAME.equals(tag)) {
                 if (show_toast) Snackbar.make(ac.findViewById(R.id.main_container), R.string.setting_latest_version, Snackbar.LENGTH_LONG).show();
             } else {
