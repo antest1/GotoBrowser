@@ -35,7 +35,6 @@ import com.antest1.gotobrowser.Constants;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
-import com.google.android.material.snackbar.Snackbar;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,7 +50,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static com.antest1.gotobrowser.Browser.KcsInterface.GOTO_ANDROID;
-import static com.antest1.gotobrowser.Constants.ADD_VIEWPORT_META;
 import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_OOI;
 import static com.antest1.gotobrowser.Constants.CAPTURE_SEND_DMM;
 import static com.antest1.gotobrowser.Constants.CAPTURE_SEND_OOI;
@@ -155,7 +153,7 @@ public class WebViewManager {
                     sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
                     if (url.contains(Constants.URL_KANSU_1) || url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
                         activity.setStartedFlag();
-                        webview.evaluateJavascript(ADD_VIEWPORT_META, null);
+                        //webview.evaluateJavascript(ADD_VIEWPORT_META, null);
                     }
                 }
             }
