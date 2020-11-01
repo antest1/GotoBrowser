@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
-import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -39,6 +38,7 @@ import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_SIZE_PATH;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
+import static com.antest1.gotobrowser.Helpers.KcUtils.reportException;
 
 // Reference: https://github.com/KC3Kai/KC3Kai/issues/1180
 //            https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
@@ -193,7 +193,7 @@ public class KcSubtitleUtils {
                     as.open("quotes_label.json")));
             quoteLabel = gson.fromJson(reader, JsonObject.class);
         } catch (IOException e) {
-            Crashlytics.logException(e);
+            reportException(e);
             e.printStackTrace();
         }
 
@@ -380,7 +380,7 @@ public class KcSubtitleUtils {
             if (current_special_flag) voicedata_base.addProperty("special", true);
         } catch (Exception e){
             e.printStackTrace();
-            Crashlytics.logException(e);
+            reportException(e);
             voicedata_base.addProperty("0", e.getMessage());
         }
 

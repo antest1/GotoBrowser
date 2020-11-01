@@ -28,7 +28,7 @@ import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
-import com.crashlytics.android.Crashlytics;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -71,6 +71,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import static com.antest1.gotobrowser.Constants.CACHE_SIZE_BYTES;
 
 public class KcUtils {
+    private static FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
+
     public static void showToast(Context context, String message) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show();
     }
@@ -87,12 +89,12 @@ public class KcUtils {
 
     public static void reportException(Exception e) {
         e.printStackTrace();
-        Crashlytics.logException(e);
+        crashlytics.recordException(e);
     }
 
     public static void reportException(ExceptionInInitializerError e) {
         e.printStackTrace();
-        Crashlytics.logException(e);
+        crashlytics.recordException(e);
     }
 
     public static Request getDownloadRequest(String url, String userAgent, String mimetype) {
@@ -213,7 +215,7 @@ public class KcUtils {
                 if (child.isDirectory()) clearApplicationCache(context, child);
                 else child.delete();
         } catch (Exception e) {
-            Crashlytics.logException(e);
+            reportException(e);
         }
     }
 
