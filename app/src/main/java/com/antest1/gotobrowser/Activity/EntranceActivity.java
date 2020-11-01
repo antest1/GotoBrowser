@@ -3,6 +3,8 @@ package com.antest1.gotobrowser.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ResolveInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebView;
@@ -21,11 +23,14 @@ import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
 
 import java.io.File;
+import java.util.List;
 import java.util.Locale;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.core.content.ContextCompat;
 
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
@@ -82,6 +87,24 @@ public class EntranceActivity extends AppCompatActivity {
             Intent intent = new Intent(EntranceActivity.this, SettingsActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
+        });
+
+        ImageView msgButton = findViewById(R.id.icon_msg);
+        msgButton.setOnClickListener(v -> {
+            String url = "http://luckyjervis.com/noti.html";
+            CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder();
+            intentBuilder.setShowTitle(true);
+            intentBuilder.setToolbarColor(ContextCompat.getColor(getApplicationContext(), R.color.colorSettingsBackground));
+            intentBuilder.enableUrlBarHiding();
+
+            final CustomTabsIntent customTabsIntent = intentBuilder.build();
+            final List<ResolveInfo> customTabsApps = getPackageManager().queryIntentActivities(customTabsIntent.intent, 0);
+            if (customTabsApps.size() > 0) {
+                customTabsIntent.launchUrl(EntranceActivity.this, Uri.parse(url));
+            } else {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(browserIntent);
+            }
         });
 
         Switch landscapeSwitch = findViewById(R.id.switch_landscape);
