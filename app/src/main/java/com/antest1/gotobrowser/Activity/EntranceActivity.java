@@ -45,6 +45,7 @@ import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_PANELSTART;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
+import static com.antest1.gotobrowser.Constants.PREF_TP_DISCLAIMED;
 import static com.antest1.gotobrowser.Constants.URL_LIST;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.clearApplicationCache;
@@ -130,7 +131,17 @@ public class EntranceActivity extends AppCompatActivity {
         clearButton.setOnClickListener(v -> showCacheClearDialog());
 
         TextView startButton = findViewById(R.id.webview_start);
-        startButton.setOnClickListener(v -> startBrowserActivity());
+        startButton.setOnClickListener(v -> {
+            String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
+            if (pref_connector != null) {
+                if (pref_connector.equals(CONN_DMM)) {
+                    startBrowserActivity();
+                } else {
+                    showThirdPartyConnectorDialog();
+                }
+            }
+
+        });
 
         TextView versionText = findViewById(R.id.version_info);
         versionText.setText(String.format(Locale.US, getString(R.string.version_format), BuildConfig.VERSION_NAME));
@@ -264,5 +275,27 @@ public class EntranceActivity extends AppCompatActivity {
         }
     }
 
+    private void showThirdPartyConnectorDialog() {
+        boolean disclaimed = sharedPref.getBoolean(PREF_TP_DISCLAIMED, false);
+        if (disclaimed) {
+            startBrowserActivity();
+            return;
+        }
 
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(EntranceActivity.this);
+        alertDialogBuilder.setTitle("Disclaimer");
+        alertDialogBuilder
+                .setCancelable(false)
+                .setMessage(getString(R.string.thirdpartyconnector_msg))
+                .setPositiveButton(R.string.action_ok,
+                        (dialog, id) -> {
+                            sharedPref.edit().putBoolean(PREF_TP_DISCLAIMED, true).apply();
+                            dialog.dismiss();
+                            startBrowserActivity();
+                        })
+                .setNegativeButton(R.string.action_cancel,
+                        (dialog, id) -> dialog.cancel());
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+    }
 }

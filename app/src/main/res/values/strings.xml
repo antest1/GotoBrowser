@@ -11,6 +11,7 @@
     <string name="cache_clear_text">Clear Cache</string>
     <string name="cache_cleared_toast">Webview cache cleared</string>
     <string name="clearcache_msg">Only use this function when image or audio is not loaded properly. Do you really want to clear the cache?</string>
+    <string name="thirdpartyconnector_msg" translatable="false">In the case of non-official web proxy-based connectors (like OOI), there is a possibility of displaying different resources than the original, depending on their policy. Basically, GotoBrowser does not inference the policy of each connector. If you do not want to display unofficial resources with the GotoBrowser, please clear the cache and play KanColle through DMM Direct.</string>
     <string name="backpress_msg">Do you really want to exit?</string>
     <string name="refresh_msg">Do you really want to refresh?</string>
     <string name="mode_landscape">Landscape Mode</string>
