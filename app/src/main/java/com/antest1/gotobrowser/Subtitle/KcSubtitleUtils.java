@@ -161,15 +161,13 @@ public class KcSubtitleUtils {
             JsonObject item = data.get(i).getAsJsonObject();
             int api_id = item.get("api_id").getAsInt();
             Map.Entry<Integer, JsonObject> item_entry =
-                    new AbstractMap.SimpleEntry<Integer, JsonObject>(api_id, item);
+                    new AbstractMap.SimpleEntry<>(api_id, item);
             list.add(item_entry);
         }
         Collections.sort(list, (o1, o2) -> o1.getKey().compareTo(o2.getKey()));
-
         Set<String> checked = new HashSet<>();
         shipDataGraph = new JsonObject();
 
-        int count = 0;
         for (Map.Entry<Integer, JsonObject> item: list) {
             JsonObject ship_data = item.getValue();
             if (ship_data.has("api_aftershipid")) {
@@ -183,8 +181,6 @@ public class KcSubtitleUtils {
                     // Log.e("GOTO-ship", "" + ship_afterid + " -> " + ship_id);
                 }
             }
-            count += 1;
-            if (count == MAX_LOOP) break;
         }
         Log.e("GOTO", "ship_graph: " + shipDataGraph.size());
     }
@@ -327,13 +323,17 @@ public class KcSubtitleUtils {
     }
 
     public static JsonObject getQuoteString(String ship_id, String voiceline, String voiceSize) {
+        return getQuoteString(ship_id, voiceline, voiceSize, MAX_LOOP);
+    }
+
+    public static JsonObject getQuoteString(String ship_id, String voiceline, String voiceSize, int max_loop) {
         Log.e("GOTO", ship_id + " " +voiceline + " " + voiceSize);
         String voiceline_original = voiceline;
         JsonObject voicedata_base = new JsonObject();
         voicedata_base.addProperty("0", "");
-        if (shipDataGraph.has(ship_id)) {
+        if (max_loop > 0 && shipDataGraph.has(ship_id)) {
             String before_id = shipDataGraph.get(ship_id).getAsString();
-            voicedata_base = getQuoteString(before_id, voiceline_original, voiceSize);
+            voicedata_base = getQuoteString(before_id, voiceline_original, voiceSize, max_loop - 1);
             Log.e("GOTO", "prev:" + voicedata_base.toString());
         }
 
