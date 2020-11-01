@@ -82,7 +82,7 @@ public class Constants {
     public static final String URL_KANSU_LOGOUT = "http://kancolle.su/logout";
     public static final String DMM_REDIRECT_CODE = "Sg9VTQFXDFcXFl5bWlcKGExKUVdUXgFNEU0KSVMVR28MBQ0BUwJZBwxK";
 
-    // public static final String ADD_VIEWPORT_META = "var metaTag=document.createElement('meta');metaTag.name='viewport',metaTag.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes',document.getElementsByTagName('head')[0].appendChild(metaTag);";
+    public static final String ADD_VIEWPORT_META = "var metaTag=document.createElement('meta');metaTag.name='viewport',metaTag.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes',document.getElementsByTagName('head')[0].appendChild(metaTag);";
 
     public static final String REFRESH_DETECT_CALL = "(function(){return document.getElementById(\"flashWrap\")==null})();";
     public static final String MUTE_SEND_DMM = "(function(){var msg={sound:%d};var origin=\"*\";document.getElementById(\"game_frame\").contentWindow.postMessage(msg,origin);return \"done\"})()";

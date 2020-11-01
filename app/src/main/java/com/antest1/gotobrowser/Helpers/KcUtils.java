@@ -19,6 +19,7 @@ import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -495,6 +496,18 @@ public class KcUtils {
         ContentResolver contentResolver = context.getContentResolver();
         Uri item = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
         return item;
+    }
+
+    public static boolean checkIsLargeDisplay(Activity ac) {
+        Display display = ac.getWindowManager().getDefaultDisplay();
+        DisplayMetrics metrics = new DisplayMetrics();
+        display.getMetrics(metrics);
+
+        float widthInches = metrics.widthPixels / metrics.xdpi;
+        float heightInches = metrics.heightPixels / metrics.ydpi;
+        double diagonalInches = Math.sqrt(Math.pow(widthInches, 2) + Math.pow(heightInches, 2));
+        Log.e("GOTO-Utils", diagonalInches + " inch");
+        return diagonalInches >= 7.0;
     }
 }
 
