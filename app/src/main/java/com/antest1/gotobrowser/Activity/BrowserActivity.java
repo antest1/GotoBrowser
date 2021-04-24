@@ -45,6 +45,7 @@ import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
+import com.antest1.gotobrowser.Helpers.K3dPatcher;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Notification.ScreenshotNotification;
 import com.antest1.gotobrowser.R;
@@ -76,7 +77,7 @@ import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_EXTERNAL_PERMISSION;
 
-public class BrowserActivity extends AppCompatActivity implements SensorEventListener {
+public class BrowserActivity extends AppCompatActivity {
     public static final String FOREGROUND_ACTION = BuildConfig.APPLICATION_ID + ".foreground";
 
     private int uiOption;
@@ -104,48 +105,12 @@ public class BrowserActivity extends AppCompatActivity implements SensorEventLis
 
     private BackPressCloseHandler backPressCloseHandler;
 
-    private SensorManager mSensorManager;
-    private Sensor mGyroscope;
-
-
-    private float gyroX = 0f;
-    private float gyroY = 0f;
-
-    class GyroUpdater {
-        @JavascriptInterface
-        public float getX(){
-            double gotX = (Math.sqrt(1f + Math.abs(gyroX)) - 1) * 0.2f * Math.signum(gyroX);
-            gyroX *= 0.95f;
-            return (float)gotX;
-        }
-
-        @JavascriptInterface
-        public float getY(){
-            double gotY = (Math.sqrt(1f + Math.abs(gyroY)) - 1) * 0.2f * Math.signum(gyroY);
-            gyroY *= 0.95f;
-            return (float)gotY;
-        }
-    }
-
-
-    public void onSensorChanged(SensorEvent sensorEvent) {
-        String sensorName = sensorEvent.sensor.getName();
-        Log.v("GOTO", sensorName + ": X: " + sensorEvent.values[0] + "; Y: " + sensorEvent.values[1] + "; Z: " + sensorEvent.values[2] + ";");
-        gyroX -= sensorEvent.values[0] * 0.5;
-        gyroY -= sensorEvent.values[1] * 0.5;
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-    }
+    private K3dPatcher k3dPatcher = new K3dPatcher();
 
     @SuppressLint({"SetJavaScriptEnabled", "ApplySharedPref", "ClickableViewAccessibility", "SourceLockedOrientationActivity"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-        mGyroscope = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
-
-
+        k3dPatcher.prepare(this);
 
         Log.e("GOTO", "enter");
         super.onCreate(savedInstanceState);
@@ -169,7 +134,7 @@ public class BrowserActivity extends AppCompatActivity implements SensorEventLis
 
             mContentView = findViewById(R.id.main_browser);
 
-            mContentView.addJavascriptInterface(new GyroUpdater(),"gyroData");
+            mContentView.addJavascriptInterface(k3dPatcher,"gyroData");
 
 
             manager.setHardwardAcceleratedFlag();
@@ -306,7 +271,7 @@ public class BrowserActivity extends AppCompatActivity implements SensorEventLis
     protected void onPause() {
         super.onPause();
         Log.e("GOTO", "onPause");
-        mSensorManager.unregisterListener(this);
+        k3dPatcher.pause();
     }
 
     @Override
@@ -321,7 +286,8 @@ public class BrowserActivity extends AppCompatActivity implements SensorEventLis
             mContentView.getSettings().setTextZoom(100);
         }
         manager.runMuteScript(mContentView, isMuteMode);
-        mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
+
+        k3dPatcher.resume();
     }
 
     @Override

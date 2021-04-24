@@ -1,15 +1,92 @@
 package com.antest1.gotobrowser.Helpers;
 
-public class K3dPatcher {
+import android.app.Activity;
+import android.content.Context;
+import android.content.res.Configuration;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.util.Log;
+import android.webkit.JavascriptInterface;
 
+import static android.content.Context.SENSOR_SERVICE;
+import static android.hardware.Sensor.TYPE_GYROSCOPE;
+import static android.view.Surface.*;
 
+public class K3dPatcher implements SensorEventListener {
+    private Activity activity;
+    private SensorManager mSensorManager;
+    private Sensor mGyroscope;
+
+    private float gyroX = 0f;
+    private float gyroY = 0f;
+
+    @JavascriptInterface
+    public float getX(){
+        double gotX = (Math.sqrt(1f + Math.abs(gyroX)) - 1) * 0.2f * Math.signum(gyroX);
+        gyroX *= 0.95f;
+        return (float)gotX;
+    }
+
+    @JavascriptInterface
+    public float getY(){
+        double gotY = (Math.sqrt(1f + Math.abs(gyroY)) - 1) * 0.2f * Math.signum(gyroY);
+        gyroY *= 0.95f;
+        return (float)gotY;
+    }
+
+    public void prepare(Activity activity) {
+        this.activity = activity;
+        mSensorManager = (SensorManager)activity.getSystemService(SENSOR_SERVICE);
+        mGyroscope = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
+    }
+
+    public void pause() {
+        mSensorManager.unregisterListener(this);
+    }
+
+    public void resume() {
+        mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
+    }
+
+    public void handleRotation(int rotation) {
+    }
+
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        int rotation = 0;
+        if (activity != null) {
+            rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        }
+        switch (rotation) {
+            default:
+            case ROTATION_0:
+                gyroX -= sensorEvent.values[1] * 0.5;
+                gyroY += sensorEvent.values[0] * 0.5;
+                break;
+            case ROTATION_90:
+                gyroX -= sensorEvent.values[0] * 0.5;
+                gyroY -= sensorEvent.values[1] * 0.5;
+                break;
+            case ROTATION_180:
+                gyroX += sensorEvent.values[1] * 0.5;
+                gyroY -= sensorEvent.values[0] * 0.5;
+                break;
+            case ROTATION_270:
+                gyroX += sensorEvent.values[0] * 0.5;
+                gyroY += sensorEvent.values[1] * 0.5;
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
 
     public static String patchKantai3d(String main_js){
 
         main_js = main_js.replaceFirst(
                 "(return .{0,99}\\!\\=.{0,99}\\|\\|null\\!\\=\\(.{0,99}\\=.{0,99}\\(.{0,99}\\)\\)&&\\(.{0,99}\\='_'\\+.{0,99}\\),.{0,99}\\+\\(.{0,99}\\+.{0,99}\\+'\\/'\\+\\(.{0,99}\\+.{0,99}\\(.{0,99},.{0,99}\\)\\)\\+'_'\\+.{0,99}\\+.{0,99}\\+.{0,99}\\+.{0,99}\\(0x0,parseInt\\(.{0,99}\\)\\)\\);)",
                 "\n return window.displacementPath = (function () {\n$1\n})();\n");
-
 
         main_js = main_js.replaceFirst(
                 "(new PIXI\\[.{0,99}\\]\\(.{0,99}\\[.{0,99}\\]\\[.{0,99}\\],.{0,99},.{0,99}\\);document)",
@@ -19,13 +96,9 @@ public class K3dPatcher {
                 "(\\=[^=]{0,99}\\[[^\\[]{0,99}\\]\\[[^\\[]{0,99}\\]\\([^\\(]{0,99}\\),[^,]{0,99}\\=0x0\\=\\=.{0,99}\\?0x0\\:.{0,99},.{0,99}\\=.{0,99}\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\(.{0,99}\\);)",
                 "\n = window.charar $1");
 
-
-
-
         main_js = main_js.replaceFirst(
                 "(var .{0,99}\\=new PIXI\\[\\(.{0,99}\\)\\]\\(.{0,99}\\);this\\[.{0,99}\\]\\=.{0,99}\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\(.{0,99}\\),this\\[.{0,99}\\]\\[.{0,99}]\\[.{0,99}\\]\\(.{0,99},\\-.{0,99}\\);var [^=]{0,99}=)",
                 "$1 window.charal = \n");
-
 
         main_js = main_js.replaceFirst(
                 "(\\=[^=]{0,99}\\[[^=]{0,99}\\]\\[[^=]{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\(.{0,99}\\)\\[.{0,99}\\]\\(.{0,99}\\);this\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\(\\-.{0,99}\\+.{0,99}\\['x'\\]\\+.{0,99},\\-.{0,99}\\+.{0,99}\\['y'\\]\\),)",
@@ -98,7 +171,6 @@ public class K3dPatcher {
                 "\n = window.charasin $1");
 
 
-
         main_js = main_js.replaceFirst(
                 "(this\\['y'\\]=this\\[.{0,99}\\('.{0,99}'\\)]-1.5\\*.{0,99}\\*1.8;)",
                 "$1\n" +
@@ -107,7 +179,7 @@ public class K3dPatcher {
                         "\n" +
                         "window.displacementFilter.uniforms.textureScale = this.scale.x;\n" +
                         "\n" +
-                        "var flip = (this.parent._chara.transform.position.x - window.portOffset) / (window.portOffsetR) - 0.5;\n" +
+//                        "var flip = (this.parent._chara.transform.position.x - window.portOffset) / (window.portOffsetR) - 0.5;\n" +
 //                        "window.displacementFilter.uniforms.offset = [flip * mousex *1.3\n" +
 //                        ",0.02 * window.charasin - 0.01 + mousey * 0.6];\n" +
                         "\n");
@@ -122,7 +194,6 @@ public class K3dPatcher {
                 "    window.displacementFilter.uniforms.offset[0] = window.gyroData.getX();\n" +
                 "    window.displacementFilter.uniforms.offset[1] = window.gyroData.getY();\n" +
                 "  }" +
-                "    console.log('------gyroData:' + window.displacementFilter.uniforms.offset[0] + '    ' + window.displacementFilter.uniforms.offset[1]);\n" +
                 "}";
 
     }
@@ -130,7 +201,7 @@ public class K3dPatcher {
 
 
 
-    private static String frag = "precision mediump float;\n" +
+    private static final String frag = "precision mediump float;\n" +
             "uniform vec2 offset;\n" +
             "\n" +
             "\n" +
@@ -243,7 +314,7 @@ public class K3dPatcher {
             "\n" +
             "}";
 
-    private static String vert = "#ifdef GL_ES\n" +
+    private static final String vert = "#ifdef GL_ES\n" +
             "precision highp float;\n" +
             "#endif\n" +
             "\n" +
