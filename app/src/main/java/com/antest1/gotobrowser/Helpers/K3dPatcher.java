@@ -38,7 +38,23 @@ public class K3dPatcher {
                         "window.portOffsetR = window.charar;//r\n" +
                         "\n" +
                         "window.displacementSprite = PIXI.Sprite.fromImage('https://kantai3d.com/'+ window.displacementPath );\n" +
-                        "window.displacementFilter = PIXI.DepthPerspectiveFilter;\n" +
+                        "window.displacementFilter = new PIXI.Filter(`"
+                        + vert + "`, `" + frag + "`);\n" +
+                        "\n" +
+                        "window.displacementFilter.apply = function(filterManager, input, output)\n" +
+                        "{\n" +
+                        "  this.uniforms.dimensions = {};\n" +
+                        "  this.uniforms.dimensions[0] = input.sourceFrame.width;\n" +
+                        "  this.uniforms.dimensions[1] = input.sourceFrame.height;\n" +
+                        "\n" +
+                        "  this.uniforms.padding = this.padding;\n" +
+                        "  \n" +
+                        "  this.uniforms.frameWidth = input.size.width;\n" +
+                        "  this.uniforms.frameHeight = input.size.height;\n" +
+                        "\n" +
+                        "  // draw the filter...\n" +
+                        "  filterManager.applyFilter(this, input, output);\n" +
+                        "}\n" +
                         "\n" +
                         "window.displacementFilter.uniforms.textureWidth = this._chara.texture.width;\n" +
                         "window.displacementFilter.uniforms.textureHeight = this._chara.texture.height;\n" +
@@ -98,31 +114,8 @@ public class K3dPatcher {
 
 
         return main_js + ";\n" +
-                "\n" +
-                "'use strict';\n" +
-                "PIXI.DepthPerspectiveFilter = new PIXI.Filter(`"
-                + vert + "`, `" + frag + "`);\n" +
-                "\n" +
-                "PIXI.DepthPerspectiveFilter.apply = function(filterManager, input, output)\n" +
-                "{\n" +
-                "  this.uniforms.dimensions = {};\n" +
-                "  this.uniforms.dimensions[0] = input.sourceFrame.width;\n" +
-                "  this.uniforms.dimensions[1] = input.sourceFrame.height;\n" +
-                "\n" +
-                "  this.uniforms.padding = this.padding;\n" +
-                "  \n" +
-                "  this.uniforms.frameWidth = input.size.width;\n" +
-                "  this.uniforms.frameHeight = input.size.height;\n" +
-                "\n" +
-                "  // draw the filter...\n" +
-                "  filterManager.applyFilter(this, input, output);\n" +
-                "}\n" +
-                "\n" +
-                "\n" +
-                "\n" +
-                "\n" +
-                "" +
-                "setInterval(refreshGyroData, 100)\n" +
+
+                "setInterval(refreshGyroData, 10)\n" +
                 "\n" +
                 "function refreshGyroData() {\n" +
                 "  if (window.displacementFilter && window.displacementFilter.uniforms && window.displacementFilter.uniforms.offset) {\n" +
