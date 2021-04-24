@@ -12,6 +12,10 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,6 +30,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.webkit.JavascriptInterface;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -50,6 +55,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static android.hardware.Sensor.TYPE_GYROSCOPE;
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
@@ -70,7 +76,7 @@ import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_EXTERNAL_PERMISSION;
 
-public class BrowserActivity extends AppCompatActivity {
+public class BrowserActivity extends AppCompatActivity implements SensorEventListener {
     public static final String FOREGROUND_ACTION = BuildConfig.APPLICATION_ID + ".foreground";
 
     private int uiOption;
@@ -98,9 +104,49 @@ public class BrowserActivity extends AppCompatActivity {
 
     private BackPressCloseHandler backPressCloseHandler;
 
+    private SensorManager mSensorManager;
+    private Sensor mGyroscope;
+
+
+    private float gyroX = 0f;
+    private float gyroY = 0f;
+
+    class GyroUpdater {
+        @JavascriptInterface
+        public float getX(){
+            double gotX = (Math.sqrt(1f + Math.abs(gyroX)) - 1) * 0.2f * Math.signum(gyroX);
+            gyroX *= 0.95f;
+            return (float)gotX;
+        }
+
+        @JavascriptInterface
+        public float getY(){
+            double gotY = (Math.sqrt(1f + Math.abs(gyroY)) - 1) * 0.2f * Math.signum(gyroY);
+            gyroY *= 0.95f;
+            return (float)gotY;
+        }
+    }
+
+
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        String sensorName = sensorEvent.sensor.getName();
+        Log.v("GOTO", sensorName + ": X: " + sensorEvent.values[0] + "; Y: " + sensorEvent.values[1] + "; Z: " + sensorEvent.values[2] + ";");
+        gyroX -= sensorEvent.values[0] * 0.5;
+        gyroY -= sensorEvent.values[1] * 0.5;
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
+
     @SuppressLint({"SetJavaScriptEnabled", "ApplySharedPref", "ClickableViewAccessibility", "SourceLockedOrientationActivity"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        mGyroscope = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
+
+
+
         Log.e("GOTO", "enter");
         super.onCreate(savedInstanceState);
         uiOption = getWindow().getDecorView().getSystemUiVisibility();
@@ -122,6 +168,10 @@ public class BrowserActivity extends AppCompatActivity {
             if (actionBar != null) actionBar.hide();
 
             mContentView = findViewById(R.id.main_browser);
+
+            mContentView.addJavascriptInterface(new GyroUpdater(),"gyroData");
+
+
             manager.setHardwardAcceleratedFlag();
 
             // panel, keyboard settings
@@ -185,6 +235,8 @@ public class BrowserActivity extends AppCompatActivity {
             KcSubtitleUtils.loadQuoteAnnotation(getApplicationContext());
             isSubtitleLoaded = KcSubtitleUtils.loadQuoteData(getApplicationContext(), subtitle_local);
             connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
+
+
 
             boolean useDevTools = sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
             if (connector_info != null && connector_info.size() == 2) {
@@ -254,6 +306,7 @@ public class BrowserActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Log.e("GOTO", "onPause");
+        mSensorManager.unregisterListener(this);
     }
 
     @Override
@@ -268,6 +321,7 @@ public class BrowserActivity extends AppCompatActivity {
             mContentView.getSettings().setTextZoom(100);
         }
         manager.runMuteScript(mContentView, isMuteMode);
+        mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
     }
 
     @Override
