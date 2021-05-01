@@ -111,8 +111,7 @@ public class K3dPatcher implements SensorEventListener {
                         "window.portOffsetR = window.charar;//r\n" +
                         "\n" +
                         "window.displacementSprite = PIXI.Sprite.fromImage('https://kantai3d.com/'+ window.displacementPath );\n" +
-                        "window.displacementFilter = new PIXI.Filter(`"
-                        + vert + "`, `" + frag + "`);\n" +
+                        "window.displacementFilter = new PIXI.Filter(null, `" + frag + "`);\n" +
                         "\n" +
                         "window.displacementFilter.apply = function(filterManager, input, output)\n" +
                         "{\n" +
@@ -312,21 +311,5 @@ public class K3dPatcher implements SensorEventListener {
             "                       uSampler,\n" +
             "                       (posSum - posSumLast) * -clamp(weigth * 0.5 + 0.5, 0.0, 1.5) + posSum);\n" +
             "\n" +
-            "}";
-
-    private static final String vert = "#ifdef GL_ES\n" +
-            "precision highp float;\n" +
-            "#endif\n" +
-            "\n" +
-            "attribute vec2 aVertexPosition;\n" +
-            "attribute vec2 aTextureCoord;\n" +
-            "varying vec2 vTextureCoord;\n" +
-            "\n" +
-            "uniform mat3 projectionMatrix;\n" +
-            "\n" +
-            "void main(void)\n" +
-            "{\n" +
-            "    vTextureCoord = aTextureCoord;\n" +
-            "    gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n" +
             "}";
 }
