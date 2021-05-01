@@ -130,14 +130,13 @@ public class K3dPatcher implements SensorEventListener {
                         "\n" +
                         "window.displacementFilter.uniforms.textureWidth = this._chara.texture.width;\n" +
                         "window.displacementFilter.uniforms.textureHeight = this._chara.texture.height;\n" +
-                        "window.displacementFilter.padding = 0;\n" +
                         "\n" +
                         "\n" +
                         "window.displacementSprite.visible = false;\n" +
                         "\n" +
                         "window.displacementFilter.padding = 150;\n" +
                         "\n" +
-                        "window.currenctChara = this._chara;\n" +
+                        "window.currentChara = this._chara;\n" +
                         "\n" +
                         "if (window.displacementSprite.width != 1) {\n" +
                         "    // The depth map is already loaded\n" +
@@ -145,21 +144,20 @@ public class K3dPatcher implements SensorEventListener {
                         "    window.displacementFilter.uniforms.scale = 1.0;\n" +
                         "    window.displacementFilter.uniforms.focus = 0.5;\n" +
                         "    window.displacementFilter.uniforms.offset = [0.0, 0.0];\n" +
-                        "    window.currenctChara.filters = [window.displacementFilter];\n" +
-                        "    window.currenctChara.addChild(window.displacementSprite);\n" +
+                        "    window.currentChara.filters = [window.displacementFilter];\n" +
+                        "    window.currentChara.addChild(window.displacementSprite);\n" +
                         "} else {\n" +
                         "    // The depth map is not loaded yet, and may not exist in server at all\n" +
                         "    // Disable the filter first\n" +
-                        "    this._chara.filters = [];\n" +
-                        "    window.currenctChara.filters = [];\n" +
+                        "    window.currentChara.filters = [];\n" +
                         "    window.displacementSprite.texture.baseTexture.on('loaded', function(){\n" +
                         "        // Re-enable the filter when resource loaded\n" +
                         "        window.displacementFilter.uniforms.displacementMap = window.displacementSprite.texture;\n" +
                         "        window.displacementFilter.uniforms.scale = 1.0;\n" +
                         "        window.displacementFilter.uniforms.focus = 0.5;\n" +
                         "        window.displacementFilter.uniforms.offset = [0.0, 0.0];\n" +
-                        "        window.currenctChara.filters = [window.displacementFilter];\n" +
-                        "        window.currenctChara.addChild(window.displacementSprite);\n" +
+                        "        window.currentChara.filters = [window.displacementFilter];\n" +
+                        "        window.currentChara.addChild(window.displacementSprite);\n" +
                         "    });\n" +
                         "}");
 
