@@ -87,6 +87,7 @@ public class BrowserActivity extends AppCompatActivity {
     private ProgressDialog downloadDialog;
     private ScreenshotNotification screenshotNotification;
     GestureDetector mDetector;
+    private K3dPatcher k3dPatcher = new K3dPatcher();
 
     private boolean isKcBrowserMode = false;
     private boolean isPanelVisible = false;
@@ -105,7 +106,6 @@ public class BrowserActivity extends AppCompatActivity {
 
     private BackPressCloseHandler backPressCloseHandler;
 
-    private K3dPatcher k3dPatcher = new K3dPatcher();
 
     @SuppressLint({"SetJavaScriptEnabled", "ApplySharedPref", "ClickableViewAccessibility", "SourceLockedOrientationActivity"})
     @Override

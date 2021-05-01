@@ -2,17 +2,27 @@ package com.antest1.gotobrowser.Helpers;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.Configuration;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.util.Log;
 import android.webkit.JavascriptInterface;
+
+import com.antest1.gotobrowser.R;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static android.content.Context.SENSOR_SERVICE;
 import static android.hardware.Sensor.TYPE_GYROSCOPE;
-import static android.view.Surface.*;
+import static android.view.Surface.ROTATION_0;
+import static android.view.Surface.ROTATION_180;
+import static android.view.Surface.ROTATION_270;
+import static android.view.Surface.ROTATION_90;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
 
 public class K3dPatcher implements SensorEventListener {
     private Activity activity;
@@ -21,6 +31,9 @@ public class K3dPatcher implements SensorEventListener {
 
     private float gyroX = 0f;
     private float gyroY = 0f;
+    private SharedPreferences sharedPref;
+
+    private static boolean isEnable = false;
 
     @JavascriptInterface
     public float getX(){
@@ -37,20 +50,29 @@ public class K3dPatcher implements SensorEventListener {
     }
 
     public void prepare(Activity activity) {
-        this.activity = activity;
-        mSensorManager = (SensorManager)activity.getSystemService(SENSOR_SERVICE);
-        mGyroscope = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
+        // Only update the enable status when opening the browser view
+        // Require reopening the browser after switching the MOD on or off
+        sharedPref = activity.getSharedPreferences(
+                activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
+        isEnable = sharedPref.getBoolean(PREF_MOD_KANTAI3D, false);
+
+        if (isEnable) {
+            this.activity = activity;
+            mSensorManager = (SensorManager)activity.getSystemService(SENSOR_SERVICE);
+            mGyroscope = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
+        }
     }
 
     public void pause() {
-        mSensorManager.unregisterListener(this);
+        if (isEnable) {
+            mSensorManager.unregisterListener(this);
+        }
     }
 
     public void resume() {
-        mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
-    }
-
-    public void handleRotation(int rotation) {
+        if (isEnable) {
+            mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
+        }
     }
 
     public void onSensorChanged(SensorEvent sensorEvent) {
@@ -83,6 +105,9 @@ public class K3dPatcher implements SensorEventListener {
     }
 
     public static String patchKantai3d(String main_js){
+        if (!isEnable) {
+            return main_js;
+        }
 
         main_js = main_js.replaceFirst(
                 "(return .{0,99}\\!\\=.{0,99}\\|\\|null\\!\\=\\(.{0,99}\\=.{0,99}\\(.{0,99}\\)\\)&&\\(.{0,99}\\='_'\\+.{0,99}\\),.{0,99}\\+\\(.{0,99}\\+.{0,99}\\+'\\/'\\+\\(.{0,99}\\+.{0,99}\\(.{0,99},.{0,99}\\)\\)\\+'_'\\+.{0,99}\\+.{0,99}\\+.{0,99}\\+.{0,99}\\(0x0,parseInt\\(.{0,99}\\)\\)\\);)",

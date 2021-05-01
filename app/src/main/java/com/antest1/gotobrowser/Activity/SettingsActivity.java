@@ -47,6 +47,7 @@ import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
 import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_PANEL_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
@@ -86,6 +87,7 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_MULTIWIN_MARGIN:
                 case PREF_DEVTOOLS_DEBUG:
                 case PREF_TP_DISCLAIMED:
+                case PREF_MOD_KANTAI3D:
                     editor.putBoolean(key, false);
                     break;
                 case PREF_ALTER_METHOD:
