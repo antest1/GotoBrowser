@@ -109,28 +109,24 @@ public class K3dPatcher implements SensorEventListener {
             return main_js;
         }
 
-        main_js = main_js.replaceFirst(
-                "(return .{0,99}\\!\\=.{0,99}\\|\\|null\\!\\=\\(.{0,99}\\=.{0,99}\\(.{0,99}\\)\\)&&\\(.{0,99}\\='_'\\+.{0,99}\\),.{0,99}\\+\\(.{0,99}\\+.{0,99}\\+'\\/'\\+\\(.{0,99}\\+.{0,99}\\(.{0,99},.{0,99}\\)\\)\\+'_'\\+.{0,99}\\+.{0,99}\\+.{0,99}\\+.{0,99}\\(0x0,parseInt\\(.{0,99}\\)\\)\\);)",
+        Map<String, String> stringsToReplace = new LinkedHashMap<>();
+
+        stringsToReplace.put("(return .{0,99}\\!\\=.{0,99}\\|\\|null\\!\\=\\(.{0,99}\\=.{0,99}\\(.{0,99}\\)\\)&&\\(.{0,99}\\='_'\\+.{0,99}\\),.{0,99}\\+\\(.{0,99}\\+.{0,99}\\+'\\/'\\+\\(.{0,99}\\+.{0,99}\\(.{0,99},.{0,99}\\)\\)\\+'_'\\+.{0,99}\\+.{0,99}\\+.{0,99}\\+.{0,99}\\(0x0,parseInt\\(.{0,99}\\)\\)\\);)",
                 "\n return window.displacementPath = (function () {\n$1\n})();\n");
 
-        main_js = main_js.replaceFirst(
-                "(new PIXI\\[.{0,99}\\]\\(.{0,99}\\[.{0,99}\\]\\[.{0,99}\\],.{0,99},.{0,99}\\);document)",
+        stringsToReplace.put("(new PIXI\\[.{0,99}\\]\\(.{0,99}\\[.{0,99}\\]\\[.{0,99}\\],.{0,99},.{0,99}\\);document)",
                 "\n window.pixiApp = $1");
 
-        main_js = main_js.replaceFirst(
-                "(\\=[^=]{0,99}\\[[^\\[]{0,99}\\]\\[[^\\[]{0,99}\\]\\([^\\(]{0,99}\\),[^,]{0,99}\\=0x0\\=\\=.{0,99}\\?0x0\\:.{0,99},.{0,99}\\=.{0,99}\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\(.{0,99}\\);)",
+        stringsToReplace.put("(\\=[^=]{0,99}\\[[^\\[]{0,99}\\]\\[[^\\[]{0,99}\\]\\([^\\(]{0,99}\\),[^,]{0,99}\\=0x0\\=\\=.{0,99}\\?0x0\\:.{0,99},.{0,99}\\=.{0,99}\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\(.{0,99}\\);)",
                 "\n = window.charar $1");
 
-        main_js = main_js.replaceFirst(
-                "(var .{0,99}\\=new PIXI\\[\\(.{0,99}\\)\\]\\(.{0,99}\\);this\\[.{0,99}\\]\\=.{0,99}\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\(.{0,99}\\),this\\[.{0,99}\\]\\[.{0,99}]\\[.{0,99}\\]\\(.{0,99},\\-.{0,99}\\);var [^=]{0,99}=)",
+        stringsToReplace.put("(var .{0,99}\\=new PIXI\\[\\(.{0,99}\\)\\]\\(.{0,99}\\);this\\[.{0,99}\\]\\=.{0,99}\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\(.{0,99}\\),this\\[.{0,99}\\]\\[.{0,99}]\\[.{0,99}\\]\\(.{0,99},\\-.{0,99}\\);var [^=]{0,99}=)",
                 "$1 window.charal = \n");
 
-        main_js = main_js.replaceFirst(
-                "(\\=[^=]{0,99}\\[[^=]{0,99}\\]\\[[^=]{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\(.{0,99}\\)\\[.{0,99}\\]\\(.{0,99}\\);this\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\(\\-.{0,99}\\+.{0,99}\\['x'\\]\\+.{0,99},\\-.{0,99}\\+.{0,99}\\['y'\\]\\),)",
+        stringsToReplace.put("(\\=[^=]{0,99}\\[[^=]{0,99}\\]\\[[^=]{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\(.{0,99}\\)\\[.{0,99}\\]\\(.{0,99}\\);this\\[.{0,99}\\]\\[.{0,99}\\]\\[.{0,99}\\]\\(\\-.{0,99}\\+.{0,99}\\['x'\\]\\+.{0,99},\\-.{0,99}\\+.{0,99}\\['y'\\]\\),)",
                 "\n = window.charah $1");
 
-        main_js = main_js.replaceFirst(
-                "(\\['y'\\]\\),this\\[.{0,99}\\('.{0,99}'\\)\\]\\[.{0,99}\\('.{0,99}'\\)\\]\\(.{0,99}\\+.{0,99},.{0,99}\\-.{0,99}\\);)",
+        stringsToReplace.put("(\\['y'\\]\\),this\\[.{0,99}\\('.{0,99}'\\)\\]\\[.{0,99}\\('.{0,99}'\\)\\]\\(.{0,99}\\+.{0,99},.{0,99}\\-.{0,99}\\);)",
                 "$1 " + "\n" +
                         "window.portOffset = -window.charal + window.charah.x;//-l+h.x\n" +
                         "window.portOffsetR = window.charar;//r\n" +
@@ -171,27 +167,20 @@ public class K3dPatcher implements SensorEventListener {
                         "}");
 
 
-
-        main_js = main_js.replaceFirst(
-                "(\\=Math\\[.{0,99}\\]\\(.{0,99}\\),.{0,99}\\=0x1\\+0\\.012\\*\\(0\\.5\\+0\\.5\\*.{0,99}\\);this\\[.{0,99}\\]\\[.{0,99}\\]\\(.{0,99}\\),)",
+        stringsToReplace.put("(\\=Math\\[.{0,99}\\]\\(.{0,99}\\),.{0,99}\\=0x1\\+0\\.012\\*\\(0\\.5\\+0\\.5\\*.{0,99}\\);this\\[.{0,99}\\]\\[.{0,99}\\]\\(.{0,99}\\),)",
                 "\n = window.charasin $1");
 
 
-        main_js = main_js.replaceFirst(
+        stringsToReplace.put(
                 "(this\\['y'\\]=this\\[.{0,99}\\('.{0,99}'\\)]-1.5\\*.{0,99}\\*1.8;)",
                 "$1\n" +
                         "var mousex = (window.pixiApp.renderer.plugins.interaction.mouse.global.x/1200.0-0.5);\n" +
                         "var mousey = (window.pixiApp.renderer.plugins.interaction.mouse.global.y/720.0-0.5);\n" +
-                        "\n" +
                         "window.displacementFilter.uniforms.textureScale = this.scale.x;\n" +
-                        "\n" +
-//                        "var flip = (this.parent._chara.transform.position.x - window.portOffset) / (window.portOffsetR) - 0.5;\n" +
-//                        "window.displacementFilter.uniforms.offset = [flip * mousex *1.3\n" +
-//                        ",0.02 * window.charasin - 0.01 + mousey * 0.6];\n" +
                         "\n");
 
-
-        return main_js + ";\n" +
+        stringsToReplace.put("$",
+                ";\n" +
 
                 "setInterval(refreshGyroData, 10)\n" +
                 "\n" +
@@ -217,10 +206,24 @@ public class K3dPatcher implements SensorEventListener {
                 "\n" +
                 "  // draw the filter...\n" +
                 "  filterManager.applyFilter(this, input, output);\n" +
-                "}\n" +
+                "}\n");
 
-                "";
 
+        String replaced = main_js;
+        for (Map.Entry<String, String> stringToReplace : stringsToReplace.entrySet()) {
+            Pattern pattern = Pattern.compile(stringToReplace.getKey());
+            Matcher matcher = pattern.matcher(replaced);
+            if (matcher.find() && !matcher.find()) {
+                // Find one and only one match
+                matcher.reset();
+                replaced = matcher.replaceFirst(stringToReplace.getValue());
+            } else {
+                // The main.js is probably updated and no longer support the 3D patch currently
+                // Immediately return the unpatched main.js
+                return main_js;
+            }
+        }
+        return replaced;
     }
 
 
