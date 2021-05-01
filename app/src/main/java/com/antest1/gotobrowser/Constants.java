@@ -37,6 +37,7 @@ public class Constants {
     public static final String PREF_ALTER_METHOD = "pref_alter_method";
     public static final String PREF_ALTER_ENDPOINT = "pref_alter_endpoint";
     public static final String PREF_TP_DISCLAIMED = "pref_tp_disclaimed";
+    public static final String PREF_MOD_KANTAI3D = "pref_mod_kantai3d";
 
     public static final String[] PREF_SETTINGS = {
             PREF_FONT_PREFETCH,
@@ -48,7 +49,8 @@ public class Constants {
             PREF_DEVTOOLS_DEBUG,
             PREF_ALTER_METHOD,
             PREF_ALTER_ENDPOINT,
-            PREF_TP_DISCLAIMED
+            PREF_TP_DISCLAIMED,
+            PREF_MOD_KANTAI3D
     };
 
     public static final String PANEL_METHOD_SWIPE = "0";

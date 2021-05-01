@@ -56,4 +56,8 @@
     <string name="setting_alter_method_proxy">KCCacheProxy（遠程服務器）</string>
     <string name="setting_alter_method">繞行方式</string>
     <string name="setting_alter_endpoint">端點服務器</string>
+
+    <string name="settings_mod_label">第三方MOD（風險自負）</string>
+    <string name="settings_mod_kantai3d_enable">[Beta] 艦隊立體化改修</string>
+    <string name="settings_mod_kantai3d_summary">為部份秘書艦添加仿立體的視覺效果。作者：@laplamgor</string>
 </resources>

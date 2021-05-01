@@ -12,6 +12,10 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,6 +30,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.webkit.JavascriptInterface;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -40,6 +45,7 @@ import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
+import com.antest1.gotobrowser.Helpers.K3dPatcher;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Notification.ScreenshotNotification;
 import com.antest1.gotobrowser.R;
@@ -50,6 +56,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static android.hardware.Sensor.TYPE_GYROSCOPE;
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
@@ -80,6 +87,7 @@ public class BrowserActivity extends AppCompatActivity {
     private ProgressDialog downloadDialog;
     private ScreenshotNotification screenshotNotification;
     GestureDetector mDetector;
+    private K3dPatcher k3dPatcher = new K3dPatcher();
 
     private boolean isKcBrowserMode = false;
     private boolean isPanelVisible = false;
@@ -98,9 +106,12 @@ public class BrowserActivity extends AppCompatActivity {
 
     private BackPressCloseHandler backPressCloseHandler;
 
+
     @SuppressLint({"SetJavaScriptEnabled", "ApplySharedPref", "ClickableViewAccessibility", "SourceLockedOrientationActivity"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        k3dPatcher.prepare(this);
+
         Log.e("GOTO", "enter");
         super.onCreate(savedInstanceState);
         uiOption = getWindow().getDecorView().getSystemUiVisibility();
@@ -122,6 +133,10 @@ public class BrowserActivity extends AppCompatActivity {
             if (actionBar != null) actionBar.hide();
 
             mContentView = findViewById(R.id.main_browser);
+
+            mContentView.addJavascriptInterface(k3dPatcher,"gyroData");
+
+
             manager.setHardwardAcceleratedFlag();
 
             // panel, keyboard settings
@@ -185,6 +200,8 @@ public class BrowserActivity extends AppCompatActivity {
             KcSubtitleUtils.loadQuoteAnnotation(getApplicationContext());
             isSubtitleLoaded = KcSubtitleUtils.loadQuoteData(getApplicationContext(), subtitle_local);
             connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
+
+
 
             boolean useDevTools = sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
             if (connector_info != null && connector_info.size() == 2) {
@@ -254,6 +271,7 @@ public class BrowserActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Log.e("GOTO", "onPause");
+        k3dPatcher.pause();
     }
 
     @Override
@@ -268,6 +286,8 @@ public class BrowserActivity extends AppCompatActivity {
             mContentView.getSettings().setTextZoom(100);
         }
         manager.runMuteScript(mContentView, isMuteMode);
+
+        k3dPatcher.resume();
     }
 
     @Override
