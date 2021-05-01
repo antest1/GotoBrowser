@@ -58,4 +58,8 @@
     <string name="setting_alter_method_proxy">KCCacheProxy (remote)</string>
     <string name="setting_alter_method">우회 방식</string>
     <string name="setting_alter_endpoint">Endpoint 서버</string>
+
+    <string name="settings_mod_label">Third Party Mods (use at your own risk)</string>
+    <string name="settings_mod_kantai3d_enable">[Beta] Kantai 3D</string>
+    <string name="settings_mod_kantai3d_summary">Add 3D-like visual effects to some of your secretaries. Author: @laplamgor</string>
 </resources>

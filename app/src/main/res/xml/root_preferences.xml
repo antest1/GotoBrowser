@@ -80,6 +80,18 @@
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
+        app:title="@string/settings_mod_label">
+
+        <SwitchPreferenceCompat
+            android:summary="@string/settings_mod_kantai3d_summary"
+            app:iconSpaceReserved="false"
+            app:key="pref_mod_kantai3d"
+            app:title="@string/settings_mod_kantai3d_enable" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
         app:title="@string/settings_appinfo_label">
 
         <Preference

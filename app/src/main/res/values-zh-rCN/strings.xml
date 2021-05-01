@@ -56,4 +56,8 @@
     <string name="setting_alter_method_proxy">KCCacheProxy（远程服务器）</string>
     <string name="setting_alter_method">绕行方式</string>
     <string name="setting_alter_endpoint">端点服务器</string>
+
+    <string name="settings_mod_label">第三方MOD（自担风险）</string>
+    <string name="settings_mod_kantai3d_enable">[Beta] 舰队立体化改修</string>
+    <string name="settings_mod_kantai3d_summary">为部份秘书舰添加仿立体的视觉效果。作者：@laplamgor</string>
 </resources>

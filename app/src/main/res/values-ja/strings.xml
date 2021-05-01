@@ -57,4 +57,8 @@
     <string name="setting_alter_method_proxy">KCCacheProxy（リモート）</string>
     <string name="setting_alter_method">バイパス方式</string>
     <string name="setting_alter_endpoint">エンドポイントサーバー</string>
+
+    <string name="settings_mod_label">非公式のMOD（※自己責任）</string>
+    <string name="settings_mod_kantai3d_enable">[Beta] 艦隊立体化改修</string>
+    <string name="settings_mod_kantai3d_summary">一部の秘書艦に3Dのような視覚効果を追加します。作者：@laplamgor</string>
 </resources>
