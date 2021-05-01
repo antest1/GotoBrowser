@@ -111,22 +111,6 @@ public class K3dPatcher implements SensorEventListener {
                         "window.portOffsetR = window.charar;//r\n" +
                         "\n" +
                         "window.displacementSprite = PIXI.Sprite.fromImage('https://kantai3d.com/'+ window.displacementPath );\n" +
-                        "window.displacementFilter = new PIXI.Filter(null, `" + frag + "`);\n" +
-                        "\n" +
-                        "window.displacementFilter.apply = function(filterManager, input, output)\n" +
-                        "{\n" +
-                        "  this.uniforms.dimensions = {};\n" +
-                        "  this.uniforms.dimensions[0] = input.sourceFrame.width;\n" +
-                        "  this.uniforms.dimensions[1] = input.sourceFrame.height;\n" +
-                        "\n" +
-                        "  this.uniforms.padding = this.padding;\n" +
-                        "  \n" +
-                        "  this.uniforms.frameWidth = input.size.width;\n" +
-                        "  this.uniforms.frameHeight = input.size.height;\n" +
-                        "\n" +
-                        "  // draw the filter...\n" +
-                        "  filterManager.applyFilter(this, input, output);\n" +
-                        "}\n" +
                         "\n" +
                         "window.displacementFilter.uniforms.textureWidth = this._chara.texture.width;\n" +
                         "window.displacementFilter.uniforms.textureHeight = this._chara.texture.height;\n" +
@@ -191,7 +175,26 @@ public class K3dPatcher implements SensorEventListener {
                 "    window.displacementFilter.uniforms.offset[0] = window.gyroData.getX();\n" +
                 "    window.displacementFilter.uniforms.offset[1] = window.gyroData.getY();\n" +
                 "  }" +
-                "}";
+                "}" +
+                "" +
+                "window.displacementFilter = new PIXI.Filter(null, `" + frag + "`);\n" +
+                "\n" +
+                "window.displacementFilter.apply = function(filterManager, input, output)\n" +
+                "{\n" +
+                "  this.uniforms.dimensions = {};\n" +
+                "  this.uniforms.dimensions[0] = input.sourceFrame.width;\n" +
+                "  this.uniforms.dimensions[1] = input.sourceFrame.height;\n" +
+                "\n" +
+                "  this.uniforms.padding = this.padding;\n" +
+                "  \n" +
+                "  this.uniforms.frameWidth = input.size.width;\n" +
+                "  this.uniforms.frameHeight = input.size.height;\n" +
+                "\n" +
+                "  // draw the filter...\n" +
+                "  filterManager.applyFilter(this, input, output);\n" +
+                "}\n" +
+
+                "";
 
     }
 
