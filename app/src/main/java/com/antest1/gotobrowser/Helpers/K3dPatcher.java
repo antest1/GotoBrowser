@@ -33,7 +33,7 @@ public class K3dPatcher implements SensorEventListener {
     private float gyroY = 0f;
     private SharedPreferences sharedPref;
 
-    private static boolean isEnable = false;
+    private static boolean isEnabled = false;
 
     @JavascriptInterface
     public float getX(){
@@ -54,9 +54,9 @@ public class K3dPatcher implements SensorEventListener {
         // Require reopening the browser after switching the MOD on or off
         sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
-        isEnable = sharedPref.getBoolean(PREF_MOD_KANTAI3D, false);
+        isEnabled = sharedPref.getBoolean(PREF_MOD_KANTAI3D, false);
 
-        if (isEnable) {
+        if (isEnabled) {
             this.activity = activity;
             mSensorManager = (SensorManager)activity.getSystemService(SENSOR_SERVICE);
             mGyroscope = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
@@ -64,13 +64,13 @@ public class K3dPatcher implements SensorEventListener {
     }
 
     public void pause() {
-        if (isEnable) {
+        if (isEnabled) {
             mSensorManager.unregisterListener(this);
         }
     }
 
     public void resume() {
-        if (isEnable) {
+        if (isEnabled) {
             mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
         }
     }
@@ -105,7 +105,7 @@ public class K3dPatcher implements SensorEventListener {
     }
 
     public static String patchKantai3d(String main_js){
-        if (!isEnable) {
+        if (!isEnabled) {
             return main_js;
         }
 
@@ -128,43 +128,43 @@ public class K3dPatcher implements SensorEventListener {
 
         stringsToReplace.put("(\\['y'\\]\\),this\\[.{0,99}\\('.{0,99}'\\)\\]\\[.{0,99}\\('.{0,99}'\\)\\]\\(.{0,99}\\+.{0,99},.{0,99}\\-.{0,99}\\);)",
                 "$1 " + "\n" +
-                        "window.portOffset = -window.charal + window.charah.x;//-l+h.x\n" +
-                        "window.portOffsetR = window.charar;//r\n" +
-                        "\n" +
-                        "window.displacementSprite = PIXI.Sprite.fromImage('https://kantai3d.com/'+ window.displacementPath );\n" +
-                        "\n" +
-                        "window.displacementFilter.uniforms.textureWidth = this._chara.texture.width;\n" +
-                        "window.displacementFilter.uniforms.textureHeight = this._chara.texture.height;\n" +
-                        "\n" +
-                        "\n" +
-                        "window.displacementSprite.visible = false;\n" +
-                        "\n" +
-                        "window.displacementFilter.padding = 150;\n" +
-                        "\n" +
-                        "window.currentChara = this._chara;\n" +
-                        "\n" +
-                        "if (window.displacementSprite.width != 1) {\n" +
-                        "    // The depth map is already loaded\n" +
-                        "    window.displacementFilter.uniforms.displacementMap = window.displacementSprite.texture;\n" +
-                        "    window.displacementFilter.uniforms.scale = 1.0;\n" +
-                        "    window.displacementFilter.uniforms.focus = 0.5;\n" +
-                        "    window.displacementFilter.uniforms.offset = [0.0, 0.0];\n" +
-                        "    window.currentChara.filters = [window.displacementFilter];\n" +
-                        "    window.currentChara.addChild(window.displacementSprite);\n" +
-                        "} else {\n" +
-                        "    // The depth map is not loaded yet, and may not exist in server at all\n" +
-                        "    // Disable the filter first\n" +
-                        "    window.currentChara.filters = [];\n" +
-                        "    window.displacementSprite.texture.baseTexture.on('loaded', function(){\n" +
-                        "        // Re-enable the filter when resource loaded\n" +
-                        "        window.displacementFilter.uniforms.displacementMap = window.displacementSprite.texture;\n" +
-                        "        window.displacementFilter.uniforms.scale = 1.0;\n" +
-                        "        window.displacementFilter.uniforms.focus = 0.5;\n" +
-                        "        window.displacementFilter.uniforms.offset = [0.0, 0.0];\n" +
-                        "        window.currentChara.filters = [window.displacementFilter];\n" +
-                        "        window.currentChara.addChild(window.displacementSprite);\n" +
-                        "    });\n" +
-                        "}");
+                "window.portOffset = -window.charal + window.charah.x;//-l+h.x\n" +
+                "window.portOffsetR = window.charar;//r\n" +
+                "\n" +
+                "window.displacementSprite = PIXI.Sprite.fromImage('https://kantai3d.com/'+ window.displacementPath );\n" +
+                "\n" +
+                "window.displacementFilter.uniforms.textureWidth = this._chara.texture.width;\n" +
+                "window.displacementFilter.uniforms.textureHeight = this._chara.texture.height;\n" +
+                "\n" +
+                "\n" +
+                "window.displacementSprite.visible = false;\n" +
+                "\n" +
+                "window.displacementFilter.padding = 150;\n" +
+                "\n" +
+                "window.currentChara = this._chara;\n" +
+                "\n" +
+                "if (window.displacementSprite.width != 1) {\n" +
+                "    // The depth map is already loaded\n" +
+                "    window.displacementFilter.uniforms.displacementMap = window.displacementSprite.texture;\n" +
+                "    window.displacementFilter.uniforms.scale = 1.0;\n" +
+                "    window.displacementFilter.uniforms.focus = 0.5;\n" +
+                "    window.displacementFilter.uniforms.offset = [0.0, 0.0];\n" +
+                "    window.currentChara.filters = [window.displacementFilter];\n" +
+                "    window.currentChara.addChild(window.displacementSprite);\n" +
+                "} else {\n" +
+                "    // The depth map is not loaded yet, and may not exist in server at all\n" +
+                "    // Disable the filter first\n" +
+                "    window.currentChara.filters = [];\n" +
+                "    window.displacementSprite.texture.baseTexture.on('loaded', function(){\n" +
+                "        // Re-enable the filter when resource loaded\n" +
+                "        window.displacementFilter.uniforms.displacementMap = window.displacementSprite.texture;\n" +
+                "        window.displacementFilter.uniforms.scale = 1.0;\n" +
+                "        window.displacementFilter.uniforms.focus = 0.5;\n" +
+                "        window.displacementFilter.uniforms.offset = [0.0, 0.0];\n" +
+                "        window.currentChara.filters = [window.displacementFilter];\n" +
+                "        window.currentChara.addChild(window.displacementSprite);\n" +
+                "    });\n" +
+                "}");
 
 
         stringsToReplace.put("(\\=Math\\[.{0,99}\\]\\(.{0,99}\\),.{0,99}\\=0x1\\+0\\.012\\*\\(0\\.5\\+0\\.5\\*.{0,99}\\);this\\[.{0,99}\\]\\[.{0,99}\\]\\(.{0,99}\\),)",
@@ -174,14 +174,11 @@ public class K3dPatcher implements SensorEventListener {
         stringsToReplace.put(
                 "(this\\['y'\\]=this\\[.{0,99}\\('.{0,99}'\\)]-1.5\\*.{0,99}\\*1.8;)",
                 "$1\n" +
-                        "var mousex = (window.pixiApp.renderer.plugins.interaction.mouse.global.x/1200.0-0.5);\n" +
-                        "var mousey = (window.pixiApp.renderer.plugins.interaction.mouse.global.y/720.0-0.5);\n" +
-                        "window.displacementFilter.uniforms.textureScale = this.scale.x;\n" +
-                        "\n");
+                "window.displacementFilter.uniforms.textureScale = this.scale.x;\n" +
+                "\n");
 
         stringsToReplace.put("$",
                 ";\n" +
-
                 "setInterval(refreshGyroData, 10)\n" +
                 "\n" +
                 "function refreshGyroData() {\n" +
@@ -190,7 +187,6 @@ public class K3dPatcher implements SensorEventListener {
                 "    window.displacementFilter.uniforms.offset[1] = window.gyroData.getY();\n" +
                 "  }" +
                 "}" +
-                "" +
                 "window.displacementFilter = new PIXI.Filter(null, `" + frag + "`);\n" +
                 "\n" +
                 "window.displacementFilter.apply = function(filterManager, input, output)\n" +
@@ -232,9 +228,6 @@ public class K3dPatcher implements SensorEventListener {
     private static final String frag = "precision mediump float;\n" +
             "uniform vec2 offset;\n" +
             "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
             "uniform sampler2D uSampler;\n" +
             "uniform sampler2D displacementMap;\n" +
             "\n" +
@@ -248,7 +241,6 @@ public class K3dPatcher implements SensorEventListener {
             "uniform float padding;\n" +
             "uniform vec4 filterArea;\n" +
             "uniform vec4 filterClamp;\n" +
-            "\n" +
             "\n" +
             "varying vec2 vTextureCoord;\n" +
             "varying vec4 vColor;\n" +
@@ -276,13 +268,6 @@ public class K3dPatcher implements SensorEventListener {
             "\n" +
             "#define MAXSTEPS 600.0\n" +
             "float steps = max(MAXSTEPS *length(offset), 30.0);\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
             "\n" +
             "\n" +
             "\n" +
