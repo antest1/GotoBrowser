@@ -542,11 +542,6 @@ public class ResourceProcess {
             main_js = main_js.replace(_failureCode, _failureCode.concat("GotoBrowser.kcs_axios_error(".concat(_var).concat("['stack']);")));
         }
 
-        // Low Frame Rate Issue
-        main_js = main_js.replaceFirst(
-                "(createjs(?:\\[\\w+\\('\\w+'\\)\\]){2})\\=createjs(?:\\[\\w+\\('\\w+'\\)\\]){2},",
-                "$1=createjs.Ticker.RAF,");
-
         // Prevent Possible Item Purchase Crash
         main_js = main_js.replaceFirst(
                 "function\\((\\w+)\\)\\{(window\\[\\w+\\('\\w+'\\)]\\(\\w+\\('\\w+'\\),\\w+\\[\\w+\\('\\w+'\\)]\\);)",
