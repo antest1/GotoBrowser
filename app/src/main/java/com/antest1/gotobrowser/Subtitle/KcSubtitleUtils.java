@@ -198,8 +198,8 @@ public class KcSubtitleUtils {
         }
 
         String filename = "quotes_size.json";
-        String folder = context.getFilesDir().getAbsolutePath().concat("/subtitle/");
-        String submeta_path = folder.concat(filename);
+        String data_dir = KcUtils.getAppCacheFileDir(context, "/subtitle/");
+        String submeta_path = data_dir.concat(filename);
         File submeta_file = new File(submeta_path);
 
         VersionDatabase versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
@@ -237,11 +237,11 @@ public class KcSubtitleUtils {
         Thread downloadThread = new Thread() {
             @Override
             public void run() {
-                String last_modified = table.getValue(filename);
+                String last_modified = table.getValue(file.getAbsolutePath());
                 if (!last_modified.equals(commit)) {
                     String new_last_modified = KcUtils.downloadResource(resourceClient, download_path, commit, file);
                     if (new_last_modified != null && !new_last_modified.equals("304")) {
-                        table.putValue(filename, commit);
+                        table.putValue(file.getAbsolutePath(), commit);
                     }
                 }
             }
@@ -261,8 +261,8 @@ public class KcSubtitleUtils {
 
     public static boolean loadQuoteData(Context context, String locale_code) {
         String filename = String.format(Locale.US, "quotes_%s.json", locale_code);
-        String subtitle_path = context.getFilesDir().getAbsolutePath()
-                .concat("/subtitle/").concat(filename);
+        String data_dir = KcUtils.getAppCacheFileDir(context, "/subtitle/");
+        String subtitle_path = data_dir.concat(filename);
         quoteData = KcUtils.readJsonObjectFromFile(subtitle_path);
         if (quoteData != null) {
             quoteTimingData = quoteData.getAsJsonObject("timing");

@@ -207,7 +207,7 @@ public class ResourceProcess {
             path = source.getPath();
             filename = source.getLastPathSegment();
             fullpath = String.format(Locale.US, "http://%s%s", host, path);
-            outputpath = context.getFilesDir().getAbsolutePath().concat("/cache/");
+            outputpath = KcUtils.getAppCacheFileDir(context, "/cache/");
             if (filename != null) {
                 outputpath = outputpath.concat(path.replace(filename, "").substring(1));
             }

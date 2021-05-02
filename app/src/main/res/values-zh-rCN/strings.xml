@@ -60,4 +60,5 @@
     <string name="settings_mod_label">第三方MOD（自担风险）</string>
     <string name="settings_mod_kantai3d_enable">[Beta] 舰队立体化改修</string>
     <string name="settings_mod_kantai3d_summary">为部份秘书舰添加仿立体的视觉效果。作者：@laplamgor</string>
+    <string name="settings_use_external_dir">使用外部存储进行缓存</string>
 </resources>

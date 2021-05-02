@@ -7,6 +7,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -69,6 +70,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.antest1.gotobrowser.Constants.CACHE_SIZE_BYTES;
+import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
 
 public class KcUtils {
     private static FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
@@ -79,6 +81,16 @@ public class KcUtils {
 
     public static void showToast(Context context, int resource_id) {
         Toast.makeText(context, context.getString(resource_id), Toast.LENGTH_LONG).show();
+    }
+
+    public static String getAppCacheFileDir(Context context, String folder) {
+        SharedPreferences sharedPref = context.getSharedPreferences(
+                context.getString(R.string.preference_key), Context.MODE_PRIVATE);
+        if (sharedPref.getBoolean(PREF_USE_EXTCACHE, false)) {
+            return context.getExternalFilesDir(null).getAbsolutePath().concat(folder);
+        } else {
+            return context.getFilesDir().getAbsolutePath().concat(folder);
+        }
     }
 
     public static String getStringFromException(Exception ex) {
@@ -131,7 +143,7 @@ public class KcUtils {
     }
 
     public static boolean unzipResource(Context context, InputStream is, String path, VersionDatabase db, String version) {
-        String cache_path = context.getFilesDir().getAbsolutePath().concat("/cache");
+        String cache_path = getAppCacheFileDir(context, "/cache");
         File dir = new File(cache_path + path);
         if (!dir.exists()) dir.mkdirs();
 

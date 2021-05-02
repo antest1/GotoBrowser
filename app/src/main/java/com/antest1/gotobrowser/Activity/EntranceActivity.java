@@ -254,7 +254,7 @@ public class EntranceActivity extends AppCompatActivity {
         WebView webview = new WebView(getApplicationContext());
         webview.clearCache(true);
         versionTable.clearVersionDatabase();
-        String cache_dir = getApplicationContext().getFilesDir().getAbsolutePath().concat("/cache/");
+        String cache_dir = KcUtils.getAppCacheFileDir(getApplicationContext(), "/cache/");
         clearApplicationCache(getApplicationContext(), getCacheDir());
         clearApplicationCache(getApplicationContext(), new File(cache_dir));
     }

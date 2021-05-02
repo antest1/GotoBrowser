@@ -30,6 +30,11 @@
             app:key="pref_multiwin_margin"
             app:title="@string/settings_mw_margin" />
 
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="pref_use_extcache"
+            app:title="@string/settings_use_external_dir" />
+
     </PreferenceCategory>
 
     <PreferenceCategory

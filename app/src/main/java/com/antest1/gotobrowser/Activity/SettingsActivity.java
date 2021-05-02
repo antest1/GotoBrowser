@@ -55,6 +55,7 @@ import static com.antest1.gotobrowser.Constants.PREF_SETTINGS;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_TP_DISCLAIMED;
+import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_PATH_FORMAT;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_ROOT;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
@@ -88,6 +89,7 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_DEVTOOLS_DEBUG:
                 case PREF_TP_DISCLAIMED:
                 case PREF_MOD_KANTAI3D:
+                case PREF_USE_EXTCACHE:
                     editor.putBoolean(key, false);
                     break;
                 case PREF_ALTER_METHOD:
@@ -146,14 +148,7 @@ public class SettingsActivity extends AppCompatActivity {
                 }
                 preference.setOnPreferenceChangeListener(this);
             }
-
-            String subtitleLocale = sharedPref.getString(PREF_SUBTITLE_LOCALE, "");
-            if (subtitleLocale.length() > 0) {
-                setSubtitlePreference(subtitleLocale);
-            } else {
-                findPreference(PREF_SUBTITLE_UPDATE).setEnabled(false);
-                findPreference(PREF_SUBTITLE_UPDATE).setSummary(getString(R.string.subtitle_select_language));
-            }
+            updateSubtitleDescriptionText();
         }
 
         @Override
@@ -201,8 +196,21 @@ public class SettingsActivity extends AppCompatActivity {
             }
             if (preference instanceof SwitchPreferenceCompat) {
                 sharedPref.edit().putBoolean(key, (boolean) newValue).apply();
+                if (key.equals(PREF_USE_EXTCACHE)) {
+                    updateSubtitleDescriptionText();
+                }
             }
             return true;
+        }
+
+        private void updateSubtitleDescriptionText() {
+            String subtitleLocale = sharedPref.getString(PREF_SUBTITLE_LOCALE, "");
+            if (subtitleLocale.length() > 0) {
+                setSubtitlePreference(subtitleLocale);
+            } else {
+                findPreference(PREF_SUBTITLE_UPDATE).setEnabled(false);
+                findPreference(PREF_SUBTITLE_UPDATE).setSummary(getString(R.string.subtitle_select_language));
+            }
         }
 
         private void setSubtitlePreference(String subtitleLocale) {
@@ -219,7 +227,9 @@ public class SettingsActivity extends AppCompatActivity {
                     JsonArray commit_log = response.body();
                     if (commit_log != null && !commit_log.isJsonNull()) {
                         String filename = String.format(Locale.US, "quotes_%s.json", subtitleLocale);
-                        String currentCommit = versionTable.getValue(filename);
+                        String subtitle_folder = KcUtils.getAppCacheFileDir(getContext(), "/subtitle/");
+                        String subtitle_path = subtitle_folder.concat(filename);
+                        String currentCommit = versionTable.getValue(subtitle_path);
                         if (commit_log.size() > 0) {
                             JsonObject latestData = commit_log.get(0).getAsJsonObject();
                             String latestCommit = latestData.get("sha").getAsString();
@@ -272,7 +282,7 @@ public class SettingsActivity extends AppCompatActivity {
             String filename = String.format(Locale.US, "quotes_%s.json", locale_code);
 
             JsonObject data = response.body();
-            String subtitle_folder = getContext().getFilesDir().getAbsolutePath().concat("/subtitle/");
+            String subtitle_folder = KcUtils.getAppCacheFileDir(getContext(), "/subtitle/");
             String subtitle_path = subtitle_folder.concat(filename);
             File file = new File(subtitle_folder);
             try {
@@ -282,7 +292,7 @@ public class SettingsActivity extends AppCompatActivity {
                     FileOutputStream fos = new FileOutputStream(subtitle_file);
                     fos.write(data.toString().getBytes());
                     fos.close();
-                    versionTable.putValue(filename, commit);
+                    versionTable.putValue(subtitle_path, commit);
                     Preference subtitleUpdate = findPreference(PREF_SUBTITLE_UPDATE);
                     subtitleUpdate.setSummary(getString(R.string.setting_latest_version));
                     subtitleUpdate.setEnabled(false);

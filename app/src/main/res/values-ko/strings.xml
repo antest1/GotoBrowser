@@ -59,7 +59,8 @@
     <string name="setting_alter_method">우회 방식</string>
     <string name="setting_alter_endpoint">Endpoint 서버</string>
 
-    <string name="settings_mod_label">Third Party Mods (use at your own risk)</string>
+    <string name="settings_mod_label">서드파티 모드 (자기 책임하에 사용하세요)</string>
     <string name="settings_mod_kantai3d_enable">[Beta] Kantai 3D</string>
-    <string name="settings_mod_kantai3d_summary">Add 3D-like visual effects to some of your secretaries. Author: @laplamgor</string>
+    <string name="settings_mod_kantai3d_summary">일부 비서함에 3D 효과 적용. 저자: @laplamgor</string>
+    <string name="settings_use_external_dir">리소스 캐싱 시 외부 저장소 사용</string>
 </resources>
