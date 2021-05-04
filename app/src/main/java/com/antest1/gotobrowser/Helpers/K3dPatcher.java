@@ -31,46 +31,60 @@ public class K3dPatcher implements SensorEventListener {
 
     private float gyroX = 0f;
     private float gyroY = 0f;
-    private SharedPreferences sharedPref;
 
     private static boolean isEnabled = false;
 
+    private long oldTime = 0;
+    private final float decayRate = 0.95f; // The angle becomes 95% after every 10ms
+
     @JavascriptInterface
     public float getX(){
-        double gotX = (Math.sqrt(1f + Math.abs(gyroX)) - 1) * 0.2f * Math.signum(gyroX);
-        gyroX *= 0.95f;
+        decayTiltAngle();
+        double gotX = (Math.sqrt(1f + Math.abs(gyroX)) - 1) * 0.05f * Math.signum(gyroX);
         return (float)gotX;
     }
 
     @JavascriptInterface
     public float getY(){
-        double gotY = (Math.sqrt(1f + Math.abs(gyroY)) - 1) * 0.2f * Math.signum(gyroY);
-        gyroY *= 0.95f;
+        double gotY = (Math.sqrt(1f + Math.abs(gyroY)) - 1) * 0.05f * Math.signum(gyroY);
         return (float)gotY;
+    }
+
+    private void decayTiltAngle() {
+        // Slowly rebound the tile angle until it becomes centre
+        long newTime = System.currentTimeMillis();
+        if (oldTime != 0) {
+            double decay = Math.pow(decayRate, (newTime - oldTime) / 10.0);
+            gyroX *= decay;
+            gyroY *= decay;
+        }
+        oldTime = newTime;
     }
 
     public void prepare(Activity activity) {
         // Only update the enable status when opening the browser view
         // Require reopening the browser after switching the MOD on or off
-        sharedPref = activity.getSharedPreferences(
+        SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         isEnabled = sharedPref.getBoolean(PREF_MOD_KANTAI3D, false);
 
         if (isEnabled) {
             this.activity = activity;
             mSensorManager = (SensorManager)activity.getSystemService(SENSOR_SERVICE);
-            mGyroscope = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
+            if (mSensorManager != null) {
+                mGyroscope = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
+            }
         }
     }
 
     public void pause() {
-        if (isEnabled) {
+        if (isEnabled && mSensorManager != null) {
             mSensorManager.unregisterListener(this);
         }
     }
 
     public void resume() {
-        if (isEnabled) {
+        if (isEnabled && mSensorManager != null) {
             mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
         }
     }
