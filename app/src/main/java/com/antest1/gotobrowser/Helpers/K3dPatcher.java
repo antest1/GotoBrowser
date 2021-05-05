@@ -40,13 +40,13 @@ public class K3dPatcher implements SensorEventListener {
     @JavascriptInterface
     public float getX(){
         decayTiltAngle();
-        double gotX = (Math.sqrt(1f + Math.abs(gyroX)) - 1) * 0.05f * Math.signum(gyroX);
+        double gotX = (Math.sqrt(1f + Math.abs(gyroX)) - 1) * 0.2f * Math.signum(gyroX);
         return (float)gotX;
     }
 
     @JavascriptInterface
     public float getY(){
-        double gotY = (Math.sqrt(1f + Math.abs(gyroY)) - 1) * 0.05f * Math.signum(gyroY);
+        double gotY = (Math.sqrt(1f + Math.abs(gyroY)) - 1) * 0.2f * Math.signum(gyroY);
         return (float)gotY;
     }
 
