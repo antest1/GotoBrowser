@@ -57,8 +57,10 @@ public class K3dPatcher implements SensorEventListener {
             return 0;
         }
         decayTiltAngle();
-        double gotX = (Math.sqrt(1f + Math.abs(gyroX)) - 1) * 0.2f * Math.signum(gyroX);
-        return (float)gotX;
+        float sign = Math.signum(gyroX);
+        double num = Math.abs(gyroX) * 0.000002;
+        double gotX = Math.sqrt(1.0 + num) - 1.0;
+        return (float)gotX * sign ;
     }
 
     @JavascriptInterface
@@ -66,8 +68,10 @@ public class K3dPatcher implements SensorEventListener {
         if (!isEffectEnabled) {
             return 0;
         }
-        double gotY = (Math.sqrt(1f + Math.abs(gyroY)) - 1) * 0.2f * Math.signum(gyroY);
-        return (float)gotY;
+        float sign = Math.signum(gyroY);
+        double num = Math.abs(gyroY) * 0.000002;
+        double gotY = Math.sqrt(1.0 + num) - 1.0;
+        return (float)gotY * sign ;
     }
 
     private void decayTiltAngle() {
@@ -109,29 +113,35 @@ public class K3dPatcher implements SensorEventListener {
         }
     }
 
+    long lastEventTimestamp = 0l;
+
     public void onSensorChanged(SensorEvent sensorEvent) {
-        int rotation = 0;
-        if (activity != null) {
-            rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        if (lastEventTimestamp != 0 && sensorEvent.timestamp != lastEventTimestamp) {
+            int rotation = 0;
+            if (activity != null) {
+                rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+            }
+            switch (rotation) {
+                default:
+                case ROTATION_0:
+                    gyroX -= sensorEvent.values[1] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    gyroY += sensorEvent.values[0] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    break;
+                case ROTATION_90:
+                    gyroX -= sensorEvent.values[0] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    gyroY -= sensorEvent.values[1] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    break;
+                case ROTATION_180:
+                    gyroX += sensorEvent.values[1] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    gyroY -= sensorEvent.values[0] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    break;
+                case ROTATION_270:
+                    gyroX += sensorEvent.values[0] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    gyroY += sensorEvent.values[1] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+            }
         }
-        switch (rotation) {
-            default:
-            case ROTATION_0:
-                gyroX -= sensorEvent.values[1] * 0.5;
-                gyroY += sensorEvent.values[0] * 0.5;
-                break;
-            case ROTATION_90:
-                gyroX -= sensorEvent.values[0] * 0.5;
-                gyroY -= sensorEvent.values[1] * 0.5;
-                break;
-            case ROTATION_180:
-                gyroX += sensorEvent.values[1] * 0.5;
-                gyroY -= sensorEvent.values[0] * 0.5;
-                break;
-            case ROTATION_270:
-                gyroX += sensorEvent.values[0] * 0.5;
-                gyroY += sensorEvent.values[1] * 0.5;
-        }
+
+        lastEventTimestamp = sensorEvent.timestamp;
     }
 
     @Override
