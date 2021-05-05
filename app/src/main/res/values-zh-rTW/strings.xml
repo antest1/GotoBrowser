@@ -57,6 +57,14 @@
     <string name="setting_alter_method">繞行方式</string>
     <string name="setting_alter_endpoint">端點服務器</string>
 
+    <string name="menu_tooltip_refresh">重新整理頁面</string>
+    <string name="menu_tooltip_mute">靜音</string>
+    <string name="menu_tooltip_camera">螢幕截圖</string>
+    <string name="menu_tooltip_lock">自動旋轉鎖定</string>
+    <string name="menu_tooltip_brighton">螢幕常亮</string>
+    <string name="menu_tooltip_cc">字幕</string>
+    <string name="menu_tooltip_logout">登出</string>
+
     <string name="settings_mod_label">第三方MOD（風險自負）</string>
     <string name="settings_mod_kantai3d_enable">[Beta] 艦隊立體化改修</string>
     <string name="settings_mod_kantai3d_summary">為部份秘書艦添加仿立體的視覺效果。作者：@laplamgor</string>

@@ -68,6 +68,14 @@
     <string name="setting_alter_method_proxy">KCCacheProxy (remote)</string>
     <string name="setting_alter_endpoint">Endpoint Server</string>
 
+    <string name="menu_tooltip_refresh">Refresh</string>
+    <string name="menu_tooltip_mute">Mute Audio</string>
+    <string name="menu_tooltip_camera">Screenshot Mode</string>
+    <string name="menu_tooltip_lock">Auto-Rotate Lock</string>
+    <string name="menu_tooltip_brighton">Screen Always-On</string>
+    <string name="menu_tooltip_cc">Subtitle</string>
+    <string name="menu_tooltip_logout">Logout</string>
+
     <string name="settings_mod_label">Third Party Mods (use at your own risk)</string>
     <string name="settings_mod_kantai3d_enable">[Beta] Kantai 3D</string>
     <string name="settings_mod_kantai3d_summary">Add 3D-like visual effects to some of your secretaries. Author: @laplamgor</string>
