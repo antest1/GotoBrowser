@@ -157,6 +157,17 @@
                         android:src="@mipmap/logout"
                         android:visibility="visible"
                         app:srcCompat="@mipmap/logout" />
+
+                    <ImageView
+                        android:id="@+id/menu_kantai3d"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:alpha="0.8"
+                        android:background="@color/transparent"
+                        android:padding="6dp"
+                        android:src="@mipmap/kantai3d"
+                        app:srcCompat="@mipmap/kantai3d"
+                        android:tooltipText="@string/menu_tooltip_kantai3d"/>
                 </LinearLayout>
             </ScrollView>
 

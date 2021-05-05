@@ -7,6 +7,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 import android.webkit.JavascriptInterface;
 
 import com.antest1.gotobrowser.R;
@@ -32,13 +33,29 @@ public class K3dPatcher implements SensorEventListener {
     private float gyroX = 0f;
     private float gyroY = 0f;
 
-    private static boolean isEnabled = false;
+    private static boolean isPatcherEnabled = false;
+    private boolean isEffectEnabled = true; // for user to temporarily disable the effect in-game
 
     private long oldTime = 0;
     private final float decayRate = 0.95f; // The angle becomes 95% after every 10ms
 
+    public boolean isPatcherEnabled() {
+        return isPatcherEnabled;
+    }
+
+    public boolean isEffectEnabled() {
+        return isEffectEnabled;
+    }
+
+    public void setEffectEnabled(boolean effectEnabled) {
+        isEffectEnabled = effectEnabled;
+    }
+
     @JavascriptInterface
     public float getX(){
+        if (!isEffectEnabled) {
+            return 0;
+        }
         decayTiltAngle();
         double gotX = (Math.sqrt(1f + Math.abs(gyroX)) - 1) * 0.2f * Math.signum(gyroX);
         return (float)gotX;
@@ -46,6 +63,9 @@ public class K3dPatcher implements SensorEventListener {
 
     @JavascriptInterface
     public float getY(){
+        if (!isEffectEnabled) {
+            return 0;
+        }
         double gotY = (Math.sqrt(1f + Math.abs(gyroY)) - 1) * 0.2f * Math.signum(gyroY);
         return (float)gotY;
     }
@@ -66,9 +86,9 @@ public class K3dPatcher implements SensorEventListener {
         // Require reopening the browser after switching the MOD on or off
         SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
-        isEnabled = sharedPref.getBoolean(PREF_MOD_KANTAI3D, false);
+        isPatcherEnabled = sharedPref.getBoolean(PREF_MOD_KANTAI3D, false);
 
-        if (isEnabled) {
+        if (isPatcherEnabled) {
             this.activity = activity;
             mSensorManager = (SensorManager)activity.getSystemService(SENSOR_SERVICE);
             if (mSensorManager != null) {
@@ -78,13 +98,13 @@ public class K3dPatcher implements SensorEventListener {
     }
 
     public void pause() {
-        if (isEnabled && mSensorManager != null) {
+        if (isPatcherEnabled && mSensorManager != null) {
             mSensorManager.unregisterListener(this);
         }
     }
 
     public void resume() {
-        if (isEnabled && mSensorManager != null) {
+        if (isPatcherEnabled && mSensorManager != null) {
             mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
         }
     }
@@ -116,10 +136,11 @@ public class K3dPatcher implements SensorEventListener {
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        Log.e("onAccuracyChanged", "onAccuracyChanged: "  + accuracy);
     }
 
     public static String patchKantai3d(String main_js){
-        if (!isEnabled) {
+        if (!isPatcherEnabled) {
             return main_js;
         }
 

@@ -187,6 +187,14 @@ public class BrowserActivity extends AppCompatActivity {
             menuCaption.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isCaptionMode ? R.color.panel_red : R.color.transparent));
             menuCaption.setOnClickListener(this::setCaptionMode);
 
+            View menuKantai3d = findViewById(R.id.menu_kantai3d);
+            if (k3dPatcher.isPatcherEnabled()) {
+                menuKantai3d.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), k3dPatcher.isEffectEnabled() ? R.color.panel_red : R.color.transparent));
+                menuKantai3d.setOnClickListener(this::setKantai3dMode);
+            } else {
+                menuKantai3d.setVisibility(View.GONE);
+            }
+
             View menuClose = findViewById(R.id.menu_close);
             menuClose.setOnClickListener(this::setPanelVisible);
 
@@ -550,6 +558,15 @@ public class BrowserActivity extends AppCompatActivity {
             }
             return true;
         });
+    }
+
+    private void setKantai3dMode(View v) {
+        k3dPatcher.setEffectEnabled(!k3dPatcher.isEffectEnabled());
+        if (k3dPatcher.isEffectEnabled()) {
+            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+        } else {
+            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
+        }
     }
 
     public void showRefreshDialog() {
