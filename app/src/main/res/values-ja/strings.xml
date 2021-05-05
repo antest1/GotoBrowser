@@ -62,4 +62,5 @@
     <string name="settings_mod_kantai3d_enable">[Beta] 艦隊立体化改修</string>
     <string name="settings_mod_kantai3d_summary">一部の秘書艦に3Dのような視覚効果を追加します。作者：@laplamgor</string>
     <string name="settings_use_external_dir">キャッシングに外部ストレージを使用</string>
+    <string name="menu_tooltip_kantai3d">3D効果</string>
 </resources>
