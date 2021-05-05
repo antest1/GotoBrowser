@@ -12,10 +12,6 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,7 +26,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.webkit.JavascriptInterface;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -56,7 +51,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static android.hardware.Sensor.TYPE_GYROSCOPE;
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
@@ -87,7 +81,7 @@ public class BrowserActivity extends AppCompatActivity {
     private ProgressDialog downloadDialog;
     private ScreenshotNotification screenshotNotification;
     GestureDetector mDetector;
-    private K3dPatcher k3dPatcher = new K3dPatcher();
+    private final K3dPatcher k3dPatcher = new K3dPatcher();
 
     private boolean isKcBrowserMode = false;
     private boolean isPanelVisible = false;

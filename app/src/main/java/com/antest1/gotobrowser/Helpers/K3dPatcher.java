@@ -7,7 +7,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.util.Log;
 import android.webkit.JavascriptInterface;
 
 import com.antest1.gotobrowser.R;
@@ -37,7 +36,6 @@ public class K3dPatcher implements SensorEventListener {
     private boolean isEffectEnabled = true; // for user to temporarily disable the effect in-game
 
     private long oldTime = 0;
-    private final float decayRate = 0.95f; // The angle becomes 95% after every 10ms
 
     public boolean isPatcherEnabled() {
         return isPatcherEnabled;
@@ -78,7 +76,8 @@ public class K3dPatcher implements SensorEventListener {
         // Slowly rebound the tile angle until it becomes centre
         long newTime = System.currentTimeMillis();
         if (oldTime != 0) {
-            double decay = Math.pow(decayRate, (newTime - oldTime) / 10.0);
+            // The angle becomes 95% after every 10ms
+            double decay = Math.pow(0.95f, (newTime - oldTime) / 10.0);
             gyroX *= decay;
             gyroY *= decay;
         }
@@ -113,7 +112,7 @@ public class K3dPatcher implements SensorEventListener {
         }
     }
 
-    long lastEventTimestamp = 0l;
+    long lastEventTimestamp = 0L;
 
     public void onSensorChanged(SensorEvent sensorEvent) {
         if (lastEventTimestamp != 0 && sensorEvent.timestamp != lastEventTimestamp) {
@@ -146,7 +145,6 @@ public class K3dPatcher implements SensorEventListener {
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        Log.e("onAccuracyChanged", "onAccuracyChanged: "  + accuracy);
     }
 
     public static String patchKantai3d(String main_js){
