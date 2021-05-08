@@ -58,6 +58,14 @@
     <string name="setting_alter_method">バイパス方式</string>
     <string name="setting_alter_endpoint">エンドポイントサーバー</string>
 
+    <string name="menu_tooltip_refresh">リフレッシュ</string>
+    <string name="menu_tooltip_mute">Mute Audio</string>
+    <string name="menu_tooltip_camera">スクリーンショット</string>
+    <string name="menu_tooltip_lock">Auto-Rotate Lock</string>
+    <string name="menu_tooltip_brighton">常時画面オン</string>
+    <string name="menu_tooltip_cc">ロケール</string>
+    <string name="menu_tooltip_logout">ログアウト</string>
+
     <string name="settings_mod_label">非公式のMOD（自己責任で使ってください）</string>
     <string name="settings_mod_kantai3d_enable">[Beta] 艦隊立体化改修</string>
     <string name="settings_mod_kantai3d_summary">一部の秘書艦に3Dのような視覚効果を追加します。作者：@laplamgor</string>

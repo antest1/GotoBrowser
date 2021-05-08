@@ -23,17 +23,17 @@
     <string name="autocomplete_msg">此资料将只用于填写登录信息</string>
     <string name="settings_version_label">当前版本</string>
     <string name="settings_version_check">检查更新</string>
-    <string name="settings_subtitle_label">字幕设定</string>
+    <string name="settings_subtitle_label">字幕设置</string>
     <string name="settings_subtitle_download">下载字幕数据</string>
     <string name="settings_subtitle_language">字幕语言</string>
     <string name="settings_appinfo_label">应用信息</string>
-    <string name="no_subtitle_file">请先从设定中下载字幕数据</string>
+    <string name="no_subtitle_file">请先从设置中下载字幕数据</string>
     <string name="setting_latest_version">已是最新版本</string>
     <string name="setting_latest_download" formatted="false">有一个可用的更新 (%s)\n是否要下载？</string>
     <string name="setting_latest_download_subtitle" formatted="false">有一个可用的更新 (%s)</string>
     <string name="settings_resource_label">下载图像资源</string>
     <string name="settings_resource_btn">下载</string>
-    <string name="settings_appinfo_browsersettings">浏览器设定</string>
+    <string name="settings_appinfo_browsersettings">浏览器设置</string>
     <string name="browser_fontprefetch">预加载字体</string>
     <string name="browser_enablepipmode">启用画中画模式</string>
     <string name="logout_msg">您确定要注销吗？</string>
@@ -51,11 +51,19 @@
     <string name="setting_panel_method_label">控制台打开方式</string>
     <string name="setting_devtools_enable">启用DevTools调试</string>
     <string name="connection_use_alter">启用登录伺服器封锁绕行</string>
-    <string name="setting_connection">连接设定</string>
+    <string name="setting_connection">连接设置</string>
     <string name="setting_alter_method_url">URL替换</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（远程服务器）</string>
     <string name="setting_alter_method">绕行方式</string>
     <string name="setting_alter_endpoint">端点服务器</string>
+
+    <string name="menu_tooltip_refresh">刷新页面</string>
+    <string name="menu_tooltip_mute">静音</string>
+    <string name="menu_tooltip_camera">屏幕截图</string>
+    <string name="menu_tooltip_lock">自动旋转锁定</string>
+    <string name="menu_tooltip_brighton">屏幕常亮</string>
+    <string name="menu_tooltip_cc">字幕</string>
+    <string name="menu_tooltip_logout">注销</string>
 
     <string name="settings_mod_label">第三方MOD（自担风险）</string>
     <string name="settings_mod_kantai3d_enable">[Beta] 舰队立体化改修</string>

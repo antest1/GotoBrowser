@@ -1,5 +1,5 @@
 # GotoBrowser
-<img src="https://upload.cc/i1/2019/03/30/mEiG92.png" width=250/>
+<img src="https://i.ibb.co/SKHWSwS/gotobrowser-icon.png" width=250/>
 Android Browser for KanColle 2nd Phase (HTML5)
 
 About Project

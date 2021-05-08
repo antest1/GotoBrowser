@@ -59,6 +59,14 @@
     <string name="setting_alter_method">우회 방식</string>
     <string name="setting_alter_endpoint">Endpoint 서버</string>
 
+    <string name="menu_tooltip_refresh">Refresh</string>
+    <string name="menu_tooltip_mute">Mute Audio</string>
+    <string name="menu_tooltip_camera">Screenshot Mode</string>
+    <string name="menu_tooltip_lock">Auto-Rotate Lock</string>
+    <string name="menu_tooltip_brighton">Screen Always-On</string>
+    <string name="menu_tooltip_cc">Subtitle</string>
+    <string name="menu_tooltip_logout">Logout</string>
+
     <string name="settings_mod_label">서드파티 모드 (자기 책임하에 사용하세요)</string>
     <string name="settings_mod_kantai3d_enable">[Beta] Kantai 3D</string>
     <string name="settings_mod_kantai3d_summary">일부 비서함에 3D 효과 적용. 저자: @laplamgor</string>

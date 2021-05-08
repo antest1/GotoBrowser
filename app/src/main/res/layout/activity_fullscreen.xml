@@ -73,7 +73,8 @@
                 android:background="@color/transparent"
                 android:padding="6dp"
                 android:src="@mipmap/refresh"
-                app:srcCompat="@mipmap/refresh" />
+                app:srcCompat="@mipmap/refresh"
+                tooltipText="@string/menu_tooltip_refresh"/>
 
             <ScrollView
                 android:layout_width="wrap_content"
@@ -95,7 +96,7 @@
                         android:padding="6dp"
                         android:src="@mipmap/aspect_ratio"
                         android:visibility="gone"
-                        app:srcCompat="@mipmap/aspect_ratio" />
+                        app:srcCompat="@mipmap/aspect_ratio"/>
 
                     <ImageView
                         android:id="@+id/menu_mute"
@@ -105,7 +106,8 @@
                         android:background="@color/transparent"
                         android:padding="6dp"
                         android:src="@mipmap/mute"
-                        app:srcCompat="@mipmap/mute" />
+                        app:srcCompat="@mipmap/mute"
+                        tooltipText="@string/menu_tooltip_mute"/>
 
                     <ImageView
                         android:id="@+id/menu_camera"
@@ -115,7 +117,8 @@
                         android:background="@color/transparent"
                         android:padding="6dp"
                         android:src="@mipmap/camera"
-                        app:srcCompat="@mipmap/camera" />
+                        app:srcCompat="@mipmap/camera"
+                        tooltipText="@string/menu_tooltip_camera"/>
 
                     <ImageView
                         android:id="@+id/menu_lock"
@@ -125,7 +128,8 @@
                         android:background="@color/transparent"
                         android:padding="6dp"
                         android:src="@mipmap/lock"
-                        app:srcCompat="@mipmap/lock" />
+                        app:srcCompat="@mipmap/lock"
+                        tooltipText="@string/menu_tooltip_lock"/>
 
                     <ImageView
                         android:id="@+id/menu_brighton"
@@ -135,7 +139,8 @@
                         android:background="@color/transparent"
                         android:padding="6dp"
                         android:src="@mipmap/brighton"
-                        app:srcCompat="@mipmap/brighton" />
+                        app:srcCompat="@mipmap/brighton"
+                        tooltipText="@string/menu_tooltip_brighton"/>
 
                     <ImageView
                         android:id="@+id/menu_cc"
@@ -145,7 +150,8 @@
                         android:background="@color/transparent"
                         android:padding="6dp"
                         android:src="@mipmap/caption"
-                        app:srcCompat="@mipmap/caption" />
+                        app:srcCompat="@mipmap/caption"
+                        tooltipText="@string/menu_tooltip_cc"/>
 
                     <ImageView
                         android:id="@+id/menu_kantai3d"
@@ -167,7 +173,8 @@
                         android:padding="6dp"
                         android:src="@mipmap/logout"
                         android:visibility="visible"
-                        app:srcCompat="@mipmap/logout" />
+                        app:srcCompat="@mipmap/logout"
+                        tooltipText="@string/menu_tooltip_logout"/>
                 </LinearLayout>
             </ScrollView>
 
