@@ -12,10 +12,6 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,7 +26,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.webkit.JavascriptInterface;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -56,7 +51,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static android.hardware.Sensor.TYPE_GYROSCOPE;
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
@@ -87,7 +81,7 @@ public class BrowserActivity extends AppCompatActivity {
     private ProgressDialog downloadDialog;
     private ScreenshotNotification screenshotNotification;
     GestureDetector mDetector;
-    private K3dPatcher k3dPatcher = new K3dPatcher();
+    private final K3dPatcher k3dPatcher = new K3dPatcher();
 
     private boolean isKcBrowserMode = false;
     private boolean isPanelVisible = false;
@@ -186,6 +180,14 @@ public class BrowserActivity extends AppCompatActivity {
             View menuCaption = findViewById(R.id.menu_cc);
             menuCaption.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isCaptionMode ? R.color.panel_red : R.color.transparent));
             menuCaption.setOnClickListener(this::setCaptionMode);
+
+            View menuKantai3d = findViewById(R.id.menu_kantai3d);
+            if (k3dPatcher.isPatcherEnabled()) {
+                menuKantai3d.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), k3dPatcher.isEffectEnabled() ? R.color.panel_red : R.color.transparent));
+                menuKantai3d.setOnClickListener(this::setKantai3dMode);
+            } else {
+                menuKantai3d.setVisibility(View.GONE);
+            }
 
             View menuClose = findViewById(R.id.menu_close);
             menuClose.setOnClickListener(this::setPanelVisible);
@@ -550,6 +552,15 @@ public class BrowserActivity extends AppCompatActivity {
             }
             return true;
         });
+    }
+
+    private void setKantai3dMode(View v) {
+        k3dPatcher.setEffectEnabled(!k3dPatcher.isEffectEnabled());
+        if (k3dPatcher.isEffectEnabled()) {
+            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+        } else {
+            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
+        }
     }
 
     public void showRefreshDialog() {

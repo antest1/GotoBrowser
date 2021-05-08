@@ -31,73 +31,116 @@ public class K3dPatcher implements SensorEventListener {
 
     private float gyroX = 0f;
     private float gyroY = 0f;
-    private SharedPreferences sharedPref;
 
-    private static boolean isEnabled = false;
+    private static boolean isPatcherEnabled = false;
+    private boolean isEffectEnabled = true; // for user to temporarily disable the effect in-game
+
+    private long oldTime = 0;
+
+    public boolean isPatcherEnabled() {
+        return isPatcherEnabled;
+    }
+
+    public boolean isEffectEnabled() {
+        return isEffectEnabled;
+    }
+
+    public void setEffectEnabled(boolean effectEnabled) {
+        isEffectEnabled = effectEnabled;
+    }
 
     @JavascriptInterface
     public float getX(){
-        double gotX = (Math.sqrt(1f + Math.abs(gyroX)) - 1) * 0.2f * Math.signum(gyroX);
-        gyroX *= 0.95f;
-        return (float)gotX;
+        if (!isEffectEnabled) {
+            return 0;
+        }
+        decayTiltAngle();
+        float sign = Math.signum(gyroX);
+        double num = Math.abs(gyroX) * 0.000002;
+        double gotX = Math.sqrt(1.0 + num) - 1.0;
+        return (float)gotX * sign ;
     }
 
     @JavascriptInterface
     public float getY(){
-        double gotY = (Math.sqrt(1f + Math.abs(gyroY)) - 1) * 0.2f * Math.signum(gyroY);
-        gyroY *= 0.95f;
-        return (float)gotY;
+        if (!isEffectEnabled) {
+            return 0;
+        }
+        float sign = Math.signum(gyroY);
+        double num = Math.abs(gyroY) * 0.000002;
+        double gotY = Math.sqrt(1.0 + num) - 1.0;
+        return (float)gotY * sign ;
+    }
+
+    private void decayTiltAngle() {
+        // Slowly rebound the tile angle until it becomes centre
+        long newTime = System.currentTimeMillis();
+        if (oldTime != 0) {
+            // The angle becomes 95% after every 10ms
+            double decay = Math.pow(0.95f, (newTime - oldTime) / 10.0);
+            gyroX *= decay;
+            gyroY *= decay;
+        }
+        oldTime = newTime;
     }
 
     public void prepare(Activity activity) {
         // Only update the enable status when opening the browser view
         // Require reopening the browser after switching the MOD on or off
-        sharedPref = activity.getSharedPreferences(
+        SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
-        isEnabled = sharedPref.getBoolean(PREF_MOD_KANTAI3D, false);
+        isPatcherEnabled = sharedPref.getBoolean(PREF_MOD_KANTAI3D, false);
 
-        if (isEnabled) {
+        if (isPatcherEnabled) {
             this.activity = activity;
             mSensorManager = (SensorManager)activity.getSystemService(SENSOR_SERVICE);
-            mGyroscope = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
+            if (mSensorManager != null) {
+                mGyroscope = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
+            }
         }
     }
 
     public void pause() {
-        if (isEnabled) {
+        if (isPatcherEnabled && mSensorManager != null) {
             mSensorManager.unregisterListener(this);
         }
     }
 
     public void resume() {
-        if (isEnabled) {
+        if (isPatcherEnabled && mSensorManager != null) {
             mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
         }
     }
 
+    long lastEventTimestamp = 0L;
+
     public void onSensorChanged(SensorEvent sensorEvent) {
-        int rotation = 0;
-        if (activity != null) {
-            rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        if (lastEventTimestamp != 0 && sensorEvent.timestamp != lastEventTimestamp) {
+            int rotation = 0;
+            if (activity != null) {
+                rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+            }
+            switch (rotation) {
+                default:
+                case ROTATION_0:
+                    gyroX -= sensorEvent.values[1] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    gyroY += sensorEvent.values[0] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    break;
+                case ROTATION_90:
+                    gyroX -= sensorEvent.values[0] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    gyroY -= sensorEvent.values[1] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    break;
+                case ROTATION_180:
+                    gyroX += sensorEvent.values[1] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    gyroY -= sensorEvent.values[0] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    break;
+                case ROTATION_270:
+                    gyroX += sensorEvent.values[0] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    gyroY += sensorEvent.values[1] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+            }
         }
-        switch (rotation) {
-            default:
-            case ROTATION_0:
-                gyroX -= sensorEvent.values[1] * 0.5;
-                gyroY += sensorEvent.values[0] * 0.5;
-                break;
-            case ROTATION_90:
-                gyroX -= sensorEvent.values[0] * 0.5;
-                gyroY -= sensorEvent.values[1] * 0.5;
-                break;
-            case ROTATION_180:
-                gyroX += sensorEvent.values[1] * 0.5;
-                gyroY -= sensorEvent.values[0] * 0.5;
-                break;
-            case ROTATION_270:
-                gyroX += sensorEvent.values[0] * 0.5;
-                gyroY += sensorEvent.values[1] * 0.5;
-        }
+
+        lastEventTimestamp = sensorEvent.timestamp;
     }
 
     @Override
@@ -105,7 +148,7 @@ public class K3dPatcher implements SensorEventListener {
     }
 
     public static String patchKantai3d(String main_js){
-        if (!isEnabled) {
+        if (!isPatcherEnabled) {
             return main_js;
         }
 
