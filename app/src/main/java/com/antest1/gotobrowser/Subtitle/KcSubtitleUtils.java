@@ -222,7 +222,7 @@ public class KcSubtitleUtils {
             @Override
             public void onFailure(Call<JsonArray> call, Throwable t) {
                 loadQuoteSizeData(submeta_path);
-                Log.e("GOTO", "quote_size: " + quoteSizeData.size());
+                Log.e("GOTO", "quote_size: " + (quoteSizeData == null ? -1 : quoteSizeData.size()));
             }
         });
 
