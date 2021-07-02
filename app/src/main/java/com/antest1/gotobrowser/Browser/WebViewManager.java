@@ -87,11 +87,11 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
 public class WebViewManager {
     public static final String OPEN_KANCOLLE = "open_kancolle";
     public static final String OPEN_RES_DOWN = "open_res_down";
-    public static final String userAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.70 Safari/537.36";
-    boolean logoutFlag;
-    BrowserActivity activity;
-    ResourceProcess resourceProcess;
-    SharedPreferences sharedPref;
+    public static final String userAgent = "Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36";
+    private boolean logoutFlag;
+    private BrowserActivity activity;
+    private ResourceProcess resourceProcess;
+    private SharedPreferences sharedPref;
 
     public WebViewManager (BrowserActivity ac) {
         activity = ac;
