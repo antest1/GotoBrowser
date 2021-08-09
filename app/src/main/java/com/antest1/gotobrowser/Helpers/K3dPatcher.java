@@ -174,7 +174,7 @@ public class K3dPatcher implements SensorEventListener {
                 "window.portOffset = -window.charal + window.charah.x;//-l+h.x\n" +
                 "window.portOffsetR = window.charar;//r\n" +
                 "\n" +
-                "window.displacementSprite = PIXI.Sprite.fromImage('https://kantai3d.com/'+ window.displacementPath );\n" +
+                "window.displacementSprite = PIXI.Sprite.fromImage(window.displacementPath.replace(/resources\\\\/ship\\\\/full[_dmg]*\\\\/([0-9]*)_([0-9_a-z]*).png(\\\\?version=)?([0-9]*)/g, \"https://cdn.jsdelivr.net/gh/laplamgor/kantai3d-depth-maps@master/source/\\$1/\\$1_\\$2_v\\$4\\.png\"));\n" +
                 "\n" +
                 "window.displacementFilter.uniforms.textureWidth = this._chara.texture.width;\n" +
                 "window.displacementFilter.uniforms.textureHeight = this._chara.texture.height;\n" +
