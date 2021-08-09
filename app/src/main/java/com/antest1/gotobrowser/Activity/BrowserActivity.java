@@ -625,17 +625,24 @@ public class BrowserActivity extends AppCompatActivity {
 
     public void setMultiwindowMargin() {
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) mContentView.getLayoutParams();
-        if (isMultiWindowMode()) {
+        if (isMultiWindowMode() && !isInPictureInPictureMode) {
             Rect windowRect = new Rect();
             Rect screenRect = new Rect();
             View decorView = getWindow().getDecorView();
             decorView.getWindowVisibleDisplayFrame(windowRect);
             decorView.getGlobalVisibleRect(screenRect);
 
-            int center = (screenRect.top + screenRect.bottom) / 2;
-            if (windowRect.top > center) params.setMargins(0, 24, 0, 0);
-            else if (windowRect.bottom < center) params.setMargins(0, 0, 0, 24);
-            else params.setMargins(0, 0, 0, 0);
+            // In split screen mode, the window and screen have 1-2 edges aligned
+            if (windowRect.top != screenRect.top && windowRect.bottom != screenRect.bottom &&
+                    windowRect.left != screenRect.left && windowRect.right != screenRect.right) {
+                // it is in free-form mode and should not add black bar
+                params.setMargins(0, 0, 0, 0);
+            }  else {
+                int center = (screenRect.top + screenRect.bottom) / 2;
+                if (windowRect.top > center) params.setMargins(0, 24, 0, 0);
+                else if (windowRect.bottom < center) params.setMargins(0, 0, 0, 24);
+                else params.setMargins(0, 0, 0, 0);
+            }
         } else {
             params.setMargins(0, 0, 0, 0);
         }
@@ -681,6 +688,8 @@ public class BrowserActivity extends AppCompatActivity {
             if (adjust_layout) {
                 isAdjustChangedByUser = true;
             }
+            // Update margin again to undo multi-window black bar
+            setMultiwindowMargin();
         } else {
             mContentView.setZ(0);
         }
