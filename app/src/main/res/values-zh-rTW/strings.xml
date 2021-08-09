@@ -66,7 +66,7 @@
     <string name="menu_tooltip_logout">登出</string>
 
     <string name="settings_mod_label">第三方MOD（風險自負）</string>
-    <string name="settings_mod_kantai3d_enable">[Beta] 艦隊立體化改修</string>
+    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v1.2</string>
     <string name="settings_mod_kantai3d_summary">為部份秘書艦添加仿立體的視覺效果。作者：@laplamgor</string>
     <string name="settings_use_external_dir">使用外部存儲存放緩存</string>
     <string name="menu_tooltip_kantai3d">開關立體效果</string>
