@@ -12,6 +12,7 @@ import android.webkit.WebResourceResponse;
 import android.widget.TextView;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
+import com.antest1.gotobrowser.Helpers.FpsPatcher;
 import com.antest1.gotobrowser.Helpers.K3dPatcher;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
@@ -518,6 +519,7 @@ public class ResourceProcess {
     private String patchMainScript(String main_js, boolean broadcast_mode) {
 
         main_js = K3dPatcher.patchKantai3d(main_js);
+        main_js = FpsPatcher.patchFps(main_js);
 
         // manage bgm loading strategy with global mute variable for audio focus issue
         if (activity.isMuteMode()) {

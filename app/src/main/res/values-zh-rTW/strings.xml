@@ -68,6 +68,9 @@
     <string name="settings_mod_label">第三方MOD（風險自負）</string>
     <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v1.2</string>
     <string name="settings_mod_kantai3d_summary">為部份秘書艦添加仿立體的視覺效果。作者：@laplamgor</string>
+    <string name="settings_mod_kantai3d_about">About Kantai3D</string>
+    <string name="settings_mod_fps_enable">移除60幀限制</string>
+    <string name="settings_mod_fps_summary">支持高刷新率手機。遊戲速度不會受影響。</string>
     <string name="settings_use_external_dir">使用外部存儲存放緩存</string>
     <string name="menu_tooltip_kantai3d">開關立體效果</string>
 </resources>

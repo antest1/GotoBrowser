@@ -69,6 +69,9 @@
     <string name="settings_mod_label">非公式のMOD（自己責任で使ってください）</string>
     <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v1.2</string>
     <string name="settings_mod_kantai3d_summary">一部の秘書艦に3Dのような視覚効果を追加します。作者：@laplamgor</string>
+    <string name="settings_mod_kantai3d_about">About Kantai3D</string>
+    <string name="settings_mod_fps_enable">60FPS制限を削除します</string>
+    <string name="settings_mod_fps_summary">高リフレッシュ・レート対応。ゲームの速度は影響を受けません。</string>
     <string name="settings_use_external_dir">キャッシングに外部ストレージを使用</string>
     <string name="menu_tooltip_kantai3d">3D効果</string>
 </resources>
