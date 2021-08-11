@@ -8,7 +8,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
-public interface SubtitleCheck {
+public interface Kc3SubtitleCheck {
     @GET("repos/KC3Kai/KC3Kai/commits")
     Call<JsonArray> checkMeta(@Query("path") String path);
 

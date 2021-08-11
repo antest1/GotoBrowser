@@ -204,7 +204,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         File submeta_file = new File(submeta_path);
 
         VersionDatabase versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
-        SubtitleCheck updateCheck = getRetrofitAdapter(context, GITHUBAPI_ROOT).create(SubtitleCheck.class);
+        Kc3SubtitleCheck updateCheck = getRetrofitAdapter(context, GITHUBAPI_ROOT).create(Kc3SubtitleCheck.class);
 
         Call<JsonArray> call = updateCheck.checkMeta(SUBTITLE_SIZE_PATH);
         call.enqueue(new Callback<JsonArray>() {

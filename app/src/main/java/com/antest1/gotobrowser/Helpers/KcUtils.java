@@ -3,12 +3,10 @@ package com.antest1.gotobrowser.Helpers;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
@@ -28,7 +26,7 @@ import androidx.appcompat.app.AlertDialog;
 import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.R;
-import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
+import com.antest1.gotobrowser.Subtitle.Kc3SubtitleCheck;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
@@ -46,14 +44,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -369,7 +365,7 @@ public class KcUtils {
         return null;
     }
 
-    public static void requestLatestAppVersion(Activity ac, SubtitleCheck updateCheck, boolean show_toast) {
+    public static void requestLatestAppVersion(Activity ac, Kc3SubtitleCheck updateCheck, boolean show_toast) {
         Call<JsonObject> call = updateCheck.version();
         call.enqueue(new Callback<JsonObject>() {
             @Override

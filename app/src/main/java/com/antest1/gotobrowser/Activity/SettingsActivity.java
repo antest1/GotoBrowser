@@ -21,8 +21,8 @@ import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
-import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
-import com.antest1.gotobrowser.Subtitle.SubtitleRepo;
+import com.antest1.gotobrowser.Subtitle.Kc3SubtitleCheck;
+import com.antest1.gotobrowser.Subtitle.Kc3SubtitleRepo;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -110,8 +110,8 @@ public class SettingsActivity extends AppCompatActivity {
     public static class SettingsFragment extends PreferenceFragmentCompat
             implements SharedPreferences.OnSharedPreferenceChangeListener, Preference.OnPreferenceChangeListener {
         private VersionDatabase versionTable;
-        private SubtitleCheck updateCheck;
-        private SubtitleRepo subtitleRepo;
+        private Kc3SubtitleCheck updateCheck;
+        private Kc3SubtitleRepo subtitleRepo;
         private SharedPreferences sharedPref;
         private JsonObject subtitleData = null;
 
@@ -122,8 +122,8 @@ public class SettingsActivity extends AppCompatActivity {
                     getString(R.string.preference_key), Context.MODE_PRIVATE);
             sharedPref.registerOnSharedPreferenceChangeListener(this);
             versionTable = new VersionDatabase(getContext(), null, VERSION_TABLE_VERSION);
-            updateCheck = getRetrofitAdapter(getContext(), GITHUBAPI_ROOT).create(SubtitleCheck.class);
-            subtitleRepo = getRetrofitAdapter(getContext(), SUBTITLE_ROOT).create(SubtitleRepo.class);
+            updateCheck = getRetrofitAdapter(getContext(), GITHUBAPI_ROOT).create(Kc3SubtitleCheck.class);
+            subtitleRepo = getRetrofitAdapter(getContext(), SUBTITLE_ROOT).create(Kc3SubtitleRepo.class);
         }
 
         @Override

@@ -20,7 +20,7 @@ import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
-import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
+import com.antest1.gotobrowser.Subtitle.Kc3SubtitleCheck;
 
 import java.io.File;
 import java.util.List;
@@ -61,7 +61,7 @@ public class EntranceActivity extends AppCompatActivity {
     private SharedPreferences sharedPref;
     private TextView selectButton;
     private VersionDatabase versionTable;
-    private SubtitleCheck updateCheck;
+    private Kc3SubtitleCheck updateCheck;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +72,7 @@ public class EntranceActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) actionBar.hide();
 
-        updateCheck = getRetrofitAdapter(getApplicationContext(), GITHUBAPI_ROOT).create(SubtitleCheck.class);
+        updateCheck = getRetrofitAdapter(getApplicationContext(), GITHUBAPI_ROOT).create(Kc3SubtitleCheck.class);
         KcUtils.requestLatestAppVersion(this, updateCheck, true);
 
         versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
