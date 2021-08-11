@@ -17,6 +17,7 @@ import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.Kc3SubtitleProvider;
+import com.antest1.gotobrowser.Subtitle.SubtitleData;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.gson.JsonObject;
 
@@ -651,19 +652,15 @@ public class ResourceProcess {
     private void setSubtitle(String id, String code, String size) {
         if (activity.isCaptionAvailable()) {
             shipVoiceHandler.removeCallbacksAndMessages(null);
-            JsonObject subtitle = SubtitleProviderUtils.getCurrentSubtitleProvider().getQuoteString(id, code, size);
-            Log.e("GOTO", subtitle.toString());
-            for (String key : subtitle.keySet()) {
-                String start_time = key.split(",")[0];
-                if (Pattern.matches("[0-9]+", start_time)) {
-                    String text = subtitle.get(key).getAsString();
-                    int delay = Integer.parseInt(start_time);
-                    SubtitleRunnable sr = new SubtitleRunnable(text);
-                    shipVoiceHandler.postDelayed(sr, delay);
-                }
+
+            SubtitleData data = SubtitleProviderUtils.getCurrentSubtitleProvider().getSubtitleData(id, code, size);
+            if (data != null) {
+                SubtitleRunnable sr = new SubtitleRunnable(data.getText());
+                shipVoiceHandler.postDelayed(sr, data.getDelay());
             }
         }
     }
+
 
     class SubtitleRunnable implements Runnable {
         String subtitle_text = "";

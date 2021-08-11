@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Call;
@@ -331,11 +332,28 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         return null;
     }
 
-    public JsonObject getQuoteString(String shipId, String voiceLine, String voiceSize) {
+    // In original code, multiple rows can be returned for one voice line.
+    // not sure if it was by design. but after refactoring it only return 1 or 0 row.
+    public SubtitleData getSubtitleData(String id, String code, String size) {
+        JsonObject subtitle = getQuoteString(id, code, size);
+        Log.e("GOTO", subtitle.toString());
+        for (String key : subtitle.keySet()) {
+            String start_time = key.split(",")[0];
+            if (Pattern.matches("[0-9]+", start_time)) {
+                String text = subtitle.get(key).getAsString();
+                int delay = Integer.parseInt(start_time);
+
+                return new SubtitleData(text, delay);
+            }
+        }
+        return null;
+    }
+
+    private JsonObject getQuoteString(String shipId, String voiceLine, String voiceSize) {
         return getQuoteString(shipId, voiceLine, voiceSize, MAX_LOOP);
     }
 
-    public JsonObject getQuoteString(String shipId, String voiceLine, String voiceSize, int maxLoop) {
+    private JsonObject getQuoteString(String shipId, String voiceLine, String voiceSize, int maxLoop) {
         Log.e("GOTO", shipId + " " +voiceLine + " " + voiceSize);
         String voiceline_original = voiceLine;
         JsonObject voicedata_base = new JsonObject();

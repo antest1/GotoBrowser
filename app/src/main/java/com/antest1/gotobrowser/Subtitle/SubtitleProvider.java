@@ -29,9 +29,7 @@ public interface SubtitleProvider {
 
     String findQuoteKeyByFileSize(String shipId, String voiceLine, String voiceSize);
 
-    JsonObject getQuoteString(String shipId, String voiceLine, String voiceSize);
-
-    JsonObject getQuoteString(String shipId, String voiceLine, String voiceSize, int maxLoop);
+    SubtitleData getSubtitleData(String id, String code, String size);
 
     void buildMapBgmGraph(JsonArray data);
 
