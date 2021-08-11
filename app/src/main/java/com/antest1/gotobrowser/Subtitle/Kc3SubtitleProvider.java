@@ -98,7 +98,7 @@ public class Kc3SubtitleProvider {
 
     // These ships got special (unused?) voice line (6, aka. Repair) implemented,
     // tested by trying and succeeding to http fetch mp3 from kc server
-    public static final int[] specialReairVoiceShips = {
+    public static final int[] specialRepairVoiceShips = {
         56, 160, 224,  // Naka
         65, 194, 268,  // Haguro
         114, 200, 290, // Abukuma
@@ -118,12 +118,12 @@ public class Kc3SubtitleProvider {
     public static JsonObject quoteData = new JsonObject();
     public static JsonObject quoteTimingData = new JsonObject();
 
-    public static int getFilenameByVoiceLine(int ship_id, int lineNum) {
-        return lineNum <= 53 ? 100000 + 17 * (ship_id + 7) * (workingDiffs[lineNum - 1]) % 99173 : lineNum;
+    public static int getFilenameByVoiceLine(int shipId, int lineNum) {
+        return lineNum <= 53 ? 100000 + 17 * (shipId + 7) * (workingDiffs[lineNum - 1]) % 99173 : lineNum;
     }
 
-    public static int getVoiceDiffByFilename(String ship_id, String filename) {
-        int ship_id_val = Integer.parseInt(ship_id, 10);
+    public static int getVoiceDiffByFilename(String shipId, String filename) {
+        int ship_id_val = Integer.parseInt(shipId, 10);
         int f = Integer.parseInt(filename, 10);
         int k = 17 * (ship_id_val + 7);
         int r = f - 100000;
@@ -140,16 +140,16 @@ public class Kc3SubtitleProvider {
         return -1;
     }
 
-    public static String getVoiceLineByFilename(String ship_id, String filename) {
-        if (ship_id.equals("9998") || ship_id.equals("9999")) {
+    public static String getVoiceLineByFilename(String shipId, String filename) {
+        if (shipId.equals("9998") || shipId.equals("9999")) {
             return filename;
         }
         // Some ships use special voice line filenames
-        JsonObject specialMap = specialShipVoices.getAsJsonObject(ship_id);
+        JsonObject specialMap = specialShipVoices.getAsJsonObject(shipId);
         if (specialMap != null && specialMap.has(filename)) {
             return specialMap.get(filename).getAsString();
         }
-        int computedDiff = getVoiceDiffByFilename(ship_id, filename);
+        int computedDiff = getVoiceDiffByFilename(shipId, filename);
         int computedIndex = voiceDiffsList.indexOf(computedDiff);
         // If computed diff is not in voiceDiffs, return the computedDiff itself so we can lookup quotes via voiceDiff
         return String.valueOf(computedIndex > -1 ? computedIndex + 1 : computedDiff);
@@ -260,8 +260,8 @@ public class Kc3SubtitleProvider {
         return quoteSizeData != null;
     }
 
-    public static boolean loadQuoteData(Context context, String locale_code) {
-        String filename = String.format(Locale.US, "quotes_%s.json", locale_code);
+    public static boolean loadQuoteData(Context context, String localeCode) {
+        String filename = String.format(Locale.US, "quotes_%s.json", localeCode);
         String data_dir = KcUtils.getAppCacheFileDir(context, "/subtitle/");
         String subtitle_path = data_dir.concat(filename);
         quoteData = KcUtils.readJsonObjectFromFile(subtitle_path);
@@ -281,26 +281,26 @@ public class Kc3SubtitleProvider {
         return 3000;
     }
 
-    public static String findQuoteKeyByFileSize(String ship_id, String voiceline, String voiceSize) {
+    public static String findQuoteKeyByFileSize(String shipId, String voiceLine, String voiceSize) {
         // Special seasonal key check by file size
         JsonObject specialSeasonalKey = quoteLabel.getAsJsonObject("specialQuotesSizes");
-        String base_id = ship_id;
+        String base_id = shipId;
         int find_limit = 7;
         while (shipDataGraph.has(base_id) && find_limit > 0) {
-            base_id = shipDataGraph.get(ship_id).getAsString();
+            base_id = shipDataGraph.get(shipId).getAsString();
             find_limit--;
         }
         if (specialSeasonalKey.has(base_id)) {
             JsonObject shipData = specialSeasonalKey.getAsJsonObject(base_id);
-            if (shipData.has(voiceline)) {
-                JsonObject sizeTable = shipData.getAsJsonObject(voiceline);
+            if (shipData.has(voiceLine)) {
+                JsonObject sizeTable = shipData.getAsJsonObject(voiceLine);
                 if (sizeTable.has(voiceSize)) {
                     JsonObject data = sizeTable.getAsJsonObject(voiceSize);
                     for (String key: data.keySet()) {
                         JsonArray months = data.getAsJsonArray(key);
                         int month = Calendar.getInstance().get(Calendar.MONTH) + 1;
                         if (months.contains(new JsonPrimitive(month))) {
-                            return voiceline + "@" + key;
+                            return voiceLine + "@" + key;
                         }
                     }
                 }
@@ -308,69 +308,68 @@ public class Kc3SubtitleProvider {
         }
 
         // Special key check by file size
-        JsonObject shipData = quoteSizeData.getAsJsonObject(ship_id);
-        if (shipData != null && shipData.has(voiceline)) {
-            JsonObject sizeTable = shipData.getAsJsonObject(voiceline);
+        JsonObject shipData = quoteSizeData.getAsJsonObject(shipId);
+        if (shipData != null && shipData.has(voiceLine)) {
+            JsonObject sizeTable = shipData.getAsJsonObject(voiceLine);
             if (sizeTable.has(voiceSize)) {
                 String value = sizeTable.get(voiceSize).getAsString();
                 if (value.length() > 0) {
-                    return voiceline + "@" + value;
+                    return voiceLine + "@" + value;
                 } else {
-                    return voiceline;
+                    return voiceLine;
                 }
             }
         }
         return null;
     }
 
-    public static JsonObject getQuoteString(String ship_id, String voiceline, String voiceSize) {
-        return getQuoteString(ship_id, voiceline, voiceSize, MAX_LOOP);
+    public static JsonObject getQuoteString(String shipId, String voiceLine, String voiceSize) {
+        return getQuoteString(shipId, voiceLine, voiceSize, MAX_LOOP);
     }
 
-    public static JsonObject getQuoteString(String ship_id, String voiceline, String voiceSize, int max_loop) {
-        Log.e("GOTO", ship_id + " " +voiceline + " " + voiceSize);
-        String voiceline_original = voiceline;
+    public static JsonObject getQuoteString(String shipId, String voiceLine, String voiceSize, int maxLoop) {
+        Log.e("GOTO", shipId + " " +voiceLine + " " + voiceSize);
+        String voiceline_original = voiceLine;
         JsonObject voicedata_base = new JsonObject();
         voicedata_base.addProperty("0", "");
-        if (max_loop > 0 && shipDataGraph.has(ship_id)) {
-            String before_id = shipDataGraph.get(ship_id).getAsString();
-            voicedata_base = getQuoteString(before_id, voiceline_original, voiceSize, max_loop - 1);
+        if (maxLoop > 0 && shipDataGraph.has(shipId)) {
+            String before_id = shipDataGraph.get(shipId).getAsString();
+            voicedata_base = getQuoteString(before_id, voiceline_original, voiceSize, maxLoop - 1);
             Log.e("GOTO", "prev:" + voicedata_base.toString());
         }
 
         try {
-            String voiceline_special = "";
-            boolean is_abyssal = ship_id.equals("9998");
-            boolean is_npc = ship_id.equals("9999");
-            boolean is_title = ship_id.contains("titlecall");
+            boolean is_abyssal = shipId.equals("9998");
+            boolean is_npc = shipId.equals("9999");
+            boolean is_title = shipId.contains("titlecall");
             boolean is_special = is_abyssal || is_npc || is_title;
-            if (quoteData.size() == 0 || !(is_special || quoteData.has(ship_id))) {
+            if (quoteData.size() == 0 || !(is_special || quoteData.has(shipId))) {
                 return voicedata_base;
             }
 
             boolean current_special_flag = false;
             boolean prev_special_flag = voicedata_base.has("special");
-            if (is_abyssal) ship_id = "abyssal";
-            if (is_npc) ship_id = "npc";
+            if (is_abyssal) shipId = "abyssal";
+            if (is_npc) shipId = "npc";
             if (!is_special) {
-                if (specialDiffs.has(voiceline)) {
-                    voiceline = specialDiffs.get(voiceline).getAsString();
+                if (specialDiffs.has(voiceLine)) {
+                    voiceLine = specialDiffs.get(voiceLine).getAsString();
                 }
-                String specialVoiceLine = findQuoteKeyByFileSize(ship_id, voiceline, voiceSize);
-                if (specialVoiceLine != null && !specialVoiceLine.equals(voiceline)) {
+                String specialVoiceLine = findQuoteKeyByFileSize(shipId, voiceLine, voiceSize);
+                if (specialVoiceLine != null && !specialVoiceLine.equals(voiceLine)) {
                     current_special_flag = true;
-                    voiceline = specialVoiceLine;
+                    voiceLine = specialVoiceLine;
                 } else {
-                    voiceline = quoteLabel.get(voiceline).getAsString();
+                    voiceLine = quoteLabel.get(voiceLine).getAsString();
                 }
             }
 
-            if (!quoteData.has(ship_id)) return voicedata_base;
-            JsonObject ship_data = quoteData.getAsJsonObject(ship_id);
-            Log.e("GOTO", ship_id + " " +voiceline + " " + voiceSize);
+            if (!quoteData.has(shipId)) return voicedata_base;
+            JsonObject ship_data = quoteData.getAsJsonObject(shipId);
+            Log.e("GOTO", shipId + " " +voiceLine + " " + voiceSize);
             if (current_special_flag || !prev_special_flag) {
-                if (ship_data.has(voiceline)) {
-                    JsonElement text_data = ship_data.get(voiceline);
+                if (ship_data.has(voiceLine)) {
+                    JsonElement text_data = ship_data.get(voiceLine);
                     if (text_data.isJsonPrimitive()) {
                         voicedata_base.addProperty("0", text_data.getAsString());
                     } else {
@@ -392,15 +391,6 @@ public class Kc3SubtitleProvider {
         for (int i = 0; i < data.size(); i++) {
             JsonObject item = data.get(i).getAsJsonObject();
             mapBgmGraph.add(item.get("api_id").getAsString(), item);
-        }
-    }
-
-    public static JsonObject getMapBgmGraph(int api_id) {
-        String key = String.valueOf(api_id);
-        if (mapBgmGraph.has(key)) {
-            return mapBgmGraph.get(key).getAsJsonObject();
-        } else {
-            return null;
         }
     }
 }
