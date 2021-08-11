@@ -42,7 +42,7 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.reportException;
 
 // Reference: https://github.com/KC3Kai/KC3Kai/issues/1180
 //            https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
-public class KcSubtitleUtils {
+public class Kc3SubtitleProvider {
     public static final String SUBTITLE_META_ROOT_FORMAT =
             "https://raw.githubusercontent.com/KC3Kai/KC3Kai/%s/src/data/quotes_size.json";
 
