@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
+import com.antest1.gotobrowser.Activity.SettingsActivity;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -34,5 +35,6 @@ public interface SubtitleProvider {
 
     void buildMapBgmGraph(JsonArray data);
 
-    void checkUpdateFromPreference(PreferenceFragmentCompat fragment, String subtitleLocale, Preference subtitleUpdate, VersionDatabase versionTable);
+    void checkUpdateFromPreference(SettingsActivity.SettingsFragment fragment, String subtitleLocale, Preference subtitleUpdate, VersionDatabase versionTable);
+    void downloadUpdateFromPreference(SettingsActivity.SettingsFragment fragment, VersionDatabase versionTable);
 }

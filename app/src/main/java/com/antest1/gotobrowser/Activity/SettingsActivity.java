@@ -25,7 +25,6 @@ import com.antest1.gotobrowser.Subtitle.Kc3SubtitleCheck;
 import com.antest1.gotobrowser.Subtitle.Kc3SubtitleRepo;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import java.io.File;
@@ -57,7 +56,6 @@ import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_TP_DISCLAIMED;
 import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
-import static com.antest1.gotobrowser.Constants.SUBTITLE_PATH_FORMAT;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_ROOT;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
@@ -155,7 +153,7 @@ public class SettingsActivity extends AppCompatActivity {
             if (key.equals(PREF_CHECK_UPDATE)) {
                 KcUtils.requestLatestAppVersion(getActivity(), SubtitleProviderUtils.getKc3SubtitleProvider().updateCheck, true);
             } else if (key.equals(PREF_SUBTITLE_UPDATE)) {
-                onLocaleItemDownload(SubtitleProviderUtils.getKc3SubtitleProvider().subtitleData);
+                SubtitleProviderUtils.getCurrentSubtitleProvider().downloadUpdateFromPreference(this, versionTable);
             }
             return super.onPreferenceTreeClick(preference);
         }
@@ -215,57 +213,6 @@ public class SettingsActivity extends AppCompatActivity {
             Preference subtitleUpdate = findPreference(PREF_SUBTITLE_UPDATE);
 
             SubtitleProviderUtils.getSubtitleProvider(subtitleLocale).checkUpdateFromPreference(this, subtitleLocale, subtitleUpdate, versionTable);
-        }
-
-
-        private void onLocaleItemDownload(JsonObject item) {
-            if (SubtitleProviderUtils.getKc3SubtitleProvider().subtitleData != null) {
-                String commit = item.get("latest_commit").getAsString();
-                String path = item.get("download_url").getAsString();
-                Call<JsonObject> call = SubtitleProviderUtils.getKc3SubtitleProvider().subtitleRepo.download(commit, path);
-                call.enqueue(new Callback<JsonObject>() {
-                    @Override
-                    public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                        saveQuotesFile(item, response);
-                    }
-                    @Override
-                    public void onFailure(Call<JsonObject> call, Throwable t) {
-                        KcUtils.showToast(getContext(), t.getLocalizedMessage());
-                    }
-                });
-            }
-        }
-
-        private void saveQuotesFile(final JsonObject item, Response<JsonObject> response) {
-            String message = "";
-            String locale_code = item.get("locale_code").getAsString();
-            String commit = item.get("latest_commit").getAsString();
-            String filename = String.format(Locale.US, "quotes_%s.json", locale_code);
-
-            JsonObject data = response.body();
-            String subtitle_folder = KcUtils.getAppCacheFileDir(getContext(), "/subtitle/");
-            String subtitle_path = subtitle_folder.concat(filename);
-            File file = new File(subtitle_folder);
-            try {
-                if (!file.exists()) file.mkdirs();
-                if (data != null) {
-                    File subtitle_file = new File(subtitle_path);
-                    FileOutputStream fos = new FileOutputStream(subtitle_file);
-                    fos.write(data.toString().getBytes());
-                    fos.close();
-                    versionTable.putValue(subtitle_path, commit);
-                    Preference subtitleUpdate = findPreference(PREF_SUBTITLE_UPDATE);
-                    subtitleUpdate.setSummary(getString(R.string.setting_latest_version));
-                    subtitleUpdate.setEnabled(false);
-                } else {
-                    message = "No data to write: quotes_".concat(locale_code).concat(".json");
-                    KcUtils.showToast(getContext(), message);
-                }
-            } catch (IOException e) {
-                KcUtils.reportException(e);
-                message = "IOException while saving quotes_".concat(locale_code).concat(".json");
-                KcUtils.showToast(getContext(), message);
-            }
         }
     }
 }
