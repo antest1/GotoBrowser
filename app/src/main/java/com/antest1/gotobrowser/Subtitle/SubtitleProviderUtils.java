@@ -6,4 +6,13 @@ public class SubtitleProviderUtils {
     public static SubtitleProvider getCurrentSubtitleProvider() {
         return kc3SubtitleProvider;
     }
+
+    public static SubtitleProvider getSubtitleProvider(String subtitleLocale) {
+        return kc3SubtitleProvider;
+    }
+
+
+    public static Kc3SubtitleProvider getKc3SubtitleProvider() {
+        return kc3SubtitleProvider;
+    }
 }

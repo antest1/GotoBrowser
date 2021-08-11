@@ -2,6 +2,9 @@ package com.antest1.gotobrowser.Subtitle;
 
 import android.content.Context;
 
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragmentCompat;
+
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -30,4 +33,6 @@ public interface SubtitleProvider {
     JsonObject getQuoteString(String shipId, String voiceLine, String voiceSize, int maxLoop);
 
     void buildMapBgmGraph(JsonArray data);
+
+    void checkUpdateFromPreference(PreferenceFragmentCompat fragment, String subtitleLocale, Preference subtitleUpdate, VersionDatabase versionTable);
 }

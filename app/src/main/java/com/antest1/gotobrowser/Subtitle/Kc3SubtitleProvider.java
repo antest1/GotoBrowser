@@ -4,8 +4,12 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
 
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragmentCompat;
+
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
+import com.antest1.gotobrowser.R;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -35,6 +39,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
+import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
+import static com.antest1.gotobrowser.Constants.SUBTITLE_PATH_FORMAT;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_SIZE_PATH;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
@@ -392,5 +398,61 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             JsonObject item = data.get(i).getAsJsonObject();
             mapBgmGraph.add(item.get("api_id").getAsString(), item);
         }
+    }
+
+
+    // TODO make it private
+    public Kc3SubtitleCheck updateCheck = null;
+
+    // TODO make it private
+    public JsonObject subtitleData = null;
+
+    // TODO make it private
+    public Kc3SubtitleRepo subtitleRepo;
+
+
+    public void checkUpdateFromPreference(PreferenceFragmentCompat fragment, String subtitleLocale, Preference subtitleUpdate, VersionDatabase versionTable) {
+        SubtitleProviderUtils.getKc3SubtitleProvider().subtitleData = null;
+        subtitleUpdate.setSummary("checking updates...");
+        subtitleUpdate.setEnabled(false);
+        String subtitlePath = String.format(Locale.US, SUBTITLE_PATH_FORMAT, subtitleLocale);
+        Call<JsonArray> call = SubtitleProviderUtils.getKc3SubtitleProvider().updateCheck.check(subtitlePath);
+        call.enqueue(new Callback<JsonArray>() {
+            @Override
+            public void onResponse(Call<JsonArray> call, Response<JsonArray> response) {
+                if (fragment.getActivity() == null) return;
+                JsonArray commit_log = response.body();
+                if (commit_log != null && !commit_log.isJsonNull()) {
+                    String filename = String.format(Locale.US, "quotes_%s.json", subtitleLocale);
+                    String subtitle_folder = KcUtils.getAppCacheFileDir(fragment.getContext(), "/subtitle/");
+                    String subtitle_path = subtitle_folder.concat(filename);
+                    String currentCommit = versionTable.getValue(subtitle_path);
+                    if (commit_log.size() > 0) {
+                        JsonObject latestData = commit_log.get(0).getAsJsonObject();
+                        String latestCommit = latestData.get("sha").getAsString();
+                        if (!currentCommit.equals(latestCommit)) {
+                            SubtitleProviderUtils.getKc3SubtitleProvider().subtitleData = new JsonObject();
+                            SubtitleProviderUtils.getKc3SubtitleProvider().subtitleData.addProperty("locale_code", subtitleLocale);
+                            SubtitleProviderUtils.getKc3SubtitleProvider().subtitleData.addProperty("latest_commit", latestCommit);
+                            SubtitleProviderUtils.getKc3SubtitleProvider().subtitleData.addProperty("download_url", subtitlePath);
+                            String summary = String.format(Locale.US,
+                                    fragment.getString(R.string.setting_latest_download_subtitle),
+                                    latestCommit.substring(0, 6));
+                            subtitleUpdate.setSummary(summary);
+                            subtitleUpdate.setEnabled(true);
+                        } else {
+                            subtitleUpdate.setSummary(fragment.getString(R.string.setting_latest_version));
+                        }
+                    } else {
+                        subtitleUpdate.setSummary("no data");
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<JsonArray> call, Throwable t) {
+                if (fragment.getActivity() == null) return;
+                fragment.findPreference(PREF_SUBTITLE_UPDATE).setSummary("failed loading subtitle data");
+            }
+        });
     }
 }
