@@ -17,6 +17,7 @@ import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.Kc3SubtitleProvider;
+import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
@@ -397,9 +398,9 @@ public class ResourceProcess {
             String ship_id = voice_filename;
             if (Kc3SubtitleProvider.filenameToShipId.containsKey(voice_filename)) {
                 ship_id = Kc3SubtitleProvider.filenameToShipId.get(voice_filename);
-                voiceline = Kc3SubtitleProvider.getVoiceLineByFilename(ship_id, voice_code);
+                voiceline = SubtitleProviderUtils.getCurrentSubtitleProvider().getVoiceLineByFilename(ship_id, voice_code);
             } else {
-                voiceline = Kc3SubtitleProvider.getVoiceLineByFilename(voice_filename, voice_code);
+                voiceline = SubtitleProviderUtils.getCurrentSubtitleProvider().getVoiceLineByFilename(voice_filename, voice_code);
             }
             Log.e("GOTO", "file info: " + info);
             Log.e("GOTO", "voiceline: " + String.valueOf(voiceline));
@@ -650,7 +651,7 @@ public class ResourceProcess {
     private void setSubtitle(String id, String code, String size) {
         if (activity.isCaptionAvailable()) {
             shipVoiceHandler.removeCallbacksAndMessages(null);
-            JsonObject subtitle = Kc3SubtitleProvider.getQuoteString(id, code, size);
+            JsonObject subtitle = SubtitleProviderUtils.getCurrentSubtitleProvider().getQuoteString(id, code, size);
             Log.e("GOTO", subtitle.toString());
             for (String key : subtitle.keySet()) {
                 String start_time = key.split(",")[0];
@@ -686,7 +687,7 @@ public class ResourceProcess {
                 if (activity.isCaptionAvailable()) {
                     subtitleText.setText(subtitle_text);
                 }
-                int delay = Kc3SubtitleProvider.getDefaultTiming(subtitle_text);
+                int delay = SubtitleProviderUtils.getCurrentSubtitleProvider().getDefaultTiming(subtitle_text);
                 clearSubHandler.postDelayed(clearSubtitle, delay);
             });
         }

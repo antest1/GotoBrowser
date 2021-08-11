@@ -45,6 +45,7 @@ import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Notification.ScreenshotNotification;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.Kc3SubtitleProvider;
+import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
@@ -199,8 +200,8 @@ public class BrowserActivity extends AppCompatActivity {
             // defaultSubtitleMargin = getDefaultSubtitleMargin();
             //setSubtitleMargin(sharedPref.getInt(PREF_PADDING, 0));
             String subtitle_local = sharedPref.getString(PREF_SUBTITLE_LOCALE, "en");
-            Kc3SubtitleProvider.loadQuoteAnnotation(getApplicationContext());
-            isSubtitleLoaded = Kc3SubtitleProvider.loadQuoteData(getApplicationContext(), subtitle_local);
+            SubtitleProviderUtils.getCurrentSubtitleProvider().loadQuoteAnnotation(getApplicationContext());
+            isSubtitleLoaded = SubtitleProviderUtils.getCurrentSubtitleProvider().loadQuoteData(getApplicationContext(), subtitle_local);
             connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
 
 

@@ -14,6 +14,7 @@ import com.antest1.gotobrowser.ContentProvider.KcaPacketStore;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.Kc3SubtitleProvider;
+import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -78,8 +79,8 @@ public class KcsInterface {
                 JsonArray api_mst_shipgraph = api_data.getAsJsonArray("api_mst_shipgraph");
                 JsonArray api_mst_ship = api_data.getAsJsonArray("api_mst_ship");
                 JsonArray api_mst_mapbgm = api_data.getAsJsonArray("api_mst_mapbgm");
-                Kc3SubtitleProvider.buildShipGraph(api_mst_ship);
-                Kc3SubtitleProvider.buildMapBgmGraph(api_mst_mapbgm);
+                SubtitleProviderUtils.getCurrentSubtitleProvider().buildShipGraph(api_mst_ship);
+                SubtitleProviderUtils.getCurrentSubtitleProvider().buildMapBgmGraph(api_mst_mapbgm);
                 for (JsonElement item : api_mst_shipgraph) {
                     JsonObject ship = item.getAsJsonObject();
                     String shipId = ship.get("api_id").getAsString();

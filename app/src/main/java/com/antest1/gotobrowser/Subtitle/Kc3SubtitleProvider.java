@@ -42,7 +42,7 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.reportException;
 
 // Reference: https://github.com/KC3Kai/KC3Kai/issues/1180
 //            https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
-public class Kc3SubtitleProvider {
+public class Kc3SubtitleProvider implements SubtitleProvider {
     public static final String SUBTITLE_META_ROOT_FORMAT =
             "https://raw.githubusercontent.com/KC3Kai/KC3Kai/%s/src/data/quotes_size.json";
 
@@ -118,11 +118,11 @@ public class Kc3SubtitleProvider {
     public static JsonObject quoteData = new JsonObject();
     public static JsonObject quoteTimingData = new JsonObject();
 
-    public static int getFilenameByVoiceLine(int shipId, int lineNum) {
+    public int getFilenameByVoiceLine(int shipId, int lineNum) {
         return lineNum <= 53 ? 100000 + 17 * (shipId + 7) * (workingDiffs[lineNum - 1]) % 99173 : lineNum;
     }
 
-    public static int getVoiceDiffByFilename(String shipId, String filename) {
+    public int getVoiceDiffByFilename(String shipId, String filename) {
         int ship_id_val = Integer.parseInt(shipId, 10);
         int f = Integer.parseInt(filename, 10);
         int k = 17 * (ship_id_val + 7);
@@ -140,7 +140,7 @@ public class Kc3SubtitleProvider {
         return -1;
     }
 
-    public static String getVoiceLineByFilename(String shipId, String filename) {
+    public String getVoiceLineByFilename(String shipId, String filename) {
         if (shipId.equals("9998") || shipId.equals("9999")) {
             return filename;
         }
@@ -155,7 +155,7 @@ public class Kc3SubtitleProvider {
         return String.valueOf(computedIndex > -1 ? computedIndex + 1 : computedDiff);
     }
 
-    public static void buildShipGraph(JsonArray data) {
+    public void buildShipGraph(JsonArray data) {
         List<Map.Entry<Integer, JsonObject>> list = new ArrayList<>();
         for (int i = 0; i < data.size(); i++) {
             JsonObject item = data.get(i).getAsJsonObject();
@@ -186,7 +186,7 @@ public class Kc3SubtitleProvider {
         Log.e("GOTO", "ship_graph: " + shipDataGraph.size());
     }
 
-    public static void loadQuoteAnnotation(Context context) {
+    public void loadQuoteAnnotation(Context context) {
         AssetManager as = context.getAssets();
         try {
             final Gson gson = new Gson();
@@ -260,7 +260,7 @@ public class Kc3SubtitleProvider {
         return quoteSizeData != null;
     }
 
-    public static boolean loadQuoteData(Context context, String localeCode) {
+    public boolean loadQuoteData(Context context, String localeCode) {
         String filename = String.format(Locale.US, "quotes_%s.json", localeCode);
         String data_dir = KcUtils.getAppCacheFileDir(context, "/subtitle/");
         String subtitle_path = data_dir.concat(filename);
@@ -272,7 +272,7 @@ public class Kc3SubtitleProvider {
         return false;
     }
 
-    public static int getDefaultTiming(String data) {
+    public int getDefaultTiming(String data) {
         if (quoteTimingData.size() == 2) {
             int default_time = quoteTimingData.get("baseMillisVoiceLine").getAsInt();
             int extra_time = quoteTimingData.get("extraMillisPerChar").getAsInt() * data.length();
@@ -281,7 +281,7 @@ public class Kc3SubtitleProvider {
         return 3000;
     }
 
-    public static String findQuoteKeyByFileSize(String shipId, String voiceLine, String voiceSize) {
+    public String findQuoteKeyByFileSize(String shipId, String voiceLine, String voiceSize) {
         // Special seasonal key check by file size
         JsonObject specialSeasonalKey = quoteLabel.getAsJsonObject("specialQuotesSizes");
         String base_id = shipId;
@@ -323,11 +323,11 @@ public class Kc3SubtitleProvider {
         return null;
     }
 
-    public static JsonObject getQuoteString(String shipId, String voiceLine, String voiceSize) {
+    public JsonObject getQuoteString(String shipId, String voiceLine, String voiceSize) {
         return getQuoteString(shipId, voiceLine, voiceSize, MAX_LOOP);
     }
 
-    public static JsonObject getQuoteString(String shipId, String voiceLine, String voiceSize, int maxLoop) {
+    public JsonObject getQuoteString(String shipId, String voiceLine, String voiceSize, int maxLoop) {
         Log.e("GOTO", shipId + " " +voiceLine + " " + voiceSize);
         String voiceline_original = voiceLine;
         JsonObject voicedata_base = new JsonObject();
@@ -387,7 +387,7 @@ public class Kc3SubtitleProvider {
         return voicedata_base;
     }
 
-    public static void buildMapBgmGraph(JsonArray data) {
+    public void buildMapBgmGraph(JsonArray data) {
         for (int i = 0; i < data.size(); i++) {
             JsonObject item = data.get(i).getAsJsonObject();
             mapBgmGraph.add(item.get("api_id").getAsString(), item);
