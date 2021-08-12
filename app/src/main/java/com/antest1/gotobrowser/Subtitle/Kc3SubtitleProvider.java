@@ -1,11 +1,11 @@
 package com.antest1.gotobrowser.Subtitle;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
 
 import androidx.preference.Preference;
-import androidx.preference.PreferenceFragmentCompat;
 
 import com.antest1.gotobrowser.Activity.SettingsActivity;
 import com.antest1.gotobrowser.Helpers.KcUtils;
@@ -23,11 +23,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -290,7 +293,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         return 3000;
     }
 
-    public String findQuoteKeyByFileSize(String shipId, String voiceLine, String voiceSize) {
+    private String findQuoteKeyByFileSize(String shipId, String voiceLine, String voiceSize) {
         // Special seasonal key check by file size
         JsonObject specialSeasonalKey = quoteLabel.getAsJsonObject("specialQuotesSizes");
         String base_id = shipId;
@@ -332,9 +335,50 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         return null;
     }
 
+
+    public SubtitleData getSubtitleData(String url, String path, String voiceSize) throws ParseException {
+        SubtitleData data = null;
+        if (url.contains("/kcs/sound/kc")) {
+            String info = path.replace("/kcs/sound/kc", "").replace(".mp3", "");
+            String[] fn_code = info.split("/");
+            String voiceLine = "";
+            String voice_filename = fn_code[0];
+            String voice_code = fn_code[1];
+            String shipId = voice_filename;
+            if (Kc3SubtitleProvider.filenameToShipId.containsKey(voice_filename)) {
+                shipId = Kc3SubtitleProvider.filenameToShipId.get(voice_filename);
+                voiceLine = SubtitleProviderUtils.getCurrentSubtitleProvider().getVoiceLineByFilename(shipId, voice_code);
+            } else {
+                voiceLine = SubtitleProviderUtils.getCurrentSubtitleProvider().getVoiceLineByFilename(voice_filename, voice_code);
+            }
+            Log.e("GOTO", "file info: " + info);
+            Log.e("GOTO", "voiceline: " + String.valueOf(voiceLine));
+            int voiceLineValue = Integer.parseInt(voiceLine);
+            if (voiceLineValue >= 30 && voiceLineValue <= 53) { // hourly voiceline
+                Date now = new Date();
+                String voiceLineTime = String.format(Locale.US, "%02d:00:00", voiceLineValue - 30);
+                @SuppressLint("SimpleDateFormat") SimpleDateFormat time_fmt = new SimpleDateFormat("HH:mm:ss");
+                Date time_src = time_fmt.parse(time_fmt.format(now));
+                Date time_tgt = time_fmt.parse(voiceLineTime);
+                long diffMsec = time_tgt.getTime() - time_src.getTime();
+                if (voiceLineValue == 30) diffMsec += 86400000;
+
+                data = getSubtitleDataInternal(shipId, voiceLine, voiceSize);
+                data.setExtraDelay(diffMsec);
+            } else {
+                data = getSubtitleDataInternal(shipId, voiceLine, voiceSize);
+            }
+        } else if (url.contains("/voice/titlecall_")) {
+            String info = path.replace("/kcs2/resources/voice/", "").replace(".mp3", "");
+            String[] fn_code = info.split("/");
+            data = getSubtitleDataInternal(fn_code[0], fn_code[1], voiceSize);
+        }
+        return data;
+    }
+
     // In original code, multiple rows can be returned for one voice line.
     // not sure if it was by design. but after refactoring it only return 1 or 0 row.
-    public SubtitleData getSubtitleData(String shipId, String voiceLine, String voiceSize) {
+    private SubtitleData getSubtitleDataInternal(String shipId, String voiceLine, String voiceSize) {
         JsonObject subtitle = getQuoteString(shipId, voiceLine, voiceSize);
         Log.e("GOTO", subtitle.toString());
         for (String key : subtitle.keySet()) {

@@ -1,6 +1,5 @@
 package com.antest1.gotobrowser.Browser;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
@@ -16,7 +15,6 @@ import com.antest1.gotobrowser.Helpers.K3dPatcher;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
-import com.antest1.gotobrowser.Subtitle.Kc3SubtitleProvider;
 import com.antest1.gotobrowser.Subtitle.SubtitleData;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.gson.JsonObject;
@@ -29,10 +27,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -390,45 +386,10 @@ public class ResourceProcess {
         }
 
         String voiceSize = String.valueOf(file.length());
-        SubtitleData data = null;
-        if (url.contains("/kcs/sound/kc")) {
-            String info = path.replace("/kcs/sound/kc", "").replace(".mp3", "");
-            String[] fn_code = info.split("/");
-            String voiceLine = "";
-            String voice_filename = fn_code[0];
-            String voice_code = fn_code[1];
-            String shipId = voice_filename;
-            if (Kc3SubtitleProvider.filenameToShipId.containsKey(voice_filename)) {
-                shipId = Kc3SubtitleProvider.filenameToShipId.get(voice_filename);
-                voiceLine = SubtitleProviderUtils.getCurrentSubtitleProvider().getVoiceLineByFilename(shipId, voice_code);
-            } else {
-                voiceLine = SubtitleProviderUtils.getCurrentSubtitleProvider().getVoiceLineByFilename(voice_filename, voice_code);
-            }
-            Log.e("GOTO", "file info: " + info);
-            Log.e("GOTO", "voiceline: " + String.valueOf(voiceLine));
-            int voiceLineValue = Integer.parseInt(voiceLine);
-            if (voiceLineValue >= 30 && voiceLineValue <= 53) { // hourly voiceline
-                Date now = new Date();
-                String voiceLineTime = String.format(Locale.US, "%02d:00:00", voiceLineValue - 30);
-                @SuppressLint("SimpleDateFormat") SimpleDateFormat time_fmt = new SimpleDateFormat("HH:mm:ss");
-                Date time_src = time_fmt.parse(time_fmt.format(now));
-                Date time_tgt = time_fmt.parse(voiceLineTime);
-                long diffMsec = time_tgt.getTime() - time_src.getTime();
-                if (voiceLineValue == 30) diffMsec += 86400000;
-
-                data = SubtitleProviderUtils.getCurrentSubtitleProvider().getSubtitleData(shipId, voiceSize, voiceLine);
-                data.setExtraDelay(diffMsec);
-            } else {
-                data = SubtitleProviderUtils.getCurrentSubtitleProvider().getSubtitleData(shipId, voiceLine, voiceSize);
-            }
-        } else if (url.contains("/voice/titlecall_")) {
-            String info = path.replace("/kcs2/resources/voice/", "").replace(".mp3", "");
-            String[] fn_code = info.split("/");
-            data = SubtitleProviderUtils.getCurrentSubtitleProvider().getSubtitleData(fn_code[0], fn_code[1], voiceSize);
-        }
+        SubtitleData data = SubtitleProviderUtils.getCurrentSubtitleProvider().getSubtitleData(url, path, voiceSize);
 
         if (data != null) {
-            if (data.getExtraDelay() == null) {
+            if (data.getExtraDelay() != null) {
                 setSubtitleAfter(data);
             } else {
                 setSubtitle(data);
@@ -439,19 +400,6 @@ public class ResourceProcess {
 
         InputStream is = new BufferedInputStream(new FileInputStream(file));
         return new WebResourceResponse("audio/mpeg", "binary", is);
-    }
-
-    // TODO remove it
-    private void setSubtitle(String shipId, String voiceLine, String voiceSize) {
-        if (activity.isCaptionAvailable()) {
-            shipVoiceHandler.removeCallbacksAndMessages(null);
-
-            SubtitleData data = SubtitleProviderUtils.getCurrentSubtitleProvider().getSubtitleData(shipId, voiceLine, voiceSize);
-            if (data != null) {
-                SubtitleRunnable sr = new SubtitleRunnable(data.getText());
-                shipVoiceHandler.postDelayed(sr, data.getDelay());
-            }
-        }
     }
 
     private void setSubtitle(SubtitleData data) {
