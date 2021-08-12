@@ -390,6 +390,7 @@ public class ResourceProcess {
         }
 
         String voiceSize = String.valueOf(file.length());
+        SubtitleData data = null;
         if (url.contains("/kcs/sound/kc")) {
             String info = path.replace("/kcs/sound/kc", "").replace(".mp3", "");
             String[] fn_code = info.split("/");
@@ -414,20 +415,33 @@ public class ResourceProcess {
                 Date time_tgt = time_fmt.parse(voiceLineTime);
                 long diffMsec = time_tgt.getTime() - time_src.getTime();
                 if (voiceLineValue == 30) diffMsec += 86400000;
-                setSubtitleAfter(shipId, voiceSize, voiceLine, diffMsec);
+
+                data = SubtitleProviderUtils.getCurrentSubtitleProvider().getSubtitleData(shipId, voiceSize, voiceLine);
+                data.setExtraDelay(diffMsec);
             } else {
-                setSubtitle(shipId, voiceLine, voiceSize);
+                data = SubtitleProviderUtils.getCurrentSubtitleProvider().getSubtitleData(shipId, voiceLine, voiceSize);
             }
         } else if (url.contains("/voice/titlecall_")) {
             String info = path.replace("/kcs2/resources/voice/", "").replace(".mp3", "");
             String[] fn_code = info.split("/");
-            setSubtitle(fn_code[0], fn_code[1], voiceSize);
+            data = SubtitleProviderUtils.getCurrentSubtitleProvider().getSubtitleData(fn_code[0], fn_code[1], voiceSize);
         }
+
+        if (data != null) {
+            if (data.getExtraDelay() == null) {
+                setSubtitleAfter(data);
+            } else {
+                setSubtitle(data);
+            }
+        }
+
+
 
         InputStream is = new BufferedInputStream(new FileInputStream(file));
         return new WebResourceResponse("audio/mpeg", "binary", is);
     }
 
+    // TODO remove it
     private void setSubtitle(String shipId, String voiceLine, String voiceSize) {
         if (activity.isCaptionAvailable()) {
             shipVoiceHandler.removeCallbacksAndMessages(null);
@@ -440,12 +454,21 @@ public class ResourceProcess {
         }
     }
 
+    private void setSubtitle(SubtitleData data) {
+        if (activity.isCaptionAvailable()) {
+            shipVoiceHandler.removeCallbacksAndMessages(null);
+            if (data != null) {
+                SubtitleRunnable sr = new SubtitleRunnable(data.getText());
+                shipVoiceHandler.postDelayed(sr, data.getDelay());
+            }
+        }
+    }
 
-    private void setSubtitleAfter(String shipId, String voiceSize, String voiceLine, long diffMsec) {
-        Runnable r = new VoiceSubtitleRunnable(shipId, voiceLine, voiceSize);
+    private void setSubtitleAfter(SubtitleData data) {
+        Runnable r = new VoiceSubtitleRunnable2(data);
         shipVoiceHandler.removeCallbacks(r);
-        shipVoiceHandler.postDelayed(r, diffMsec);
-        Log.e("GOTO", "playHourVoice after: " + diffMsec + " msec");
+        shipVoiceHandler.postDelayed(r, data.getExtraDelay());
+        Log.e("GOTO", "playHourVoice after: " + data.getExtraDelay() + " msec");
     }
 
     private File getImageFile(String path) {
@@ -695,18 +718,16 @@ public class ResourceProcess {
         }
     }
 
-    class VoiceSubtitleRunnable implements Runnable {
-        String shipId, voiceLine, voiceSize;
+    class VoiceSubtitleRunnable2 implements Runnable {
+        SubtitleData data;
 
-        VoiceSubtitleRunnable(String shipId, String voiceLine, String voiceSize) {
-            this.shipId = shipId;
-            this.voiceLine = voiceLine;
-            this.voiceSize = voiceSize;
+        VoiceSubtitleRunnable2(SubtitleData data) {
+            this.data = data;
         }
 
         @Override
         public void run() {
-            setSubtitle(shipId, voiceLine, voiceSize);
+            setSubtitle(data);
         }
     }
 }

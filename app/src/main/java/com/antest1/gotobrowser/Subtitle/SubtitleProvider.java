@@ -37,7 +37,7 @@ public interface SubtitleProvider {
 
 
 
-    SubtitleData getSubtitleData(String id, String code, String size);
+    SubtitleData getSubtitleData(String shipId, String voiceLine, String voiceSize);
 
     void checkUpdateFromPreference(SettingsActivity.SettingsFragment fragment, String subtitleLocale, Preference subtitleUpdate, VersionDatabase versionTable);
     void downloadUpdateFromPreference(SettingsActivity.SettingsFragment fragment, VersionDatabase versionTable);

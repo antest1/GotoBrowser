@@ -334,8 +334,8 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
 
     // In original code, multiple rows can be returned for one voice line.
     // not sure if it was by design. but after refactoring it only return 1 or 0 row.
-    public SubtitleData getSubtitleData(String id, String code, String size) {
-        JsonObject subtitle = getQuoteString(id, code, size);
+    public SubtitleData getSubtitleData(String shipId, String voiceLine, String voiceSize) {
+        JsonObject subtitle = getQuoteString(shipId, voiceLine, voiceSize);
         Log.e("GOTO", subtitle.toString());
         for (String key : subtitle.keySet()) {
             String start_time = key.split(",")[0];
