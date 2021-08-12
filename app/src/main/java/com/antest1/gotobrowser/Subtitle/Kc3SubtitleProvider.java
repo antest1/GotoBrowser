@@ -47,6 +47,7 @@ import retrofit2.Response;
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_PATH_FORMAT;
+import static com.antest1.gotobrowser.Constants.SUBTITLE_ROOT;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_SIZE_PATH;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
@@ -215,7 +216,6 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
 
         VersionDatabase versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
         Kc3SubtitleCheck updateCheck = getRetrofitAdapter(context, GITHUBAPI_ROOT).create(Kc3SubtitleCheck.class);
-
         Call<JsonArray> call = updateCheck.checkMeta(SUBTITLE_SIZE_PATH);
         call.enqueue(new Callback<JsonArray>() {
             @Override
@@ -282,7 +282,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         return false;
     }
 
-    public int getDuration(String data) {
+    private int getDuration(String data) {
         if (quoteTimingData.size() == 2) {
             int default_time = quoteTimingData.get("baseMillisVoiceLine").getAsInt();
             int extra_time = quoteTimingData.get("extraMillisPerChar").getAsInt() * data.length();
@@ -463,20 +463,14 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
     }
 
 
-    // TODO make it private
-    public Kc3SubtitleCheck updateCheck = null;
-
     private JsonObject subtitleData = null;
-
-    // TODO make it private
-    public Kc3SubtitleRepo subtitleRepo;
-
 
     public void checkUpdateFromPreference(SettingsActivity.SettingsFragment fragment, String subtitleLocale, Preference subtitleUpdate, VersionDatabase versionTable) {
         subtitleData = null;
         subtitleUpdate.setSummary("checking updates...");
         subtitleUpdate.setEnabled(false);
         String subtitlePath = String.format(Locale.US, SUBTITLE_PATH_FORMAT, subtitleLocale);
+        Kc3SubtitleCheck updateCheck = getRetrofitAdapter(fragment.getContext(), GITHUBAPI_ROOT).create(Kc3SubtitleCheck.class);
         Call<JsonArray> call = updateCheck.check(subtitlePath);
         call.enqueue(new Callback<JsonArray>() {
             @Override
@@ -521,6 +515,8 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         if (subtitleData != null) {
             String commit = subtitleData.get("latest_commit").getAsString();
             String path = subtitleData.get("download_url").getAsString();
+
+            Kc3SubtitleRepo subtitleRepo = getRetrofitAdapter(fragment.getContext(), SUBTITLE_ROOT).create(Kc3SubtitleRepo.class);
             Call<JsonObject> call = subtitleRepo.download(commit, path);
             call.enqueue(new Callback<JsonObject>() {
                 @Override

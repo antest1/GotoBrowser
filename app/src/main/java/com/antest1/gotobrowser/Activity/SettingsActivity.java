@@ -18,6 +18,7 @@ import androidx.preference.SwitchPreferenceCompat;
 import androidx.webkit.WebViewFeature;
 
 import com.antest1.gotobrowser.BuildConfig;
+import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
@@ -110,6 +111,7 @@ public class SettingsActivity extends AppCompatActivity {
             implements SharedPreferences.OnSharedPreferenceChangeListener, Preference.OnPreferenceChangeListener {
         private VersionDatabase versionTable;
         private SharedPreferences sharedPref;
+        private GotoVersionCheck appCheck;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -118,8 +120,7 @@ public class SettingsActivity extends AppCompatActivity {
                     getString(R.string.preference_key), Context.MODE_PRIVATE);
             sharedPref.registerOnSharedPreferenceChangeListener(this);
             versionTable = new VersionDatabase(getContext(), null, VERSION_TABLE_VERSION);
-            SubtitleProviderUtils.getKc3SubtitleProvider().updateCheck = getRetrofitAdapter(getContext(), GITHUBAPI_ROOT).create(Kc3SubtitleCheck.class);
-            SubtitleProviderUtils.getKc3SubtitleProvider().subtitleRepo = getRetrofitAdapter(getContext(), SUBTITLE_ROOT).create(Kc3SubtitleRepo.class);
+            appCheck = getRetrofitAdapter(getContext(), GITHUBAPI_ROOT).create(GotoVersionCheck.class);
         }
 
         @Override
@@ -151,7 +152,7 @@ public class SettingsActivity extends AppCompatActivity {
         public boolean onPreferenceTreeClick(Preference preference) {
             String key = preference.getKey();
             if (key.equals(PREF_CHECK_UPDATE)) {
-                KcUtils.requestLatestAppVersion(getActivity(), SubtitleProviderUtils.getKc3SubtitleProvider().updateCheck, true);
+                KcUtils.requestLatestAppVersion(getActivity(), appCheck, true);
             } else if (key.equals(PREF_SUBTITLE_UPDATE)) {
                 SubtitleProviderUtils.getCurrentSubtitleProvider().downloadUpdateFromPreference(this, versionTable);
             }

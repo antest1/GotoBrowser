@@ -365,8 +365,8 @@ public class KcUtils {
         return null;
     }
 
-    public static void requestLatestAppVersion(Activity ac, Kc3SubtitleCheck updateCheck, boolean show_toast) {
-        Call<JsonObject> call = updateCheck.version();
+    public static void requestLatestAppVersion(Activity ac, GotoVersionCheck appCheck, boolean show_toast) {
+        Call<JsonObject> call = appCheck.version();
         call.enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, retrofit2.Response<JsonObject> response) {

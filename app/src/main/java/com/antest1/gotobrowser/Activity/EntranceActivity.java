@@ -17,6 +17,7 @@ import android.widget.TextView;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
+import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
@@ -61,7 +62,7 @@ public class EntranceActivity extends AppCompatActivity {
     private SharedPreferences sharedPref;
     private TextView selectButton;
     private VersionDatabase versionTable;
-    private Kc3SubtitleCheck updateCheck;
+    private GotoVersionCheck appCheck;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,8 +73,8 @@ public class EntranceActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) actionBar.hide();
 
-        updateCheck = getRetrofitAdapter(getApplicationContext(), GITHUBAPI_ROOT).create(Kc3SubtitleCheck.class);
-        KcUtils.requestLatestAppVersion(this, updateCheck, true);
+        appCheck = getRetrofitAdapter(getApplicationContext(), GITHUBAPI_ROOT).create(GotoVersionCheck.class);
+        KcUtils.requestLatestAppVersion(this, appCheck, true);
 
         versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
         backPressCloseHandler = new BackPressCloseHandler(this);
