@@ -6,14 +6,12 @@ import androidx.preference.Preference;
 
 import com.antest1.gotobrowser.Activity.SettingsActivity;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
-import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.text.ParseException;
 
 public interface SubtitleProvider {
-    void buildShipGraph(JsonArray data);
-
-    void buildMapBgmGraph(JsonArray data);
+    void loadKcApiData(JsonObject api_data);
 
     boolean loadQuoteData(Context context, String localeCode);
 

@@ -166,6 +166,22 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         return String.valueOf(computedIndex > -1 ? computedIndex + 1 : computedDiff);
     }
 
+
+    public void loadKcApiData(JsonObject api_data) {
+        JsonArray api_mst_shipgraph = api_data.getAsJsonArray("api_mst_shipgraph");
+        JsonArray api_mst_ship = api_data.getAsJsonArray("api_mst_ship");
+        JsonArray api_mst_mapbgm = api_data.getAsJsonArray("api_mst_mapbgm");
+        buildShipGraph(api_mst_ship);
+        buildMapBgmGraph(api_mst_mapbgm);
+        for (JsonElement item : api_mst_shipgraph) {
+            JsonObject ship = item.getAsJsonObject();
+            String shipId = ship.get("api_id").getAsString();
+            String shipFn = ship.get("api_filename").getAsString();
+            Kc3SubtitleProvider.filenameToShipId.put(shipFn, shipId);
+        }
+        Log.e("GOTO", "filenameToShipId: " + Kc3SubtitleProvider.filenameToShipId.size());
+    }
+
     public void buildShipGraph(JsonArray data) {
         List<Map.Entry<Integer, JsonObject>> list = new ArrayList<>();
         for (int i = 0; i < data.size(); i++) {

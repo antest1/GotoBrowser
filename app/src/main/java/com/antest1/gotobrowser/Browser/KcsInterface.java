@@ -13,10 +13,7 @@ import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.ContentProvider.KcaPacketStore;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.R;
-import com.antest1.gotobrowser.Subtitle.Kc3SubtitleProvider;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -76,18 +73,7 @@ public class KcsInterface {
             JsonObject response_obj = new JsonParser().parse(response).getAsJsonObject();
             if (url.contains("api_start2")) {
                 JsonObject api_data = response_obj.getAsJsonObject("api_data");
-                JsonArray api_mst_shipgraph = api_data.getAsJsonArray("api_mst_shipgraph");
-                JsonArray api_mst_ship = api_data.getAsJsonArray("api_mst_ship");
-                JsonArray api_mst_mapbgm = api_data.getAsJsonArray("api_mst_mapbgm");
-                SubtitleProviderUtils.getCurrentSubtitleProvider().buildShipGraph(api_mst_ship);
-                SubtitleProviderUtils.getCurrentSubtitleProvider().buildMapBgmGraph(api_mst_mapbgm);
-                for (JsonElement item : api_mst_shipgraph) {
-                    JsonObject ship = item.getAsJsonObject();
-                    String shipId = ship.get("api_id").getAsString();
-                    String shipFn = ship.get("api_filename").getAsString();
-                    Kc3SubtitleProvider.filenameToShipId.put(shipFn, shipId);
-                }
-                Log.e("GOTO", "filenameToShipId: " + Kc3SubtitleProvider.filenameToShipId.size());
+                SubtitleProviderUtils.getCurrentSubtitleProvider().loadKcApiData(api_data);
             }
 
             String finalResponse = response;
