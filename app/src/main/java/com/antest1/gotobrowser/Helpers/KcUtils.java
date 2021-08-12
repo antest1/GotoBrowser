@@ -26,9 +26,8 @@ import androidx.appcompat.app.AlertDialog;
 import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.R;
-import com.antest1.gotobrowser.Subtitle.Kc3SubtitleCheck;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 

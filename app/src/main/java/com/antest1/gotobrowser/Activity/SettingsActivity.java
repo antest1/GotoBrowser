@@ -22,21 +22,10 @@ import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
-import com.antest1.gotobrowser.Subtitle.Kc3SubtitleCheck;
-import com.antest1.gotobrowser.Subtitle.Kc3SubtitleRepo;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.gson.JsonObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Locale;
 import java.util.Map;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
@@ -57,7 +46,6 @@ import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_TP_DISCLAIMED;
 import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
-import static com.antest1.gotobrowser.Constants.SUBTITLE_ROOT;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
 
@@ -210,10 +198,10 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
 
-        private void setSubtitlePreference(String subtitleLocale) {
+        private void setSubtitlePreference(String subtitleLocaleCode) {
             Preference subtitleUpdate = findPreference(PREF_SUBTITLE_UPDATE);
 
-            SubtitleProviderUtils.getSubtitleProvider(subtitleLocale).checkUpdateFromPreference(this, subtitleLocale, subtitleUpdate, versionTable);
+            SubtitleProviderUtils.getSubtitleProvider(subtitleLocaleCode).checkUpdateFromPreference(this, subtitleLocaleCode, subtitleUpdate, versionTable);
         }
     }
 }

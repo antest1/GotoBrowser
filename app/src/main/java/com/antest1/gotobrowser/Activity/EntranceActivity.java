@@ -21,7 +21,6 @@ import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
-import com.antest1.gotobrowser.Subtitle.Kc3SubtitleCheck;
 
 import java.io.File;
 import java.util.List;

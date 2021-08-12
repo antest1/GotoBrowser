@@ -15,13 +15,11 @@ public interface SubtitleProvider {
 
     void buildMapBgmGraph(JsonArray data);
 
-    void loadQuoteAnnotation(Context context);
-
     boolean loadQuoteData(Context context, String localeCode);
 
     SubtitleData getSubtitleData(String shipId, String voiceLine, String voiceSize) throws ParseException;
 
-    void checkUpdateFromPreference(SettingsActivity.SettingsFragment fragment, String subtitleLocale, Preference subtitleUpdate, VersionDatabase versionTable);
+    void checkUpdateFromPreference(SettingsActivity.SettingsFragment fragment, String localeCode, Preference subtitleUpdate, VersionDatabase versionTable);
 
     void downloadUpdateFromPreference(SettingsActivity.SettingsFragment fragment, VersionDatabase versionTable);
 }

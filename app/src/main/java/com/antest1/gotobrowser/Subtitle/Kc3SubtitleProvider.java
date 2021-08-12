@@ -271,6 +271,9 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
     }
 
     public boolean loadQuoteData(Context context, String localeCode) {
+        // For KC3 Kai data format, need to load the quite size meta first
+        loadQuoteAnnotation(context);
+
         String filename = String.format(Locale.US, "quotes_%s.json", localeCode);
         String data_dir = KcUtils.getAppCacheFileDir(context, "/subtitle/");
         String subtitle_path = data_dir.concat(filename);
@@ -465,11 +468,11 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
 
     private JsonObject subtitleData = null;
 
-    public void checkUpdateFromPreference(SettingsActivity.SettingsFragment fragment, String subtitleLocale, Preference subtitleUpdate, VersionDatabase versionTable) {
+    public void checkUpdateFromPreference(SettingsActivity.SettingsFragment fragment, String localeCode, Preference subtitleUpdate, VersionDatabase versionTable) {
         subtitleData = null;
         subtitleUpdate.setSummary("checking updates...");
         subtitleUpdate.setEnabled(false);
-        String subtitlePath = String.format(Locale.US, SUBTITLE_PATH_FORMAT, subtitleLocale);
+        String subtitlePath = String.format(Locale.US, SUBTITLE_PATH_FORMAT, localeCode);
         Kc3SubtitleCheck updateCheck = getRetrofitAdapter(fragment.getContext(), GITHUBAPI_ROOT).create(Kc3SubtitleCheck.class);
         Call<JsonArray> call = updateCheck.check(subtitlePath);
         call.enqueue(new Callback<JsonArray>() {
@@ -478,7 +481,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                 if (fragment.getActivity() == null) return;
                 JsonArray commit_log = response.body();
                 if (commit_log != null && !commit_log.isJsonNull()) {
-                    String filename = String.format(Locale.US, "quotes_%s.json", subtitleLocale);
+                    String filename = String.format(Locale.US, "quotes_%s.json", localeCode);
                     String subtitle_folder = KcUtils.getAppCacheFileDir(fragment.getContext(), "/subtitle/");
                     String subtitle_path = subtitle_folder.concat(filename);
                     String currentCommit = versionTable.getValue(subtitle_path);
@@ -487,7 +490,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                         String latestCommit = latestData.get("sha").getAsString();
                         if (!currentCommit.equals(latestCommit)) {
                             subtitleData = new JsonObject();
-                            subtitleData.addProperty("locale_code", subtitleLocale);
+                            subtitleData.addProperty("locale_code", localeCode);
                             subtitleData.addProperty("latest_commit", latestCommit);
                             subtitleData.addProperty("download_url", subtitlePath);
                             String summary = String.format(Locale.US,
