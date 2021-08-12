@@ -1,20 +1,17 @@
 package com.antest1.gotobrowser.Subtitle;
 
 public class SubtitleData {
-    public SubtitleData(String text, int delay) {
+    public SubtitleData(String text, int delay, int duration) {
         this.text = text;
         this.delay = delay;
-    }
-
-    public SubtitleData(String text, int delay, Long extraDelay) {
-        this.text = text;
-        this.delay = delay;
-        this.extraDelay = extraDelay;
+        this.duration = duration;
     }
 
     private String text;
 
     private int delay;
+
+    private int duration;
 
     private Long extraDelay = null;
 
@@ -40,5 +37,13 @@ public class SubtitleData {
 
     public void setExtraDelay(Long extraDelay) {
         this.extraDelay = extraDelay;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
     }
 }

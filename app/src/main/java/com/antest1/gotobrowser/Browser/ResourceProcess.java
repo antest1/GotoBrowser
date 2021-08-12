@@ -396,8 +396,6 @@ public class ResourceProcess {
             }
         }
 
-
-
         InputStream is = new BufferedInputStream(new FileInputStream(file));
         return new WebResourceResponse("audio/mpeg", "binary", is);
     }
@@ -406,14 +404,14 @@ public class ResourceProcess {
         if (activity.isCaptionAvailable()) {
             shipVoiceHandler.removeCallbacksAndMessages(null);
             if (data != null) {
-                SubtitleRunnable sr = new SubtitleRunnable(data.getText());
+                SubtitleRunnable sr = new SubtitleRunnable(data.getText(), data.getDuration());
                 shipVoiceHandler.postDelayed(sr, data.getDelay());
             }
         }
     }
 
     private void setSubtitleAfter(SubtitleData data) {
-        Runnable r = new VoiceSubtitleRunnable2(data);
+        Runnable r = new VoiceSubtitleRunnable(data);
         shipVoiceHandler.removeCallbacks(r);
         shipVoiceHandler.postDelayed(r, data.getExtraDelay());
         Log.e("GOTO", "playHourVoice after: " + data.getExtraDelay() + " msec");
@@ -640,9 +638,11 @@ public class ResourceProcess {
 
     class SubtitleRunnable implements Runnable {
         String subtitle_text = "";
+        int duration;
 
-        SubtitleRunnable(String text) {
-            subtitle_text = text;
+        SubtitleRunnable(String text, int duration) {
+            this.subtitle_text = text;
+            this.duration = duration;
         }
 
         @Override
@@ -660,16 +660,15 @@ public class ResourceProcess {
                 if (activity.isCaptionAvailable()) {
                     subtitleText.setText(subtitle_text);
                 }
-                int delay = SubtitleProviderUtils.getCurrentSubtitleProvider().getDefaultTiming(subtitle_text);
-                clearSubHandler.postDelayed(clearSubtitle, delay);
+                clearSubHandler.postDelayed(clearSubtitle, duration);
             });
         }
     }
 
-    class VoiceSubtitleRunnable2 implements Runnable {
+    class VoiceSubtitleRunnable implements Runnable {
         SubtitleData data;
 
-        VoiceSubtitleRunnable2(SubtitleData data) {
+        VoiceSubtitleRunnable(SubtitleData data) {
             this.data = data;
         }
 

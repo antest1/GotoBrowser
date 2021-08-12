@@ -124,17 +124,15 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
     };
 
     public static Map<String, String> filenameToShipId = new HashMap<>();
-    public static JsonObject shipDataGraph = new JsonObject();
-    public static JsonObject mapBgmGraph = new JsonObject();
-    public static JsonObject quoteLabel = new JsonObject();
-    public static JsonObject quoteData = new JsonObject();
-    public static JsonObject quoteTimingData = new JsonObject();
 
-    public int getFilenameByVoiceLine(int shipId, int lineNum) {
-        return lineNum <= 53 ? 100000 + 17 * (shipId + 7) * (workingDiffs[lineNum - 1]) % 99173 : lineNum;
-    }
+    private static JsonObject shipDataGraph = new JsonObject();
+    private static JsonObject mapBgmGraph = new JsonObject();
+    private static JsonObject quoteLabel = new JsonObject();
+    private static JsonObject quoteData = new JsonObject();
+    private static JsonObject quoteTimingData = new JsonObject();
 
-    public int getVoiceDiffByFilename(String shipId, String filename) {
+
+    private int getVoiceDiffByFilename(String shipId, String filename) {
         int ship_id_val = Integer.parseInt(shipId, 10);
         int f = Integer.parseInt(filename, 10);
         int k = 17 * (ship_id_val + 7);
@@ -152,7 +150,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         return -1;
     }
 
-    public String getVoiceLineByFilename(String shipId, String filename) {
+    private String getVoiceLineByFilename(String shipId, String filename) {
         if (shipId.equals("9998") || shipId.equals("9999")) {
             return filename;
         }
@@ -284,7 +282,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         return false;
     }
 
-    public int getDefaultTiming(String data) {
+    public int getDuration(String data) {
         if (quoteTimingData.size() == 2) {
             int default_time = quoteTimingData.get("baseMillisVoiceLine").getAsInt();
             int extra_time = quoteTimingData.get("extraMillisPerChar").getAsInt() * data.length();
@@ -347,9 +345,9 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             String shipId = voice_filename;
             if (Kc3SubtitleProvider.filenameToShipId.containsKey(voice_filename)) {
                 shipId = Kc3SubtitleProvider.filenameToShipId.get(voice_filename);
-                voiceLine = SubtitleProviderUtils.getCurrentSubtitleProvider().getVoiceLineByFilename(shipId, voice_code);
+                voiceLine = getVoiceLineByFilename(shipId, voice_code);
             } else {
-                voiceLine = SubtitleProviderUtils.getCurrentSubtitleProvider().getVoiceLineByFilename(voice_filename, voice_code);
+                voiceLine = getVoiceLineByFilename(voice_filename, voice_code);
             }
             Log.e("GOTO", "file info: " + info);
             Log.e("GOTO", "voiceline: " + String.valueOf(voiceLine));
@@ -387,7 +385,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                 String text = subtitle.get(key).getAsString();
                 int delay = Integer.parseInt(start_time);
 
-                return new SubtitleData(text, delay);
+                return new SubtitleData(text, delay, getDuration(text));
             }
         }
         return null;
@@ -468,15 +466,14 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
     // TODO make it private
     public Kc3SubtitleCheck updateCheck = null;
 
-    // TODO make it private
-    public JsonObject subtitleData = null;
+    private JsonObject subtitleData = null;
 
     // TODO make it private
     public Kc3SubtitleRepo subtitleRepo;
 
 
     public void checkUpdateFromPreference(SettingsActivity.SettingsFragment fragment, String subtitleLocale, Preference subtitleUpdate, VersionDatabase versionTable) {
-        SubtitleProviderUtils.getKc3SubtitleProvider().subtitleData = null;
+        subtitleData = null;
         subtitleUpdate.setSummary("checking updates...");
         subtitleUpdate.setEnabled(false);
         String subtitlePath = String.format(Locale.US, SUBTITLE_PATH_FORMAT, subtitleLocale);
@@ -521,10 +518,10 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
     }
 
     public void downloadUpdateFromPreference(SettingsActivity.SettingsFragment fragment, VersionDatabase versionTable) {
-        if (SubtitleProviderUtils.getKc3SubtitleProvider().subtitleData != null) {
+        if (subtitleData != null) {
             String commit = subtitleData.get("latest_commit").getAsString();
             String path = subtitleData.get("download_url").getAsString();
-            Call<JsonObject> call = SubtitleProviderUtils.getKc3SubtitleProvider().subtitleRepo.download(commit, path);
+            Call<JsonObject> call = subtitleRepo.download(commit, path);
             call.enqueue(new Callback<JsonObject>() {
                 @Override
                 public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
