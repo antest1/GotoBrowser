@@ -19,7 +19,13 @@ public interface SubtitleProvider {
 
     String getVoiceLineByFilename(String shipId, String filename);
 
+
+
     void buildShipGraph(JsonArray data);
+
+    void buildMapBgmGraph(JsonArray data);
+
+
 
     void loadQuoteAnnotation(Context context);
 
@@ -29,9 +35,9 @@ public interface SubtitleProvider {
 
     String findQuoteKeyByFileSize(String shipId, String voiceLine, String voiceSize);
 
-    SubtitleData getSubtitleData(String id, String code, String size);
 
-    void buildMapBgmGraph(JsonArray data);
+
+    SubtitleData getSubtitleData(String id, String code, String size);
 
     void checkUpdateFromPreference(SettingsActivity.SettingsFragment fragment, String subtitleLocale, Preference subtitleUpdate, VersionDatabase versionTable);
     void downloadUpdateFromPreference(SettingsActivity.SettingsFragment fragment, VersionDatabase versionTable);

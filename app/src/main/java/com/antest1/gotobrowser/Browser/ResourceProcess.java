@@ -389,46 +389,63 @@ public class ResourceProcess {
             Log.e("GOTO", "load cached resource: " + path + " " + version);
         }
 
-        String voicesize = String.valueOf(file.length());
+        String voiceSize = String.valueOf(file.length());
         if (url.contains("/kcs/sound/kc")) {
             String info = path.replace("/kcs/sound/kc", "").replace(".mp3", "");
             String[] fn_code = info.split("/");
-            String voiceline = "";
+            String voiceLine = "";
             String voice_filename = fn_code[0];
             String voice_code = fn_code[1];
-            String ship_id = voice_filename;
+            String shipId = voice_filename;
             if (Kc3SubtitleProvider.filenameToShipId.containsKey(voice_filename)) {
-                ship_id = Kc3SubtitleProvider.filenameToShipId.get(voice_filename);
-                voiceline = SubtitleProviderUtils.getCurrentSubtitleProvider().getVoiceLineByFilename(ship_id, voice_code);
+                shipId = Kc3SubtitleProvider.filenameToShipId.get(voice_filename);
+                voiceLine = SubtitleProviderUtils.getCurrentSubtitleProvider().getVoiceLineByFilename(shipId, voice_code);
             } else {
-                voiceline = SubtitleProviderUtils.getCurrentSubtitleProvider().getVoiceLineByFilename(voice_filename, voice_code);
+                voiceLine = SubtitleProviderUtils.getCurrentSubtitleProvider().getVoiceLineByFilename(voice_filename, voice_code);
             }
             Log.e("GOTO", "file info: " + info);
-            Log.e("GOTO", "voiceline: " + String.valueOf(voiceline));
-            int voiceline_value = Integer.parseInt(voiceline);
-            if (voiceline_value >= 30 && voiceline_value <= 53) { // hourly voiceline
+            Log.e("GOTO", "voiceline: " + String.valueOf(voiceLine));
+            int voiceLineValue = Integer.parseInt(voiceLine);
+            if (voiceLineValue >= 30 && voiceLineValue <= 53) { // hourly voiceline
                 Date now = new Date();
-                String voiceline_time = String.format(Locale.US, "%02d:00:00", voiceline_value - 30);
+                String voiceLineTime = String.format(Locale.US, "%02d:00:00", voiceLineValue - 30);
                 @SuppressLint("SimpleDateFormat") SimpleDateFormat time_fmt = new SimpleDateFormat("HH:mm:ss");
                 Date time_src = time_fmt.parse(time_fmt.format(now));
-                Date time_tgt = time_fmt.parse(voiceline_time);
-                long diff_msec = time_tgt.getTime() - time_src.getTime();
-                if (voiceline_value == 30) diff_msec += 86400000;
-                Runnable r = new VoiceSubtitleRunnable(ship_id, voiceline, voicesize);
-                shipVoiceHandler.removeCallbacks(r);
-                shipVoiceHandler.postDelayed(r, diff_msec);
-                Log.e("GOTO", "playHourVoice after: " + diff_msec + " msec");
+                Date time_tgt = time_fmt.parse(voiceLineTime);
+                long diffMsec = time_tgt.getTime() - time_src.getTime();
+                if (voiceLineValue == 30) diffMsec += 86400000;
+                setSubtitleAfter(shipId, voiceSize, voiceLine, diffMsec);
             } else {
-                setSubtitle(ship_id, voiceline, voicesize);
+                setSubtitle(shipId, voiceLine, voiceSize);
             }
         } else if (url.contains("/voice/titlecall_")) {
             String info = path.replace("/kcs2/resources/voice/", "").replace(".mp3", "");
             String[] fn_code = info.split("/");
-            setSubtitle(fn_code[0], fn_code[1], voicesize);
+            setSubtitle(fn_code[0], fn_code[1], voiceSize);
         }
 
         InputStream is = new BufferedInputStream(new FileInputStream(file));
         return new WebResourceResponse("audio/mpeg", "binary", is);
+    }
+
+    private void setSubtitle(String shipId, String voiceLine, String voiceSize) {
+        if (activity.isCaptionAvailable()) {
+            shipVoiceHandler.removeCallbacksAndMessages(null);
+
+            SubtitleData data = SubtitleProviderUtils.getCurrentSubtitleProvider().getSubtitleData(shipId, voiceLine, voiceSize);
+            if (data != null) {
+                SubtitleRunnable sr = new SubtitleRunnable(data.getText());
+                shipVoiceHandler.postDelayed(sr, data.getDelay());
+            }
+        }
+    }
+
+
+    private void setSubtitleAfter(String shipId, String voiceSize, String voiceLine, long diffMsec) {
+        Runnable r = new VoiceSubtitleRunnable(shipId, voiceLine, voiceSize);
+        shipVoiceHandler.removeCallbacks(r);
+        shipVoiceHandler.postDelayed(r, diffMsec);
+        Log.e("GOTO", "playHourVoice after: " + diffMsec + " msec");
     }
 
     private File getImageFile(String path) {
@@ -649,18 +666,6 @@ public class ResourceProcess {
         }
     };
 
-    private void setSubtitle(String id, String code, String size) {
-        if (activity.isCaptionAvailable()) {
-            shipVoiceHandler.removeCallbacksAndMessages(null);
-
-            SubtitleData data = SubtitleProviderUtils.getCurrentSubtitleProvider().getSubtitleData(id, code, size);
-            if (data != null) {
-                SubtitleRunnable sr = new SubtitleRunnable(data.getText());
-                shipVoiceHandler.postDelayed(sr, data.getDelay());
-            }
-        }
-    }
-
 
     class SubtitleRunnable implements Runnable {
         String subtitle_text = "";
@@ -691,17 +696,17 @@ public class ResourceProcess {
     }
 
     class VoiceSubtitleRunnable implements Runnable {
-        String ship_id, voiceline, voicesize;
+        String shipId, voiceLine, voiceSize;
 
-        VoiceSubtitleRunnable(String ship_id, String voiceline, String voicesize) {
-            this.ship_id = ship_id;
-            this.voiceline = voiceline;
-            this.voicesize = voicesize;
+        VoiceSubtitleRunnable(String shipId, String voiceLine, String voiceSize) {
+            this.shipId = shipId;
+            this.voiceLine = voiceLine;
+            this.voiceSize = voiceSize;
         }
 
         @Override
         public void run() {
-            setSubtitle(ship_id, voiceline, voicesize);
+            setSubtitle(shipId, voiceLine, voiceSize);
         }
     }
 }
