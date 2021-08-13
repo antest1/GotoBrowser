@@ -124,7 +124,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         496,           // Zara due
     };
 
-    public static Map<String, String> filenameToShipId = new HashMap<>();
+    private static Map<String, String> filenameToShipId = new HashMap<>();
 
     private static JsonObject shipDataGraph = new JsonObject();
     private static JsonObject mapBgmGraph = new JsonObject();
@@ -177,9 +177,9 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             JsonObject ship = item.getAsJsonObject();
             String shipId = ship.get("api_id").getAsString();
             String shipFn = ship.get("api_filename").getAsString();
-            Kc3SubtitleProvider.filenameToShipId.put(shipFn, shipId);
+            filenameToShipId.put(shipFn, shipId);
         }
-        Log.e("GOTO", "filenameToShipId: " + Kc3SubtitleProvider.filenameToShipId.size());
+        Log.e("GOTO", "filenameToShipId: " + filenameToShipId.size());
     }
 
     public void buildShipGraph(JsonArray data) {
@@ -362,8 +362,8 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             String voice_filename = fn_code[0];
             String voice_code = fn_code[1];
             String shipId = voice_filename;
-            if (Kc3SubtitleProvider.filenameToShipId.containsKey(voice_filename)) {
-                shipId = Kc3SubtitleProvider.filenameToShipId.get(voice_filename);
+            if (filenameToShipId.containsKey(voice_filename)) {
+                shipId = filenameToShipId.get(voice_filename);
                 voiceLine = getVoiceLineByFilename(shipId, voice_code);
             } else {
                 voiceLine = getVoiceLineByFilename(voice_filename, voice_code);

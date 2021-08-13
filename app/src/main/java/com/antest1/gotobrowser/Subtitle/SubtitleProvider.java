@@ -15,7 +15,7 @@ public interface SubtitleProvider {
 
     boolean loadQuoteData(Context context, String localeCode);
 
-    SubtitleData getSubtitleData(String shipId, String voiceLine, String voiceSize) throws ParseException;
+    SubtitleData getSubtitleData(String url, String path, String voiceSize) throws ParseException;
 
     void checkUpdateFromPreference(SettingsActivity.SettingsFragment fragment, String localeCode, Preference subtitleUpdate, VersionDatabase versionTable);
 
