@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
+import android.util.SparseIntArray;
 
 import androidx.preference.Preference;
 
@@ -64,14 +65,34 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
 
     private static final List<Integer> voiceDiffsList = Arrays.asList(voiceDiffs);
 
-    private static Map<String, String> filenameToShipId = new HashMap<>();
+    private static final Map<String, String> filenameToShipId = new HashMap<>();
 
     private static JsonObject shipDataGraph = new JsonObject();
     private static JsonObject quoteLabel = new JsonObject();
     private static JsonObject quoteData = new JsonObject();
-    private static JsonObject quoteTimingData = new JsonObject();
+
+    // Voice line duration in ms
+    private static int baseMillisVoiceLine = 3000;
+    private static int extraMillisPerChar = 0;
+
+    private static final Map<String, Map<String, Integer>> cachedVoiceDiffMap = new HashMap<>();
 
     private static int getVoiceDiffByFilename(String shipId, String filename) {
+        Map<String, Integer> currentShipVoiceMap = cachedVoiceDiffMap.get(shipId);
+        if (currentShipVoiceMap == null) {
+            currentShipVoiceMap = new HashMap<>();
+            cachedVoiceDiffMap.put(shipId, currentShipVoiceMap);
+        }
+
+        Integer voiceDiff = currentShipVoiceMap.get(filename);
+        if (voiceDiff == null) {
+            voiceDiff = computeVoiceDiff(shipId, filename);
+            currentShipVoiceMap.put(filename, voiceDiff);
+        }
+        return voiceDiff;
+    }
+
+    private static int computeVoiceDiff(String shipId, String filename) {
         int ship_id_val = Integer.parseInt(shipId, 10);
         int f = Integer.parseInt(filename, 10);
         int k = 17 * (ship_id_val + 7);
@@ -99,16 +120,24 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             return specialMap.get(filename);
         }
         int computedDiff = getVoiceDiffByFilename(shipId, filename);
-        int computedIndex = voiceDiffsList.indexOf(computedDiff);
+        int computedIndex = getComputedIndex(computedDiff);
         // If computed diff is not in voiceDiffs, return the computedDiff itself so we can lookup quotes via voiceDiff
         return String.valueOf(computedIndex > -1 ? computedIndex + 1 : computedDiff);
+    }
+
+    private static int getComputedIndex(int computedDiff) {
+        int index = voiceDiffsList.indexOf(computedDiff);
+        if (specialDiffs.containsKey(computedDiff)) {
+            return specialDiffs.get(computedDiff);
+        } else {
+            return index;
+        }
     }
 
 
     public void loadKcApiData(JsonObject api_data) {
         JsonArray api_mst_shipgraph = api_data.getAsJsonArray("api_mst_shipgraph");
         JsonArray api_mst_ship = api_data.getAsJsonArray("api_mst_ship");
-        JsonArray api_mst_mapbgm = api_data.getAsJsonArray("api_mst_mapbgm");
         buildShipGraph(api_mst_ship);
         for (JsonElement item : api_mst_shipgraph) {
             JsonObject ship = item.getAsJsonObject();
@@ -159,7 +188,15 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         String subtitle_path = data_dir.concat(filename);
         quoteData = KcUtils.readJsonObjectFromFile(subtitle_path);
         if (quoteData != null) {
-            quoteTimingData = quoteData.getAsJsonObject("timing");
+            // Update duration config
+            JsonObject quoteTimingData = quoteData.getAsJsonObject("timing");
+            if (quoteTimingData != null && quoteTimingData.size() == 2 &&
+                    quoteTimingData.get("baseMillisVoiceLine") != null &&
+                    quoteTimingData.get("extraMillisPerChar") != null) {
+                baseMillisVoiceLine = quoteTimingData.get("baseMillisVoiceLine").getAsInt();
+                extraMillisPerChar = quoteTimingData.get("extraMillisPerChar").getAsInt();
+            }
+
             return true;
         }
         return false;
@@ -240,12 +277,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
 
 
     private static int getDuration(String data) {
-        if (quoteTimingData.size() == 2) {
-            int default_time = quoteTimingData.get("baseMillisVoiceLine").getAsInt();
-            int extra_time = quoteTimingData.get("extraMillisPerChar").getAsInt() * data.length();
-            return default_time + extra_time;
-        }
-        return 3000;
+        return baseMillisVoiceLine + extraMillisPerChar * data.length();
     }
 
     private String findQuoteKeyByFileSize(String shipId, String voiceLine, String voiceSize) {
@@ -306,10 +338,13 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             } else {
                 voiceLine = getVoiceLineByFilename(voice_filename, voice_code);
             }
+
             Log.e("GOTO", "file info: " + info);
-            Log.e("GOTO", "voiceline: " + String.valueOf(voiceLine));
+            Log.e("GOTO", "voiceline: " + voiceLine);
             int voiceLineValue = Integer.parseInt(voiceLine);
-            if (voiceLineValue >= 30 && voiceLineValue <= 53) { // hourly voiceline
+            data = getSubtitleDataInternal(shipId, voiceLine, voiceSize);
+            if (data != null && voiceLineValue >= 30 && voiceLineValue <= 53) {
+                // hourly voice line
                 Date now = new Date();
                 String voiceLineTime = String.format(Locale.US, "%02d:00:00", voiceLineValue - 30);
                 @SuppressLint("SimpleDateFormat") SimpleDateFormat time_fmt = new SimpleDateFormat("HH:mm:ss");
@@ -317,11 +352,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                 Date time_tgt = time_fmt.parse(voiceLineTime);
                 long diffMsec = time_tgt.getTime() - time_src.getTime();
                 if (voiceLineValue == 30) diffMsec += 86400000;
-
-                data = getSubtitleDataInternal(shipId, voiceLine, voiceSize);
                 data.setExtraDelay(diffMsec);
-            } else {
-                data = getSubtitleDataInternal(shipId, voiceLine, voiceSize);
             }
         } else if (url.contains("/voice/titlecall_")) {
             String info = path.replace("/kcs2/resources/voice/", "").replace(".mp3", "");
@@ -331,17 +362,17 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         return data;
     }
 
-    // In original code, multiple rows can be returned for one voice line.
-    // not sure if it was by design. but after refactoring it only return 1 or 0 row.
     private SubtitleData getSubtitleDataInternal(String shipId, String voiceLine, String voiceSize) {
+        // Get the subtitle as well as subtitle of the ship before Remodel (i.e. Kai Ni -> Kai)
         JsonObject subtitle = getQuoteString(shipId, voiceLine, voiceSize);
         Log.e("GOTO", subtitle.toString());
+
+        // Find the first existing match
         for (String key : subtitle.keySet()) {
             String start_time = key.split(",")[0];
             if (Pattern.matches("[0-9]+", start_time)) {
                 String text = subtitle.get(key).getAsString();
                 int delay = Integer.parseInt(start_time);
-
                 return new SubtitleData(text, delay, getDuration(text));
             }
         }
@@ -354,12 +385,11 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
 
     private JsonObject getQuoteString(String shipId, String voiceLine, String voiceSize, int maxLoop) {
         Log.e("GOTO", shipId + " " +voiceLine + " " + voiceSize);
-        String voiceline_original = voiceLine;
         JsonObject voicedata_base = new JsonObject();
         voicedata_base.addProperty("0", "");
         if (maxLoop > 0 && shipDataGraph.has(shipId)) {
             String before_id = shipDataGraph.get(shipId).getAsString();
-            voicedata_base = getQuoteString(before_id, voiceline_original, voiceSize, maxLoop - 1);
+            voicedata_base = getQuoteString(before_id, voiceLine, voiceSize, maxLoop - 1);
             Log.e("GOTO", "prev:" + voicedata_base.toString());
         }
 
@@ -377,9 +407,6 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             if (is_abyssal) shipId = "abyssal";
             if (is_npc) shipId = "npc";
             if (!is_special) {
-                if (specialDiffs.containsKey(voiceLine)) {
-                    voiceLine = specialDiffs.get(voiceLine);
-                }
                 String specialVoiceLine = findQuoteKeyByFileSize(shipId, voiceLine, voiceSize);
                 if (specialVoiceLine != null && !specialVoiceLine.equals(voiceLine)) {
                     current_special_flag = true;

@@ -44,15 +44,16 @@ public interface SubtitleProvider {
     };
 
 
+
     // valentines 2016, hinamatsuri 2015
     // valentines 2016, hinamatsuri 2015
     // whiteday 2015
     // whiteday 2015
-    Map<String, String> specialDiffs = new HashMap<String, String>() {{
-        put("1555", "2");
-        put("3347", "3");
-        put("6547", "2");
-        put("1471", "3");
+    Map<Integer, Integer> specialDiffs = new HashMap<Integer, Integer>() {{
+        put(1555, 1);
+        put(3347, 2);
+        put(6547, 1);
+        put(1471, 2);
     }};
 
     // Graf Zeppelin (Kai):
