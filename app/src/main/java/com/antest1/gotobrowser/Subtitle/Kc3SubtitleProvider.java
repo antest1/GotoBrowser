@@ -15,7 +15,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import java.io.BufferedReader;
@@ -56,89 +55,28 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.reportException;
 // Reference: https://github.com/KC3Kai/KC3Kai/issues/1180
 //            https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
 public class Kc3SubtitleProvider implements SubtitleProvider {
-    public static final String SUBTITLE_META_ROOT_FORMAT =
+    private static final String SUBTITLE_META_ROOT_FORMAT =
             "https://raw.githubusercontent.com/KC3Kai/KC3Kai/%s/src/data/quotes_size.json";
 
-    public static JsonObject quoteSizeData = new JsonObject();
-    public static final int SPECIAL_VOICE_START_YEAR = 2014;
-    public static final int SPECIAL_VOICE_END_YEAR = 2019;
-    public static final int MAX_LOOP = 9;
-    public static final int[] resourceKeys = {
-            6657, 5699, 3371, 8909, 7719, 6229, 5449, 8561, 2987, 5501,
-            3127, 9319, 4365, 9811, 9927, 2423, 3439, 1865, 5925, 4409,
-            5509, 1517, 9695, 9255, 5325, 3691, 5519, 6949, 5607, 9539,
-            4133, 7795, 5465, 2659, 6381, 6875, 4019, 9195, 5645, 2887,
-            1213, 1815, 8671, 3015, 3147, 2991, 7977, 7045, 1619, 7909,
-            4451, 6573, 4545, 8251, 5983, 2849, 7249, 7449, 9477, 5963,
-            2711, 9019, 7375, 2201, 5631, 4893, 7653, 3719, 8819, 5839,
-            1853, 9843, 9119, 7023, 5681, 2345, 9873, 6349, 9315, 3795,
-            9737, 4633, 4173, 7549, 7171, 6147, 4723, 5039, 2723, 7815,
-            6201, 5999, 5339, 4431, 2911, 4435, 3611, 4423, 9517, 3243
-    };
-    public static final Integer[] voiceDiffs = {
-            2475,    0,    0, 8691, 7847, 3595, 1767, 3311, 2507,
-            9651, 5321, 4473, 7117, 5947, 9489, 2669, 8741, 6149,
-            1301, 7297, 2975, 6413, 8391, 9705, 2243, 2091, 4231,
-            3107, 9499, 4205, 6013, 3393, 6401, 6985, 3683, 9447,
-            3287, 5181, 7587, 9353, 2135, 4947, 5405, 5223, 9457,
-            5767, 9265, 8191, 3927, 3061, 2805, 3273, 7331
-    };
-    public static final List<Integer> voiceDiffsList = Arrays.asList(voiceDiffs);
+    private static JsonObject quoteSizeData = new JsonObject();
+    private static final int MAX_LOOP = 9;
 
-    public static final int[] workingDiffs = {
-            2475, 6547, 1471, 8691, 7847, 3595, 1767, 3311, 2507,
-            9651, 5321, 4473, 7117, 5947, 9489, 2669, 8741, 6149,
-            1301, 7297, 2975, 6413, 8391, 9705, 2243, 2091, 4231,
-            3107, 9499, 4205, 6013, 3393, 6401, 6985, 3683, 9447,
-            3287, 5181, 7587, 9353, 2135, 4947, 5405, 5223, 9457,
-            5767, 9265, 8191, 3927, 3061, 2805, 3273, 7331
-    };
 
-    // valentines 2016, hinamatsuri 2015
-    // valentines 2016, hinamatsuri 2015
-    // whiteday 2015
-    // whiteday 2015
-    public static final JsonObject specialDiffs =
-            new JsonParser().parse("{\"1555\":\"2\",\"3347\":\"3\",\"6547\":\"2\",\"1471\":\"3\"}")
-                    .getAsJsonObject();
-
-    // Graf Zeppelin (Kai):
-    //   17:Yasen(2) is replaced with 917. might map to 17, but not for now;
-    //   18 still used at day as random Attack, 918 used at night opening
-    public static final JsonObject specialShipVoices =
-            new JsonParser().parse("{\"432\": {\"917\": 917, \"918\": 918}, \"353\": {\"917\": 917, \"918\": 918}}")
-                    .getAsJsonObject();
-
-    // These ships got special (unused?) voice line (6, aka. Repair) implemented,
-    // tested by trying and succeeding to http fetch mp3 from kc server
-    public static final int[] specialRepairVoiceShips = {
-        56, 160, 224,  // Naka
-        65, 194, 268,  // Haguro
-        114, 200, 290, // Abukuma
-        123, 142, 295, // Kinukasa
-        126, 398,      // I-168
-        127, 399,      // I-58
-        135, 304,      // Naganami
-        136,           // Yamato Kai
-        418,           // Satsuki Kai Ni
-        496,           // Zara due
-    };
+    private static final List<Integer> voiceDiffsList = Arrays.asList(voiceDiffs);
 
     private static Map<String, String> filenameToShipId = new HashMap<>();
 
     private static JsonObject shipDataGraph = new JsonObject();
-    private static JsonObject mapBgmGraph = new JsonObject();
     private static JsonObject quoteLabel = new JsonObject();
     private static JsonObject quoteData = new JsonObject();
     private static JsonObject quoteTimingData = new JsonObject();
 
-
-    private int getVoiceDiffByFilename(String shipId, String filename) {
+    private static int getVoiceDiffByFilename(String shipId, String filename) {
         int ship_id_val = Integer.parseInt(shipId, 10);
         int f = Integer.parseInt(filename, 10);
         int k = 17 * (ship_id_val + 7);
         int r = f - 100000;
-        if(f > 53 && r < 0) {
+        if (f > 53 && r < 0) {
             return f;
         } else {
             for (int i = 0; i < 2600; ++i) {
@@ -151,14 +89,14 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         return -1;
     }
 
-    private String getVoiceLineByFilename(String shipId, String filename) {
+    private static String getVoiceLineByFilename(String shipId, String filename) {
         if (shipId.equals("9998") || shipId.equals("9999")) {
             return filename;
         }
         // Some ships use special voice line filenames
-        JsonObject specialMap = specialShipVoices.getAsJsonObject(shipId);
-        if (specialMap != null && specialMap.has(filename)) {
-            return specialMap.get(filename).getAsString();
+        Map<String, String> specialMap = specialShipVoices.get(shipId);
+        if (specialMap != null && specialMap.containsKey(filename)) {
+            return specialMap.get(filename);
         }
         int computedDiff = getVoiceDiffByFilename(shipId, filename);
         int computedIndex = voiceDiffsList.indexOf(computedDiff);
@@ -172,7 +110,6 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         JsonArray api_mst_ship = api_data.getAsJsonArray("api_mst_ship");
         JsonArray api_mst_mapbgm = api_data.getAsJsonArray("api_mst_mapbgm");
         buildShipGraph(api_mst_ship);
-        buildMapBgmGraph(api_mst_mapbgm);
         for (JsonElement item : api_mst_shipgraph) {
             JsonObject ship = item.getAsJsonObject();
             String shipId = ship.get("api_id").getAsString();
@@ -182,7 +119,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         Log.e("GOTO", "filenameToShipId: " + filenameToShipId.size());
     }
 
-    public void buildShipGraph(JsonArray data) {
+    private void buildShipGraph(JsonArray data) {
         List<Map.Entry<Integer, JsonObject>> list = new ArrayList<>();
         for (int i = 0; i < data.size(); i++) {
             JsonObject item = data.get(i).getAsJsonObject();
@@ -213,7 +150,22 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         Log.e("GOTO", "ship_graph: " + shipDataGraph.size());
     }
 
-    public void loadQuoteAnnotation(Context context) {
+    public boolean loadQuoteData(Context context, String localeCode) {
+        // For KC3 Kai data format, need to load the quite size meta first
+        loadQuoteAnnotation(context);
+
+        String filename = String.format(Locale.US, "quotes_%s.json", localeCode);
+        String data_dir = KcUtils.getAppCacheFileDir(context, "/subtitle/");
+        String subtitle_path = data_dir.concat(filename);
+        quoteData = KcUtils.readJsonObjectFromFile(subtitle_path);
+        if (quoteData != null) {
+            quoteTimingData = quoteData.getAsJsonObject("timing");
+            return true;
+        }
+        return false;
+    }
+
+    private void loadQuoteAnnotation(Context context) {
         AssetManager as = context.getAssets();
         try {
             final Gson gson = new Gson();
@@ -286,22 +238,8 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         return quoteSizeData != null;
     }
 
-    public boolean loadQuoteData(Context context, String localeCode) {
-        // For KC3 Kai data format, need to load the quite size meta first
-        loadQuoteAnnotation(context);
 
-        String filename = String.format(Locale.US, "quotes_%s.json", localeCode);
-        String data_dir = KcUtils.getAppCacheFileDir(context, "/subtitle/");
-        String subtitle_path = data_dir.concat(filename);
-        quoteData = KcUtils.readJsonObjectFromFile(subtitle_path);
-        if (quoteData != null) {
-            quoteTimingData = quoteData.getAsJsonObject("timing");
-            return true;
-        }
-        return false;
-    }
-
-    private int getDuration(String data) {
+    private static int getDuration(String data) {
         if (quoteTimingData.size() == 2) {
             int default_time = quoteTimingData.get("baseMillisVoiceLine").getAsInt();
             int extra_time = quoteTimingData.get("extraMillisPerChar").getAsInt() * data.length();
@@ -439,8 +377,8 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             if (is_abyssal) shipId = "abyssal";
             if (is_npc) shipId = "npc";
             if (!is_special) {
-                if (specialDiffs.has(voiceLine)) {
-                    voiceLine = specialDiffs.get(voiceLine).getAsString();
+                if (specialDiffs.containsKey(voiceLine)) {
+                    voiceLine = specialDiffs.get(voiceLine);
                 }
                 String specialVoiceLine = findQuoteKeyByFileSize(shipId, voiceLine, voiceSize);
                 if (specialVoiceLine != null && !specialVoiceLine.equals(voiceLine)) {
@@ -472,13 +410,6 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         }
 
         return voicedata_base;
-    }
-
-    public void buildMapBgmGraph(JsonArray data) {
-        for (int i = 0; i < data.size(); i++) {
-            JsonObject item = data.get(i).getAsJsonObject();
-            mapBgmGraph.add(item.get("api_id").getAsString(), item);
-        }
     }
 
 
