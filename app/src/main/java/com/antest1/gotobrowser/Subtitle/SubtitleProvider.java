@@ -24,18 +24,8 @@ public interface SubtitleProvider {
 
     void downloadUpdateFromPreference(SettingsActivity.SettingsFragment fragment, VersionDatabase versionTable);
 
-
-    int[] workingDiffs = {
-            2475, 6547, 1471, 8691, 7847, 3595, 1767, 3311, 2507,
-            9651, 5321, 4473, 7117, 5947, 9489, 2669, 8741, 6149,
-            1301, 7297, 2975, 6413, 8391, 9705, 2243, 2091, 4231,
-            3107, 9499, 4205, 6013, 3393, 6401, 6985, 3683, 9447,
-            3287, 5181, 7587, 9353, 2135, 4947, 5405, 5223, 9457,
-            5767, 9265, 8191, 3927, 3061, 2805, 3273, 7331
-    };
-
     Integer[] voiceDiffs = {
-            2475,    0,    0, 8691, 7847, 3595, 1767, 3311, 2507,
+            2475, 6547, 1471, 8691, 7847, 3595, 1767, 3311, 2507,
             9651, 5321, 4473, 7117, 5947, 9489, 2669, 8741, 6149,
             1301, 7297, 2975, 6413, 8391, 9705, 2243, 2091, 4231,
             3107, 9499, 4205, 6013, 3393, 6401, 6985, 3683, 9447,
@@ -52,8 +42,6 @@ public interface SubtitleProvider {
     Map<Integer, Integer> specialDiffs = new HashMap<Integer, Integer>() {{
         put(1555, 1);
         put(3347, 2);
-        put(6547, 1);
-        put(1471, 2);
     }};
 
     // Graf Zeppelin (Kai):
