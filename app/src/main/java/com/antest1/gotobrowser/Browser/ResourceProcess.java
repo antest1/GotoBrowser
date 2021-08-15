@@ -46,6 +46,7 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
+import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResource;
@@ -386,7 +387,9 @@ public class ResourceProcess {
         }
 
         String voiceSize = String.valueOf(file.length());
-        SubtitleData data = SubtitleProviderUtils.getCurrentSubtitleProvider().getSubtitleData(url, path, voiceSize);
+
+        String subtitle_local = sharedPref.getString(PREF_SUBTITLE_LOCALE, "en");
+        SubtitleData data = SubtitleProviderUtils.getSubtitleProvider(subtitle_local).getSubtitleData(url, path, voiceSize);
 
         if (data != null) {
             if (data.getExtraDelay() != null) {

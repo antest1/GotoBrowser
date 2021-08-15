@@ -298,15 +298,13 @@ public class KcUtils {
 
     public static Retrofit getRetrofitAdapter(Context context, String baseUrl) {
         OkHttpClient.Builder builder = new OkHttpClient().newBuilder();
-        builder.cache(
-                new Cache(context.getCacheDir(), CACHE_SIZE_BYTES));
+        builder.cache(new Cache(context.getCacheDir(), CACHE_SIZE_BYTES));
+
         OkHttpClient client = builder.build();
-        Retrofit.Builder retrofitBuilder = new Retrofit.Builder();
-        retrofitBuilder
+        return new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create())
                 .baseUrl(baseUrl)
-                .client(client);
-        return retrofitBuilder.build();
+                .client(client).build();
     }
 
     public static String joinStr(List<String> list, String delim) {

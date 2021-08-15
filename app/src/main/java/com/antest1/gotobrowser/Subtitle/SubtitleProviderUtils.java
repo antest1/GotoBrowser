@@ -3,18 +3,26 @@ package com.antest1.gotobrowser.Subtitle;
 public class SubtitleProviderUtils {
     private final static Kc3SubtitleProvider kc3SubtitleProvider = new Kc3SubtitleProvider();
 
+    private final static KcwikiSubtitleProvider kcwikiSubtitleProvider = new KcwikiSubtitleProvider();
+
+    private static SubtitleProvider currentProvider = kc3SubtitleProvider;
+
     public static SubtitleProvider getCurrentSubtitleProvider() {
-        // TODO actually return different providers
-        return kc3SubtitleProvider;
+        return currentProvider;
     }
 
     public static SubtitleProvider getSubtitleProvider(String subtitleLocale) {
-        // TODO actually return different providers
-        return kc3SubtitleProvider;
-    }
-
-
-    public static Kc3SubtitleProvider getKc3SubtitleProvider() {
-        return kc3SubtitleProvider;
+        switch (subtitleLocale) {
+            default:
+            case "en":
+            case "kr":
+            case "jp":
+                currentProvider = kc3SubtitleProvider;
+                return kc3SubtitleProvider;
+            case "zh-tw":
+            case "zh-cn":
+                currentProvider = kcwikiSubtitleProvider;
+                return kcwikiSubtitleProvider;
+        }
     }
 }

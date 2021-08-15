@@ -200,7 +200,7 @@ public class BrowserActivity extends AppCompatActivity {
             //setSubtitleMargin(sharedPref.getInt(PREF_PADDING, 0));
             String subtitle_local = sharedPref.getString(PREF_SUBTITLE_LOCALE, "en");
 
-            isSubtitleLoaded = SubtitleProviderUtils.getCurrentSubtitleProvider().loadQuoteData(getApplicationContext(), subtitle_local);
+            isSubtitleLoaded = SubtitleProviderUtils.getSubtitleProvider(subtitle_local).loadQuoteData(getApplicationContext(), subtitle_local);
 
             connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
 

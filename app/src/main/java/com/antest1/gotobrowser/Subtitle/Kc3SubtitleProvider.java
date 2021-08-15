@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
-import android.util.SparseIntArray;
 
 import androidx.preference.Preference;
 
@@ -58,6 +57,7 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.reportException;
 public class Kc3SubtitleProvider implements SubtitleProvider {
     private static final String SUBTITLE_META_ROOT_FORMAT =
             "https://raw.githubusercontent.com/KC3Kai/KC3Kai/%s/src/data/quotes_size.json";
+    public static final String QUOTES_FILENAME_FORMAT = "quotes_%s.json";
 
     private static JsonObject quoteSizeData = new JsonObject();
     private static final int MAX_LOOP = 9;
@@ -338,7 +338,6 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             } else {
                 voiceLine = getVoiceLineByFilename(voice_filename, voice_code);
             }
-
             Log.e("GOTO", "file info: " + info);
             Log.e("GOTO", "voiceline: " + voiceLine);
             int voiceLineValue = Integer.parseInt(voiceLine);
@@ -352,6 +351,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                 Date time_tgt = time_fmt.parse(voiceLineTime);
                 long diffMsec = time_tgt.getTime() - time_src.getTime();
                 if (voiceLineValue == 30) diffMsec += 86400000;
+
                 data.setExtraDelay(diffMsec);
             }
         } else if (url.contains("/voice/titlecall_")) {
@@ -512,17 +512,19 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         String message = "";
         String locale_code = subtitleData.get("locale_code").getAsString();
         String commit = subtitleData.get("latest_commit").getAsString();
-        String filename = String.format(Locale.US, "quotes_%s.json", locale_code);
 
-        JsonObject data = response.body();
+        String filename = String.format(Locale.US, QUOTES_FILENAME_FORMAT, locale_code);
         String subtitle_folder = KcUtils.getAppCacheFileDir(fragment.getContext(), "/subtitle/");
         String subtitle_path = subtitle_folder.concat(filename);
-        File file = new File(subtitle_folder);
+        File fileDirectory = new File(subtitle_folder);
         try {
-            if (!file.exists()) file.mkdirs();
+            if (!fileDirectory.exists()) {
+                fileDirectory.mkdirs();
+            }
+            JsonObject data = response.body();
             if (data != null) {
-                File subtitle_file = new File(subtitle_path);
-                FileOutputStream fos = new FileOutputStream(subtitle_file);
+                File subtitleFile = new File(subtitle_path);
+                FileOutputStream fos = new FileOutputStream(subtitleFile);
                 fos.write(data.toString().getBytes());
                 fos.close();
                 versionTable.putValue(subtitle_path, commit);
