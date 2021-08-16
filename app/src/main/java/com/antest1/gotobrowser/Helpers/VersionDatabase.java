@@ -72,6 +72,10 @@ public class VersionDatabase extends SQLiteOpenHelper {
         }
     }
 
+    public void putDefaultValue(String key) {
+        putValue(key, "_none_");
+    }
+
     public void overrideByPrefix(JsonObject prefix) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c =  db.query(table_name, null, null, null, null, null, null, null);

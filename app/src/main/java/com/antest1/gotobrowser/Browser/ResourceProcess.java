@@ -186,7 +186,13 @@ public class ResourceProcess {
                 if (is_js) return processScriptFile(file_info);
                 if (is_audio) return processAudioFile(file_info, update_info);
                 if (is_css) return processStylesheet(file_info);
-                if (is_font && sharedPref.getBoolean(PREF_FONT_PREFETCH, true)) return getFontFile(filename);
+                if (is_font) {
+                    if (sharedPref.getBoolean(PREF_FONT_PREFETCH, true)) {
+                        return getFontFile(filename);
+                    } else {
+                        return processFontFile(file_info, update_info);
+                    }
+                }
             }
         } catch (Exception e) {
             KcUtils.reportException(e);
@@ -281,8 +287,12 @@ public class ResourceProcess {
         String out_file_path = file_info.get("out_file_path").getAsString();
         try {
             File file = getImageFile(out_file_path);
+            if (!file.exists()) {
+                versionTable.putDefaultValue(path);
+                update_flag = true;
+            }
             Log.e("GOTO", "requested: " + file.getPath());
-            if (update_flag || !file.exists()) {
+            if (update_flag) {
                 String result = downloadResource(resourceClient, resource_url, last_modified, file);
                 String new_value = version;
                 if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value)) new_value = result;
@@ -369,6 +379,11 @@ public class ResourceProcess {
         String out_file_path = file_info.get("out_file_path").getAsString();
 
         File file = new File(out_file_path);
+        if (!file.exists()) {
+            versionTable.putDefaultValue(path);
+            update_flag = true;
+        }
+
         if (update_flag) {
             String result = downloadResource(resourceClient, resource_url, last_modified, file);
             String new_value = version;
@@ -402,6 +417,44 @@ public class ResourceProcess {
 
         InputStream is = new BufferedInputStream(new FileInputStream(file));
         return new WebResourceResponse("audio/mpeg", "binary", is);
+    }
+
+    private WebResourceResponse processFontFile(JsonObject file_info, JsonObject update_info) throws IOException {
+        String url = file_info.get("url").getAsString();
+        String version = update_info.get("version").getAsString();
+        boolean is_last_modified = update_info.get("is_last_modified").getAsBoolean();
+        boolean update_flag = update_info.get("update_flag").getAsBoolean();
+        String last_modified = is_last_modified ? version : null;
+
+        String path = file_info.get("path").getAsString();
+        String resource_url = file_info.get("full_url").getAsString();
+        String out_file_path = file_info.get("out_file_path").getAsString();
+
+        File file = new File(out_file_path);
+        if (!file.exists()) {
+            versionTable.putDefaultValue(path);
+            update_flag = true;
+        }
+
+        if (update_flag) {
+            String result = downloadResource(resourceClient, resource_url, last_modified, file);
+            String new_value = version;
+            if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value))
+                new_value = result;
+            if (result == null) {
+                Log.e("GOTO", "return null: " + path + " " + new_value);
+                return null;
+            } else if (result.equals("304")) {
+                Log.e("GOTO", "load cached resource: " + path + " " + new_value);
+            } else {
+                Log.e("GOTO", "cache resource: " + path + " " + new_value);
+                versionTable.putValue(path, new_value);
+            }
+        } else {
+            Log.e("GOTO", "load cached resource: " + path + " " + version);
+        }
+        InputStream is = new BufferedInputStream(new FileInputStream(file));
+        return new WebResourceResponse("application/font-woff2", "binary", is);
     }
 
     private void setSubtitle(SubtitleData data) {
