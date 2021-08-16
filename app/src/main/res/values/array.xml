@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="subtitle_list" translatable="false">
-        <item>English</item>
-        <item>한국어</item>
-        <item>日本語</item>
+        <item>English (KC3改)</item>
+        <item>한국어 (KC3改)</item>
+        <item>日本語 (KC3改)</item>
+        <item>简中 (kcwiki)</item>
+        <item>繁中 (kcwiki)</item>
     </string-array>
 
     <string-array name="subtitle_list_values" translatable="false">
         <item>en</item>
         <item>kr</item>
         <item>jp</item>
+        <item>zh-cn</item>
+        <item>zh-tw</item>
     </string-array>
 
     <string-array name="panel_method" translatable="false">

@@ -7,7 +7,7 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 
-public interface SubtitleRepo {
+public interface Kc3SubtitleRepo {
     @GET("KC3Kai/KC3Kai/{commit}/{path}")
     Call<JsonObject> downloadMeta(@Path("commit") String commit, @Path("path") String path);
 

@@ -18,24 +18,14 @@ import androidx.preference.SwitchPreferenceCompat;
 import androidx.webkit.WebViewFeature;
 
 import com.antest1.gotobrowser.BuildConfig;
+import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
-import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
-import com.antest1.gotobrowser.Subtitle.SubtitleRepo;
+import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Locale;
 import java.util.Map;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
@@ -57,8 +47,6 @@ import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_TP_DISCLAIMED;
 import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
-import static com.antest1.gotobrowser.Constants.SUBTITLE_PATH_FORMAT;
-import static com.antest1.gotobrowser.Constants.SUBTITLE_ROOT;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
 
@@ -112,10 +100,8 @@ public class SettingsActivity extends AppCompatActivity {
     public static class SettingsFragment extends PreferenceFragmentCompat
             implements SharedPreferences.OnSharedPreferenceChangeListener, Preference.OnPreferenceChangeListener {
         private VersionDatabase versionTable;
-        private SubtitleCheck updateCheck;
-        private SubtitleRepo subtitleRepo;
         private SharedPreferences sharedPref;
-        private JsonObject subtitleData = null;
+        private GotoVersionCheck appCheck;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -124,8 +110,7 @@ public class SettingsActivity extends AppCompatActivity {
                     getString(R.string.preference_key), Context.MODE_PRIVATE);
             sharedPref.registerOnSharedPreferenceChangeListener(this);
             versionTable = new VersionDatabase(getContext(), null, VERSION_TABLE_VERSION);
-            updateCheck = getRetrofitAdapter(getContext(), GITHUBAPI_ROOT).create(SubtitleCheck.class);
-            subtitleRepo = getRetrofitAdapter(getContext(), SUBTITLE_ROOT).create(SubtitleRepo.class);
+            appCheck = getRetrofitAdapter(getContext(), GITHUBAPI_ROOT).create(GotoVersionCheck.class);
         }
 
         @Override
@@ -157,9 +142,9 @@ public class SettingsActivity extends AppCompatActivity {
         public boolean onPreferenceTreeClick(Preference preference) {
             String key = preference.getKey();
             if (key.equals(PREF_CHECK_UPDATE)) {
-                KcUtils.requestLatestAppVersion(getActivity(), updateCheck, true);
-            } else if (key.equals(PREF_SUBTITLE_UPDATE) && subtitleData != null) {
-                onLocaleItemDownload(subtitleData);
+                KcUtils.requestLatestAppVersion(getActivity(), appCheck, true);
+            } else if (key.equals(PREF_SUBTITLE_UPDATE)) {
+                SubtitleProviderUtils.getCurrentSubtitleProvider().downloadUpdateFromPreference(this, versionTable);
             }
             return super.onPreferenceTreeClick(preference);
         }
@@ -215,98 +200,10 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
 
-        private void setSubtitlePreference(String subtitleLocale) {
-            subtitleData = null;
+        private void setSubtitlePreference(String subtitleLocaleCode) {
             Preference subtitleUpdate = findPreference(PREF_SUBTITLE_UPDATE);
-            subtitleUpdate.setSummary("checking updates...");
-            subtitleUpdate.setEnabled(false);
-            String subtitlePath = String.format(Locale.US, SUBTITLE_PATH_FORMAT, subtitleLocale);
-            Call<JsonArray> call = updateCheck.check(subtitlePath);
-            call.enqueue(new Callback<JsonArray>() {
-                @Override
-                public void onResponse(Call<JsonArray> call, Response<JsonArray> response) {
-                    if (getActivity() == null) return;
-                    JsonArray commit_log = response.body();
-                    if (commit_log != null && !commit_log.isJsonNull()) {
-                        String filename = String.format(Locale.US, "quotes_%s.json", subtitleLocale);
-                        String subtitle_folder = KcUtils.getAppCacheFileDir(getContext(), "/subtitle/");
-                        String subtitle_path = subtitle_folder.concat(filename);
-                        String currentCommit = versionTable.getValue(subtitle_path);
-                        if (commit_log.size() > 0) {
-                            JsonObject latestData = commit_log.get(0).getAsJsonObject();
-                            String latestCommit = latestData.get("sha").getAsString();
-                            if (!currentCommit.equals(latestCommit)) {
-                                subtitleData = new JsonObject();
-                                subtitleData.addProperty("locale_code", subtitleLocale);
-                                subtitleData.addProperty("latest_commit", latestCommit);
-                                subtitleData.addProperty("download_url", subtitlePath);
-                                String summary = String.format(Locale.US,
-                                        getString(R.string.setting_latest_download_subtitle),
-                                        latestCommit.substring(0, 6));
-                                subtitleUpdate.setSummary(summary);
-                                subtitleUpdate.setEnabled(true);
-                            } else {
-                                subtitleUpdate.setSummary(getString(R.string.setting_latest_version));
-                            }
-                        } else {
-                            subtitleUpdate.setSummary("no data");
-                        }
-                    }
-                }
-                @Override
-                public void onFailure(Call<JsonArray> call, Throwable t) {
-                    if (getActivity() == null) return;
-                    findPreference(PREF_SUBTITLE_UPDATE).setSummary("failed loading subtitle data");
-                }
-            });
-        }
 
-        private void onLocaleItemDownload(JsonObject item) {
-            String commit = item.get("latest_commit").getAsString();
-            String path = item.get("download_url").getAsString();
-            Call<JsonObject> call = subtitleRepo.download(commit, path);
-            call.enqueue(new Callback<JsonObject>() {
-                @Override
-                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                    saveQuotesFile(item, response);
-                }
-                @Override
-                public void onFailure(Call<JsonObject> call, Throwable t) {
-                    KcUtils.showToast(getContext(), t.getLocalizedMessage());
-                }
-            });
-        }
-
-        private void saveQuotesFile(JsonObject item, Response<JsonObject> response) {
-            String message = "";
-            String locale_code = item.get("locale_code").getAsString();
-            String commit = item.get("latest_commit").getAsString();
-            String filename = String.format(Locale.US, "quotes_%s.json", locale_code);
-
-            JsonObject data = response.body();
-            String subtitle_folder = KcUtils.getAppCacheFileDir(getContext(), "/subtitle/");
-            String subtitle_path = subtitle_folder.concat(filename);
-            File file = new File(subtitle_folder);
-            try {
-                if (!file.exists()) file.mkdirs();
-                if (data != null) {
-                    File subtitle_file = new File(subtitle_path);
-                    FileOutputStream fos = new FileOutputStream(subtitle_file);
-                    fos.write(data.toString().getBytes());
-                    fos.close();
-                    versionTable.putValue(subtitle_path, commit);
-                    Preference subtitleUpdate = findPreference(PREF_SUBTITLE_UPDATE);
-                    subtitleUpdate.setSummary(getString(R.string.setting_latest_version));
-                    subtitleUpdate.setEnabled(false);
-                } else {
-                    message = "No data to write: quotes_".concat(locale_code).concat(".json");
-                    KcUtils.showToast(getContext(), message);
-                }
-            } catch (IOException e) {
-                KcUtils.reportException(e);
-                message = "IOException while saving quotes_".concat(locale_code).concat(".json");
-                KcUtils.showToast(getContext(), message);
-            }
+            SubtitleProviderUtils.getSubtitleProvider(subtitleLocaleCode).checkUpdateFromPreference(this, subtitleLocaleCode, subtitleUpdate, versionTable);
         }
     }
 }

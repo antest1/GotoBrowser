@@ -3,12 +3,10 @@ package com.antest1.gotobrowser.Helpers;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
@@ -28,9 +26,8 @@ import androidx.appcompat.app.AlertDialog;
 import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.R;
-import com.antest1.gotobrowser.Subtitle.SubtitleCheck;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -46,14 +43,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -303,15 +298,13 @@ public class KcUtils {
 
     public static Retrofit getRetrofitAdapter(Context context, String baseUrl) {
         OkHttpClient.Builder builder = new OkHttpClient().newBuilder();
-        builder.cache(
-                new Cache(context.getCacheDir(), CACHE_SIZE_BYTES));
+        builder.cache(new Cache(context.getCacheDir(), CACHE_SIZE_BYTES));
+
         OkHttpClient client = builder.build();
-        Retrofit.Builder retrofitBuilder = new Retrofit.Builder();
-        retrofitBuilder
+        return new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create())
                 .baseUrl(baseUrl)
-                .client(client);
-        return retrofitBuilder.build();
+                .client(client).build();
     }
 
     public static String joinStr(List<String> list, String delim) {
@@ -369,8 +362,8 @@ public class KcUtils {
         return null;
     }
 
-    public static void requestLatestAppVersion(Activity ac, SubtitleCheck updateCheck, boolean show_toast) {
-        Call<JsonObject> call = updateCheck.version();
+    public static void requestLatestAppVersion(Activity ac, GotoVersionCheck appCheck, boolean show_toast) {
+        Call<JsonObject> call = appCheck.version();
         call.enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, retrofit2.Response<JsonObject> response) {

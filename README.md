@@ -42,9 +42,10 @@ Translations to other languages are welcomed. (please contact to developer to em
 
 Attribution
 -------
-- Icon image is drawed by [SPICA](https://www.pixiv.net/member.php?id=9209813).
-- GotoBrowser uses voiceline translation of [kc3-translations](https://github.com/KC3Kai/kc3-translations).
+- Icon image is drawn by [SPICA](https://www.pixiv.net/member.php?id=9209813).
+- GotoBrowser downloads voiceline subtitle data from [kc3-translations](https://github.com/KC3Kai/kc3-translations) for English, Japanese and Korean.
   - License for kc3-translations: The MIT License [Text](https://github.com/KC3Kai/kc3-translations/blob/master/LICENSE)
+- GotoBrowser downloads voiceline subtitle data from [kcwiki-api](https://github.com/kcwikizh/kcwiki-api) for Traditional and Simplified Chinese.
 
 Contact
 -------
