@@ -107,7 +107,7 @@
                         android:padding="6dp"
                         android:src="@mipmap/mute"
                         app:srcCompat="@mipmap/mute"
-                        tooltipText="@string/menu_tooltip_mute"/>
+                        android:tooltipText="@string/menu_tooltip_mute"/>
 
                     <ImageView
                         android:id="@+id/menu_camera"
@@ -118,7 +118,7 @@
                         android:padding="6dp"
                         android:src="@mipmap/camera"
                         app:srcCompat="@mipmap/camera"
-                        tooltipText="@string/menu_tooltip_camera"/>
+                        android:tooltipText="@string/menu_tooltip_camera"/>
 
                     <ImageView
                         android:id="@+id/menu_lock"
@@ -129,7 +129,7 @@
                         android:padding="6dp"
                         android:src="@mipmap/lock"
                         app:srcCompat="@mipmap/lock"
-                        tooltipText="@string/menu_tooltip_lock"/>
+                        android:tooltipText="@string/menu_tooltip_lock"/>
 
                     <ImageView
                         android:id="@+id/menu_brighton"
@@ -140,7 +140,7 @@
                         android:padding="6dp"
                         android:src="@mipmap/brighton"
                         app:srcCompat="@mipmap/brighton"
-                        tooltipText="@string/menu_tooltip_brighton"/>
+                        android:tooltipText="@string/menu_tooltip_brighton"/>
 
                     <ImageView
                         android:id="@+id/menu_cc"
@@ -151,7 +151,7 @@
                         android:padding="6dp"
                         android:src="@mipmap/caption"
                         app:srcCompat="@mipmap/caption"
-                        tooltipText="@string/menu_tooltip_cc"/>
+                        android:tooltipText="@string/menu_tooltip_cc"/>
 
                     <ImageView
                         android:id="@+id/menu_kantai3d"
@@ -174,7 +174,7 @@
                         android:src="@mipmap/logout"
                         android:visibility="visible"
                         app:srcCompat="@mipmap/logout"
-                        tooltipText="@string/menu_tooltip_logout"/>
+                        android:tooltipText="@string/menu_tooltip_logout"/>
                 </LinearLayout>
             </ScrollView>
 
