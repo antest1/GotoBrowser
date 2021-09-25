@@ -193,7 +193,12 @@ public class K3dPatcher implements SensorEventListener {
                 "    window.displacementFilter.uniforms.focus = 0.5;\n" +
                 "    window.displacementFilter.uniforms.offset = [0.0, 0.0];\n" +
                 "    window.currentChara.filters = [window.displacementFilter];\n" +
-                "    window.currentChara.addChild(window.displacementSprite);\n" +
+                "    window.currentChara.addChild(window.displacementSprite);\n\n" +
+
+                "    window.mousex1 = null;\n" +
+                "    window.mousey1 = null;\n" +
+                "    prepareJiggle(window.currentChara.texture, window.displacementSprite.texture);\n" +
+                "    window.displacementFilter.uniforms.displacementMap = window.jiggledDepthMapRT.texture;\n" +
                 "} else {\n" +
                 "    // The depth map is not loaded yet, and may not exist in server at all\n" +
                 "    // Disable the filter first\n" +
@@ -206,6 +211,80 @@ public class K3dPatcher implements SensorEventListener {
                 "        window.displacementFilter.uniforms.offset = [0.0, 0.0];\n" +
                 "        window.currentChara.filters = [window.displacementFilter];\n" +
                 "        window.currentChara.addChild(window.displacementSprite);\n" +
+
+                "        window.mousex1 = null;\n" +
+                "        window.mousey1 = null;\n" +
+                "        prepareJiggle(window.currentChara.texture, window.displacementSprite.texture);\n" +
+                "        window.displacementFilter.uniforms.displacementMap = window.jiggledDepthMapRT.texture;\n" +
+                "    });\n" +
+                "}" +
+
+                "///////////////////////////////////\n" +
+                "function prepareJiggle(baseMap, depthMap) {\n" +
+
+                "    window.jigglePositions = [];\n" +
+                "    window.jiggleVelocities = [];\n" +
+                "    window.jiggleForces = [];\n" +
+
+                "    window.jiggleStaticFlags = [];\n" +
+                "    window.jiggleMovement = [];\n" +
+
+                "    window.damping = [];//1.0 / 8; // 1 2 4 8 16 \n" +
+                "    window.springiness = [];//1.0 / 16.0; // 0 2 4 8 16 32 回彈力\n" +
+                "    \n" +
+
+                "    var depthImg = depthMap.baseTexture.source;\n" +
+                "    var tempCanvas = document.createElement('canvas');\n" +
+                "    tempCanvas.width = depthImg.width;\n" +
+                "    tempCanvas.height = depthImg.height;\n" +
+                "    let tmCtx = tempCanvas.getContext('2d');\n" +
+                "    tmCtx.drawImage(depthImg, 0, 0);\n" +
+                "    var dmData = tmCtx.getImageData(0, 0, depthImg.width, depthImg.height).data;\n" +
+
+
+                "    window.jiggleMeshW = Math.ceil(baseMap.width / 10.0);\n" +
+                "    window.jiggleMeshH = Math.ceil(baseMap.height / 10.0);\n" +
+
+                "    // This is the jiggled mseh\n" +
+                "    window.jiggledDepthMapMesh = new PIXI.mesh.Plane(window.displacementSprite.texture, window.jiggleMeshW, window.jiggleMeshH);\n" +
+                "    window.jiggledDepthMapMesh.visible = false;\n" +
+
+                "    // This is the render texture of the jiggled mseh\n" +
+                "    window.jiggledDepthMapRT = new PIXI.Sprite(PIXI.RenderTexture.create(baseMap.width, baseMap.height));\n" +
+                "    window.jiggledDepthMapRT.visible = false;\n" +
+
+                "    window.jiggledBaseMapMesh = new PIXI.mesh.Plane(baseMap, window.jiggleMeshW, window.jiggleMeshH);\n" +
+
+                "    window.pixiApp.stage.addChild(window.jiggledDepthMapMesh);\n" +
+                "    window.pixiApp.stage.addChild(window.jiggledDepthMapRT);\n" +
+                "    window.currentChara.addChild(window.jiggledBaseMapMesh);\n" +
+
+                "    window.gridW = baseMap.width / (window.jiggleMeshW - 1.0);\n" +
+                "    window.gridH = baseMap.height / (window.jiggleMeshH - 1.0);\n" +
+                "    for (var y = 0; y < window.jiggleMeshH; y++) {\n" +
+                "        for (var x = 0; x < window.jiggleMeshW; x++) {\n" +
+                "            window.jigglePositions.push({ x: window.gridW * x, y: y * window.gridH });\n" +
+                "            window.jiggleVelocities.push({ x: 0, y: 0 });\n" +
+                "            window.jiggleForces.push({ x: 0, y: 0 });\n" +
+
+                "            var r = dmData[(Math.floor(y * window.gridH) * baseMap.width + Math.floor(x * window.gridW)) * 4 + 0];\n" +
+                "            var b = dmData[(Math.floor(y * window.gridH) * baseMap.width + Math.floor(x * window.gridW)) * 4 + 2];\n" +
+
+                "            window.damping.push(1.0 / (b / 255.0 * 16.0 + 1));//1.0 / 8; // 1 2 4 8 16 \n" +
+                "            window.springiness.push(1.0 / ( b / 255.0 * 32.0 + 1));//1.0 / 16.0; // 0 2 4 8 16 32 回彈力\n" +
+                "        \n" +
+                "            window.jiggleStaticFlags.push(b == 0);\n" +
+                "            window.jiggleMovement.push((r - 127.0) / 128.0);\n" +
+                "        }\n" +
+                "    }\n" +
+                "    window.Mx = null;\n" +
+                "    window.My = null;\n" +
+                "    window.Mx2 = null;\n" +
+                "    window.My2 = null;\n" +
+                "    \n" +
+                "    // start animating\n" +
+                "    window.pixiApp.ticker.add(function (t) {\n" +
+                "\n" +
                 "    });\n" +
                 "}");
 
@@ -242,10 +321,164 @@ public class K3dPatcher implements SensorEventListener {
                 "  \n" +
                 "  this.uniforms.frameWidth = input.size.width;\n" +
                 "  this.uniforms.frameHeight = input.size.height;\n" +
+
+                        
+                "    ////////\n" +
+                "    \n" +
+                "    var vertices = window.jiggledBaseMapMesh.vertices;\n" +
+                "    var vertices2 = window.jiggledDepthMapMesh.vertices;\n" +
                 "\n" +
+                "    var newMx = window.displacementFilter.uniforms.offset[0];\n" +
+                "    var newMy = window.displacementFilter.uniforms.offset[1];\n" +
+                "    \n" +
+                "    var baseMap = window.currentChara.texture;\n" +
+                "    var depthMap = window.displacementSprite.texture;\n" +
+                "    if (baseMap && baseMap.baseTexture && depthMap && depthMap.baseTexture) {\n" +
+                "\n" +
+                "        window.My2 = window.My;\n" +
+                "        window.Mx2 = window.Mx;\n" +
+                "        window.My = newMy;\n" +
+                "        window.Mx = newMx;\n" +
+                "        for (var y = 0; y < window.jiggleMeshH; y++) {\n" +
+                "            for (var x = 0; x < window.jiggleMeshW; x++) {\n" +
+                "                resetForce(x, y);\n" +
+                "            }\n" +
+                "        }\n" +
+                "\n" +
+                "        if (window.Mx && window.My && window.Mx2 && window.My2 && newMx != -999999 && window.Mx != -999999 && window.Mx2 != -999999) {\n" +
+                "    \n" +
+                "            var aX = (window.Mx2 - window.Mx) - (window.Mx - newMx);\n" +
+                "            var aY = (window.My2 - window.My) - (window.My - newMy);\n" +
+                "    \n" +
+                "            for (var y = 0; y < window.jiggleMeshH; y++) {\n" +
+                "                for (var x = 0; x < window.jiggleMeshW; x++) {\n" +
+                "                    var m = window.jiggleMovement[y * window.jiggleMeshW + x];\n" +
+                "                    window.jiggleForces[y * window.jiggleMeshW + x].x += aX * m * -50;\n" +
+                "                    window.jiggleForces[y * window.jiggleMeshW + x].y += aY * m * 50;\n" +
+                "                }\n" +
+                "            }\n" +
+                "        }\n" +
+                "    \n" +
+                "\n" +
+                "        for (var y = 0; y < window.jiggleMeshH; y++) {\n" +
+                "            for (var x = 0; x < window.jiggleMeshW; x++) {\n" +
+                "                if (x != 0) {\n" +
+                "                    springUpdate(x - 1, y, x, y);\n" +
+                "                }\n" +
+                "                if (y != 0) {\n" +
+                "                    springUpdate(x, y - 1, x, y);\n" +
+                "                }\n" +
+                "            }\n" +
+                "        }\n" +
+                "    \n" +
+                "    \n" +
+                "        for (var y = 0; y < window.jiggleMeshH; y++) {\n" +
+                "            for (var x = 0; x < window.jiggleMeshW; x++) {\n" +
+                "                addDampingForce(x, y);\n" +
+                "                update(x, y);\n" +
+                "            }\n" +
+                "        }\n" +
+                "\n" +
+                "    \n" +
+                "        for (var i = 0; i < window.jigglePositions.length; i++) {\n" +
+                "            var pos = window.jigglePositions[i];\n" +
+                "            vertices[i * 2] = Math.min(Math.max(pos.x, 0), baseMap.width);\n" +
+                "            vertices[i * 2 + 1] = Math.min(Math.max(pos.y, 0), baseMap.height);\n" +
+                "    \n" +
+                "            vertices2[i * 2] = vertices[i * 2];\n" +
+                "            vertices2[i * 2 + 1] = vertices[i * 2 + 1];\n" +
+                "        }\n" +
+                "    }\n" +
+                "    ////////\n" +
+                "\n" +
+                "\n" +
+                "\n" +
+                "\n" +
+                "\n" +
+                "\n" +
+                "\n" +
+                "\n" +
+                "\n" +
+                "    window.jiggledDepthMapMesh.visible = true;\n" +
+                "    window.pixiApp.renderer.render(window.jiggledDepthMapMesh, window.jiggledDepthMapRT.texture);\n" +
+                "    window.jiggledDepthMapMesh.visible = false;" +
                 "  // draw the filter...\n" +
                 "  filterManager.applyFilter(this, input, output);\n" +
-                "}\n");
+                "}\n" +
+                "" +
+                "\n" +
+                "function resetForce(x, y) {\n" +
+                "    window.jiggleForces[y * window.jiggleMeshW + x] = { x: 0, y: 0 };\n" +
+                "}\n" +
+                "\n" +
+                "function addForce(x, y, addX, addY) {\n" +
+                "    var f = window.jiggleForces[y * window.jiggleMeshW + x];\n" +
+                "    f.x += addX;\n" +
+                "    f.y += addY;\n" +
+                "}\n" +
+                "\n" +
+                "function addDampingForce(x, y) {\n" +
+                "    var v = jiggleVelocities[y * window.jiggleMeshW + x];\n" +
+                "    var f = window.jiggleForces[y * window.jiggleMeshW + x];\n" +
+                "    f.x -= v.x * window.damping[y * window.jiggleMeshW + x];\n" +
+                "    f.y -= v.y * window.damping[y * window.jiggleMeshW + x];\n" +
+                "}\n" +
+                "\n" +
+                "\n" +
+                "function update(x, y) {\n" +
+                "    var p = window.jigglePositions[y * window.jiggleMeshW + x];\n" +
+                "    var v = window.jiggleVelocities[y * window.jiggleMeshW + x];\n" +
+                "    var f = window.jiggleForces[y * window.jiggleMeshW + x];\n" +
+                "\n" +
+                "    if (window.jiggleStaticFlags[y * window.jiggleMeshW + x] == false) {\n" +
+                "        v.x += f.x;\n" +
+                "        v.y += f.y;\n" +
+                "        p.x += v.x;\n" +
+                "        p.y += v.y;\n" +
+                "    }\n" +
+                "}\n" +
+                "\n" +
+                "\n" +
+                "\n" +
+                "function springUpdate(x1, y1, x2, y2) {\n" +
+                "    if (window.jiggleStaticFlags[x1 + y1 * window.jiggleMeshW.w] && !window.jiggleStaticFlags[x2 + y2 * window.jiggleMeshW.w]) \n" +
+                "        return;\n" +
+                "\n" +
+                "    var distanceOrigin = (x2 - x1) * window.gridW + (y2 - y1) * window.gridH;\n" +
+                "    \n" +
+                "    \n" +
+                "\n" +
+                "    var p1 = window.jigglePositions[y1 * window.jiggleMeshW + x1];\n" +
+                "    var p2 = window.jigglePositions[y2 * window.jiggleMeshW + x2];\n" +
+                "\n" +
+                "    var distance = len(sub(p1, p2));\n" +
+                "\n" +
+                "    var springiness = (window.springiness[y1 * window.jiggleMeshW + x1] + window.springiness[y2 * window.jiggleMeshW + x2]) / 2;\n" +
+                "\n" +
+                "    var springForce = springiness * (distanceOrigin - distance);\n" +
+                "    var frcToAdd = tim(normalize(sub(p1, p2)), springForce);\n" +
+                "\n" +
+                "    addForce(x1, y1, frcToAdd.x, frcToAdd.y);\n" +
+                "    addForce(x2, y2, -frcToAdd.x, -frcToAdd.y);\n" +
+                "}\n" +
+                "\n" +
+                "\n" +
+                "function len(v) {\n" +
+                "    return Math.sqrt(v.x * v.x + v.y * v.y);\n" +
+                "}\n" +
+                "\n" +
+                "function normalize(v) {\n" +
+                "    var l = len(v);\n" +
+                "    return { x: v.x / l, y: v.y / l };\n" +
+                "}\n" +
+                "\n" +
+                "function sub(v1, v2) {\n" +
+                "    return { x: v1.x - v2.x, y: v1.y - v2.y }\n" +
+                "}\n" +
+                "\n" +
+                "function tim(v1, s) {\n" +
+                "    return { x: v1.x * s, y: v1.y * s }\n" +
+                "}");
 
 
         String replaced = main_js;
