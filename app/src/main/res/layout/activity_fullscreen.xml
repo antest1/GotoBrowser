@@ -74,7 +74,7 @@
                 android:padding="6dp"
                 android:src="@mipmap/refresh"
                 app:srcCompat="@mipmap/refresh"
-                tooltipText="@string/menu_tooltip_refresh"/>
+                android:tooltipText="@string/menu_tooltip_refresh"/>
 
             <ScrollView
                 android:layout_width="wrap_content"
