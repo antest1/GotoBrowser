@@ -35,6 +35,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.antest1.gotobrowser.Browser.BrowserGestureListener;
 import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.BuildConfig;
@@ -191,8 +192,6 @@ public class BrowserActivity extends AppCompatActivity {
 
             View menuClose = findViewById(R.id.menu_close);
             menuClose.setOnClickListener(this::setPanelVisible);
-            View backgroundArea = findViewById(R.id.background_area);
-            backgroundArea.setOnClickListener(this::setPanelVisible);
 
 
             subtitleText = findViewById(R.id.subtitle_view);
@@ -237,6 +236,13 @@ public class BrowserActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (isKcBrowserMode) {
+            // On back pressed, always show the button panel
+            // It is in case new users don't know tapping background shows the panel
+            // Or if the screen is exactly 15:9 so there is no background to tap on
+            isPanelVisible = true;
+            AnimationUtils.beginAuto(findViewById(R.id.main_container));
+            findViewById(R.id.browser_panel).setVisibility(View.VISIBLE);
+
             backPressCloseHandler.onBackPressed();
         } else {
             Intent intent = new Intent(BrowserActivity.this, EntranceActivity.class);
@@ -493,6 +499,8 @@ public class BrowserActivity extends AppCompatActivity {
                 }
             }
         }
+
+        setGestureDetector(findViewById(R.id.background_area));
     }
 
     public void setPanelVisibleValue(boolean value) {
@@ -691,5 +699,14 @@ public class BrowserActivity extends AppCompatActivity {
         Intent intent = new Intent(FOREGROUND_ACTION);
         intent.putExtra("is_front", is_front);
         sendBroadcast(intent);
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    public void setGestureDetector(View view) {
+        GestureDetector mDetector = new GestureDetector(this, new BrowserGestureListener(this, this::setPanelVisible));
+        view.setOnTouchListener((v, event) -> {
+            mDetector.onTouchEvent(event);
+            return event.getAction() != MotionEvent.ACTION_UP;
+        });
     }
 }

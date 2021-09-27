@@ -78,6 +78,10 @@ public class KcUtils {
         Toast.makeText(context, context.getString(resource_id), Toast.LENGTH_LONG).show();
     }
 
+    public static void showToastShort(Context context, int resource_id) {
+        Toast.makeText(context, context.getString(resource_id), Toast.LENGTH_SHORT).show();
+    }
+
     public static String getAppCacheFileDir(Context context, String folder) {
         SharedPreferences sharedPref = context.getSharedPreferences(
                 context.getString(R.string.preference_key), Context.MODE_PRIVATE);

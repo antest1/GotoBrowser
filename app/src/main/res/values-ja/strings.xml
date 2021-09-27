@@ -8,7 +8,7 @@
     <string name="cache_clear_text">キャッシュ削除</string>
     <string name="cache_cleared_toast">WebViewのキャッシュを削除しました。</string>
     <string name="clearcache_msg">画像や音声などが正しく表示されない場合にのみ使用してください。本当にキャッシュを削除しますか？</string>
-    <string name="backpress_msg">本当に終了しますか？</string>
+    <string name="backpress_msg">もう一度押すと終了します</string>
     <string name="refresh_msg">リフレッシュしますか？</string>
     <string name="mode_landscape">横固定モード</string>
     <string name="mode_adjustment">レイアウト自動調整</string>

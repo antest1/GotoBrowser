@@ -160,15 +160,11 @@
         android:layout_height="match_parent"
         android:background="@color/black"
         android:id="@+id/main_container2"
-        tools:context=".Activity.BrowserActivity"
-        android:clickable="true"
-        android:focusable="true">
+        tools:context=".Activity.BrowserActivity">
         <View
             android:id="@+id/background_area"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:clickable="true"
-            android:focusable="true"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -186,9 +182,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-        android:clickable="true"
-        android:focusable="true" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <View
         android:id="@+id/screenshot_light"
