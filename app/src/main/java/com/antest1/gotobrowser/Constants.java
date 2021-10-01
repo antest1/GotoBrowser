@@ -38,6 +38,7 @@ public class Constants {
     public static final String PREF_ALTER_ENDPOINT = "pref_alter_endpoint";
     public static final String PREF_TP_DISCLAIMED = "pref_tp_disclaimed";
     public static final String PREF_MOD_KANTAI3D = "pref_mod_kantai3d";
+    public static final String PREF_MOD_KANTAIEN = "pref_mod_kantaiEn";
     public static final String PREF_MOD_FPS = "pref_mod_fps";
     public static final String PREF_USE_EXTCACHE = "pref_use_extcache";
 
@@ -53,6 +54,7 @@ public class Constants {
             PREF_ALTER_ENDPOINT,
             PREF_TP_DISCLAIMED,
             PREF_MOD_KANTAI3D,
+            PREF_MOD_KANTAIEN,
             PREF_MOD_FPS,
             PREF_USE_EXTCACHE
     };

@@ -1,0 +1,58 @@
+{
+	"どこに進む？": "Where will we be\nproceeding to?",
+
+	"はやくはやくー！": "Come on, come onー!",
+	"えいえいえーいっ": "Eeeey!",
+	"とまれーっ": "Stooop!",
+
+	"えー？らしんばん、まわすのー？": "Huh?... Are you gonna spin it?...",
+	"……ん": "Ugh...",
+	"……あい": "There...",
+
+	"よーし、らしんばんまわすよー！": "Alright, let's spin the compass!",
+	"えいっ": "Eyー!",
+	"ここっ": "There!",
+
+	"らしんばんをまわしてね！": "Spin the compass, alright?",
+	"Same as 2nd line above": "えいっ",
+	"それっ": "Here!",
+
+	"陣形を選択してください。": "Select a formation.",
+
+	"some lines in this section are in _regex/map": "because string merge",
+	"司令官！うずしおが発生しました！": "Commander! Whirling tides outbreak!",
+	"水上偵察機による\n航空偵察を実施します。": "Conducting aerial reconnaissance\nby seaplane.",
+	"大型飛行艇による\n航空偵察を実施します。": "Conducting aerial reconnaissance\nby flying boat.",
+	"航空偵察予定地点に到着しましたが、\n稼働偵察機がないため、偵察を中止します。": "We have arrived at the planned aerial\nreconnaissance point, but there is no\noperational reconnaissance aircraft.",
+	
+	"気のせいだった。": "Must be my imagination.",
+	"敵影を見ず。": "No enemy in sight.",
+	"敵影を見ず。\n本作戦完遂失敗。": "No enemy in sight.\nWe failed to complete this operation.",
+	"穏やかな海です。": "Calm seas.",
+	"穏やかな海峡です。": "Calm strait.",
+	"警戒が必要です。": "Stay alert.",
+	"静かな海です。": "Peaceful seas.",
+	"艦隊の針路を選択できます。\n提督、どちらの針路をとられますか？": "You can decide on the fleet's course.\nAdmiral, which heading should we take?",
+	"艦隊に洋上補給を行います。": "Supplying the fleet at sea.",
+	"波静かな、泊地に適した海域です。": "The waves are quiet.\nThis area is suitable for an anchorage.",
+
+	" 残念ですが進撃は困難です...母港に帰投します。": "It's a shame but we can't continue like this...\nReturning to the home port.",
+
+	"天祐は我に在り。艦隊泊地突入! 救出作業開始!": "We're blessed by divine grace.\nWe're now entering the anchorage!\n     Commence rescue operations!",
+	"……帰ろう。帰れば、また来ることができる。": "Let's turn back now...\nWe will be able to come back if we do so.",
+	"突入海域の霧が……。": "The fog in these waters is...!",
+
+	"これより戦場海域に突入す。艦隊、戦闘配置!": "We are now entering the battlefield area.\nFleet, battle stations!",
+	"これより鉄底海峡に突入す! 全艦、戦闘配置!": "We are now entering the strait.\nAll ships, battle stations!",
+	"鉄底海峡を離脱する! 引き続き警戒を厳とせよ!": "We're leaving the Iron Bottom Strait!\nRemain on high alert!",
+
+	"マラッカ海峡を抜ける…対潜警戒を厳にせよ！": "Once we pass through the Strait of Malacca...\nbe on high alert for submarines!",
+	"我、マラッカ海峡に突入す。": "Our fleet is charging into the Strait of Malacca.",
+	"我、マラッカ海峡を突破、アンダマン海へ！": "Our fleet broke through the Strait of Malacca!\nWe're now going towards the Andaman Sea!",
+
+	"輸送物資の揚陸地点に到達しました。\n同地点付近の敵艦隊を捜索、これを撃滅せよ！": "The landing point of the convoy has been\nreached. Search for and destroy the enemy\n     fleet in the vicinity of this area.",
+	"輸送物資の揚陸地点に到達しました。\n本海域の輸送作戦は無事完了しています。": "The landing point of the convoy has been\nreached. The transport operation here has\n     already been completed successfully.",
+	"輸送物資の揚陸地点に到達しました。\n物資の揚陸を開始します。": "The landing point of the convoy has been\nreached. Starting the landing of supplies.",
+
+	"dummy": "forNoComma"
+}

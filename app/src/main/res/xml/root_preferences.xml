@@ -108,6 +108,22 @@
                 android:action="android.intent.action.VIEW"
                 android:data="https://github.com/laplamgor/kantai3d"/>
         </Preference>
+
+        <SwitchPreferenceCompat
+            android:summary="@string/settings_mod_kantaiEn_summary"
+            app:iconSpaceReserved="false"
+            app:key="pref_mod_kantaiEn"
+            app:title="@string/settings_mod_kantaiEn_enable" />
+
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_github2"
+            app:title="@string/settings_mod_kantaiEn_about"
+            app:summary="https://github.com/Oradimi/KanColle-English-Patch-KCCP">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/Oradimi/KanColle-English-Patch-KCCP"/>
+        </Preference>
     </PreferenceCategory>
 
     <PreferenceCategory

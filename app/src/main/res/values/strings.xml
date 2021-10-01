@@ -80,6 +80,9 @@
     <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.0</string>
     <string name="settings_mod_kantai3d_summary">Add 3D-like visual effects and jiggle physics to some of your secretaries. Author: @laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
+    <string name="settings_mod_kantaiEn_enable">[Beta] KanColle English Patch</string>
+    <string name="settings_mod_kantaiEn_summary">Translates the game into English. Author: @Oradimi</string>
+    <string name="settings_mod_kantaiEn_about">About KanColle English Patch</string>
     <string name="settings_mod_fps_enable">Remove 60 FPS limit</string>
     <string name="settings_mod_fps_summary">Support higher refresh rate devices. Animation speed is not affected.</string>
     <string name="settings_use_external_dir">Use External Storage for Resource Caching</string>

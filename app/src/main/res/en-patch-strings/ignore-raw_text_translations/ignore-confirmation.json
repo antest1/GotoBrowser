@@ -1,0 +1,24 @@
+{
+	"強化する艦船": "Ship to be\nStrengthened",
+	"合成素材の艦船": "Ships Used\nas Fodder",
+	"強化項目": "Stat Improvement\nPotential",
+
+	"-艦船　入渠-": "-Ship Docking-",
+	"修復する艦船": "Ship to be Repaired",
+	"使用する資材": "Materials to be Used",
+	"所要時間": "Time Needed",
+	"高速修復": "Instant Repair",
+	"高速建造": "Instant\nConstruction",
+	"使用する": "Use",
+	"使用しない": "Do not use",
+
+	"大規模改装する艦艇": "Vessel to be receiving\na Large Modification",
+	"改造する艦船": "Warship to be\nRemodeled",
+
+	"-家具屋　特別注文-": "-Furniture Special Order-",
+
+	"が現在装備している": "\nwill unequip this",
+	"に装備します": "\nwill equip this",
+
+	"dummy": "forNoComma"
+}
