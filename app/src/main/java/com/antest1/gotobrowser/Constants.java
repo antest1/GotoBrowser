@@ -17,8 +17,6 @@ public class Constants {
     public static final String PREF_CAPTURE = "pref_camera";
     public static final String PREF_LOCKMODE = "pref_lockmode";
     public static final String PREF_KEEPMODE = "pref_keepmode";
-    public static final String PREF_PADDING = "pref_padding";
-    public static final String PREF_VPADDING = "pref_vpadding";
     public static final String PREF_SHOWCC = "pref_showcc";
     public static final String PREF_LATEST_URL = "pref_latest_url";
     public static final String PREF_DMM_ID = "pref_autocomplete_id";
@@ -40,6 +38,7 @@ public class Constants {
     public static final String PREF_MOD_KANTAI3D = "pref_mod_kantai3d";
     public static final String PREF_MOD_FPS = "pref_mod_fps";
     public static final String PREF_USE_EXTCACHE = "pref_use_extcache";
+    public static final String PREF_UI_HELP_CHECKED = "pref_ui_help_checked";
 
     public static final String[] PREF_SETTINGS = {
             PREF_FONT_PREFETCH,
@@ -154,4 +153,5 @@ public class Constants {
 
     public static final String GADGET_URL = "http://203.104.209.7/";
     public static final String DEFAULT_ALTER_GADGET_URL = "http://luckyjervis.com/";
+    public static final String APP_UI_HELP_VER = "20211002";
 }

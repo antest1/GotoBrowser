@@ -56,6 +56,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
+import static com.antest1.gotobrowser.Constants.APP_UI_HELP_VER;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CAPTURE;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
@@ -68,6 +69,7 @@ import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
+import static com.antest1.gotobrowser.Constants.PREF_UI_HELP_CHECKED;
 import static com.antest1.gotobrowser.Constants.REQUEST_EXTERNAL_PERMISSION;
 
 public class BrowserActivity extends AppCompatActivity {
@@ -193,6 +195,14 @@ public class BrowserActivity extends AppCompatActivity {
             View menuClose = findViewById(R.id.menu_close);
             menuClose.setOnClickListener(this::setPanelVisible);
 
+            View uiHintLayout = findViewById(R.id.ui_hint_layout);
+            String uiHintCheckedVer = sharedPref.getString(PREF_UI_HELP_CHECKED, "");
+            if (APP_UI_HELP_VER.equals(uiHintCheckedVer)) {
+                uiHintLayout.setVisibility(View.GONE);
+            }
+
+            View uiHintClose = findViewById(R.id.ui_hint_close);
+            uiHintClose.setOnClickListener(this::setUiHintInvisible);
 
             subtitleText = findViewById(R.id.subtitle_view);
             subtitleText.setVisibility(isKcBrowserMode && isCaptionMode ? View.VISIBLE : View.GONE);
@@ -205,8 +215,6 @@ public class BrowserActivity extends AppCompatActivity {
             isSubtitleLoaded = SubtitleProviderUtils.getSubtitleProvider(subtitle_local).loadQuoteData(getApplicationContext(), subtitle_local);
 
             connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
-
-
 
             boolean useDevTools = sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
             if (connector_info != null && connector_info.size() == 2) {
@@ -501,6 +509,11 @@ public class BrowserActivity extends AppCompatActivity {
         }
 
         setGestureDetector(findViewById(R.id.background_area));
+    }
+
+    private void setUiHintInvisible(View v) {
+        findViewById(R.id.ui_hint_layout).setVisibility(View.GONE);
+        sharedPref.edit().putString(PREF_UI_HELP_CHECKED, APP_UI_HELP_VER).apply();
     }
 
     public void setPanelVisibleValue(boolean value) {

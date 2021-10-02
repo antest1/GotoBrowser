@@ -73,4 +73,6 @@
     <string name="settings_mod_fps_summary">支持高刷新率手機。遊戲速度不會受影響。</string>
     <string name="settings_use_external_dir">使用外部存儲存放快取</string>
     <string name="menu_tooltip_kantai3d">開關立體效果</string>
+
+    <string name="browser_ui_hint_text">« 點擊外側任意位置以打開面板 »</string>
 </resources>
