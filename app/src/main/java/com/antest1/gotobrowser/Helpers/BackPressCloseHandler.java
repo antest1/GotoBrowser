@@ -1,15 +1,11 @@
 package com.antest1.gotobrowser.Helpers;
 
 import android.app.Activity;
-import android.content.DialogInterface;
-import android.view.KeyEvent;
 
 import com.antest1.gotobrowser.R;
 
-import androidx.appcompat.app.AlertDialog;
-
 public class BackPressCloseHandler {
-    private static final int INTERVAL = 1500;
+    private static final int INTERVAL = 2000;
     long pressedTime = 0;
 
     private Activity activity;
@@ -30,31 +26,8 @@ public class BackPressCloseHandler {
     }
 
     public void showMessage() {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                activity);
-        alertDialogBuilder.setTitle(activity.getString(R.string.app_name));
-        alertDialogBuilder
-                .setOnKeyListener((dialog, keyCode, event) -> {
-                    if (keyCode == KeyEvent.KEYCODE_BACK) {
-                        activity.finish();
-                        dialog.dismiss();
-                        return true;
-                    }
-                    return false;
-                });
-        alertDialogBuilder
-                .setCancelable(false)
-                .setMessage(activity.getString(R.string.backpress_msg))
-                .setPositiveButton(R.string.action_ok,
-                        (dialog, id) -> {
-                            activity.finish();
-                            dialog.dismiss();
-                        })
-                .setNegativeButton(R.string.action_cancel,
-                        (dialog, id) -> dialog.cancel());
         if (activity != null && !activity.isFinishing()) {
-            AlertDialog alertDialog = alertDialogBuilder.create();
-            alertDialog.show();
+            KcUtils.showToastShort(activity.getApplicationContext(), R.string.backpress_msg);
         }
     }
 }

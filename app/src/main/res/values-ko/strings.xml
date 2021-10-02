@@ -8,7 +8,7 @@
     <string name="cache_clear_text">캐시 비우기</string>
     <string name="cache_cleared_toast">웹뷰 캐시 비우기 완료</string>
     <string name="clearcache_msg">이미지나 오디오 등이 제대로 나타나지 않을 때에만 사용하십시오. 정말 캐시를 비우시겠습니까?</string>
-    <string name="backpress_msg">정말 종료하시겠습니까?</string>
+    <string name="backpress_msg">종료하려면 뒤로 버튼을 다시 누르십시오</string>
     <string name="refresh_msg">새로 고침 하시겠습니까?</string>
     <string name="mode_landscape">가로 고정 모드</string>
     <string name="mode_adjustment">레이아웃 자동 조정</string>
@@ -68,7 +68,7 @@
     <string name="menu_tooltip_logout">Logout</string>
 
     <string name="settings_mod_label">서드파티 모드 (자기 책임하에 사용하세요)</string>
-    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v1.2</string>
+    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.0</string>
     <string name="settings_mod_kantai3d_summary">일부 비서함에 3D 효과 적용. 저자: @laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_fps_enable">60FPS 제한 제거</string>

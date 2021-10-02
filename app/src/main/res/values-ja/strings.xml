@@ -8,7 +8,7 @@
     <string name="cache_clear_text">キャッシュ削除</string>
     <string name="cache_cleared_toast">WebViewのキャッシュを削除しました。</string>
     <string name="clearcache_msg">画像や音声などが正しく表示されない場合にのみ使用してください。本当にキャッシュを削除しますか？</string>
-    <string name="backpress_msg">本当に終了しますか？</string>
+    <string name="backpress_msg">もう一度押すと終了します</string>
     <string name="refresh_msg">リフレッシュしますか？</string>
     <string name="mode_landscape">横固定モード</string>
     <string name="mode_adjustment">レイアウト自動調整</string>
@@ -67,8 +67,8 @@
     <string name="menu_tooltip_logout">ログアウト</string>
 
     <string name="settings_mod_label">非公式のMOD（自己責任で使ってください）</string>
-    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v1.2</string>
-    <string name="settings_mod_kantai3d_summary">一部の秘書艦に3Dのような視覚効果を追加します。作者：@laplamgor</string>
+    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.0</string>
+    <string name="settings_mod_kantai3d_summary">一部の秘書艦に3Dのような視覚効果とおける乳揺れを追加します。作者：@laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_fps_enable">60FPS制限を削除します</string>
     <string name="settings_mod_fps_summary">高リフレッシュ・レート対応。ゲームの速度は影響を受けません。</string>
