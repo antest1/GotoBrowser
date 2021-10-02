@@ -7,7 +7,7 @@
     <string name="cache_clear_text">清除快取</string>
     <string name="cache_cleared_toast">Webview快取已清除</string>
     <string name="clearcache_msg">仅当图象或声音未正确载入时使用此选项，确认清除快取吗？</string>
-    <string name="backpress_msg">要离开了吗？</string>
+    <string name="backpress_msg">再次按返回键退出</string>
     <string name="refresh_msg">是否要刷新页面？</string>
     <string name="mode_landscape">横向模式</string>
     <string name="mode_adjustment">自动调整佈局</string>

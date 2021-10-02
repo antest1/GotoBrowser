@@ -39,6 +39,7 @@ import com.antest1.gotobrowser.Browser.BrowserGestureListener;
 import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.BuildConfig;
+import com.antest1.gotobrowser.Helpers.AnimationUtils;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.FpsPatcher;
 import com.antest1.gotobrowser.Helpers.K3dPatcher;
@@ -55,8 +56,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
-import static com.antest1.gotobrowser.Constants.PANEL_METHOD_BUTTON;
-import static com.antest1.gotobrowser.Constants.PANEL_METHOD_SWIPE;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CAPTURE;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
@@ -65,7 +64,6 @@ import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
-import static com.antest1.gotobrowser.Constants.PREF_PANEL_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
@@ -195,6 +193,7 @@ public class BrowserActivity extends AppCompatActivity {
             View menuClose = findViewById(R.id.menu_close);
             menuClose.setOnClickListener(this::setPanelVisible);
 
+
             subtitleText = findViewById(R.id.subtitle_view);
             subtitleText.setVisibility(isKcBrowserMode && isCaptionMode ? View.VISIBLE : View.GONE);
             subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
@@ -237,6 +236,13 @@ public class BrowserActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (isKcBrowserMode) {
+            // On back pressed, always show the button panel
+            // It is in case new users don't know tapping background shows the panel
+            // Or if the screen is exactly 15:9 so there is no background to tap on
+            isPanelVisible = true;
+            AnimationUtils.beginAuto(findViewById(R.id.main_container));
+            findViewById(R.id.browser_panel).setVisibility(View.VISIBLE);
+
             backPressCloseHandler.onBackPressed();
         } else {
             Intent intent = new Intent(BrowserActivity.this, EntranceActivity.class);
@@ -324,14 +330,12 @@ public class BrowserActivity extends AppCompatActivity {
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         Log.e("GOTO", isAdjustChangedByUser + " " + isInPictureInPictureMode + " " + isMultiWindowMode());
-        String panelOpenMethod = sharedPref.getString(PREF_PANEL_METHOD, PANEL_METHOD_BUTTON);
 
         if (isMultiWindowMode()) {
             findViewById(R.id.browser_panel).setVisibility(View.GONE);
         } else {
             findViewById(R.id.browser_panel).setVisibility(View.VISIBLE);
-            View browserPanel = findViewById(
-                    panelOpenMethod.equals(PANEL_METHOD_BUTTON) ? R.id.menu_list : R.id.browser_panel);
+            View browserPanel = findViewById(R.id.browser_panel);
             browserPanel.setVisibility(isPanelVisible ? View.VISIBLE : View.GONE);
         }
 
@@ -477,9 +481,7 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     private void initPanelKeyboardFromIntent(Intent intent) {
-        String panelOpenMethod = sharedPref.getString(PREF_PANEL_METHOD, PANEL_METHOD_BUTTON);
-        View browserPanel = findViewById(
-                panelOpenMethod.equals(PANEL_METHOD_BUTTON) ? R.id.menu_list : R.id.browser_panel);
+        View browserPanel = findViewById(R.id.browser_panel);
 
         if (intent != null) {
             String action = intent.getAction();
@@ -498,13 +500,7 @@ public class BrowserActivity extends AppCompatActivity {
             }
         }
 
-        if (panelOpenMethod.equals(PANEL_METHOD_SWIPE)) {
-            setGestureDetector(findViewById(R.id.main_container));
-        } else if (panelOpenMethod.equals(PANEL_METHOD_BUTTON)) {
-            ((ImageView) findViewById(R.id.menu_close)).setImageResource(
-                    isPanelVisible ? R.mipmap.close : R.mipmap.menu);
-        }
-
+        setGestureDetector(findViewById(R.id.background_area));
     }
 
     public void setPanelVisibleValue(boolean value) {
@@ -513,13 +509,9 @@ public class BrowserActivity extends AppCompatActivity {
 
     private void setPanelVisible(View v) {
         isPanelVisible = !isPanelVisible;
-        String panelOpenMethod = sharedPref.getString(PREF_PANEL_METHOD, "1");
-        if (panelOpenMethod.equals(PANEL_METHOD_SWIPE)) {
-            findViewById(R.id.browser_panel).setVisibility(isPanelVisible ? View.VISIBLE : View.GONE);
-        } else if (panelOpenMethod.equals(PANEL_METHOD_BUTTON)) {
-            findViewById(R.id.menu_list).setVisibility(isPanelVisible ? View.VISIBLE : View.GONE);
-            ((ImageView) v).setImageResource(isPanelVisible ? R.mipmap.close : R.mipmap.menu);
-        }
+
+        AnimationUtils.beginAuto(findViewById(R.id.main_container));
+        findViewById(R.id.browser_panel).setVisibility(isPanelVisible ? View.VISIBLE : View.GONE);
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -711,7 +703,7 @@ public class BrowserActivity extends AppCompatActivity {
 
     @SuppressLint("ClickableViewAccessibility")
     public void setGestureDetector(View view) {
-        GestureDetector mDetector = new GestureDetector(this, new BrowserGestureListener(this));
+        GestureDetector mDetector = new GestureDetector(this, new BrowserGestureListener(this, this::setPanelVisible));
         view.setOnTouchListener((v, event) -> {
             mDetector.onTouchEvent(event);
             return event.getAction() != MotionEvent.ACTION_UP;
