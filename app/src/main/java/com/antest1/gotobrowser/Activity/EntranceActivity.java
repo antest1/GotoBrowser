@@ -142,6 +142,7 @@ public class EntranceActivity extends AppCompatActivity {
         selectButton.setOnClickListener(v -> showConnectorSelectionDialog());
         String connector = sharedPref.getString(PREF_CONNECTOR, null);
         if (connector != null) {
+            silentSwitch.setEnabled(CONN_DMM.equals(connector));
             selectButton.setText(connector);
         } else {
             selectButton.setText(getString(R.string.select_server));
@@ -188,6 +189,7 @@ public class EntranceActivity extends AppCompatActivity {
     }
 
     private void showConnectorSelectionDialog() {
+        Switch silentSwitch = findViewById(R.id.switch_silent);
         final String[] listItems = getResources().getStringArray(R.array.connector_list);
         int connector_idx = -1;
         String connector1 = sharedPref.getString(PREF_CONNECTOR, null);
@@ -200,6 +202,7 @@ public class EntranceActivity extends AppCompatActivity {
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(EntranceActivity.this);
         mBuilder.setTitle(getString(R.string.select_server));
         mBuilder.setSingleChoiceItems(listItems, connector_idx, (dialogInterface, i) -> {
+            silentSwitch.setEnabled(i==0);
             SharedPreferences.Editor editor = sharedPref.edit();
             editor.putString(PREF_CONNECTOR, listItems[i]);
             editor.putString(PREF_LATEST_URL, URL_LIST[i]);
