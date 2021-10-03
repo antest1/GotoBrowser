@@ -8,7 +8,7 @@
     <string name="cache_clear_text">캐시 비우기</string>
     <string name="cache_cleared_toast">웹뷰 캐시 비우기 완료</string>
     <string name="clearcache_msg">이미지나 오디오 등이 제대로 나타나지 않을 때에만 사용하십시오. 정말 캐시를 비우시겠습니까?</string>
-    <string name="backpress_msg">정말 종료하시겠습니까?</string>
+    <string name="backpress_msg">종료하려면 뒤로 버튼을 다시 누르십시오</string>
     <string name="refresh_msg">새로 고침 하시겠습니까?</string>
     <string name="mode_landscape">가로 고정 모드</string>
     <string name="mode_adjustment">레이아웃 자동 조정</string>
@@ -59,13 +59,13 @@
     <string name="setting_alter_method">우회 방식</string>
     <string name="setting_alter_endpoint">Endpoint 서버</string>
 
-    <string name="menu_tooltip_refresh">Refresh</string>
-    <string name="menu_tooltip_mute">Mute Audio</string>
-    <string name="menu_tooltip_camera">Screenshot Mode</string>
-    <string name="menu_tooltip_lock">Auto-Rotate Lock</string>
-    <string name="menu_tooltip_brighton">Screen Always-On</string>
-    <string name="menu_tooltip_cc">Subtitle</string>
-    <string name="menu_tooltip_logout">Logout</string>
+    <string name="menu_tooltip_refresh">새로고침</string>
+    <string name="menu_tooltip_mute">음소거</string>
+    <string name="menu_tooltip_camera">인게임 스크린샷</string>
+    <string name="menu_tooltip_lock">회전 잠금</string>
+    <string name="menu_tooltip_brighton">화면 상시 켜기</string>
+    <string name="menu_tooltip_cc">자막</string>
+    <string name="menu_tooltip_logout">로그아웃</string>
 
     <string name="settings_mod_label">서드파티 모드 (자기 책임하에 사용하세요)</string>
     <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.0</string>
@@ -78,4 +78,6 @@
     <string name="settings_mod_fps_summary">더 높은 화면 재생 빈도 장치를 지원합니다. 애니메이션 속도는 영향을 받지 않습니다.</string>
     <string name="settings_use_external_dir">리소스 캐싱 시 외부 저장소 사용</string>
     <string name="menu_tooltip_kantai3d">3D 적용</string>
+
+    <string name="browser_ui_hint_text">« 게임 화면 외의 공간을 눌러 패널을 여세요 »</string>
 </resources>

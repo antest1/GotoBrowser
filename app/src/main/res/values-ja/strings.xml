@@ -8,7 +8,7 @@
     <string name="cache_clear_text">キャッシュ削除</string>
     <string name="cache_cleared_toast">WebViewのキャッシュを削除しました。</string>
     <string name="clearcache_msg">画像や音声などが正しく表示されない場合にのみ使用してください。本当にキャッシュを削除しますか？</string>
-    <string name="backpress_msg">本当に終了しますか？</string>
+    <string name="backpress_msg">もう一度押すと終了します</string>
     <string name="refresh_msg">リフレッシュしますか？</string>
     <string name="mode_landscape">横固定モード</string>
     <string name="mode_adjustment">レイアウト自動調整</string>
@@ -59,9 +59,9 @@
     <string name="setting_alter_endpoint">エンドポイントサーバー</string>
 
     <string name="menu_tooltip_refresh">リフレッシュ</string>
-    <string name="menu_tooltip_mute">Mute Audio</string>
+    <string name="menu_tooltip_mute">ミュート</string>
     <string name="menu_tooltip_camera">スクリーンショット</string>
-    <string name="menu_tooltip_lock">Auto-Rotate Lock</string>
+    <string name="menu_tooltip_lock">回転ロック</string>
     <string name="menu_tooltip_brighton">常時画面オン</string>
     <string name="menu_tooltip_cc">ロケール</string>
     <string name="menu_tooltip_logout">ログアウト</string>
@@ -77,4 +77,6 @@
     <string name="settings_mod_fps_summary">高リフレッシュ・レート対応。ゲームの速度は影響を受けません。</string>
     <string name="settings_use_external_dir">キャッシングに外部ストレージを使用</string>
     <string name="menu_tooltip_kantai3d">3D効果</string>
+
+    <string name="browser_ui_hint_text">« 外側をクリックしてパネルを開く »</string>
 </resources>

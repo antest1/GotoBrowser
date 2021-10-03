@@ -1,54 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
-    tools:context=".Activity.BrowserActivity">
-
-    <!-- The primary full-screen view. This can be replaced with whatever view
-         is needed to present your content, e.g. VideoView, SurfaceView,
-         TextureView, etc. -->
-    <!-- This FrameLayout insets its children based on system windows using
-         android:fitsSystemWindows. -->
-
-    <!--<ImageView
-        android:id="@+id/webview_camera"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|right"
-        android:alpha="0.5"
-        android:padding="5dp"
-        android:src="@android:drawable/ic_menu_camera"
-        android:visibility="gone"
-        app:srcCompat="@android:drawable/ic_menu_camera" />-->
-
-    <com.antest1.gotobrowser.Browser.WebViewL
-        android:id="@+id/main_browser"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@color/black"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio="5:3"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"></com.antest1.gotobrowser.Browser.WebViewL>
-
-    <View
-        android:id="@+id/screenshot_light"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@color/white"
-        android:clickable="false"
-        android:focusable="false"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/main_browser"
-        app:layout_constraintLeft_toLeftOf="@id/main_browser"
-        app:layout_constraintRight_toRightOf="@id/main_browser"
-        app:layout_constraintTop_toTopOf="@id/main_browser" />
+    tools:context=".Activity.BrowserActivity"
+    android:orientation="horizontal">
 
     <RelativeLayout
         android:id="@+id/browser_panel"
@@ -193,6 +153,50 @@
 
     </RelativeLayout>
 
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/black"
+        android:id="@+id/main_container2"
+        tools:context=".Activity.BrowserActivity">
+        <View
+            android:id="@+id/background_area"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
+
+    <com.antest1.gotobrowser.Browser.WebViewL
+        android:id="@+id/main_browser"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="5:3"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <View
+        android:id="@+id/screenshot_light"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/white"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/main_browser"
+        app:layout_constraintLeft_toLeftOf="@id/main_browser"
+        app:layout_constraintRight_toRightOf="@id/main_browser"
+        app:layout_constraintTop_toTopOf="@id/main_browser" />
+
     <TextView
         android:id="@+id/subtitle_view"
         android:layout_width="wrap_content"
@@ -217,15 +221,7 @@
         app:layout_constraintLeft_toLeftOf="@id/main_browser"
         app:layout_constraintRight_toRightOf="@id/main_browser" />
 
-    <ImageView
-        android:id="@+id/cookietest"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:alpha="0.5"
-        android:visibility="gone"
-        app:srcCompat="@android:drawable/btn_star" />
-
-    <TextView
+        <TextView
         android:id="@+id/kc_error_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -251,84 +247,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@mipmap/capture_area" />
 
-    <LinearLayout
-        android:id="@+id/vcontrol_component"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:alpha="0.75"
-        android:background="@color/black_overlay"
-        android:orientation="vertical"
-        android:paddingStart="5dp"
-        android:paddingLeft="5dp"
-        android:paddingEnd="5dp"
-        android:paddingRight="5dp"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/vcontrol_text"
-            android:layout_width="36dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="9dp"
-            android:text="0"
-            android:textAlignment="center"
-            android:textColor="@color/white" />
-
-        <com.antest1.gotobrowser.Helpers.VerticalSeekBar
-            android:id="@+id/vcontrol_main"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:max="360"
-            android:thumb="@android:drawable/radiobutton_off_background" />
-
         <ImageView
-            android:id="@+id/vcontrol_exit"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/control_component"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:alpha="0.75"
-        android:background="@color/black_overlay"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="5dp"
-        android:paddingLeft="5dp"
-        android:paddingEnd="5dp"
-        android:paddingRight="5dp"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/control_text"
-            android:layout_width="32dp"
-            android:layout_height="wrap_content"
-            android:text="0"
-            android:textAlignment="center"
-            android:textColor="@color/white" />
-
-        <SeekBar
-            android:id="@+id/control_main"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:max="150"
-            android:thumb="@android:drawable/radiobutton_off_background" />
-
-        <ImageView
-            android:id="@+id/control_exit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="2dp"
-            app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
-
-    </LinearLayout>
-
-    <ImageView
         android:id="@+id/dmm_browser_close"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -339,30 +258,55 @@
         app:layout_constraintTop_toTopOf="@id/main_browser"
         app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
 
-    <!--<FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
 
         <LinearLayout
-            android:id="@+id/fullscreen_content_controls"descendantFocusability
-            style="?metaButtonBarStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            android:background="@color/black_overlay"
-            android:orientation="horizontal"
-            tools:ignore="UselessParent">
+            android:id="@+id/ui_hint_layout"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#A8000000"
+            app:layout_constraintBottom_toBottomOf="@id/main_browser"
+            app:layout_constraintDimensionRatio="5:3"
+            app:layout_constraintEnd_toEndOf="@id/main_browser"
+            app:layout_constraintStart_toStartOf="@id/main_browser"
+            app:layout_constraintTop_toTopOf="@id/main_browser">
 
-            <Button
-                android:id="@+id/dummy_button"
-                style="?metaButtonBarButtonStyle"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="button"
-                android:visibility="gone" />
+                android:layout_gravity="bottom"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/ui_hint_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:minLines="2"
+                    android:text="@string/browser_ui_hint_text"
+                    android:textAlignment="viewStart"
+                    android:textColor="@color/white"
+                    android:textSize="18dp"
+                    app:layout_constraintEnd_toEndOf="@id/main_browser"
+                    app:layout_constraintStart_toStartOf="@id/main_browser"
+                    app:layout_constraintTop_toTopOf="@id/main_browser" />
+
+                <ImageView
+                    android:id="@+id/ui_hint_close"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:visibility="visible"
+                    app:layout_constraintEnd_toEndOf="@id/main_browser"
+                    app:layout_constraintTop_toTopOf="@id/main_browser"
+                    app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
+
+
+            </LinearLayout>
+
 
         </LinearLayout>
-    </FrameLayout>-->
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

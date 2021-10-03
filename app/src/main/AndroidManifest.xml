@@ -87,7 +87,7 @@
         <activity
             android:name=".Activity.BrowserActivity"
             android:alwaysRetainTaskState="true"
-            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout|uiMode"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout|uiMode|keyboard|navigation"
             android:label="@string/app_name"
             android:supportsPictureInPicture="true"
             android:theme="@style/FullscreenTheme">

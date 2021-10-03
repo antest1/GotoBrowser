@@ -61,10 +61,8 @@ import static com.antest1.gotobrowser.Constants.CONN_OOI;
 import static com.antest1.gotobrowser.Constants.DMM_COOKIE;
 import static com.antest1.gotobrowser.Constants.DMM_REDIRECT_CODE;
 import static com.antest1.gotobrowser.Constants.GADGET_URL;
-import static com.antest1.gotobrowser.Constants.KANCOLLE_SERVER_LIST;
 import static com.antest1.gotobrowser.Constants.MUTE_SEND_DMM;
 import static com.antest1.gotobrowser.Constants.MUTE_SEND_OOI;
-import static com.antest1.gotobrowser.Constants.OOI_SERVER_LIST;
 import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
@@ -300,17 +298,22 @@ public class WebViewManager {
         CookieSyncManager syncManager = CookieSyncManager.createInstance(webview.getContext());
         syncManager.sync();
         CookieManager cookieManager = CookieManager.getInstance();
-        for (String server: KANCOLLE_SERVER_LIST) {
-            String url = "http://".concat(server).concat("/kcs2/");
-            cookieManager.setCookie(url, "vol_bgm=0;");
-            cookieManager.setCookie(url, "vol_se=0;");
-            cookieManager.setCookie(url, "vol_voice=0;");
-        }
-        for (String server: OOI_SERVER_LIST) {
-            String url = "http://".concat(server).concat("/kcs2/");
-            cookieManager.setCookie(url, "vol_bgm=0;");
-            cookieManager.setCookie(url, "vol_se=0;");
-            cookieManager.setCookie(url, "vol_voice=0;");
+
+        String osapi_url = "http://osapi.dmm.com/";
+        String osapi_value = cookieManager.getCookie(osapi_url);
+        if (osapi_value != null) {
+            String[] cookie_list = osapi_value.split(";");
+            for (String s: cookie_list) {
+                if (s.contains("kcs_options=")) {
+                    String match_result_group = s.replace("kcs_options=", "").trim();
+                    match_result_group = match_result_group.replaceAll("vol_bgm%3D\\d+?%3B", "vol_bgm%3D0%3B");
+                    match_result_group = match_result_group.replaceAll("vol_se%3D\\d+?%3B", "vol_se%3D0%3B");
+                    match_result_group = match_result_group.replaceAll("vol_voice%3D\\d+?%3B", "vol_voice%3D0%3B");
+                    cookieManager.setCookie(osapi_url, String.format("kcs_options=%s;expires=Thu, 16-Jan-2023 00:00:00 GMT;path=/;domain=dmm.com", match_result_group));
+                }
+            }
+        } else {
+            cookieManager.setCookie(osapi_url, String.format("kcs_options=%s;expires=Thu, 16-Jan-2023 00:00:00 GMT;path=/;domain=dmm.com", "vol_bgm%3D0%3Bvol_se%3D0%3Bvol_voice%3D0%3Bv_be_left%3D1%3Bv_duty%3D1"));
         }
     }
 

@@ -7,7 +7,7 @@
     <string name="cache_clear_text">清除快取</string>
     <string name="cache_cleared_toast">Webview快取已清除</string>
     <string name="clearcache_msg">僅當圖像或聲音未正確載入時使用此選項，確認清除快取嗎？</string>
-    <string name="backpress_msg">要離開了嗎？</string>
+    <string name="backpress_msg">再次按返回鍵退出</string>
     <string name="refresh_msg">是否要重新整理頁面？</string>
     <string name="mode_landscape">橫向模式</string>
     <string name="mode_adjustment">自動調整佈局</string>
@@ -76,4 +76,6 @@
     <string name="settings_mod_fps_summary">支持高刷新率手機。遊戲速度不會受影響。</string>
     <string name="settings_use_external_dir">使用外部存儲存放緩存</string>
     <string name="menu_tooltip_kantai3d">開關立體效果</string>
+
+    <string name="browser_ui_hint_text">« 點擊外側任意位置以打開面板 »</string>
 </resources>
