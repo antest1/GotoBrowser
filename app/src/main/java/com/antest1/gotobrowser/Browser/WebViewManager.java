@@ -309,9 +309,11 @@ public class WebViewManager {
                     match_result_group = match_result_group.replaceAll("vol_bgm%3D\\d+?%3B", "vol_bgm%3D0%3B");
                     match_result_group = match_result_group.replaceAll("vol_se%3D\\d+?%3B", "vol_se%3D0%3B");
                     match_result_group = match_result_group.replaceAll("vol_voice%3D\\d+?%3B", "vol_voice%3D0%3B");
-                    cookieManager.setCookie("http://osapi.dmm.com/", String.format("kcs_options=%s;expires=Thu, 16-Jan-2023 00:00:00 GMT;path=/;domain=dmm.com", match_result_group));
+                    cookieManager.setCookie(osapi_url, String.format("kcs_options=%s;expires=Thu, 16-Jan-2023 00:00:00 GMT;path=/;domain=dmm.com", match_result_group));
                 }
             }
+        } else {
+            cookieManager.setCookie(osapi_url, String.format("kcs_options=%s;expires=Thu, 16-Jan-2023 00:00:00 GMT;path=/;domain=dmm.com", "vol_bgm%3D0%3Bvol_se%3D0%3Bvol_voice%3D0%3Bv_be_left%3D1%3Bv_duty%3D1"));
         }
     }
 
