@@ -301,14 +301,16 @@ public class WebViewManager {
 
         String osapi_url = "http://osapi.dmm.com/";
         String osapi_value = cookieManager.getCookie(osapi_url);
-        String[] cookie_list = osapi_value.split(";");
-        for (String s: cookie_list) {
-            if (s.contains("kcs_options=")) {
-                String match_result_group = s.replace("kcs_options=", "").trim();
-                match_result_group = match_result_group.replaceAll("vol_bgm%3D\\d+?%3B", "vol_bgm%3D0%3B");
-                match_result_group = match_result_group.replaceAll("vol_se%3D\\d+?%3B", "vol_se%3D0%3B");
-                match_result_group = match_result_group.replaceAll("vol_voice%3D\\d+?%3B", "vol_voice%3D0%3B");
-                cookieManager.setCookie("http://osapi.dmm.com/", String.format("kcs_options=%s;expires=Thu, 16-Jan-2023 00:00:00 GMT;path=/;domain=dmm.com", match_result_group));
+        if (osapi_value != null) {
+            String[] cookie_list = osapi_value.split(";");
+            for (String s: cookie_list) {
+                if (s.contains("kcs_options=")) {
+                    String match_result_group = s.replace("kcs_options=", "").trim();
+                    match_result_group = match_result_group.replaceAll("vol_bgm%3D\\d+?%3B", "vol_bgm%3D0%3B");
+                    match_result_group = match_result_group.replaceAll("vol_se%3D\\d+?%3B", "vol_se%3D0%3B");
+                    match_result_group = match_result_group.replaceAll("vol_voice%3D\\d+?%3B", "vol_voice%3D0%3B");
+                    cookieManager.setCookie("http://osapi.dmm.com/", String.format("kcs_options=%s;expires=Thu, 16-Jan-2023 00:00:00 GMT;path=/;domain=dmm.com", match_result_group));
+                }
             }
         }
     }
