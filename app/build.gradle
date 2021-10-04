@@ -46,8 +46,14 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics:19.0.1'
 
     implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
     implementation 'androidx.preference:preference:1.1.1'
     testImplementation 'junit:junit:4.12'
+    configurations.all {
+        resolutionStrategy.dependencySubstitution {
+            substitute module('org.hamcrest:hamcrest-core:1.1') with module('junit:junit:4.12')
+        }
+    }
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation "com.google.android.material:material:1.5.0-alpha02"
     implementation 'androidx.webkit:webkit:1.4.0'
