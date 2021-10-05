@@ -47,7 +47,8 @@
     <string name="settings_appinfo_browsersettings">Browser Settings</string>
     <string name="browser_fontprefetch">Prefetch Font Asset</string>
     <string name="browser_enablepipmode">Enable picture-in-picture mode</string>
-    <string name="connection_use_alter">Enable Gadget Server Block Bypass</string>
+    <string name="connection_use_alter" translatable="false">Enable Gadget Server Block Bypass</string>
+    <string name="connection_block">Skip Unneeded Gadget Resources</string>
     <string name="logout_msg">Are you sure you want to Logout?</string>
     <string name="noti_screenshot_name">GotoBrowser Screenshot</string>
     <string name="noti_screenshot_title">Screenshot Captured</string>

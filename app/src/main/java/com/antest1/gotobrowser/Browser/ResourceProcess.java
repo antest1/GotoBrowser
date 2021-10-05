@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -44,12 +45,14 @@ import static com.antest1.gotobrowser.Constants.MUTE_LISTEN;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
+import static com.antest1.gotobrowser.Constants.PREF_BLOCK_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
+import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_GADGET;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResource;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getEmptyStream;
@@ -97,7 +100,7 @@ public class ResourceProcess {
     private final Handler shipVoiceHandler = new Handler();
     private final Handler clearSubHandler = new Handler();
 
-    boolean prefAlterGadget, isGadgetUrlReplaceMode;
+    boolean prefAlterGadget, isGadgetUrlReplaceMode, prefBlockGadget;
     String alterEndpoint;
     
     ResourceProcess(BrowserActivity activity) {
@@ -109,6 +112,7 @@ public class ResourceProcess {
         prefAlterGadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false);
         isGadgetUrlReplaceMode = sharedPref.getString(PREF_ALTER_METHOD, "")
                 .equals(PREF_ALTER_METHOD_URL);
+        prefBlockGadget = sharedPref.getBoolean(PREF_BLOCK_GADGET, false);
         alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL);
         subtitleText = activity.findViewById(R.id.subtitle_view);
         subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
@@ -140,6 +144,15 @@ public class ResourceProcess {
         return state;
     }
 
+    public static boolean stringContainsItemFromList(String inputStr, String[] items) {
+        for(int i = 0; i < items.length; i++) {
+            if(inputStr.contains(items[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public WebResourceResponse processWebRequest(Uri source) {
         String url = source.toString();
         int resource_type = getCurrentState(url);
@@ -158,6 +171,9 @@ public class ResourceProcess {
         if (url.contains("gadget_html5/script/rollover.js")) return getMuteInjectedRolloverJs();
         if (url.contains("gadget_html5/js/kcs_cda.js")) return getInjectedKcaCdaJs();
         if (url.contains("kcscontents/css/common.css")) return getBlackBackgroundSheet();
+        if (prefBlockGadget && stringContainsItemFromList(url, REQUEST_BLOCK_GADGET)) {
+            return getEmptyResponse();
+        }
         if (url.contains("html/maintenance.html")) return getMaintenanceFiles(false);
         if (url.contains("html/maintenance.png")) return getMaintenanceFiles(true);
         if (resource_type == 0) return null;

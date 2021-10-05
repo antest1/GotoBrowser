@@ -31,6 +31,7 @@ import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
+import static com.antest1.gotobrowser.Constants.PREF_BLOCK_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY;
 import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
@@ -75,6 +76,7 @@ public class SettingsActivity extends AppCompatActivity {
                     break;
                 case PREF_PIP_MODE:
                 case PREF_ALTER_GADGET:
+                case PREF_BLOCK_GADGET:
                 case PREF_MULTIWIN_MARGIN:
                 case PREF_DEVTOOLS_DEBUG:
                 case PREF_TP_DISCLAIMED:

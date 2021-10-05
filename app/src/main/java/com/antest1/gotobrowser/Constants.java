@@ -26,6 +26,7 @@ public class Constants {
     public static final String PREF_FONT_PREFETCH = "pref_font_prefetch";
     public static final String PREF_PIP_MODE = "pref_pip_mode";
     public static final String PREF_ALTER_GADGET = "pref_alter_gadget";
+    public static final String PREF_BLOCK_GADGET = "pref_block_gadget";
     public static final String PREF_NC_SCREENSHOT_SET = "perf_nc_screenshot_set";
     public static final String PREF_APP_VERSION = "pref_app_version";
     public static final String PREF_CHECK_UPDATE = "pref_check_update";
@@ -45,6 +46,7 @@ public class Constants {
             PREF_FONT_PREFETCH,
             PREF_PIP_MODE,
             PREF_ALTER_GADGET,
+            PREF_BLOCK_GADGET,
             PREF_SUBTITLE_LOCALE,
             PREF_MULTIWIN_MARGIN,
             PREF_PANEL_METHOD,
@@ -71,7 +73,6 @@ public class Constants {
     public static final String CONN_KANSU = "kancolle.su";
     public static final String CONN_OOI = "ooi.moe";
     public static final String CONN_NITRABBIT = "nitrabbit";
-
     public static final String URL_DMM = "http://www.dmm.com/netgame/social/-/gadgets/=/app_id=854854/";
     public static final String URL_OOI = "http://ooi.moe/";
     public static final String URL_KANSU = "http://kancolle.su/";
@@ -123,6 +124,17 @@ public class Constants {
         "facebook.com",
         "pics.dmm.com/",
         "/uikit"
+    };
+
+    public static final String[] REQUEST_BLOCK_GADGET = {
+            "kcscontents/image/nav_item01.png",
+            "kcscontents/image/nav_item02.png",
+            "kcscontents/image/nav_item03.png",
+            "kcscontents/image/nav_item04.png",
+            "kcscontents/image/nav_item05.png",
+            "kcscontents/css/default.css",
+            "kcscontents/css/style.css",
+            "kcscontents/news/"
     };
 
     public static final String[] KANCOLLE_SERVER_LIST = {

@@ -52,6 +52,7 @@
     <string name="setting_panel_method_button">ボタン</string>
     <string name="setting_devtools_enable">DevToolsデバッグを使用</string>
     <string name="connection_use_alter">国外ブロックのバイパス</string>
+    <string name="connection_block">不要なリソースをスキップ</string>
     <string name="setting_connection">接続設定</string>
     <string name="setting_alter_method_url">URL置換</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（リモート）</string>

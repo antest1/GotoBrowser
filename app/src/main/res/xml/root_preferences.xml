@@ -63,6 +63,11 @@
             android:dependency="pref_alter_gadget"
             android:title="@string/setting_alter_endpoint" />
 
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="pref_block_gadget"
+            app:title="@string/connection_block" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
