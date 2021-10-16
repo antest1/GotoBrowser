@@ -362,7 +362,6 @@
                 android:layout_height="wrap_content"
                 android:layout_alignWithParentIfMissing="true"
                 android:layout_alignParentBottom="true"
-                android:alpha="0.8"
                 android:background="?android:selectableItemBackground"
                 android:padding="6dp"
                 android:src="@mipmap/close" />
