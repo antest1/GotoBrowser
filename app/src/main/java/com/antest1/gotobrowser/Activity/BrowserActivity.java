@@ -164,29 +164,29 @@ public class BrowserActivity extends AppCompatActivity {
             menuLogout.setOnClickListener(v -> showLogoutDialog());
 
             ImageView menuMute = findViewById(R.id.menu_mute);
-            menuMute.setColorFilter(ContextCompat.getColor(getApplicationContext(), isMuteMode ? R.color.colorAccent : R.color.transparent));
+            menuMute.setColorFilter(ContextCompat.getColor(getApplicationContext(), isMuteMode ? R.color.colorAccent : R.color.lightGray));
             menuMute.setOnClickListener(this::setMuteMode);
 
             ImageView menuCamera = findViewById(R.id.menu_camera);
-            menuCamera.setColorFilter(ContextCompat.getColor(getApplicationContext(), isCaptureMode ? R.color.colorAccent : R.color.transparent));
+            menuCamera.setColorFilter(ContextCompat.getColor(getApplicationContext(), isCaptureMode ? R.color.colorAccent : R.color.lightGray));
             menuCamera.setOnClickListener(this::setCaptureMode);
             setCaptureButton();
 
             ImageView menuLock = findViewById(R.id.menu_lock);
-            menuLock.setColorFilter(ContextCompat.getColor(getApplicationContext(), isLockMode ? R.color.colorAccent : R.color.transparent));
+            menuLock.setColorFilter(ContextCompat.getColor(getApplicationContext(), isLockMode ? R.color.colorAccent : R.color.lightGray));
             menuLock.setOnClickListener(this::setOrientationLockMode);
 
             ImageView menuBrightOn = findViewById(R.id.menu_brighton);
-            menuBrightOn.setColorFilter(ContextCompat.getColor(getApplicationContext(), isKeepMode ? R.color.colorAccent : R.color.transparent));
+            menuBrightOn.setColorFilter(ContextCompat.getColor(getApplicationContext(), isKeepMode ? R.color.colorAccent : R.color.lightGray));
             menuBrightOn.setOnClickListener(this::setBrightOnMode);
 
             ImageView menuCaption = findViewById(R.id.menu_cc);
-            menuCaption.setColorFilter(ContextCompat.getColor(getApplicationContext(), isCaptionMode ? R.color.colorAccent : R.color.transparent));
+            menuCaption.setColorFilter(ContextCompat.getColor(getApplicationContext(), isCaptionMode ? R.color.colorAccent : R.color.lightGray));
             menuCaption.setOnClickListener(this::setCaptionMode);
 
             ImageView menuKantai3d = findViewById(R.id.menu_kantai3d);
             if (k3dPatcher.isPatcherEnabled()) {
-                menuKantai3d.setColorFilter(ContextCompat.getColor(getApplicationContext(), k3dPatcher.isEffectEnabled() ? R.color.colorAccent : R.color.transparent));
+                menuKantai3d.setColorFilter(ContextCompat.getColor(getApplicationContext(), k3dPatcher.isEffectEnabled() ? R.color.colorAccent : R.color.lightGray));
                 menuKantai3d.setOnClickListener(this::setKantai3dMode);
             } else {
                 menuKantai3d.setVisibility(View.GONE);
@@ -386,7 +386,7 @@ public class BrowserActivity extends AppCompatActivity {
             ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
             sharedPref.edit().putBoolean(PREF_MUTEMODE, true).apply();
         } else {
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
             sharedPref.edit().putBoolean(PREF_MUTEMODE, false).apply();
         }
     }
@@ -402,7 +402,7 @@ public class BrowserActivity extends AppCompatActivity {
                 sharedPref.edit().putBoolean(PREF_CAPTURE, true).apply();
             } else {
                 findViewById(R.id.kc_camera).setVisibility(View.GONE);
-                ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
+                ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
                 sharedPref.edit().putBoolean(PREF_CAPTURE, false).apply();
             }
         }
@@ -439,7 +439,7 @@ public class BrowserActivity extends AppCompatActivity {
             ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
             sharedPref.edit().putBoolean(PREF_LOCKMODE, true).apply();
         } else {
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
             sharedPref.edit().putBoolean(PREF_LOCKMODE, false).apply();
         }
 
@@ -467,7 +467,7 @@ public class BrowserActivity extends AppCompatActivity {
             sharedPref.edit().putBoolean(PREF_KEEPMODE, true).apply();
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
             sharedPref.edit().putBoolean(PREF_KEEPMODE, false).apply();
         }
     }
@@ -480,7 +480,7 @@ public class BrowserActivity extends AppCompatActivity {
             sharedPref.edit().putBoolean(PREF_SHOWCC, true).apply();
         } else {
             subtitleText.setVisibility(View.GONE);
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
             sharedPref.edit().putBoolean(PREF_SHOWCC, false).apply();
         }
     }
@@ -560,7 +560,7 @@ public class BrowserActivity extends AppCompatActivity {
         if (k3dPatcher.isEffectEnabled()) {
             ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
         } else {
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
         }
     }
 

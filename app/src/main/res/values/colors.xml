@@ -5,6 +5,7 @@
     <color name="colorAccent">#FFC400</color>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
+    <color name="lightGray">#D3D3D3</color>
     <color name="colorSiteSelection">#80283593</color>
     <color name="black_overlay">#66000000</color>
     <color name="transparent">#00000000</color>
