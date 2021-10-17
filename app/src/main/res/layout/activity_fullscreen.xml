@@ -230,115 +230,71 @@
                             android:visibility="gone"
                             app:srcCompat="@mipmap/aspect_ratio" />
 
-                        <LinearLayout
-                            android:id="@+id/menu_mute_bg"
-                            android:orientation="vertical"
+                        <ImageView
+                            android:id="@+id/menu_mute"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@color/transparent">
-                            <ImageView
-                                android:id="@+id/menu_mute"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:alpha="0.8"
-                                android:background="?android:selectableItemBackground"
-                                android:padding="6dp"
-                                android:src="@mipmap/mute"
-                                android:tooltipText="@string/menu_tooltip_mute"
-                                app:srcCompat="@mipmap/mute" />
-                        </LinearLayout>
+                            android:alpha="0.8"
+                            android:background="?android:selectableItemBackground"
+                            android:padding="6dp"
+                            android:src="@mipmap/mute"
+                            android:tooltipText="@string/menu_tooltip_mute"
+                            app:srcCompat="@mipmap/mute" />
 
-                        <LinearLayout
-                            android:id="@+id/menu_camera_bg"
-                            android:orientation="vertical"
+                        <ImageView
+                            android:id="@+id/menu_camera"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@color/transparent">
-                            <ImageView
-                                android:id="@+id/menu_camera"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:alpha="0.8"
-                                android:background="?android:selectableItemBackground"
-                                android:padding="6dp"
-                                android:src="@mipmap/camera"
-                                android:tooltipText="@string/menu_tooltip_camera"
-                                app:srcCompat="@mipmap/camera" />
-                        </LinearLayout>
+                            android:alpha="0.8"
+                            android:background="?android:selectableItemBackground"
+                            android:padding="6dp"
+                            android:src="@mipmap/camera"
+                            android:tooltipText="@string/menu_tooltip_camera"
+                            app:srcCompat="@mipmap/camera" />
 
-
-                        <LinearLayout
-                            android:id="@+id/menu_lock_bg"
-                            android:orientation="vertical"
+                        <ImageView
+                            android:id="@+id/menu_lock"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@color/transparent">
-                            <ImageView
-                                android:id="@+id/menu_lock"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:alpha="0.8"
-                                android:background="?android:selectableItemBackground"
-                                android:padding="6dp"
-                                android:src="@mipmap/lock"
-                                android:tooltipText="@string/menu_tooltip_lock"
-                                app:srcCompat="@mipmap/lock" />
-                        </LinearLayout>
+                            android:alpha="0.8"
+                            android:background="?android:selectableItemBackground"
+                            android:padding="6dp"
+                            android:src="@mipmap/lock"
+                            android:tooltipText="@string/menu_tooltip_lock"
+                            app:srcCompat="@mipmap/lock" />
 
-
-                        <LinearLayout
-                            android:id="@+id/menu_brighton_bg"
-                            android:orientation="vertical"
+                        <ImageView
+                            android:id="@+id/menu_brighton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@color/transparent">
-                            <ImageView
-                                android:id="@+id/menu_brighton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:alpha="0.8"
-                                android:background="?android:selectableItemBackground"
-                                android:padding="6dp"
-                                android:src="@mipmap/brighton"
-                                android:tooltipText="@string/menu_tooltip_brighton"
-                                app:srcCompat="@mipmap/brighton" />
-                        </LinearLayout>
+                            android:alpha="0.8"
+                            android:background="?android:selectableItemBackground"
+                            android:padding="6dp"
+                            android:src="@mipmap/brighton"
+                            android:tooltipText="@string/menu_tooltip_brighton"
+                            app:srcCompat="@mipmap/brighton" />
 
-                        <LinearLayout
-                            android:id="@+id/menu_cc_bg"
-                            android:orientation="vertical"
+                        <ImageView
+                            android:id="@+id/menu_cc"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@color/transparent">
-                            <ImageView
-                                android:id="@+id/menu_cc"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:alpha="0.8"
-                                android:background="?android:selectableItemBackground"
-                                android:padding="6dp"
-                                android:src="@mipmap/caption"
-                                android:tooltipText="@string/menu_tooltip_cc"
-                                app:srcCompat="@mipmap/caption" />
-                        </LinearLayout>
+                            android:alpha="0.8"
+                            android:background="?android:selectableItemBackground"
+                            android:padding="6dp"
+                            android:src="@mipmap/caption"
+                            android:tooltipText="@string/menu_tooltip_cc"
+                            app:srcCompat="@mipmap/caption" />
 
-                        <LinearLayout
-                            android:id="@+id/menu_kantai3d_bg"
-                            android:orientation="vertical"
+                        <ImageView
+                            android:id="@+id/menu_kantai3d"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@color/transparent">
-                            <ImageView
-                                android:id="@+id/menu_kantai3d"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:alpha="0.8"
-                                android:background="?android:selectableItemBackground"
-                                android:padding="6dp"
-                                android:src="@mipmap/kantai3d"
-                                android:tooltipText="@string/menu_tooltip_kantai3d"
-                                app:srcCompat="@mipmap/kantai3d" />
-                        </LinearLayout>
+                            android:alpha="0.8"
+                            android:background="?android:selectableItemBackground"
+                            android:padding="6dp"
+                            android:src="@mipmap/kantai3d"
+                            android:tooltipText="@string/menu_tooltip_kantai3d"
+                            app:srcCompat="@mipmap/kantai3d" />
 
                         <ImageView
                             android:id="@+id/menu_logout"
