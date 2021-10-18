@@ -24,8 +24,8 @@
 
     <ImageView
         android:id="@+id/gotland_full"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:scaleType="centerCrop"
         android:scrollY="-35dp"
         app:srcCompat="@mipmap/gotland_full" />
