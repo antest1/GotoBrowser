@@ -5,22 +5,16 @@
     android:id="@+id/main_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/back"
-    tools:context=".Activity.EntranceActivity">
+    tools:context=".Activity.EntranceActivity"
+    android:background="@color/colorBackground">
 
-    <!-- The primary full-screen view. This can be replaced with whatever view
-         is needed to present your content, e.g. VideoView, SurfaceView,
-         TextureView, etc. -->
-
-    <!-- This FrameLayout insets its children based on system windows using
-         android:fitsSystemWindows. -->
-
-    <LinearLayout
+    <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:scaleType="centerCrop"
         android:alpha="0.5"
-        android:background="@color/colorBackground"
-        android:orientation="horizontal"></LinearLayout>
+        android:src="@mipmap/background"
+        app:srcCompat="@mipmap/background" />
 
     <ImageView
         android:id="@+id/gotland_full"
@@ -188,9 +182,9 @@
                     android:paddingEnd="20dp"
                     android:paddingRight="20dp"
                     android:paddingBottom="5dp"
-                    android:text="@string/button_start"
                     android:textAlignment="center"
                     android:textColor="@color/white"
+                    android:text="@string/button_start"
                     android:textSize="24sp" />
 
                 <TextView
