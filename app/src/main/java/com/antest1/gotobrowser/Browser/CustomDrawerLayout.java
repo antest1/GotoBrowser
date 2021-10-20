@@ -2,7 +2,6 @@ package com.antest1.gotobrowser.Browser;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -10,7 +9,6 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.antest1.gotobrowser.R;
@@ -37,6 +35,7 @@ public class CustomDrawerLayout extends DrawerLayout
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
+
         if (!this.isDrawerOpen(Gravity.LEFT)) {
             return super.dispatchTouchEvent(event);
         }
@@ -52,12 +51,8 @@ public class CustomDrawerLayout extends DrawerLayout
         if (event.getAction() == MotionEvent.ACTION_UP) {
             View content = findViewById(R.id.navigation);
             int[] contentLocation = new int[2];
-            content.getLocationOnScreen(contentLocation);
-            Rect rect = new Rect(contentLocation[0],
-                    contentLocation[1],
-                    contentLocation[0] + content.getWidth(),
-                    contentLocation[1] + content.getHeight());
-            clickedOutside = !(rect.contains((int) event.getX(), (int) event.getY()));
+            content.getLocationInWindow(contentLocation);
+            clickedOutside = contentLocation[0] + content.getWidth() < (int) event.getX();
         }
 
         if (clickedOutside) {
