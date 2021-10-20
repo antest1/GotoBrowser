@@ -59,8 +59,10 @@ public class CustomDrawerLayout extends DrawerLayout
                     contentLocation[1] + content.getHeight());
             clickedOutside = !(rect.contains((int) event.getX(), (int) event.getY()));
         }
+
         if (clickedOutside) {
-            this.openDrawer(GravityCompat.START);
+            this.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+            return true;
         }
         this.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         return super.dispatchTouchEvent(event);
