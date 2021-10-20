@@ -5,27 +5,21 @@
     android:id="@+id/main_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/back"
-    tools:context=".Activity.EntranceActivity">
+    tools:context=".Activity.EntranceActivity"
+    android:background="@color/colorBackground">
 
-    <!-- The primary full-screen view. This can be replaced with whatever view
-         is needed to present your content, e.g. VideoView, SurfaceView,
-         TextureView, etc. -->
-
-    <!-- This FrameLayout insets its children based on system windows using
-         android:fitsSystemWindows. -->
-
-    <LinearLayout
+    <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:scaleType="centerCrop"
         android:alpha="0.5"
-        android:background="@color/colorBackground"
-        android:orientation="horizontal"></LinearLayout>
+        android:src="@mipmap/background"
+        app:srcCompat="@mipmap/background" />
 
     <ImageView
         android:id="@+id/gotland_full"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:scaleType="centerCrop"
         android:scrollY="-35dp"
         app:srcCompat="@mipmap/gotland_full" />
@@ -56,39 +50,50 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/connector_select"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="40dp"
                     android:layout_marginLeft="40dp"
                     android:layout_marginEnd="40dp"
                     android:layout_marginRight="40dp"
-                    android:background="@color/colorSiteSelection"
-                    android:padding="3dp"
-                    android:text="OOI.MOE"
-                    android:textAlignment="center"
-                    android:textAllCaps="true"
-                    android:textColor="@color/white"
-                    android:textSize="24sp" />
+                    android:background="@color/colorSiteSelection">
+                    <TextView
+                        android:id="@+id/connector_select"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?android:selectableItemBackground"
+                        android:padding="3dp"
+                        android:text="OOI.MOE"
+                        android:textAlignment="center"
+                        android:textAllCaps="true"
+                        android:textColor="@color/white"
+                        android:textSize="24sp" />
+                </LinearLayout>
 
-                <TextView
-                    android:id="@+id/webview_autocomplete"
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="5dp"
-                    android:background="@color/colorSiteSelection"
-                    android:paddingStart="12dp"
-                    android:paddingLeft="12dp"
-                    android:paddingTop="4dp"
-                    android:paddingEnd="12dp"
-                    android:paddingRight="8dp"
-                    android:paddingBottom="4dp"
-                    android:text="@string/autocomplete_title"
-                    android:textAlignment="center"
-                    android:textColor="@color/colorAccent"
-                    android:textSize="14sp" />
+                    android:background="@color/colorSiteSelection">
+                    <TextView
+                        android:id="@+id/webview_autocomplete"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?android:selectableItemBackground"
+                        android:paddingStart="12dp"
+                        android:paddingLeft="12dp"
+                        android:paddingTop="4dp"
+                        android:paddingEnd="12dp"
+                        android:paddingRight="8dp"
+                        android:paddingBottom="4dp"
+                        android:text="@string/autocomplete_title"
+                        android:textAlignment="center"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="14sp" />
+                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout
@@ -176,22 +181,28 @@
                 android:layout_marginTop="10dp"
                 android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/webview_start"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:background="@drawable/start_button"
-                    android:paddingStart="20dp"
-                    android:paddingLeft="20dp"
-                    android:paddingTop="5dp"
-                    android:paddingEnd="20dp"
-                    android:paddingRight="20dp"
-                    android:paddingBottom="5dp"
-                    android:text="@string/button_start"
-                    android:textAlignment="center"
-                    android:textColor="@color/white"
-                    android:textSize="24sp" />
+                    android:background="@drawable/start_button">
+                    <TextView
+                        android:id="@+id/webview_start"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:background="?android:selectableItemBackground"
+                        android:paddingStart="20dp"
+                        android:paddingLeft="20dp"
+                        android:paddingTop="5dp"
+                        android:paddingEnd="20dp"
+                        android:paddingRight="20dp"
+                        android:paddingBottom="5dp"
+                        android:textAlignment="center"
+                        android:textColor="@color/white"
+                        android:text="@string/button_start"
+                        android:textSize="24sp" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/webview_clear"
@@ -212,6 +223,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right|top|end"
+        android:background="@color/black_overlay"
         android:orientation="horizontal">
 
         <ImageView
@@ -219,7 +231,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:background="@color/black_overlay"
+            android:background="?android:selectableItemBackground"
             android:padding="8dp"
             android:src="@mipmap/msg"
             app:srcCompat="@mipmap/msg" />
@@ -229,7 +241,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:background="@color/black_overlay"
+            android:background="?android:selectableItemBackground"
             android:padding="8dp"
             android:src="@mipmap/settings"
             app:srcCompat="@mipmap/settings" />
@@ -256,17 +268,6 @@
         android:layout_weight="1"
         android:padding="2dp"
         android:text="version_info"
-        android:textColor="@color/white"
-        android:textSize="12dp" />
-
-    <TextView
-        android:id="@+id/proxy_override_enabled"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:paddingStart="2dp"
-        android:paddingLeft="2dp"
-        android:text="PROXY_ENABLED"
         android:textColor="@color/white"
         android:textSize="12dp" />
 

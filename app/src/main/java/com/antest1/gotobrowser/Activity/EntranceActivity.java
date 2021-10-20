@@ -157,14 +157,11 @@ public class EntranceActivity extends AppCompatActivity {
         TextView startButton = findViewById(R.id.webview_start);
         startButton.setOnClickListener(v -> {
             String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
-            if (pref_connector != null) {
-                if (pref_connector.equals(CONN_DMM)) {
-                    startBrowserActivity();
-                } else {
-                    showThirdPartyConnectorDialog();
-                }
+            if (pref_connector != null && !pref_connector.equals(CONN_DMM)) {
+                showThirdPartyConnectorDialog();
+            } else {
+                startBrowserActivity();
             }
-
         });
 
         TextView versionText = findViewById(R.id.version_info);
