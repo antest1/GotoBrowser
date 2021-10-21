@@ -33,10 +33,12 @@ public class CustomDrawerLayout extends DrawerLayout
         setDrawerElevation(0);
     }
 
+    boolean isClosing = false;
+
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-
         if (!this.isDrawerOpen(Gravity.LEFT)) {
+            isClosing = false;
             return super.dispatchTouchEvent(event);
         }
 
@@ -56,10 +58,18 @@ public class CustomDrawerLayout extends DrawerLayout
         }
 
         if (clickedOutside) {
-            this.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+            if (!isClosing) {
+                this.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
+            }
             return true;
         }
         this.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         return super.dispatchTouchEvent(event);
+    }
+
+    @Override
+    public void closeDrawer(int gravity) {
+        isClosing = true;
+        super.closeDrawer(gravity);
     }
 }
