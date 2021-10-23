@@ -34,12 +34,13 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
 
 import com.antest1.gotobrowser.Browser.BrowserGestureListener;
+import com.antest1.gotobrowser.Browser.CustomDrawerLayout;
 import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.BuildConfig;
-import com.antest1.gotobrowser.Helpers.AnimationUtils;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.FpsPatcher;
 import com.antest1.gotobrowser.Helpers.KenPatcher;
@@ -88,7 +89,6 @@ public class BrowserActivity extends AppCompatActivity {
     private final FpsPatcher fpsPatcher = new FpsPatcher();
 
     private boolean isKcBrowserMode = false;
-    private boolean isPanelVisible = false;
     private boolean isStartedFlag = false;
     private boolean isAdjustChangedByUser = false;
     private List<String> connector_info;
@@ -166,37 +166,37 @@ public class BrowserActivity extends AppCompatActivity {
             View menuLogout = findViewById(R.id.menu_logout);
             menuLogout.setOnClickListener(v -> showLogoutDialog());
 
-            View menuMute = findViewById(R.id.menu_mute);
-            menuMute.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isMuteMode ? R.color.panel_red : R.color.transparent));
+            ImageView menuMute = findViewById(R.id.menu_mute);
+            menuMute.setColorFilter(ContextCompat.getColor(getApplicationContext(), isMuteMode ? R.color.colorAccent : R.color.lightGray));
             menuMute.setOnClickListener(this::setMuteMode);
 
-            View menuCamera = findViewById(R.id.menu_camera);
-            menuCamera.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isCaptureMode ? R.color.panel_red : R.color.transparent));
+            ImageView menuCamera = findViewById(R.id.menu_camera);
+            menuCamera.setColorFilter(ContextCompat.getColor(getApplicationContext(), isCaptureMode ? R.color.colorAccent : R.color.lightGray));
             menuCamera.setOnClickListener(this::setCaptureMode);
             setCaptureButton();
 
-            View menuLock = findViewById(R.id.menu_lock);
-            menuLock.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isLockMode ? R.color.panel_red : R.color.transparent));
+            ImageView menuLock = findViewById(R.id.menu_lock);
+            menuLock.setColorFilter(ContextCompat.getColor(getApplicationContext(), isLockMode ? R.color.colorAccent : R.color.lightGray));
             menuLock.setOnClickListener(this::setOrientationLockMode);
 
-            View menuBrightOn = findViewById(R.id.menu_brighton);
-            menuBrightOn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isKeepMode ? R.color.panel_red : R.color.transparent));
+            ImageView menuBrightOn = findViewById(R.id.menu_brighton);
+            menuBrightOn.setColorFilter(ContextCompat.getColor(getApplicationContext(), isKeepMode ? R.color.colorAccent : R.color.lightGray));
             menuBrightOn.setOnClickListener(this::setBrightOnMode);
 
-            View menuCaption = findViewById(R.id.menu_cc);
-            menuCaption.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), isCaptionMode ? R.color.panel_red : R.color.transparent));
+            ImageView menuCaption = findViewById(R.id.menu_cc);
+            menuCaption.setColorFilter(ContextCompat.getColor(getApplicationContext(), isCaptionMode ? R.color.colorAccent : R.color.lightGray));
             menuCaption.setOnClickListener(this::setCaptionMode);
 
-            View menuKantai3d = findViewById(R.id.menu_kantai3d);
+            ImageView menuKantai3d = findViewById(R.id.menu_kantai3d);
             if (k3dPatcher.isPatcherEnabled()) {
-                menuKantai3d.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), k3dPatcher.isEffectEnabled() ? R.color.panel_red : R.color.transparent));
+                menuKantai3d.setColorFilter(ContextCompat.getColor(getApplicationContext(), k3dPatcher.isEffectEnabled() ? R.color.colorAccent : R.color.lightGray));
                 menuKantai3d.setOnClickListener(this::setKantai3dMode);
             } else {
                 menuKantai3d.setVisibility(View.GONE);
             }
 
             View menuClose = findViewById(R.id.menu_close);
-            menuClose.setOnClickListener(this::setPanelVisible);
+            menuClose.setOnClickListener(this::togglePanelVisibility);
 
             View uiHintLayout = findViewById(R.id.ui_hint_layout);
             String uiHintCheckedVer = sharedPref.getString(PREF_UI_HELP_CHECKED, "");
@@ -250,9 +250,7 @@ public class BrowserActivity extends AppCompatActivity {
             // On back pressed, always show the button panel
             // It is in case new users don't know tapping background shows the panel
             // Or if the screen is exactly 15:9 so there is no background to tap on
-            isPanelVisible = true;
-            AnimationUtils.beginAuto(findViewById(R.id.main_container));
-            findViewById(R.id.browser_panel).setVisibility(View.VISIBLE);
+            ((CustomDrawerLayout)findViewById(R.id.main_container)).openDrawer(GravityCompat.START);
 
             backPressCloseHandler.onBackPressed();
         } else {
@@ -343,11 +341,8 @@ public class BrowserActivity extends AppCompatActivity {
         Log.e("GOTO", isAdjustChangedByUser + " " + isInPictureInPictureMode + " " + isMultiWindowMode());
 
         if (isMultiWindowMode()) {
-            findViewById(R.id.browser_panel).setVisibility(View.GONE);
-        } else {
-            findViewById(R.id.browser_panel).setVisibility(View.VISIBLE);
-            View browserPanel = findViewById(R.id.browser_panel);
-            browserPanel.setVisibility(isPanelVisible ? View.VISIBLE : View.GONE);
+            // Close drawer
+            ((CustomDrawerLayout)findViewById(R.id.main_container)).closeDrawer(GravityCompat.START);
         }
 
         if (sharedPref.getBoolean(PREF_MULTIWIN_MARGIN, false)) {
@@ -373,6 +368,8 @@ public class BrowserActivity extends AppCompatActivity {
                 }
                 Snackbar.make(this.findViewById(R.id.main_container), message, Snackbar.LENGTH_SHORT).show();
             }
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 
@@ -390,10 +387,10 @@ public class BrowserActivity extends AppCompatActivity {
             manager.runMuteScript(mContentView, isMuteMode);
         }
         if (isMuteMode) {
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
             sharedPref.edit().putBoolean(PREF_MUTEMODE, true).apply();
         } else {
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
             sharedPref.edit().putBoolean(PREF_MUTEMODE, false).apply();
         }
     }
@@ -405,11 +402,11 @@ public class BrowserActivity extends AppCompatActivity {
             isCaptureMode = !isCaptureMode;
             if (isCaptureMode) {
                 findViewById(R.id.kc_camera).setVisibility(View.VISIBLE);
-                v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+                ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
                 sharedPref.edit().putBoolean(PREF_CAPTURE, true).apply();
             } else {
                 findViewById(R.id.kc_camera).setVisibility(View.GONE);
-                v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
+                ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
                 sharedPref.edit().putBoolean(PREF_CAPTURE, false).apply();
             }
         }
@@ -443,10 +440,10 @@ public class BrowserActivity extends AppCompatActivity {
     private void setOrientationLockMode(View v) {
         isLockMode = !isLockMode;
         if (isLockMode) {
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
             sharedPref.edit().putBoolean(PREF_LOCKMODE, true).apply();
         } else {
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
             sharedPref.edit().putBoolean(PREF_LOCKMODE, false).apply();
         }
 
@@ -470,11 +467,11 @@ public class BrowserActivity extends AppCompatActivity {
         isKeepMode = !isKeepMode;
         if (isKeepMode) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
             sharedPref.edit().putBoolean(PREF_KEEPMODE, true).apply();
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
             sharedPref.edit().putBoolean(PREF_KEEPMODE, false).apply();
         }
     }
@@ -483,17 +480,17 @@ public class BrowserActivity extends AppCompatActivity {
         isCaptionMode = !isCaptionMode;
         if (isCaptionMode) {
             subtitleText.setVisibility(View.VISIBLE);
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
             sharedPref.edit().putBoolean(PREF_SHOWCC, true).apply();
         } else {
             subtitleText.setVisibility(View.GONE);
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
             sharedPref.edit().putBoolean(PREF_SHOWCC, false).apply();
         }
     }
 
     private void initPanelKeyboardFromIntent(Intent intent) {
-        View browserPanel = findViewById(R.id.browser_panel);
+        CustomDrawerLayout drawerLayout = findViewById(R.id.main_container);
 
         if (intent != null) {
             String action = intent.getAction();
@@ -501,9 +498,6 @@ public class BrowserActivity extends AppCompatActivity {
             String options = intent.getStringExtra("options");
             Log.e("GOTO", "options: " + options);
             if (options != null) {
-                isPanelVisible = options.contains(ACTION_SHOWPANEL);
-                browserPanel.setVisibility(isPanelVisible && !isMultiWindowMode()
-                        ? View.VISIBLE : View.GONE);
                 if (!options.contains(ACTION_SHOWKEYBOARD)) {
                     mContentView.setFocusableInTouchMode(false);
                     mContentView.setFocusable(false);
@@ -520,15 +514,13 @@ public class BrowserActivity extends AppCompatActivity {
         sharedPref.edit().putString(PREF_UI_HELP_CHECKED, APP_UI_HELP_VER).apply();
     }
 
-    public void setPanelVisibleValue(boolean value) {
-        isPanelVisible = value;
-    }
-
-    private void setPanelVisible(View v) {
-        isPanelVisible = !isPanelVisible;
-
-        AnimationUtils.beginAuto(findViewById(R.id.main_container));
-        findViewById(R.id.browser_panel).setVisibility(isPanelVisible ? View.VISIBLE : View.GONE);
+    private void togglePanelVisibility(View v) {
+        CustomDrawerLayout drawerLayout = findViewById(R.id.main_container);
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            drawerLayout.openDrawer(GravityCompat.START);
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -570,9 +562,9 @@ public class BrowserActivity extends AppCompatActivity {
     private void setKantai3dMode(View v) {
         k3dPatcher.setEffectEnabled(!k3dPatcher.isEffectEnabled());
         if (k3dPatcher.isEffectEnabled()) {
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.panel_red));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
         } else {
-            v.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.transparent));
+            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
         }
     }
 
@@ -720,7 +712,7 @@ public class BrowserActivity extends AppCompatActivity {
 
     @SuppressLint("ClickableViewAccessibility")
     public void setGestureDetector(View view) {
-        GestureDetector mDetector = new GestureDetector(this, new BrowserGestureListener(this, this::setPanelVisible));
+        GestureDetector mDetector = new GestureDetector(this, new BrowserGestureListener(this, this::togglePanelVisibility));
         view.setOnTouchListener((v, event) -> {
             mDetector.onTouchEvent(event);
             return event.getAction() != MotionEvent.ACTION_UP;
