@@ -37,7 +37,8 @@ public class Constants {
     public static final String PREF_ALTER_ENDPOINT = "pref_alter_endpoint";
     public static final String PREF_TP_DISCLAIMED = "pref_tp_disclaimed";
     public static final String PREF_MOD_KANTAI3D = "pref_mod_kantai3d";
-    public static final String PREF_MOD_KANTAIEN = "pref_mod_kantaiEn";
+    public static final String PREF_MOD_KANTAIEN = "pref_mod_kantaien";
+    public static final String PREF_MOD_KANTAIEN_UPDATE = "pref_mod_kantaien_update";
     public static final String PREF_MOD_FPS = "pref_mod_fps";
     public static final String PREF_USE_EXTCACHE = "pref_use_extcache";
     public static final String PREF_UI_HELP_CHECKED = "pref_ui_help_checked";
@@ -127,14 +128,14 @@ public class Constants {
     };
 
     public static final String[] REQUEST_BLOCK_GADGET = {
-            "kcscontents/image/nav_item01.png",
-            "kcscontents/image/nav_item02.png",
-            "kcscontents/image/nav_item03.png",
-            "kcscontents/image/nav_item04.png",
-            "kcscontents/image/nav_item05.png",
-            "kcscontents/css/default.css",
-            "kcscontents/css/style.css",
-            "kcscontents/news/"
+        "kcscontents/image/nav_item01.png",
+        "kcscontents/image/nav_item02.png",
+        "kcscontents/image/nav_item03.png",
+        "kcscontents/image/nav_item04.png",
+        "kcscontents/image/nav_item05.png",
+        "kcscontents/css/default.css",
+        "kcscontents/css/style.css",
+        "kcscontents/news/"
     };
 
     public static final String[] KANCOLLE_SERVER_LIST = {

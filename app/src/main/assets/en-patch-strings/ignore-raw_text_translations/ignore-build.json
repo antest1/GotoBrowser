@@ -1,8 +1,0 @@
-{
-	"装備がある場合、同時に解体されます。": "Equipment will also be scrapped.",
-	"装備がある場合、倉庫に保管されます。": "Equipment will not be scrapped.",
-
-	"装備の開発に失敗しました……。\n\n　『開発資材』は消耗しませんでした。": "Equipment Development failed...\n\n　The Development Material was not consumed.",
-
-	"dummy": "forNoComma"
-}

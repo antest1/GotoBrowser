@@ -72,9 +72,10 @@
     <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.0</string>
     <string name="settings_mod_kantai3d_summary">일부 비서함에 3D 효과 적용. 저자: @laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
-    <string name="settings_mod_kantaiEn_enable">[Beta] KanColle English Patch</string>
-    <string name="settings_mod_kantaiEn_summary">게임을 영어로 번역한다. 저자: @Oradimi</string>
-    <string name="settings_mod_kantaiEn_about">KanColle English Patch대해</string>
+    <string name="settings_mod_kantaien_enable">[Beta] KanColle English Patch</string>
+    <string name="settings_mod_kantaien_summary">게임을 영어로 번역한다. 저자: @Oradimi</string>
+    <string name="settings_mod_kantaien_download">English Patch 데이터 다운로드</string>
+    <string name="settings_mod_kantaien_about">KanColle English Patch대해</string>
     <string name="settings_mod_fps_enable">60FPS 제한 제거</string>
     <string name="settings_mod_fps_summary">더 높은 화면 재생 빈도 장치를 지원합니다. 애니메이션 속도는 영향을 받지 않습니다.</string>
     <string name="settings_use_external_dir">리소스 캐싱 시 외부 저장소 사용</string>

@@ -50,6 +50,7 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_GADGET;
@@ -100,7 +101,7 @@ public class ResourceProcess {
     private final Handler shipVoiceHandler = new Handler();
     private final Handler clearSubHandler = new Handler();
 
-    boolean prefAlterGadget, isGadgetUrlReplaceMode, prefBlockGadget;
+    boolean prefAlterGadget, prefBlockGadget, isGadgetUrlReplaceMode, prefModKantaiEn;
     String alterEndpoint;
     
     ResourceProcess(BrowserActivity activity) {
@@ -110,10 +111,11 @@ public class ResourceProcess {
         sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         prefAlterGadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false);
+        prefBlockGadget = sharedPref.getBoolean(PREF_BLOCK_GADGET, false);
         isGadgetUrlReplaceMode = sharedPref.getString(PREF_ALTER_METHOD, "")
                 .equals(PREF_ALTER_METHOD_URL);
-        prefBlockGadget = sharedPref.getBoolean(PREF_BLOCK_GADGET, false);
         alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL);
+        prefModKantaiEn = sharedPref.getBoolean(PREF_MOD_KANTAIEN, false);
         subtitleText = activity.findViewById(R.id.subtitle_view);
         subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
     }
@@ -492,7 +494,11 @@ public class ResourceProcess {
     }
 
     private File getImageFile(String path) {
-        return new File(path);
+        if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
+            return new File(KenPatcher.patchAsset(path, activity));
+        } else {
+            return new File(path);
+        }
     }
 
     /*
