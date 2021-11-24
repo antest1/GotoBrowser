@@ -98,7 +98,7 @@ public class KcEnUtils {
     }
 
     public static void checkKantaiEnUpdate(SettingsActivity.SettingsFragment fragment, Preference kantaiEnUpdate) {
-        kantaiEnUpdate.setSummary("checking updates...");
+        kantaiEnUpdate.setSummary("Checking updates...");
         kantaiEnUpdate.setEnabled(false);
         InputStream enPatchInfoFile;
         org.json.simple.JSONObject enPatchInfo = null;
@@ -126,6 +126,7 @@ public class KcEnUtils {
                         "Data not installed yet. (%s)",
                         availableVersion));
                 kantaiEnUpdate.setEnabled(true);
+                newVersionFlag = false;
             } else {
                 enPatchLocalInfo = (org.json.simple.JSONObject) jsonParser.parse(
                         new FileReader(enPatchLocalInfoFile));
@@ -138,6 +139,7 @@ public class KcEnUtils {
                     newVersionFlag = true;
                 } else {
                     kantaiEnUpdate.setSummary(fragment.getString(R.string.setting_latest_version));
+                    newVersionFlag = false;
                 }
             }
         } catch (IOException | ParseException e) {
@@ -165,7 +167,7 @@ public class KcEnUtils {
     public static void requestPatchUpdate(SettingsActivity.SettingsFragment fragment, Activity ac, Context context) throws IOException {
         CompletableFuture
                 .runAsync(() -> {
-                    if(newVersionFlag = true) {
+                    if (newVersionFlag) {
                         try {
                             Path absolutePath = Paths.get(context.getExternalFilesDir(null).getAbsolutePath());
                             Version installedVersion = new Version(currentVersion);
@@ -191,7 +193,7 @@ public class KcEnUtils {
                             handler.post(() -> {
                                 KcUtils.showToastShort(ac, R.string.download_start);
                                 Preference kantaiEnUpdate = fragment.findPreference(PREF_MOD_KANTAIEN_UPDATE);
-                                kantaiEnUpdate.setSummary("Downloading... Please wait...");
+                                kantaiEnUpdate.setSummary("Downloading... Wait for 'Installation Complete' toast");
                                 kantaiEnUpdate.setEnabled(false);
                             });
 
@@ -252,14 +254,13 @@ public class KcEnUtils {
                         } catch (IOException | ParseException | JSONException e) {
                             e.printStackTrace();
                         }
-
                     } else {
                         try {
                             Handler handler = new Handler(context.getMainLooper());
                             handler.post(() -> {
                                 KcUtils.showToastShort(ac, R.string.download_start);
                                 Preference kantaiEnUpdate = fragment.findPreference(PREF_MOD_KANTAIEN_UPDATE);
-                                kantaiEnUpdate.setSummary("Downloading... Please wait...");
+                                kantaiEnUpdate.setSummary("Downloading... Wait for 'Installation Complete' toast");
                                 kantaiEnUpdate.setEnabled(false);
                             });
                             Log.i("GOTO", "Download start");
