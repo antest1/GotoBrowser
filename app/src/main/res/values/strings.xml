@@ -86,4 +86,12 @@
     <string name="menu_tooltip_kantai3d">Toggle 3D effects</string>
 
     <string name="browser_ui_hint_text">« click any outside area to open the panel »</string>
+
+    <string name="settings_retry_enable">Retry Option for Resource Download</string>
+    <string name="settings_retry_summary">Prompt a dialog to ask for retry when failed to download any static in-game sound or image resource file. Sometimes avoid cats caused by poor network. DO NOT apply to gameplay data API.</string>
+    <string name="dialog_retry_title">Failed to download a game resource file</string>
+    <string name="dialog_retry_yes">Retry the download</string>
+    <string name="dialog_retry_no">Do nothing</string>
+    <string name="dialog_retry_never">Do nothing and never ask again</string>
+    <string name="dialog_retry_message">A network issue occurs when game client downloads a resource file.\nDo you want to retry the download?\n%s</string>
 </resources>

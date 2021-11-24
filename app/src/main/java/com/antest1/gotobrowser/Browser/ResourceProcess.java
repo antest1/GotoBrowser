@@ -1,6 +1,8 @@
 package com.antest1.gotobrowser.Browser;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
@@ -32,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -298,7 +302,7 @@ public class ResourceProcess {
                 if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value)) new_value = result;
                 if (result == null) {
                     Log.e("GOTO", "return null: " + path + " " + new_value);
-                    return null;
+                    return promptForRetry(file_info, update_info, resource_type);
                 } else if (result.equals("304")) {
                     Log.e("GOTO", "load 304 resource: " + path + " " + new_value);
                 } else {
@@ -311,15 +315,69 @@ public class ResourceProcess {
 
             InputStream is = new BufferedInputStream(new FileInputStream(file));
             Log.e("GOTO" , out_file_path + " " + is.available());
-            if (ResourceProcess.isImage(resource_type)) {
-                return new WebResourceResponse("image/png", "utf-8", is);
-            } else if (ResourceProcess.isJson(resource_type)) {
-                return new WebResourceResponse("application/json", "utf-8", is);
-            }
+
+            String type = ResourceProcess.isImage(resource_type) ? "image/png" : "application/json";
+            return new WebResourceResponse(type, "utf-8", is);
         } catch (IOException e) {
             KcUtils.reportException(e);
+            // Fail to load
+            return promptForRetry(file_info, update_info, resource_type);
         }
-        return null;
+    }
+
+    private WebResourceResponse promptForRetry(JsonObject file_info, JsonObject update_info, int resource_type) {
+        // TODO check preference
+
+        final AtomicReference<Boolean> cancelled = new AtomicReference<>(false);
+
+        final CountDownLatch retryReady = new CountDownLatch(1);
+        activity.runOnUiThread(() -> {
+            DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+                switch (which) {
+                    case DialogInterface.BUTTON_POSITIVE: // yes
+                        // User allow retry recovery
+                        // We can proceed to next iteration
+                        retryReady.countDown();
+                        break;
+                    default:
+                    case DialogInterface.BUTTON_NEUTRAL: // no
+                        // User give up and it is ok to stop loading
+                        cancelled.set(true);
+                        retryReady.countDown();
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE: // no and never ask again
+                        // User give up and it is ok to stop loading
+                        // And never ask again
+                        cancelled.set(true);
+                        retryReady.countDown();
+                        // TODO change preference
+                }
+                dialog.dismiss();
+            };
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            String path = file_info.get("path").getAsString();
+            builder.setTitle(activity.getString(R.string.dialog_retry_title))
+                    .setMessage(String.format(activity.getString(R.string.dialog_retry_message), path))
+                    .setPositiveButton(activity.getString(R.string.dialog_retry_yes), dialogClickListener)
+                    .setNeutralButton(activity.getString(R.string.dialog_retry_no), dialogClickListener)
+                    .setNegativeButton(activity.getString(R.string.dialog_retry_never), dialogClickListener)
+                    .setCancelable(false).show();
+        });
+
+        try {
+            // Wait for the user choice
+            retryReady.await();
+        } catch (InterruptedException e) {
+            // Possible exit: system interrupt
+            return null;
+        }
+
+        if (cancelled.get()) {
+            return null;
+        } else {
+            return processImageDataResource(file_info, update_info, resource_type);
+        }
     }
 
     private WebResourceResponse processScriptFile(JsonObject file_info) throws IOException {
