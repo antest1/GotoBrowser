@@ -19,6 +19,9 @@ import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 
 import org.apache.commons.io.FileUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -28,16 +31,71 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class KcEnUtils {
+
+    static boolean newVersionFlag = false;
+    static String currentVersion = null;
+
+    public static class Version implements Comparable<Version> {
+
+        private String version;
+
+        public final String get() {
+            return this.version;
+        }
+
+        public Version(String version) {
+            if(version == null)
+                throw new IllegalArgumentException("Version can not be null");
+            if(!version.matches("[0-9]+(\\.[0-9]+)*"))
+                throw new IllegalArgumentException("Invalid version format");
+            this.version = version;
+        }
+
+        @Override public int compareTo(Version that) {
+            if(that == null)
+                return 1;
+            String[] thisParts = this.get().split("\\.");
+            String[] thatParts = that.get().split("\\.");
+            int length = Math.max(thisParts.length, thatParts.length);
+            for(int i = 0; i < length; i++) {
+                int thisPart = i < thisParts.length ?
+                        Integer.parseInt(thisParts[i]) : 0;
+                int thatPart = i < thatParts.length ?
+                        Integer.parseInt(thatParts[i]) : 0;
+                if(thisPart < thatPart)
+                    return -1;
+                if(thisPart > thatPart)
+                    return 1;
+            }
+            return 0;
+        }
+
+        @Override public boolean equals(Object that) {
+            if(this == that)
+                return true;
+            if(that == null)
+                return false;
+            if(this.getClass() != that.getClass())
+                return false;
+            return this.compareTo((Version) that) == 0;
+        }
+
+    }
 
     public static void checkKantaiEnUpdate(SettingsActivity.SettingsFragment fragment, Preference kantaiEnUpdate) {
         kantaiEnUpdate.setSummary("checking updates...");
@@ -55,7 +113,7 @@ public class KcEnUtils {
             StrictMode.setThreadPolicy(policy);
         }
         try {
-            //The English Patch is 291401713 bytes in size.
+            //The English Patch is about 291401713 bytes in size.
             String enPatchInfoUrl = "https://raw.githubusercontent.com/Oradimi/KanColle-English-Patch-KCCP/master/EN-patch.mod.json";
             enPatchInfoFile = new URL(enPatchInfoUrl).openConnection().getInputStream();
             JSONParser jsonParser = new JSONParser();
@@ -71,12 +129,13 @@ public class KcEnUtils {
             } else {
                 enPatchLocalInfo = (org.json.simple.JSONObject) jsonParser.parse(
                         new FileReader(enPatchLocalInfoFile));
-                String currentVersion = String.valueOf(enPatchLocalInfo.get("version"));
+                currentVersion = String.valueOf(enPatchLocalInfo.get("version"));
                 if (!currentVersion.equals(availableVersion)) {
                     kantaiEnUpdate.setSummary(String.format(Locale.US,
                             fragment.getString(R.string.setting_latest_download_subtitle),
                             availableVersion));
                     kantaiEnUpdate.setEnabled(true);
+                    newVersionFlag = true;
                 } else {
                     kantaiEnUpdate.setSummary(fragment.getString(R.string.setting_latest_version));
                 }
@@ -86,53 +145,153 @@ public class KcEnUtils {
         }
     }
 
+    public static boolean remoteFileExists(String URLName){
+        try {
+            HttpURLConnection.setFollowRedirects(false);
+            // note : you may also need
+            //        HttpURLConnection.setInstanceFollowRedirects(false)
+            HttpURLConnection con =
+                    (HttpURLConnection) new URL(URLName).openConnection();
+            con.setRequestMethod("HEAD");
+            return (con.getResponseCode() == HttpURLConnection.HTTP_OK);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static void requestPatchUpdate(SettingsActivity.SettingsFragment fragment, Activity ac, Context context) throws IOException {
         CompletableFuture
                 .runAsync(() -> {
-                    try {
-                        Handler handler =  new Handler(context.getMainLooper());
-                        handler.post(() -> {
-                            KcUtils.showToastShort(ac, R.string.download_start);
-                            Preference kantaiEnUpdate = fragment.findPreference(PREF_MOD_KANTAIEN_UPDATE);
-                            kantaiEnUpdate.setSummary("Downloading...");
-                            kantaiEnUpdate.setEnabled(false);
-                        });
-                        Log.e("GOTO", "Download start");
+                    if(newVersionFlag = true) {
+                        try {
+                            Path absolutePath = Paths.get(context.getExternalFilesDir(null).getAbsolutePath());
+                            Version installedVersion = new Version(currentVersion);
+                            InputStream enPatchVersionsFile;
+                            org.json.simple.JSONArray enPatchVersions = null;
+                            String enPatchVersionsUrl = "https://raw.githubusercontent.com/Oradimi/KanColle-English-Patch-KCCP/master/version.json";
+                            if (remoteFileExists(enPatchVersionsUrl)) {
+                                URL verUrl = new URL(enPatchVersionsUrl);
+                                ReadableByteChannel rbc = Channels.newChannel(verUrl.openStream());
+                                Path verPath = Paths.get(absolutePath + "/KanColle-English-Patch-KCCP-master/version.json");
+                                File verFile = new File(String.valueOf(verPath));
+                                FileOutputStream fos = FileUtils.openOutputStream(verFile);
+                                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                            }
+                            enPatchVersionsFile = new URL(enPatchVersionsUrl).openConnection().getInputStream();
+                            JSONParser jsonParser = new JSONParser();
+                            enPatchVersions = (org.json.simple.JSONArray) jsonParser.parse(
+                                    new InputStreamReader(enPatchVersionsFile, StandardCharsets.UTF_8));
+                            ArrayList<List<String>> delUrl = new ArrayList<>();
+                            ArrayList<List<String>> addUrl = new ArrayList<>();
 
-                        URL master = new URL("https://github.com/Oradimi/KanColle-English-Patch-KCCP/archive/master.zip");
-                        ReadableByteChannel rbc = Channels.newChannel(master.openStream());
-                        Path absolutePath = Paths.get(context.getExternalFilesDir(null).getAbsolutePath());
-                        Path out = Paths.get(absolutePath + "/master.zip");
-                        FileOutputStream fos = FileUtils.openOutputStream(new File(String.valueOf(out)));
-                        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                        handler.post(() -> {
-                            KcUtils.showToastShort(ac, R.string.installation_start);
-                            Preference kantaiEnUpdate = fragment.findPreference(PREF_MOD_KANTAIEN_UPDATE);
-                            kantaiEnUpdate.setSummary("Installing...");
-                            kantaiEnUpdate.setEnabled(false);
-                        });
-                        Log.e("GOTO", "Download complete");
-
-                        File zipOut = new File(String.valueOf(out));
-                        ZipFile zipFile = new ZipFile(String.valueOf(out));
-                        zipFile.extractAll(String.valueOf(absolutePath));
-                        Log.e("GOTO", "Zip extracted");
-
-                        boolean deleted = zipOut.delete();
-                        if (deleted) {
-                            Log.e("GOTO", "Zip successfully deleted");
+                            Handler handler = new Handler(context.getMainLooper());
                             handler.post(() -> {
-                                KcUtils.showToastShort(ac, R.string.installation_done);
+                                KcUtils.showToastShort(ac, R.string.download_start);
                                 Preference kantaiEnUpdate = fragment.findPreference(PREF_MOD_KANTAIEN_UPDATE);
-                                kantaiEnUpdate.setSummary(fragment.getString(R.string.setting_latest_version));
+                                kantaiEnUpdate.setSummary("Downloading... Please wait...");
                                 kantaiEnUpdate.setEnabled(false);
                             });
-                        } else {
-                            Log.e("GOTO", "Zip wasn't deleted");
+
+                            for (int i = 0; i < enPatchVersions.size(); i++) {
+                                JSONObject ver = new JSONObject(enPatchVersions.get(i).toString());
+                                Version lookoverVersion = new Version(String.valueOf(ver.get("version")));
+                                Log.i("GOTO", "installedVersion: " + installedVersion);
+                                Log.i("GOTO", "lookoverVersion: " + lookoverVersion);
+                                Log.i("GOTO", "compare: " + installedVersion.compareTo(lookoverVersion));
+                                if (installedVersion.compareTo(lookoverVersion) == -1) {
+                                    List<String> currDelUrl = new ArrayList<>();
+                                    List<String> currAddUrl = new ArrayList<>();
+                                    JSONArray del = ver.getJSONArray("del");
+                                    JSONArray add = ver.getJSONArray("add");
+                                    for (int j = 0; j < del.length(); j++) {
+                                        currDelUrl.add(del.getString(j));
+                                    }
+                                    for (int j = 0; j < add.length(); j++) {
+                                        currAddUrl.add(add.getString(j));
+                                    }
+                                    delUrl.add(currDelUrl);
+                                    addUrl.add(currAddUrl);
+                                }
+                            }
+                            Log.e("GOTO", "delUrl: " + delUrl);
+                            Log.e("GOTO", "addUrl: " + addUrl);
+                            for (int i = 0; i < delUrl.size(); i++) {
+                                //String progress = String.valueOf(i);
+                                //handler.post(() -> {
+                                //    KcUtils.showToastShort(ac, "Progress: " + progress + "/" + delUrl.size());
+                                //});
+                                for (int j = 0; j < delUrl.get(i).size(); j++) {
+                                    Path delPath = Paths.get(absolutePath + "/KanColle-English-Patch-KCCP-master/" + delUrl.get(i).get(j));
+                                    File delFile = new File(String.valueOf(delPath));
+                                    if (delFile.exists()) {
+                                        boolean deleted = delFile.delete();
+                                        if (deleted) {
+                                            Log.e("GOTO", "Deleted: " + delPath );
+                                        }
+                                    }
+                                }
+                                for (int j = 0; j < addUrl.get(i).size(); j++) {
+                                    Path addPath = Paths.get(absolutePath + "/KanColle-English-Patch-KCCP-master/" + addUrl.get(i).get(j));
+                                    File addFile = new File(String.valueOf(addPath));
+                                    Log.e("GOTO", "path dude add" + addFile);
+                                    String masterPath = "https://raw.githubusercontent.com/Oradimi/KanColle-English-Patch-KCCP/master/" + addUrl.get(i).get(j);
+                                    if (remoteFileExists(masterPath)) {
+                                        URL master = new URL(masterPath);
+                                        ReadableByteChannel rbc = Channels.newChannel(master.openStream());
+                                        FileOutputStream fos = FileUtils.openOutputStream(addFile);
+                                        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                                    }
+                                }
+                            }
+                            handler.post(() -> {
+                                KcUtils.showToastShort(ac, R.string.installation_done);
+                            });
+                        } catch (IOException | ParseException | JSONException e) {
+                            e.printStackTrace();
                         }
-                    } catch (IOException | ZipException e) {
-                        e.printStackTrace();
+
+                    } else {
+                        try {
+                            Handler handler = new Handler(context.getMainLooper());
+                            handler.post(() -> {
+                                KcUtils.showToastShort(ac, R.string.download_start);
+                                Preference kantaiEnUpdate = fragment.findPreference(PREF_MOD_KANTAIEN_UPDATE);
+                                kantaiEnUpdate.setSummary("Downloading... Please wait...");
+                                kantaiEnUpdate.setEnabled(false);
+                            });
+                            Log.i("GOTO", "Download start");
+
+                            URL master = new URL("https://github.com/Oradimi/KanColle-English-Patch-KCCP/archive/master.zip");
+                            ReadableByteChannel rbc = Channels.newChannel(master.openStream());
+                            Path absolutePath = Paths.get(context.getExternalFilesDir(null).getAbsolutePath());
+                            Path out = Paths.get(absolutePath + "/master.zip");
+                            File zipOut = new File(String.valueOf(out));
+                            FileOutputStream fos = FileUtils.openOutputStream(zipOut);
+                            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                            handler.post(() -> {
+                                KcUtils.showToastShort(ac, R.string.installation_start);
+                            });
+                            Log.i("GOTO", "Download complete");
+
+                            ZipFile zipFile = new ZipFile(String.valueOf(out));
+                            zipFile.extractAll(String.valueOf(absolutePath));
+                            Log.i("GOTO", "Zip extracted");
+
+                            boolean deleted = zipOut.delete();
+                            if (deleted) {
+                                Log.i("GOTO", "Zip successfully deleted");
+                                handler.post(() -> {
+                                    KcUtils.showToastShort(ac, R.string.installation_done);
+                                });
+                            } else {
+                                Log.e("GOTO", "Zip wasn't deleted");
+                            }
+                        } catch (IOException | ZipException e) {
+                            e.printStackTrace();
+                        }
                     }
                 })
                 .whenComplete((input, exception) -> {

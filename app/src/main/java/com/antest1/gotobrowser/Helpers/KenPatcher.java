@@ -46,8 +46,8 @@ public class KenPatcher {
             return main_js;
         }
 
-        List<String> translationFiles = new ArrayList<String>();
-        List<String> regexFiles = new ArrayList<String>();
+        List<String> translationFiles = new ArrayList<>();
+        List<String> regexFiles = new ArrayList<>();
 
         JsonObject translations = new JsonObject();
         StringBuilder regex = new StringBuilder("[");
