@@ -29,7 +29,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -166,8 +165,7 @@ public class ResourceProcess {
         if (url.contains("html/maintenance.html")) return getMaintenanceFiles(false);
         if (url.contains("html/maintenance.png")) return getMaintenanceFiles(true);
         if (resource_type == 0) return null;
-        // Prevent OOI from caching the server name display
-        if (url.contains("ooi_moe_")) return null;
+        if (url.contains("ooi_moe_")) return null; // Prevent OOI from caching the server name display
 
         JsonObject file_info = getPathAndFileInfo(source);
         String path = file_info.get("path").getAsString();
@@ -192,7 +190,7 @@ public class ResourceProcess {
                 JsonObject update_info = checkResourceUpdate(source);
                 if (is_image || is_json) return processImageDataResource(file_info, update_info, resource_type);
                 if (is_js) return processScriptFile(file_info);
-                if (is_audio) return processAudioFile(file_info, update_info);
+                if (is_audio) return processAudioFile(file_info, update_info, resource_type);
                 if (is_css) return processStylesheet(file_info);
                 if (is_font) {
                     if (sharedPref.getBoolean(PREF_FONT_PREFETCH, true)) {
@@ -293,30 +291,31 @@ public class ResourceProcess {
         String path = file_info.get("path").getAsString();
         String resource_url = file_info.get("full_url").getAsString();
         String out_file_path = file_info.get("out_file_path").getAsString();
-        try {
-            File file = getImageFile(out_file_path);
-            if (!file.exists()) {
-                versionTable.putDefaultValue(path);
-                update_flag = true;
-            }
-            Log.e("GOTO", "requested: " + file.getPath());
-            if (update_flag) {
-                String result = downloadResource(resourceClient, resource_url, last_modified, file);
-                String new_value = version;
-                if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value)) new_value = result;
-                if (result == null) {
-                    Log.e("GOTO", "return null: " + path + " " + new_value);
-                    return promptForRetry(file_info, update_info, resource_type);
-                } else if (result.equals("304")) {
-                    Log.e("GOTO", "load 304 resource: " + path + " " + new_value);
-                } else {
-                    Log.e("GOTO", "cache resource: " + path + " " + new_value);
-                    versionTable.putValue(path, new_value);
-                }
+        File file = getImageFile(out_file_path);
+        if (!file.exists()) {
+            versionTable.putDefaultValue(path);
+            update_flag = true;
+        }
+        Log.e("GOTO", "requested: " + file.getPath());
+        if (update_flag) {
+            String result = downloadResource(resourceClient, resource_url, last_modified, file);
+            String new_value = version;
+            if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value))
+                new_value = result;
+            if (result == null) {
+                Log.e("GOTO", "return null: " + path + " " + new_value);
+                return promptForRetry(file_info, update_info, resource_type);
+            } else if (result.equals("304")) {
+                Log.e("GOTO", "load 304 resource: " + path + " " + new_value);
             } else {
-                Log.e("GOTO", "load cached resource: " + file.getPath() + " " + version);
+                Log.e("GOTO", "cache resource: " + path + " " + new_value);
+                versionTable.putValue(path, new_value);
             }
+        } else {
+            Log.e("GOTO", "load cached resource: " + file.getPath() + " " + version);
+        }
 
+        try {
             InputStream is = new BufferedInputStream(new FileInputStream(file));
             Log.e("GOTO" , out_file_path + " " + is.available());
 
@@ -383,7 +382,11 @@ public class ResourceProcess {
         if (cancelled.get()) {
             return null;
         } else {
-            return processImageDataResource(file_info, update_info, resource_type);
+            if (ResourceProcess.isImage(resource_type) || ResourceProcess.isAudio(resource_type)) {
+                return processImageDataResource(file_info, update_info, resource_type);
+            } else {
+                return processAudioFile(file_info, update_info, resource_type);
+            }
         }
     }
 
@@ -432,7 +435,7 @@ public class ResourceProcess {
         return null;
     }
 
-    private WebResourceResponse processAudioFile(JsonObject file_info, JsonObject update_info) throws IOException, ParseException {
+    private WebResourceResponse processAudioFile(JsonObject file_info, JsonObject update_info, int resource_type) {
         String url = file_info.get("url").getAsString();
         String version = update_info.get("version").getAsString();
         boolean is_last_modified = update_info.get("is_last_modified").getAsBoolean();
@@ -456,7 +459,7 @@ public class ResourceProcess {
                 new_value = result;
             if (result == null) {
                 Log.e("GOTO", "return null: " + path + " " + new_value);
-                return null;
+                return promptForRetry(file_info, update_info, resource_type);
             } else if (result.equals("304")) {
                 Log.e("GOTO", "load cached resource: " + path + " " + new_value);
             } else {
@@ -480,8 +483,14 @@ public class ResourceProcess {
             }
         }
 
-        InputStream is = new BufferedInputStream(new FileInputStream(file));
-        return new WebResourceResponse("audio/mpeg", "binary", is);
+        try {
+            InputStream is = new BufferedInputStream(new FileInputStream(file));
+            return new WebResourceResponse("audio/mpeg", "binary", is);
+        } catch (IOException e) {
+            KcUtils.reportException(e);
+            // Fail to load
+            return promptForRetry(file_info, update_info, resource_type);
+        }
     }
 
     private WebResourceResponse processFontFile(JsonObject file_info, JsonObject update_info) throws IOException {
