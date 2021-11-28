@@ -63,6 +63,11 @@
             android:dependency="pref_alter_gadget"
             android:title="@string/setting_alter_endpoint" />
 
+        <SwitchPreferenceCompat
+            android:summary="@string/settings_retry_summary"
+            app:iconSpaceReserved="false"
+            app:key="pref_retry"
+            app:title="@string/settings_retry_enable" />
     </PreferenceCategory>
 
     <PreferenceCategory

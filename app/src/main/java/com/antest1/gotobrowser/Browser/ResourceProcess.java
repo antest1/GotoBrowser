@@ -51,6 +51,8 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
+import static com.antest1.gotobrowser.Constants.PREF_RETRY;
+import static com.antest1.gotobrowser.Constants.PREF_RETRY_DEF;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
@@ -164,6 +166,8 @@ public class ResourceProcess {
         if (url.contains("html/maintenance.html")) return getMaintenanceFiles(false);
         if (url.contains("html/maintenance.png")) return getMaintenanceFiles(true);
         if (resource_type == 0) return null;
+        // Prevent OOI from caching the server name display
+        if (url.contains("ooi_moe_")) return null;
 
         JsonObject file_info = getPathAndFileInfo(source);
         String path = file_info.get("path").getAsString();
@@ -326,7 +330,10 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse promptForRetry(JsonObject file_info, JsonObject update_info, int resource_type) {
-        // TODO check preference
+        boolean isRetryPromptEnabled = sharedPref.getBoolean(PREF_RETRY, PREF_RETRY_DEF);
+        if (!isRetryPromptEnabled) {
+            return null;
+        }
 
         final AtomicReference<Boolean> cancelled = new AtomicReference<>(false);
 
@@ -347,10 +354,10 @@ public class ResourceProcess {
                         break;
                     case DialogInterface.BUTTON_NEGATIVE: // no and never ask again
                         // User give up and it is ok to stop loading
-                        // And never ask again
+                        // And change preference to never ask again
+                        sharedPref.edit().putBoolean(PREF_RETRY, false).apply();
                         cancelled.set(true);
                         retryReady.countDown();
-                        // TODO change preference
                 }
                 dialog.dismiss();
             };

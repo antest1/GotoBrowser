@@ -77,4 +77,12 @@
     <string name="menu_tooltip_kantai3d">3D 적용</string>
 
     <string name="browser_ui_hint_text">« 게임 화면 외의 공간을 눌러 패널을 여세요 »</string>
+
+    <string name="settings_retry_enable">게임 자산 다운로드 재시도</string>
+    <string name="settings_retry_summary">"ゲーム内のサウンドまたは画像アセットのダウンロードに失敗した場合は、再試行オプションを提供するダイアログボックスがポップアップ表示されます。それは不安定なネットワーク環境によって引き起こされるいくつかの猫を避けることができます。 ゲームデータAPIには適用されません。 "</string>
+    <string name="dialog_retry_title">게임 자산 파일을 다운로드하지 못했습니다</string>
+    <string name="dialog_retry_yes">다운로드 다시 시도</string>
+    <string name="dialog_retry_no">아무것도 하지</string>
+    <string name="dialog_retry_never">아무것도 안 해.그만 물어보세요.</string>
+    <string name="dialog_retry_message">게임 클라이언트가 리소스 파일을 다운로드할 때 네트워크 문제가 발생합니다. \n다운로드를 다시 시도하시겠습니까?\n%s</string>
 </resources>

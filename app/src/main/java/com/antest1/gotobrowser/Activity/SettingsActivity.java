@@ -42,6 +42,8 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_PANEL_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
+import static com.antest1.gotobrowser.Constants.PREF_RETRY;
+import static com.antest1.gotobrowser.Constants.PREF_RETRY_DEF;
 import static com.antest1.gotobrowser.Constants.PREF_SETTINGS;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
@@ -88,6 +90,9 @@ public class SettingsActivity extends AppCompatActivity {
                     break;
                 case PREF_ALTER_ENDPOINT:
                     editor.putString(key, DEFAULT_ALTER_GADGET_URL);
+                    break;
+                case PREF_RETRY:
+                    editor.putBoolean(key, PREF_RETRY_DEF);
                     break;
                 default:
                     editor.putString(key, "");

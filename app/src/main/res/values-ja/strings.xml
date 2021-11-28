@@ -76,4 +76,11 @@
     <string name="menu_tooltip_kantai3d">3D効果</string>
 
     <string name="browser_ui_hint_text">« 外側をクリックしてパネルを開く »</string>
+    <string name="settings_retry_enable">ゲームアセットのダウンロードの再試行</string>
+    <string name="settings_retry_summary">"ゲーム内のサウンドまたは画像アセットのダウンロードに失敗した場合は、再試行オプションを提供するダイアログボックスがポップアップ表示されます。それは不安定なネットワーク環境によって引き起こされるいくつかの猫を避けることができます。 ゲームデータAPIには適用されません。 "</string>
+    <string name="dialog_retry_title">ゲームアセットのダウンロードに失敗しました</string>
+    <string name="dialog_retry_yes">ダウンロードを再試行し</string>
+    <string name="dialog_retry_no">何もしない</string>
+    <string name="dialog_retry_never">何もしない，二度と聞かないでください</string>
+    <string name="dialog_retry_message">ゲームクライアントがアセットファイルをダウンロードすると、ネットワークの問題が発生します。\nダウンロードを再試行しますか？\n%s</string>
 </resources>
