@@ -65,6 +65,9 @@
     <string name="menu_tooltip_cc">字幕</string>
     <string name="menu_tooltip_logout">登出</string>
 
+    <string name="settings_legacy_renderer_enable">改用舊式渲染器</string>
+    <string name="settings_legacy_renderer_summary">強制PixiJS引擎使用Canvas渲染器而非WebGL渲染器。可解決大部份圖形奇怪錯誤但會降低效能。</string>
+
     <string name="settings_mod_label">第三方MOD（風險自負）</string>
     <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.0</string>
     <string name="settings_mod_kantai3d_summary">為部份秘書艦添加仿立體的視覺效果及胸部物理。作者：@laplamgor</string>

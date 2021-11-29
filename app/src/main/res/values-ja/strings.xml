@@ -66,6 +66,9 @@
     <string name="menu_tooltip_cc">ロケール</string>
     <string name="menu_tooltip_logout">ログアウト</string>
 
+    <string name="settings_legacy_renderer_summary">PixiJSゲームエンジンにWebGLレンダラーの代わりにCanvasレンダラーを使用するように強制します。 ほとんどのディスプレイの不具合は解決する可能性がありますが、パフォーマンスは低下します。</string>
+    <string name="settings_legacy_renderer_enable">レガシーレンダラを使用する</string>
+
     <string name="settings_mod_label">非公式のMOD（自己責任で使ってください）</string>
     <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.0</string>
     <string name="settings_mod_kantai3d_summary">一部の秘書艦に3Dのような視覚効果とおける乳揺れを追加します。作者：@laplamgor</string>
