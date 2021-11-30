@@ -22,6 +22,7 @@ import static android.view.Surface.ROTATION_0;
 import static android.view.Surface.ROTATION_180;
 import static android.view.Surface.ROTATION_270;
 import static android.view.Surface.ROTATION_90;
+import static com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
 
 public class K3dPatcher implements SensorEventListener {
@@ -89,7 +90,10 @@ public class K3dPatcher implements SensorEventListener {
         // Require reopening the browser after switching the MOD on or off
         SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
-        isPatcherEnabled = sharedPref.getBoolean(PREF_MOD_KANTAI3D, false);
+
+        // Kantai3D is disabled if using a legacy renderer
+        isPatcherEnabled = sharedPref.getBoolean(PREF_MOD_KANTAI3D, false) &&
+                !sharedPref.getBoolean(PREF_LEGACY_RENDERER, false);
 
         if (isPatcherEnabled) {
             this.activity = activity;
