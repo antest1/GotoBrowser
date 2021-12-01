@@ -77,7 +77,7 @@ public class K3dPatcher implements SensorEventListener {
         long newTime = System.currentTimeMillis();
         if (oldTime != 0) {
             // The angle becomes 95% after every 10ms
-            double decay = Math.pow(0.95f, (newTime - oldTime) / 10.0);
+            double decay = Math.pow(0.994359f, (newTime - oldTime) / 1.0);
             gyroX *= decay;
             gyroY *= decay;
         }
@@ -108,7 +108,7 @@ public class K3dPatcher implements SensorEventListener {
 
     public void resume() {
         if (isPatcherEnabled && mSensorManager != null) {
-            mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
+            mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_FASTEST);
         }
     }
 
@@ -301,7 +301,6 @@ public class K3dPatcher implements SensorEventListener {
 
         stringsToReplace.put("$",
                 ";\n" +
-                "setInterval(refreshGyroData, 10)\n" +
                 "\n" +
                 "function refreshGyroData() {\n" +
                 "  if (window.displacementFilter && window.displacementFilter.uniforms && window.displacementFilter.uniforms.offset) {\n" +
@@ -313,6 +312,7 @@ public class K3dPatcher implements SensorEventListener {
                 "\n" +
                 "window.displacementFilter.apply = function(filterManager, input, output)\n" +
                 "{\n" +
+                "  refreshGyroData();\n" +
                 "  this.uniforms.dimensions = {};\n" +
                 "  this.uniforms.dimensions[0] = input.sourceFrame.width;\n" +
                 "  this.uniforms.dimensions[1] = input.sourceFrame.height;\n" +
