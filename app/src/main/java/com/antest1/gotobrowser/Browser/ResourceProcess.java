@@ -50,8 +50,7 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
-import static com.antest1.gotobrowser.Constants.PREF_RETRY;
-import static com.antest1.gotobrowser.Constants.PREF_RETRY_DEF;
+import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
@@ -329,7 +328,7 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse promptForRetry(JsonObject file_info, JsonObject update_info, int resource_type) {
-        boolean isRetryPromptEnabled = sharedPref.getBoolean(PREF_RETRY, PREF_RETRY_DEF);
+        boolean isRetryPromptEnabled = sharedPref.getBoolean(PREF_DOWNLOAD_RETRY, true);
         if (!isRetryPromptEnabled) {
             return null;
         }
@@ -354,7 +353,7 @@ public class ResourceProcess {
                     case DialogInterface.BUTTON_NEGATIVE: // no and never ask again
                         // User give up and it is ok to stop loading
                         // And change preference to never ask again
-                        sharedPref.edit().putBoolean(PREF_RETRY, false).apply();
+                        sharedPref.edit().putBoolean(PREF_DOWNLOAD_RETRY, false).apply();
                         cancelled.set(true);
                         retryReady.countDown();
                 }
