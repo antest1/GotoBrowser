@@ -84,4 +84,12 @@
     <string name="msg_kantai3d_redirect">3D를 지원하는 모든 CG 목록을 보거나 새 심도 그래프를 제출하려면 여기로 이동합니다： https://github.com/laplamgor/kantai3d</string>
 
     <string name="browser_ui_hint_text">« 게임 화면 외의 공간을 눌러 패널을 여세요 »</string>
+
+    <string name="settings_retry_enable">게임 에셋 다운로드 재시도</string>
+    <string name="settings_retry_summary">"게임 내의 사운드 혹은 이미지 에셋의 다운로드에 실패한 경우, 다시 다운받을 수 있는 다이얼로그가 표시됩니다. 불안정한 네트워크 환경에 의해 발생하는 에러코 문제를 해결할 수 있습니다. 게임 데이터의 API에는 적용되지 않습니다."</string>
+    <string name="dialog_retry_title">게임 에셋 파일을 다운로드하지 못했습니다</string>
+    <string name="dialog_retry_yes">다운로드 다시 시도</string>
+    <string name="dialog_retry_no">아무것도 하지 않음</string>
+    <string name="dialog_retry_never">다시 물어보지 않음</string>
+    <string name="dialog_retry_message">게임 클라이언트에서 리소스 파일을 다운로드하는 중 네트워크 문제가 발생합니다. \n다운로드를 다시 시도하시겠습니까?\n%s</string>
 </resources>

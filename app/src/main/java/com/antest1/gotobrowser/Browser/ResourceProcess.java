@@ -1,6 +1,8 @@
 package com.antest1.gotobrowser.Browser;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
@@ -27,11 +29,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,6 +50,7 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
+import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
@@ -160,6 +164,7 @@ public class ResourceProcess {
         if (url.contains("html/maintenance.html")) return getMaintenanceFiles(false);
         if (url.contains("html/maintenance.png")) return getMaintenanceFiles(true);
         if (resource_type == 0) return null;
+        if (url.contains("ooi_moe_")) return null; // Prevent OOI from caching the server name display
 
         JsonObject file_info = getPathAndFileInfo(source);
         String path = file_info.get("path").getAsString();
@@ -184,7 +189,7 @@ public class ResourceProcess {
                 JsonObject update_info = checkResourceUpdate(source);
                 if (is_image || is_json) return processImageDataResource(file_info, update_info, resource_type);
                 if (is_js) return processScriptFile(file_info);
-                if (is_audio) return processAudioFile(file_info, update_info);
+                if (is_audio) return processAudioFile(file_info, update_info, resource_type);
                 if (is_css) return processStylesheet(file_info);
                 if (is_font) {
                     if (sharedPref.getBoolean(PREF_FONT_PREFETCH, true)) {
@@ -285,41 +290,103 @@ public class ResourceProcess {
         String path = file_info.get("path").getAsString();
         String resource_url = file_info.get("full_url").getAsString();
         String out_file_path = file_info.get("out_file_path").getAsString();
-        try {
-            File file = getImageFile(out_file_path);
-            if (!file.exists()) {
-                versionTable.putDefaultValue(path);
-                update_flag = true;
-            }
-            Log.e("GOTO", "requested: " + file.getPath());
-            if (update_flag) {
-                String result = downloadResource(resourceClient, resource_url, last_modified, file);
-                String new_value = version;
-                if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value)) new_value = result;
-                if (result == null) {
-                    Log.e("GOTO", "return null: " + path + " " + new_value);
-                    return null;
-                } else if (result.equals("304")) {
-                    Log.e("GOTO", "load 304 resource: " + path + " " + new_value);
-                } else {
-                    Log.e("GOTO", "cache resource: " + path + " " + new_value);
-                    versionTable.putValue(path, new_value);
-                }
+        File file = getImageFile(out_file_path);
+        if (!file.exists()) {
+            versionTable.putDefaultValue(path);
+            update_flag = true;
+        }
+        Log.e("GOTO", "requested: " + file.getPath());
+        if (update_flag) {
+            String result = downloadResource(resourceClient, resource_url, last_modified, file);
+            String new_value = version;
+            if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value))
+                new_value = result;
+            if (result == null) {
+                Log.e("GOTO", "return null: " + path + " " + new_value);
+                return promptForRetry(file_info, update_info, resource_type);
+            } else if (result.equals("304")) {
+                Log.e("GOTO", "load 304 resource: " + path + " " + new_value);
             } else {
-                Log.e("GOTO", "load cached resource: " + file.getPath() + " " + version);
+                Log.e("GOTO", "cache resource: " + path + " " + new_value);
+                versionTable.putValue(path, new_value);
             }
+        } else {
+            Log.e("GOTO", "load cached resource: " + file.getPath() + " " + version);
+        }
 
+        try {
             InputStream is = new BufferedInputStream(new FileInputStream(file));
             Log.e("GOTO" , out_file_path + " " + is.available());
-            if (ResourceProcess.isImage(resource_type)) {
-                return new WebResourceResponse("image/png", "utf-8", is);
-            } else if (ResourceProcess.isJson(resource_type)) {
-                return new WebResourceResponse("application/json", "utf-8", is);
-            }
+
+            String type = ResourceProcess.isImage(resource_type) ? "image/png" : "application/json";
+            return new WebResourceResponse(type, "utf-8", is);
         } catch (IOException e) {
             KcUtils.reportException(e);
+            // Fail to load
+            return promptForRetry(file_info, update_info, resource_type);
         }
-        return null;
+    }
+
+    private WebResourceResponse promptForRetry(JsonObject file_info, JsonObject update_info, int resource_type) {
+        boolean isRetryPromptEnabled = sharedPref.getBoolean(PREF_DOWNLOAD_RETRY, true);
+        if (!isRetryPromptEnabled) {
+            return null;
+        }
+
+        final AtomicReference<Boolean> cancelled = new AtomicReference<>(false);
+
+        final CountDownLatch retryReady = new CountDownLatch(1);
+        activity.runOnUiThread(() -> {
+            DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+                switch (which) {
+                    case DialogInterface.BUTTON_POSITIVE: // yes
+                        // User allow retry recovery
+                        // We can proceed to next iteration
+                        retryReady.countDown();
+                        break;
+                    default:
+                    case DialogInterface.BUTTON_NEUTRAL: // no
+                        // User give up and it is ok to stop loading
+                        cancelled.set(true);
+                        retryReady.countDown();
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE: // no and never ask again
+                        // User give up and it is ok to stop loading
+                        // And change preference to never ask again
+                        sharedPref.edit().putBoolean(PREF_DOWNLOAD_RETRY, false).apply();
+                        cancelled.set(true);
+                        retryReady.countDown();
+                }
+                dialog.dismiss();
+            };
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            String path = file_info.get("path").getAsString();
+            builder.setTitle(activity.getString(R.string.dialog_retry_title))
+                    .setMessage(String.format(activity.getString(R.string.dialog_retry_message), path))
+                    .setPositiveButton(activity.getString(R.string.dialog_retry_yes), dialogClickListener)
+                    .setNeutralButton(activity.getString(R.string.dialog_retry_no), dialogClickListener)
+                    .setNegativeButton(activity.getString(R.string.dialog_retry_never), dialogClickListener)
+                    .setCancelable(false).show();
+        });
+
+        try {
+            // Wait for the user choice
+            retryReady.await();
+        } catch (InterruptedException e) {
+            // Possible exit: system interrupt
+            return null;
+        }
+
+        if (cancelled.get()) {
+            return null;
+        } else {
+            if (ResourceProcess.isImage(resource_type) || ResourceProcess.isAudio(resource_type)) {
+                return processImageDataResource(file_info, update_info, resource_type);
+            } else {
+                return processAudioFile(file_info, update_info, resource_type);
+            }
+        }
     }
 
     private WebResourceResponse processScriptFile(JsonObject file_info) throws IOException {
@@ -367,7 +434,7 @@ public class ResourceProcess {
         return null;
     }
 
-    private WebResourceResponse processAudioFile(JsonObject file_info, JsonObject update_info) throws IOException, ParseException {
+    private WebResourceResponse processAudioFile(JsonObject file_info, JsonObject update_info, int resource_type) {
         String url = file_info.get("url").getAsString();
         String version = update_info.get("version").getAsString();
         boolean is_last_modified = update_info.get("is_last_modified").getAsBoolean();
@@ -391,7 +458,7 @@ public class ResourceProcess {
                 new_value = result;
             if (result == null) {
                 Log.e("GOTO", "return null: " + path + " " + new_value);
-                return null;
+                return promptForRetry(file_info, update_info, resource_type);
             } else if (result.equals("304")) {
                 Log.e("GOTO", "load cached resource: " + path + " " + new_value);
             } else {
@@ -415,8 +482,14 @@ public class ResourceProcess {
             }
         }
 
-        InputStream is = new BufferedInputStream(new FileInputStream(file));
-        return new WebResourceResponse("audio/mpeg", "binary", is);
+        try {
+            InputStream is = new BufferedInputStream(new FileInputStream(file));
+            return new WebResourceResponse("audio/mpeg", "binary", is);
+        } catch (IOException e) {
+            KcUtils.reportException(e);
+            // Fail to load
+            return promptForRetry(file_info, update_info, resource_type);
+        }
     }
 
     private WebResourceResponse processFontFile(JsonObject file_info, JsonObject update_info) throws IOException {

@@ -43,6 +43,7 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_PANEL_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
+import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_SETTINGS;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
@@ -71,6 +72,7 @@ public class SettingsActivity extends AppCompatActivity {
         for (String key: PREF_SETTINGS) {
             if (!sharedPref.contains(key)) switch (key) {
                 case PREF_FONT_PREFETCH:
+                case PREF_DOWNLOAD_RETRY:
                     editor.putBoolean(key, true);
                     break;
                 case PREF_PIP_MODE:

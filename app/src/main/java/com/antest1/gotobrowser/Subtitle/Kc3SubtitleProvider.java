@@ -323,7 +323,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
     }
 
 
-    public SubtitleData getSubtitleData(String url, String path, String voiceSize) throws ParseException {
+    public SubtitleData getSubtitleData(String url, String path, String voiceSize) {
         SubtitleData data = null;
         if (url.contains("/kcs/sound/kc")) {
             String info = path.replace("/kcs/sound/kc", "").replace(".mp3", "");
@@ -347,8 +347,13 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                 Date now = new Date();
                 String voiceLineTime = String.format(Locale.US, "%02d:00:00", voiceLineValue - 30);
                 @SuppressLint("SimpleDateFormat") SimpleDateFormat time_fmt = new SimpleDateFormat("HH:mm:ss");
-                Date time_src = time_fmt.parse(time_fmt.format(now));
-                Date time_tgt = time_fmt.parse(voiceLineTime);
+                Date time_src, time_tgt;
+                try {
+                    time_src = time_fmt.parse(time_fmt.format(now));
+                    time_tgt = time_fmt.parse(voiceLineTime);
+                } catch (ParseException e) {
+                    return null;
+                }
                 long diffMsec = time_tgt.getTime() - time_src.getTime();
                 if (voiceLineValue == 30) diffMsec += 86400000;
 
