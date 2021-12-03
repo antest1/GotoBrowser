@@ -67,13 +67,17 @@
     <string name="menu_tooltip_logout">ログアウト</string>
 
     <string name="settings_mod_label">非公式のMOD（自己責任で使ってください）</string>
-    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.0</string>
+    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.1</string>
     <string name="settings_mod_kantai3d_summary">一部の秘書艦に3Dのような視覚効果とおける乳揺れを追加します。作者：@laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_fps_enable">60FPS制限を削除します</string>
     <string name="settings_mod_fps_summary">高リフレッシュ・レート対応。ゲームの速度は影響を受けません。</string>
     <string name="settings_use_external_dir">キャッシングに外部ストレージを使用</string>
     <string name="menu_tooltip_kantai3d">3D効果</string>
+    <string name="msg_kantai3d_init">秘書艦は発見されなかった</string>
+    <string name="msg_kantai3d_loaded">現在の秘書艦CGの深度マップをダウンロードしました： %s</string>
+    <string name="msg_kantai3d_error">現在の秘書艦CGの深度マップが見つからない： %s</string>
+    <string name="msg_kantai3d_redirect">3D対応のCGリストをすべて表示したり、新しい深さマップに貢献したりするには: https://github.com/laplamgor/kantai3d</string>
 
     <string name="browser_ui_hint_text">« 外側をクリックしてパネルを開く »</string>
 </resources>
