@@ -69,13 +69,17 @@
     <string name="settings_legacy_renderer_summary">強制PixiJS引擎使用Canvas渲染器而非WebGL渲染器。可解決大部份圖形奇怪錯誤但會降低效能。</string>
 
     <string name="settings_mod_label">第三方MOD（風險自負）</string>
-    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.0</string>
+    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.1</string>
     <string name="settings_mod_kantai3d_summary">為部份秘書艦添加仿立體的視覺效果及胸部物理。作者：@laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_fps_enable">移除60幀限制</string>
     <string name="settings_mod_fps_summary">支持高刷新率手機。遊戲速度不會受影響。</string>
     <string name="settings_use_external_dir">使用外部存儲存放快取</string>
     <string name="menu_tooltip_kantai3d">開關立體效果</string>
+    <string name="msg_kantai3d_init">未偵察到秘書艦</string>
+    <string name="msg_kantai3d_loaded">已載入目前秘書艦CG的深度圖： %s</string>
+    <string name="msg_kantai3d_error">找不到目前秘書艦CG的深度圖： %s</string>
+    <string name="msg_kantai3d_redirect">欲查看所有支持 3D 的 CG 列表，或貢獻新的深度圖，請前往： https://github.com/laplamgor/kantai3d</string>
 
     <string name="browser_ui_hint_text">« 點擊外側任意位置以打開面板 »</string>
 </resources>

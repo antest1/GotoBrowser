@@ -130,7 +130,7 @@ public class BrowserActivity extends AppCompatActivity {
 
             mContentView = findViewById(R.id.main_browser);
 
-            mContentView.addJavascriptInterface(k3dPatcher,"gyroData");
+            mContentView.addJavascriptInterface(k3dPatcher,"kantai3dInterface");
 
 
             manager.setHardwareAcceleratedFlag();
@@ -185,7 +185,6 @@ public class BrowserActivity extends AppCompatActivity {
 
             ImageView menuKantai3d = findViewById(R.id.menu_kantai3d);
             if (k3dPatcher.isPatcherEnabled()) {
-                menuKantai3d.setColorFilter(ContextCompat.getColor(getApplicationContext(), k3dPatcher.isEffectEnabled() ? R.color.colorAccent : R.color.lightGray));
                 menuKantai3d.setOnClickListener(this::setKantai3dMode);
             } else {
                 menuKantai3d.setVisibility(View.GONE);
@@ -555,12 +554,7 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     private void setKantai3dMode(View v) {
-        k3dPatcher.setEffectEnabled(!k3dPatcher.isEffectEnabled());
-        if (k3dPatcher.isEffectEnabled()) {
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
-        } else {
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
-        }
+        k3dPatcher.showDialog();
     }
 
     public void showRefreshDialog() {

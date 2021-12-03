@@ -71,13 +71,17 @@
     <string name="settings_legacy_renderer_enable">레거시 렌더러 사용</string>
 
     <string name="settings_mod_label">서드파티 모드 (자기 책임하에 사용하세요)</string>
-    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.0</string>
+    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.1</string>
     <string name="settings_mod_kantai3d_summary">일부 비서함에 3D 효과 적용. 저자: @laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_fps_enable">60FPS 제한 제거</string>
     <string name="settings_mod_fps_summary">더 높은 화면 재생 빈도 장치를 지원합니다. 애니메이션 속도는 영향을 받지 않습니다.</string>
     <string name="settings_use_external_dir">리소스 캐싱 시 외부 저장소 사용</string>
     <string name="menu_tooltip_kantai3d">3D 적용</string>
+    <string name="msg_kantai3d_init">비서함에 미정찰</string>
+    <string name="msg_kantai3d_loaded">현재 비서함 CG의 깊이도를 불러왔습니다： %s</string>
+    <string name="msg_kantai3d_error">현재 비서함 CG의 깊이도를 찾을 수 없습니다： %s</string>
+    <string name="msg_kantai3d_redirect">3D를 지원하는 모든 CG 목록을 보거나 새 심도 그래프를 제출하려면 여기로 이동합니다： https://github.com/laplamgor/kantai3d</string>
 
     <string name="browser_ui_hint_text">« 게임 화면 외의 공간을 눌러 패널을 여세요 »</string>
 </resources>
