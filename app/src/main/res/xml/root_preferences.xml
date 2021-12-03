@@ -37,6 +37,12 @@
             app:key="pref_use_extcache"
             app:title="@string/settings_use_external_dir" />
 
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="pref_legacy_renderer"
+            app:title="@string/settings_legacy_renderer_enable"
+            app:summary="@string/settings_legacy_renderer_summary"/>
+
     </PreferenceCategory>
 
     <PreferenceCategory

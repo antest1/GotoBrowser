@@ -56,7 +56,6 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
-import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.APP_UI_HELP_VER;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CAPTURE;
@@ -134,7 +133,7 @@ public class BrowserActivity extends AppCompatActivity {
             mContentView.addJavascriptInterface(k3dPatcher,"gyroData");
 
 
-            manager.setHardwardAcceleratedFlag();
+            manager.setHardwareAcceleratedFlag();
 
             // panel, keyboard settings
             initPanelKeyboardFromIntent(getIntent());
@@ -218,7 +217,7 @@ public class BrowserActivity extends AppCompatActivity {
 
             boolean useDevTools = sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
             if (connector_info != null && connector_info.size() == 2) {
-                WebViewManager.setWebViewSettings(mContentView);
+                manager.setWebViewSettings(mContentView);
                 WebViewManager.enableBrowserCookie(mContentView);
                 WebViewManager.setWebViewDebugging(useDevTools);
                 manager.setWebViewClient(this, mContentView, connector_info);

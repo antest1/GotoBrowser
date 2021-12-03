@@ -67,6 +67,7 @@ import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
+import static com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER;
 import static com.antest1.gotobrowser.Constants.URL_DMM;
 import static com.antest1.gotobrowser.Constants.URL_DMM_FOREIGN;
 import static com.antest1.gotobrowser.Constants.URL_DMM_LOGIN;
@@ -80,12 +81,13 @@ import static com.antest1.gotobrowser.Constants.URL_OOI_LOGOUT;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
 
-;
-
 public class WebViewManager {
     public static final String OPEN_KANCOLLE = "open_kancolle";
     public static final String OPEN_RES_DOWN = "open_res_down";
-    public static final String userAgent = "Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36";
+
+    public static final String USER_AGENT = "Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36";
+    public static final String USER_AGENT_IOS = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1";
+
     private boolean logoutFlag;
     private BrowserActivity activity;
     private ResourceProcess resourceProcess;
@@ -99,7 +101,7 @@ public class WebViewManager {
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
     }
 
-    public void setHardwardAcceleratedFlag() {
+    public void setHardwareAcceleratedFlag() {
         activity.getWindow().setFlags( WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
     }
@@ -114,7 +116,7 @@ public class WebViewManager {
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    public static void setWebViewSettings(WebViewL view) {
+    public void setWebViewSettings(WebViewL view) {
         view.setInitialScale(1);
         view.getSettings().setLoadWithOverviewMode(true);
         view.getSettings().setSaveFormData(true);
@@ -125,9 +127,8 @@ public class WebViewManager {
         view.getSettings().setTextZoom(100);
         view.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         view.getSettings().setSupportMultipleWindows(true);
-        // mContentView.getSettings().setBuiltInZoomControls(true);
         view.getSettings().setSupportZoom(false);
-        view.getSettings().setUserAgentString(userAgent);
+        setWebViewRendererSetting(view);
         view.setScrollbarFadingEnabled(true);
         view.getSettings().setAppCacheEnabled(false);
         view.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
@@ -528,5 +529,29 @@ public class WebViewManager {
         } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, CAPTURE_SEND_OOI), callback);
         }
+    }
+
+    private void setWebViewRendererSetting(WebViewL view) {
+        // Setting the user agent to change PIXI renderer type:
+        // It is the easiest way to improve compatibility,
+        // without extra patching to the game client or PixiJS library
+
+        // In modern chromium/webview implementation,
+        // disabling HW acceleration does not necessarily fully disable WebGL functionality
+        // WebView will still use software/CPU to achieve partial WebGL compatibility
+        // In this case, the game does not run.
+        // So, disabling HW acceleration in App-level is pointless
+
+        // In order to support old devices that don't run OpenGL,
+        // PixiJS provides an option to use HTML5 Canvas renderer instead of WebGL renderer
+        // WebView actually has some GPU HW acceleration on Canvas applications
+        // But this PixiJS Canvas renderer is much more consistency across different HW
+
+        // Kancolle can run on Canvas renderer.
+        // Indeed, Kancolle game client has a hardcoded logic for iOS devices
+        // if user agent is iOS device, KC will set forceCanvas:true when init the PIXI Application
+
+        boolean useCanvas = sharedPref.getBoolean(PREF_LEGACY_RENDERER, false);
+        view.getSettings().setUserAgentString(useCanvas ? USER_AGENT_IOS : USER_AGENT);
     }
 }
