@@ -77,7 +77,7 @@
     <string name="settings_mod_fps_summary">高リフレッシュ・レート対応。ゲームの速度は影響を受けません。</string>
     <string name="settings_use_external_dir">キャッシングに外部ストレージを使用</string>
     <string name="menu_tooltip_kantai3d">3D効果</string>
-    <string name="msg_kantai3d_init">秘書艦は発見されなかった</string>
+    <string name="msg_kantai3d_init">秘書艦が検出されません</string>
     <string name="msg_kantai3d_loaded">現在の秘書艦CGの深度マップをダウンロードしました： %s</string>
     <string name="msg_kantai3d_error">現在の秘書艦CGの深度マップが見つからない： %s</string>
     <string name="msg_kantai3d_redirect">3D対応のCGリストをすべて表示したり、新しい深さマップに貢献したりするには: https://github.com/laplamgor/kantai3d</string>
