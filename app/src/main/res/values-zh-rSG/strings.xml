@@ -82,4 +82,12 @@
     <string name="msg_kantai3d_redirect">欲查看所有支持 3D 的 CG 列表，或贡献新的深度图，请访问： https://github.com/laplamgor/kantai3d</string>
 
     <string name="browser_ui_hint_text">« 点击外侧任意位置以打开面板 »</string>
+
+    <string name="settings_retry_enable">重试游戏数据下载</string>
+    <string name="settings_retry_summary">下载任何游戏内声音或图像失败时提示对话框要求重试。有时避免网络不好导致的猫。不适用于游戏数据API。</string>
+    <string name="dialog_retry_title">下载游戏文件失败</string>
+    <string name="dialog_retry_yes">重试下载</string>
+    <string name="dialog_retry_no">什么也不做</string>
+    <string name="dialog_retry_never">什么也不做，不要再询问</string>
+    <string name="dialog_retry_message">游戏客户端下载资源文件时出现网络问题。\n要重试下载吗？\n%s</string>
 </resources>

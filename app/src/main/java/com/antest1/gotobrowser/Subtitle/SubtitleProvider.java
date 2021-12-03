@@ -8,7 +8,6 @@ import com.antest1.gotobrowser.Activity.SettingsActivity;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.google.gson.JsonObject;
 
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,7 +17,7 @@ public interface SubtitleProvider {
 
     boolean loadQuoteData(Context context, String localeCode);
 
-    SubtitleData getSubtitleData(String url, String path, String voiceSize) throws ParseException;
+    SubtitleData getSubtitleData(String url, String path, String voiceSize);
 
     void checkUpdateFromPreference(SettingsActivity.SettingsFragment fragment, String localeCode, Preference subtitleUpdate, VersionDatabase versionTable);
 
