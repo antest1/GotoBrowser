@@ -77,8 +77,11 @@
     <string name="menu_tooltip_cc">Subtitle</string>
     <string name="menu_tooltip_logout">Logout</string>
 
+    <string name="settings_legacy_renderer_enable">Use Legacy Renderer</string>
+    <string name="settings_legacy_renderer_summary">Force PixiJS game engine to use Canvas renderer instead of WebGL renderer. It may solve most display glitches but reduce performance.</string>
+
     <string name="settings_mod_label">Third Party Mods (use at your own risk)</string>
-    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.0</string>
+    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.1</string>
     <string name="settings_mod_kantai3d_summary">Add 3D-like visual effects and jiggle physics to some of your secretaries. Author: @laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_kantaien_enable">[Beta] KanColle English Patch</string>
@@ -89,10 +92,23 @@
     <string name="settings_mod_fps_summary">Support higher refresh rate devices. Animation speed is not affected.</string>
     <string name="settings_use_external_dir">Use External Storage for Resource Caching</string>
     <string name="menu_tooltip_kantai3d">Toggle 3D effects</string>
+    <string name="msg_kantai3d_init">No secretary detected</string>
+    <string name="msg_kantai3d_loaded">The depth map of the current secretary CG is loaded: %s</string>
+    <string name="msg_kantai3d_error">The depth map of the current secretary CG is unavailable: %s</string>
+    <string name="msg_kantai3d_redirect">To see the list of all 3D-supported CG, or contribute new depth maps, please visit: https://github.com/laplamgor/kantai3d</string>
+
 
     <string name="download_start" translatable="false">Download starting…</string>
     <string name="installation_start" translatable="false">Installation starting…</string>
     <string name="installation_done" translatable="false">Installation complete!</string>
 
     <string name="browser_ui_hint_text">« click any outside area to open the panel »</string>
+
+    <string name="settings_retry_enable">Retry Game Asset Download</string>
+    <string name="settings_retry_summary">Prompt a dialog to ask for retry when failed to download any in-game sound or image asset. Sometimes avoid cats caused by poor network. DO NOT apply to gameplay data API.</string>
+    <string name="dialog_retry_title">Failed to download a game asset file</string>
+    <string name="dialog_retry_yes">Retry the download</string>
+    <string name="dialog_retry_no">Do nothing</string>
+    <string name="dialog_retry_never">Do nothing and never ask again</string>
+    <string name="dialog_retry_message">A network issue occurs when game client downloads a resource file.\nDo you want to retry the download?\n%s</string>
 </resources>

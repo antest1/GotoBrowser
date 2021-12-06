@@ -68,8 +68,11 @@
     <string name="menu_tooltip_cc">자막</string>
     <string name="menu_tooltip_logout">로그아웃</string>
 
+    <string name="settings_legacy_renderer_summary">PixiJS 엔진에 WebGL 렌더링 대신 Canvas 렌더링을 사용하도록 설정합니다. 대부분의 그래픽 관련 이슈를 해결할 수 있지만 성능이 떨어질 수 있습니다.</string>
+    <string name="settings_legacy_renderer_enable">레거시 렌더러 사용</string>
+
     <string name="settings_mod_label">서드파티 모드 (자기 책임하에 사용하세요)</string>
-    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.0</string>
+    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.1</string>
     <string name="settings_mod_kantai3d_summary">일부 비서함에 3D 효과 적용. 저자: @laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_kantaien_enable">[Beta] KanColle English Patch</string>
@@ -80,6 +83,18 @@
     <string name="settings_mod_fps_summary">더 높은 화면 재생 빈도 장치를 지원합니다. 애니메이션 속도는 영향을 받지 않습니다.</string>
     <string name="settings_use_external_dir">리소스 캐싱 시 외부 저장소 사용</string>
     <string name="menu_tooltip_kantai3d">3D 적용</string>
+    <string name="msg_kantai3d_init">비서함 감지 안됨</string>
+    <string name="msg_kantai3d_loaded">현재 비서함 CG의 depth map 정보를 불러왔습니다： %s</string>
+    <string name="msg_kantai3d_error">현재 비서함 CG의 depth map 정보를 찾을 수 없습니다： %s</string>
+    <string name="msg_kantai3d_redirect">3D를 지원하는 모든 CG 목록을 보거나 새 depth map을 제출하려면 여기로 이동합니다： https://github.com/laplamgor/kantai3d</string>
 
     <string name="browser_ui_hint_text">« 게임 화면 외의 공간을 눌러 패널을 여세요 »</string>
+
+    <string name="settings_retry_enable">게임 에셋 다운로드 재시도</string>
+    <string name="settings_retry_summary">"게임 내의 사운드 혹은 이미지 에셋의 다운로드에 실패한 경우, 다시 다운받을 수 있는 다이얼로그가 표시됩니다. 불안정한 네트워크 환경에 의해 발생하는 에러코 문제를 해결할 수 있습니다. 게임 데이터의 API에는 적용되지 않습니다."</string>
+    <string name="dialog_retry_title">게임 에셋 파일을 다운로드하지 못했습니다</string>
+    <string name="dialog_retry_yes">다운로드 다시 시도</string>
+    <string name="dialog_retry_no">아무것도 하지 않음</string>
+    <string name="dialog_retry_never">다시 물어보지 않음</string>
+    <string name="dialog_retry_message">게임 클라이언트에서 리소스 파일을 다운로드하는 중 네트워크 문제가 발생합니다. \n다운로드를 다시 시도하시겠습니까?\n%s</string>
 </resources>

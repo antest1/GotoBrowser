@@ -36,12 +36,14 @@ public class Constants {
     public static final String PREF_ALTER_METHOD = "pref_alter_method";
     public static final String PREF_ALTER_ENDPOINT = "pref_alter_endpoint";
     public static final String PREF_TP_DISCLAIMED = "pref_tp_disclaimed";
+    public static final String PREF_LEGACY_RENDERER = "pref_legacy_renderer";
     public static final String PREF_MOD_KANTAI3D = "pref_mod_kantai3d";
     public static final String PREF_MOD_KANTAIEN = "pref_mod_kantaien";
     public static final String PREF_MOD_KANTAIEN_UPDATE = "pref_mod_kantaien_update";
     public static final String PREF_MOD_FPS = "pref_mod_fps";
     public static final String PREF_USE_EXTCACHE = "pref_use_extcache";
     public static final String PREF_UI_HELP_CHECKED = "pref_ui_help_checked";
+    public static final String PREF_DOWNLOAD_RETRY = "pref_retry";
 
     public static final String[] PREF_SETTINGS = {
             PREF_FONT_PREFETCH,
@@ -54,7 +56,9 @@ public class Constants {
             PREF_DEVTOOLS_DEBUG,
             PREF_ALTER_METHOD,
             PREF_ALTER_ENDPOINT,
+            PREF_DOWNLOAD_RETRY,
             PREF_TP_DISCLAIMED,
+            PREF_LEGACY_RENDERER,
             PREF_MOD_KANTAI3D,
             PREF_MOD_KANTAIEN,
             PREF_MOD_FPS,

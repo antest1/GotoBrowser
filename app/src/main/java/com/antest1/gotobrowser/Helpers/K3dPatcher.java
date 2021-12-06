@@ -7,11 +7,17 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.view.View;
 import android.webkit.JavascriptInterface;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.SwitchCompat;
 
 import com.antest1.gotobrowser.R;
 
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,6 +28,7 @@ import static android.view.Surface.ROTATION_0;
 import static android.view.Surface.ROTATION_180;
 import static android.view.Surface.ROTATION_270;
 import static android.view.Surface.ROTATION_90;
+import static com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
 
 public class K3dPatcher implements SensorEventListener {
@@ -72,12 +79,27 @@ public class K3dPatcher implements SensorEventListener {
         return (float)gotY * sign ;
     }
 
+    private String imageUrl = null;
+    private boolean depthMapLoaded = false;
+
+    @JavascriptInterface
+    public void notifyError(String newImageUrl){
+        imageUrl = newImageUrl;
+        depthMapLoaded = false;
+    }
+
+    @JavascriptInterface
+    public void notifyLoaded(String newImageUrl){
+        imageUrl = newImageUrl;
+        depthMapLoaded = true;
+    }
+
     private void decayTiltAngle() {
         // Slowly rebound the tile angle until it becomes centre
         long newTime = System.currentTimeMillis();
         if (oldTime != 0) {
             // The angle becomes 95% after every 10ms
-            double decay = Math.pow(0.95f, (newTime - oldTime) / 10.0);
+            double decay = Math.pow(0.994359f, (newTime - oldTime) / 1.0);
             gyroX *= decay;
             gyroY *= decay;
         }
@@ -89,7 +111,10 @@ public class K3dPatcher implements SensorEventListener {
         // Require reopening the browser after switching the MOD on or off
         SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
-        isPatcherEnabled = sharedPref.getBoolean(PREF_MOD_KANTAI3D, false);
+
+        // Kantai3D is disabled if using a legacy renderer
+        isPatcherEnabled = sharedPref.getBoolean(PREF_MOD_KANTAI3D, false) &&
+                !sharedPref.getBoolean(PREF_LEGACY_RENDERER, false);
 
         if (isPatcherEnabled) {
             this.activity = activity;
@@ -108,7 +133,7 @@ public class K3dPatcher implements SensorEventListener {
 
     public void resume() {
         if (isPatcherEnabled && mSensorManager != null) {
-            mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
+            mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_FASTEST);
         }
     }
 
@@ -145,6 +170,31 @@ public class K3dPatcher implements SensorEventListener {
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
+
+    public void showDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        View dialogView = activity.getLayoutInflater().inflate(R.layout.k3d_form, null);
+
+        if (imageUrl != null) {
+            final TextView textView = dialogView.findViewById(R.id.kantai3d_msg_text);
+            textView.setText(String.format(Locale.US, activity.getString(depthMapLoaded ?
+                    R.string.msg_kantai3d_loaded : R.string.msg_kantai3d_error), imageUrl));
+        }
+
+        final SwitchCompat switchCompat = dialogView.findViewById(R.id.switch_3d);
+        switchCompat.setChecked(isEffectEnabled());
+
+        builder.setView(dialogView);
+        builder.setPositiveButton(R.string.text_save, (dialog, which) -> {
+            // Make the change effective
+            setEffectEnabled(switchCompat.isChecked());
+            dialog.dismiss();
+        });
+
+        builder.setNegativeButton(R.string.text_cancel, (dialog, which) -> dialog.cancel());
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     public static String patchKantai3d(String main_js){
@@ -187,6 +237,7 @@ public class K3dPatcher implements SensorEventListener {
                 "window.currentChara = this._chara;\n" +
                 "\n" +
                 "if (window.displacementSprite.width != 1) {\n" +
+                "    window.kantai3dInterface.notifyLoaded(window.displacementPath.replace(/resources\\\\/ship\\\\/full[_dmg]*\\\\/([0-9]*)_([0-9_a-z]*).png(\\\\?version=)?([0-9]*)/g, \"\\$1_\\$2_v\\$4\\.png\"));\n" +
                 "    // The depth map is already loaded\n" +
                 "    window.displacementFilter.uniforms.displacementMap = window.displacementSprite.texture;\n" +
                 "    window.displacementFilter.uniforms.scale = 1.0;\n" +
@@ -204,6 +255,7 @@ public class K3dPatcher implements SensorEventListener {
                 "    // Disable the filter first\n" +
                 "    window.currentChara.filters = [];\n" +
                 "    window.displacementSprite.texture.baseTexture.on('loaded', function(){\n" +
+                "        window.kantai3dInterface.notifyLoaded(window.displacementPath.replace(/resources\\\\/ship\\\\/full[_dmg]*\\\\/([0-9]*)_([0-9_a-z]*).png(\\\\?version=)?([0-9]*)/g, \"\\$1_\\$2_v\\$4\\.png\"));\n" +
                 "        // Re-enable the filter when resource loaded\n" +
                 "        window.displacementFilter.uniforms.displacementMap = window.displacementSprite.texture;\n" +
                 "        window.displacementFilter.uniforms.scale = 1.0;\n" +
@@ -217,6 +269,9 @@ public class K3dPatcher implements SensorEventListener {
                 "        prepareJiggle(window.currentChara.texture, window.displacementSprite.texture);\n" +
                 "        window.displacementFilter.uniforms.displacementMap = window.jiggledDepthMapRT.texture;\n" +
                 "    });\n" +
+                "    window.displacementSprite.texture.baseTexture.on('error', function(){\n" +
+                "        window.kantai3dInterface.notifyError(window.displacementPath.replace(/resources\\\\/ship\\\\/full[_dmg]*\\\\/([0-9]*)_([0-9_a-z]*).png(\\\\?version=)?([0-9]*)/g, \"\\$1_\\$2_v\\$4\\.png\"));\n" +
+                "    })" +
                 "}" +
 
                 "///////////////////////////////////\n" +
@@ -301,18 +356,18 @@ public class K3dPatcher implements SensorEventListener {
 
         stringsToReplace.put("$",
                 ";\n" +
-                "setInterval(refreshGyroData, 10)\n" +
                 "\n" +
                 "function refreshGyroData() {\n" +
                 "  if (window.displacementFilter && window.displacementFilter.uniforms && window.displacementFilter.uniforms.offset) {\n" +
-                "    window.displacementFilter.uniforms.offset[0] = window.gyroData.getX();\n" +
-                "    window.displacementFilter.uniforms.offset[1] = window.gyroData.getY();\n" +
+                "    window.displacementFilter.uniforms.offset[0] = window.kantai3dInterface.getX();\n" +
+                "    window.displacementFilter.uniforms.offset[1] = window.kantai3dInterface.getY();\n" +
                 "  }" +
                 "}" +
                 "window.displacementFilter = new PIXI.Filter(null, `" + frag + "`);\n" +
                 "\n" +
                 "window.displacementFilter.apply = function(filterManager, input, output)\n" +
                 "{\n" +
+                "  refreshGyroData();\n" +
                 "  this.uniforms.dimensions = {};\n" +
                 "  this.uniforms.dimensions[0] = input.sourceFrame.width;\n" +
                 "  this.uniforms.dimensions[1] = input.sourceFrame.height;\n" +

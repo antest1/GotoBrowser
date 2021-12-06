@@ -67,8 +67,11 @@
     <string name="menu_tooltip_cc">ロケール</string>
     <string name="menu_tooltip_logout">ログアウト</string>
 
+    <string name="settings_legacy_renderer_summary">PixiJSゲームエンジンにWebGLレンダラーの代わりにCanvasレンダラーを使用するように強制します。 ほとんどのディスプレイの不具合は解決する可能性がありますが、パフォーマンスは低下します。</string>
+    <string name="settings_legacy_renderer_enable">レガシーレンダラを使用する</string>
+
     <string name="settings_mod_label">非公式のMOD（自己責任で使ってください）</string>
-    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.0</string>
+    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.1</string>
     <string name="settings_mod_kantai3d_summary">一部の秘書艦に3Dのような視覚効果とおける乳揺れを追加します。作者：@laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_kantaien_enable">[Beta] KanColle English Patch</string>
@@ -79,6 +82,17 @@
     <string name="settings_mod_fps_summary">高リフレッシュ・レート対応。ゲームの速度は影響を受けません。</string>
     <string name="settings_use_external_dir">キャッシングに外部ストレージを使用</string>
     <string name="menu_tooltip_kantai3d">3D効果</string>
+    <string name="msg_kantai3d_init">秘書艦が検出されません</string>
+    <string name="msg_kantai3d_loaded">現在の秘書艦CGの深度マップをダウンロードしました： %s</string>
+    <string name="msg_kantai3d_error">現在の秘書艦CGの深度マップが見つからない： %s</string>
+    <string name="msg_kantai3d_redirect">3D対応のCGリストをすべて表示したり、新しい深さマップに貢献したりするには: https://github.com/laplamgor/kantai3d</string>
 
     <string name="browser_ui_hint_text">« 外側をクリックしてパネルを開く »</string>
+    <string name="settings_retry_enable">ゲームアセットのダウンロードの再試行</string>
+    <string name="settings_retry_summary">"ゲーム内のサウンドまたは画像アセットのダウンロードに失敗した場合は、再試行オプションを提供するダイアログボックスがポップアップ表示されます。それは不安定なネットワーク環境によって引き起こされるいくつかの猫を避けることができます。 ゲームデータAPIには適用されません。 "</string>
+    <string name="dialog_retry_title">ゲームアセットのダウンロードに失敗しました</string>
+    <string name="dialog_retry_yes">ダウンロードを再試行し</string>
+    <string name="dialog_retry_no">何もしない</string>
+    <string name="dialog_retry_never">何もしない，二度と聞かないでください</string>
+    <string name="dialog_retry_message">ゲームクライアントがアセットファイルをダウンロードすると、ネットワークの問題が発生します。\nダウンロードを再試行しますか？\n%s</string>
 </resources>

@@ -57,7 +57,6 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
-import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.APP_UI_HELP_VER;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CAPTURE;
@@ -134,10 +133,10 @@ public class BrowserActivity extends AppCompatActivity {
 
             mContentView = findViewById(R.id.main_browser);
 
-            mContentView.addJavascriptInterface(k3dPatcher,"gyroData");
+            mContentView.addJavascriptInterface(k3dPatcher,"kantai3dInterface");
 
 
-            manager.setHardwardAcceleratedFlag();
+            manager.setHardwareAcceleratedFlag();
 
             // panel, keyboard settings
             initPanelKeyboardFromIntent(getIntent());
@@ -189,7 +188,6 @@ public class BrowserActivity extends AppCompatActivity {
 
             ImageView menuKantai3d = findViewById(R.id.menu_kantai3d);
             if (k3dPatcher.isPatcherEnabled()) {
-                menuKantai3d.setColorFilter(ContextCompat.getColor(getApplicationContext(), k3dPatcher.isEffectEnabled() ? R.color.colorAccent : R.color.lightGray));
                 menuKantai3d.setOnClickListener(this::setKantai3dMode);
             } else {
                 menuKantai3d.setVisibility(View.GONE);
@@ -221,7 +219,7 @@ public class BrowserActivity extends AppCompatActivity {
 
             boolean useDevTools = sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
             if (connector_info != null && connector_info.size() == 2) {
-                WebViewManager.setWebViewSettings(mContentView);
+                manager.setWebViewSettings(mContentView);
                 WebViewManager.enableBrowserCookie(mContentView);
                 WebViewManager.setWebViewDebugging(useDevTools);
                 manager.setWebViewClient(this, mContentView, connector_info);
@@ -560,12 +558,7 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     private void setKantai3dMode(View v) {
-        k3dPatcher.setEffectEnabled(!k3dPatcher.isEffectEnabled());
-        if (k3dPatcher.isEffectEnabled()) {
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
-        } else {
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
-        }
+        k3dPatcher.showDialog();
     }
 
     public void showRefreshDialog() {

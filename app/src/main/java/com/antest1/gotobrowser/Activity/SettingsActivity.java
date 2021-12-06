@@ -42,6 +42,7 @@ import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
 import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
+import static com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_FPS;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_UPDATE;
@@ -49,6 +50,7 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_PANEL_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
+import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_SETTINGS;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
@@ -77,7 +79,7 @@ public class SettingsActivity extends AppCompatActivity {
         for (String key: PREF_SETTINGS) {
             if (!sharedPref.contains(key)) switch (key) {
                 case PREF_FONT_PREFETCH:
-                case PREF_USE_EXTCACHE:
+                case PREF_DOWNLOAD_RETRY:
                     editor.putBoolean(key, true);
                     break;
                 case PREF_PIP_MODE:
@@ -89,6 +91,8 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_MOD_KANTAI3D:
                 case PREF_MOD_KANTAIEN:
                 case PREF_MOD_FPS:
+                case PREF_USE_EXTCACHE:
+                case PREF_LEGACY_RENDERER:
                     editor.putBoolean(key, false);
                     break;
                 case PREF_ALTER_METHOD:
@@ -146,6 +150,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
             updateSubtitleDescriptionText();
             updateKantaiEnDescriptionText();
+            updateKantai3dDisable();
         }
 
         @RequiresApi(api = Build.VERSION_CODES.O)
@@ -210,6 +215,9 @@ public class SettingsActivity extends AppCompatActivity {
                 if (key.equals(PREF_MOD_KANTAIEN)) {
                     updateKantaiEnDescriptionText();
                 }
+                if (key.equals(PREF_LEGACY_RENDERER)) {
+                    updateKantai3dDisable();
+                }
             }
             return true;
         }
@@ -222,6 +230,14 @@ public class SettingsActivity extends AppCompatActivity {
                 findPreference(PREF_SUBTITLE_UPDATE).setEnabled(false);
                 findPreference(PREF_SUBTITLE_UPDATE).setSummary(getString(R.string.subtitle_select_language));
             }
+        }
+
+
+        private void updateKantai3dDisable() {
+            // Kantai3D only works with WebGL renderer
+            // Gray out the option when legacy renderer is chosen
+            boolean isWebglEnabled = !sharedPref.getBoolean(PREF_LEGACY_RENDERER, false);
+            findPreference(PREF_MOD_KANTAI3D).setEnabled(isWebglEnabled);
         }
 
         private void setSubtitlePreference(String subtitleLocaleCode) {

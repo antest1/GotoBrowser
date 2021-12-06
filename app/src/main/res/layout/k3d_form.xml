@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <TextView
+        android:id="@+id/kantai3d_msg_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autoLink="email"
+        android:linksClickable="true"
+        android:text="@string/msg_kantai3d_init"
+        android:textAlignment="center"
+        android:padding="12dp"/>
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_3d"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/menu_tooltip_kantai3d" />
+
+    <TextView
+        android:id="@+id/kantai3d_redirect_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autoLink="web"
+        android:linksClickable="true"
+        android:text="@string/msg_kantai3d_redirect"
+        android:padding="12dp"/>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"/>
+
+</LinearLayout>
