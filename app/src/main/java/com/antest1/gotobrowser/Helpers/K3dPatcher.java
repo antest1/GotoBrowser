@@ -226,9 +226,10 @@ public class K3dPatcher implements SensorEventListener {
                 "\n" +
                 "window.displacementSprite = PIXI.Sprite.fromImage(window.displacementPath.replace(/resources\\\\/ship\\\\/full[_dmg]*\\\\/([0-9]*)_([0-9_a-z]*).png(\\\\?version=)?([0-9]*)/g, \"https://cdn.jsdelivr.net/gh/laplamgor/kantai3d-depth-maps@master/source/\\$1/\\$1_\\$2_v\\$4\\.png\"));\n" +
                 "\n" +
-                "window.displacementFilter.uniforms.textureWidth = this._chara.texture.width;\n" +
-                "window.displacementFilter.uniforms.textureHeight = this._chara.texture.height;\n" +
-                "\n" +
+                "window.displacementFilter.uniforms.textureSize = {\n" +
+                "  0: this._chara.texture.width,\n" +
+                "  1: this._chara.texture.height\n" +
+                "};\n" +
                 "\n" +
                 "window.displacementSprite.visible = false;\n" +
                 "\n" +
@@ -284,8 +285,8 @@ public class K3dPatcher implements SensorEventListener {
                 "    window.jiggleStaticFlags = [];\n" +
                 "    window.jiggleMovement = [];\n" +
 
-                "    window.damping = [];//1.0 / 8; // 1 2 4 8 16 \n" +
-                "    window.springiness = [];//1.0 / 16.0; // 0 2 4 8 16 32 回彈力\n" +
+                "    window.damping = [];\n" +
+                "    window.springiness = [];\n" +
                 "    \n" +
 
                 "    var depthImg = depthMap.baseTexture.source;\n" +
@@ -321,17 +322,19 @@ public class K3dPatcher implements SensorEventListener {
                 "            window.jigglePositions.push({ x: window.gridW * x, y: y * window.gridH });\n" +
                 "            window.jiggleVelocities.push({ x: 0, y: 0 });\n" +
                 "            window.jiggleForces.push({ x: 0, y: 0 });\n" +
-
+                "\n" +
                 "            var r = dmData[(Math.floor(y * window.gridH) * baseMap.width + Math.floor(x * window.gridW)) * 4 + 0];\n" +
                 "            var b = dmData[(Math.floor(y * window.gridH) * baseMap.width + Math.floor(x * window.gridW)) * 4 + 2];\n" +
-
-                "            window.damping.push(1.0 / (b / 255.0 * 16.0 + 1));//1.0 / 8; // 1 2 4 8 16 \n" +
-                "            window.springiness.push(1.0 / ( b / 255.0 * 32.0 + 1));//1.0 / 16.0; // 0 2 4 8 16 32 回彈力\n" +
+                "\n" +
+                "            window.damping.push(1.0 / (b / 255.0 * 16.0 + 1));\n" +
+                "            window.springiness.push(1.0 / ( b / 255.0 * 32.0 + 1));\n" +
                 "        \n" +
+                "\n" +
                 "            window.jiggleStaticFlags.push(b == 0);\n" +
                 "            window.jiggleMovement.push((r - 127.0) / 128.0);\n" +
                 "        }\n" +
                 "    }\n" +
+                "    \n" +
                 "    window.Mx = null;\n" +
                 "    window.My = null;\n" +
                 "    window.Mx2 = null;\n" +
@@ -368,14 +371,20 @@ public class K3dPatcher implements SensorEventListener {
                 "window.displacementFilter.apply = function(filterManager, input, output)\n" +
                 "{\n" +
                 "  refreshGyroData();\n" +
-                "  this.uniforms.dimensions = {};\n" +
-                "  this.uniforms.dimensions[0] = input.sourceFrame.width;\n" +
-                "  this.uniforms.dimensions[1] = input.sourceFrame.height;\n" +
+                "  this.uniforms.dimensions = {\n" +
+                "        0: input.sourceFrame.width,\n" +
+                "        1: input.sourceFrame.height\n" +
+                "      };\n" +
                 "\n" +
-                "  this.uniforms.padding = this.padding;\n" +
-                "  \n" +
-                "  this.uniforms.frameWidth = input.size.width;\n" +
-                "  this.uniforms.frameHeight = input.size.height;\n" +
+                "    this.uniforms.padding = this.padding;\n" +
+                "    this.uniforms.frameSize = { \n" +
+                "        0: input.size.width, \n" +
+                "        1: input.size.height\n" +
+                "    };\n" +
+                "    this.uniforms.filterAreaOffset = { \n" +
+                "        0: Math.min(window.currentChara.worldTransform.tx, 0.0), \n" +
+                "        1: Math.min(window.currentChara.worldTransform.ty, 0.0)\n" +
+                "    };\n" +
 
                         
                 "    ////////\n" +
@@ -564,14 +573,14 @@ public class K3dPatcher implements SensorEventListener {
             "\n" +
             "uniform float textureScale;\n" +
             "\n" +
-            "uniform float textureWidth;\n" +
-            "uniform float textureHeight;\n" +
-            "uniform float frameWidth;\n" +
-            "uniform float frameHeight;\n" +
+            "uniform vec2 textureSize;\n" +
+            "uniform vec2 frameSize;\n" +
+            "uniform vec2 filterAreaOffset;\n" +
             "\n" +
             "uniform float padding;\n" +
             "uniform vec4 filterArea;\n" +
             "uniform vec4 filterClamp;\n" +
+            "\n" +
             "\n" +
             "varying vec2 vTextureCoord;\n" +
             "varying vec4 vColor;\n" +
@@ -583,14 +592,7 @@ public class K3dPatcher implements SensorEventListener {
             "\n" +
             "vec2 mapCoordDepth(vec2 coord)\n" +
             "{\n" +
-            "    return vec2((coord[0] * frameWidth - padding) / textureWidth / textureScale,\n" +
-            "                (coord[1] * frameHeight - padding) / textureHeight / textureScale);\n" +
-            "}\n" +
-            "\n" +
-            "vec2 mapCoord2(vec2 coord)\n" +
-            "{\n" +
-            "    return vec2(coord[0] * frameWidth / textureWidth / textureScale,\n" +
-            "                coord[1] * frameHeight / textureHeight / textureScale);\n" +
+            "    return (coord * (frameSize) - filterAreaOffset - padding) / textureSize / textureScale;\n" +
             "}\n" +
             "\n" +
             "const float compression = 1.0;\n" +
