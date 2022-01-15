@@ -3,6 +3,7 @@ package com.antest1.gotobrowser.Helpers;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.antest1.gotobrowser.R;
@@ -29,7 +30,7 @@ public class KenPatcher {
 
     private static boolean isPatcherEnabled = false;
 
-    public boolean isPatcherEnabled() {
+    public static boolean isPatcherEnabled() {
         return isPatcherEnabled;
     }
 
@@ -188,5 +189,64 @@ public class KenPatcher {
         } else {
             return path;
         }*/
+    }
+
+
+
+    private final static String FILE_POSTFIX = "cache_patched";
+    public static void execPatchTask(Context context, String path) {
+        new AsyncTask<String, Object, Void>() {
+            @Override
+            protected Void doInBackground(String... params) {
+                Log.e("GOTO-Q", "patch" + path);
+                patch(context, path);
+                return null;
+            }
+            @Override
+            protected void onPostExecute(Void v){
+                Log.e("GOTO-Q", "patch done");
+            }
+        }.execute();
+    }
+
+    public static void patch(Context context, String input) {
+        String output = input.replace("cache", FILE_POSTFIX);
+        String patch = output.replace(KcUtils.getAppCacheFileDir(context, "/cache_patched"), "");
+        Log.e("GOTO", "patch path dude: " + patch);
+        File inputFile = new File(input);
+        File outputFile = new File(output);
+        File patchFile = new File(KcUtils.getAppCacheFileDir(context, patch));
+        Log.e("GOTO", "patchFile path dude: " + patchFile.getPath());
+        if (outputFile.exists()) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    public static String getPatchedFilePath(String path) {
+        File check = new File(path.replace("cache", FILE_POSTFIX));
+        if (check.exists()) return check.getAbsolutePath();
+        else return path;
+    }
+
+    public static boolean isPatched(String path) {
+        File file = new File(path);
+        if (!file.exists()) return false;
+        File outfile = new File(path.replace("cache", FILE_POSTFIX));
+        return file.length() < 1048576 || outfile.exists();
+    }
+
+    public static boolean shouldBePatched(String path) {
+        //Path absolutePath = Paths.get(getContext().getExternalFilesDir(null).getAbsolutePath());
+        if (path.contains(FILE_POSTFIX)) return false;
+        File file = new File(path);
+        File outfile = new File(path.replace("cache", FILE_POSTFIX));
+        return file.exists() && file.length() >= 1048576 && !outfile.exists();
+    }
+
+    public static boolean removePatchedFile(String path) {
+        if (!path.contains(".png")) return true;
+        File target = new File(path.replace("cache", FILE_POSTFIX));
+        if (target.exists()) return target.delete();
+        else return true;
     }
 }

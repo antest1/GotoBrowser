@@ -13,6 +13,7 @@ import androidx.annotation.RequiresApi;
 import androidx.preference.Preference;
 
 import com.antest1.gotobrowser.Activity.SettingsActivity;
+import com.antest1.gotobrowser.Browser.ResourceProcess;
 import com.antest1.gotobrowser.R;
 
 import net.lingala.zip4j.core.ZipFile;
@@ -162,7 +163,6 @@ public class KcEnUtils {
             return false;
         }
     }
-
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static void requestPatchUpdate(SettingsActivity.SettingsFragment fragment, Activity ac, Context context) throws IOException {
         CompletableFuture

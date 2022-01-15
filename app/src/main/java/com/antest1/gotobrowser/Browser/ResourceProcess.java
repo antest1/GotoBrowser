@@ -177,9 +177,6 @@ public class ResourceProcess {
         if (url.contains("gadget_html5/script/rollover.js")) return getMuteInjectedRolloverJs();
         if (url.contains("gadget_html5/js/kcs_cda.js")) return getInjectedKcaCdaJs();
         if (url.contains("kcscontents/css/common.css")) return getBlackBackgroundSheet();
-        if (prefBlockGadget && stringContainsItemFromList(url, REQUEST_BLOCK_GADGET)) {
-            return getEmptyResponse();
-        }
         if (url.contains("html/maintenance.html")) return getMaintenanceFiles(false);
         if (url.contains("html/maintenance.png")) return getMaintenanceFiles(true);
         if (resource_type == 0) return null;
@@ -262,6 +259,14 @@ public class ResourceProcess {
                 return true;
             }
         }
+        if (prefBlockGadget) {
+            for (String rule : REQUEST_BLOCK_GADGET) {
+                if (url.contains(rule)) {
+                    Log.e("GOTO", "blocked: ".concat(url));
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -301,21 +306,31 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processImageDataResource(JsonObject file_info, JsonObject update_info, int resource_type) {
+        boolean patch_mode = KenPatcher.isPatcherEnabled();
         String version = update_info.get("version").getAsString();
         boolean is_last_modified = update_info.get("is_last_modified").getAsBoolean();
         boolean update_flag = update_info.get("update_flag").getAsBoolean();
+        boolean patched_update_flag = false;
         String last_modified = is_last_modified ? version : null;
 
         String path = file_info.get("path").getAsString();
         String resource_url = file_info.get("full_url").getAsString();
         String out_file_path = file_info.get("out_file_path").getAsString();
-        File file = getImageFile(out_file_path);
+        File file = getImageFile(out_file_path, false);
+        if (patch_mode) {
+            File patched_file = getImageFile(out_file_path, true);
+            if (!patched_file.exists()/* || KenPatcher.shouldBePatched(out_file_path)*/) {
+                versionTable.putDefaultValue(path);
+                patched_update_flag = true;
+            }
+        }
         if (!file.exists()) {
             versionTable.putDefaultValue(path);
             update_flag = true;
         }
         Log.e("GOTO", "requested: " + file.getPath());
         if (update_flag) {
+            KenPatcher.removePatchedFile(out_file_path);
             String result = downloadResource(resourceClient, resource_url, last_modified, file);
             String new_value = version;
             if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value))
@@ -333,9 +348,13 @@ public class ResourceProcess {
             Log.e("GOTO", "load cached resource: " + file.getPath() + " " + version);
         }
 
+        if (patched_update_flag) {
+            KenPatcher.execPatchTask(context, out_file_path);
+        }
+
         try {
             InputStream is = new BufferedInputStream(new FileInputStream(file));
-            Log.e("GOTO" , out_file_path + " " + is.available());
+            Log.e("GOTO", out_file_path + " " + is.available());
 
             String type = ResourceProcess.isImage(resource_type) ? "image/png" : "application/json";
             return new WebResourceResponse(type, "utf-8", is);
@@ -566,12 +585,10 @@ public class ResourceProcess {
         Log.e("GOTO", "playHourVoice after: " + data.getExtraDelay() + " msec");
     }
 
-    private File getImageFile(String path) {
-        if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
-            return new File(KenPatcher.patchAsset(path, activity));
-        } else {
-            return new File(path);
-        }
+    private File getImageFile(String path, boolean patch_mode) {
+        if (patch_mode && KenPatcher.isPatched(path))
+            return new File(KenPatcher.getPatchedFilePath(path));
+        else return new File(path);
     }
 
     /*
