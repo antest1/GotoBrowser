@@ -237,6 +237,33 @@ public class BrowserActivity extends AppCompatActivity {
                 KcUtils.showToast(getApplicationContext(), "WebView not installed");
             }
         }
+
+        setupSmoothPipAnimation();
+    }
+
+    private void setupSmoothPipAnimation(){
+        // For Android 12+, PIP behaviour is changed
+        // PIP params need to be set before calling onUserLeaveHint
+        // In order to support smoother animation
+        // Listener is called right after the user exits PiP but before animating.
+        boolean pipEnabled = sharedPref.getBoolean(PREF_PIP_MODE, false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && supportsPiPMode() && pipEnabled) {
+            mContentView.addOnLayoutChangeListener((v, left, top, right, bottom,
+                                                    oldLeft, oldTop, oldRight, oldBottom) -> {
+                if (left != oldLeft || right != oldRight || top != oldTop
+                        || bottom != oldBottom) {
+                    final Rect sourceRectHint = new Rect();
+                    mContentView.getGlobalVisibleRect(sourceRectHint);
+                    setPictureInPictureParams(
+                            new PictureInPictureParams.Builder()
+                                    .setSeamlessResizeEnabled(false)
+                                    .setSourceRectHint(sourceRectHint)
+                                    .setAutoEnterEnabled(true)
+                                    .setAspectRatio(new Rational(1200, 720))
+                                    .build());
+                }
+            });
+        }
     }
 
     @Override
@@ -689,7 +716,7 @@ public class BrowserActivity extends AppCompatActivity {
         }
     }
 
-    public boolean supportsPiPMode () {
+    private boolean supportsPiPMode() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
     }
 
