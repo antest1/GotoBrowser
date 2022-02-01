@@ -20,6 +20,7 @@ import android.util.Log;
 import android.util.Rational;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +38,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 
 import com.antest1.gotobrowser.Browser.BrowserGestureListener;
+import com.antest1.gotobrowser.Browser.BrowserScaleGestureListener;
 import com.antest1.gotobrowser.Browser.CustomDrawerLayout;
 import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
@@ -81,7 +83,6 @@ public class BrowserActivity extends AppCompatActivity {
     private WebViewL mContentView;
     private ProgressDialog downloadDialog;
     private ScreenshotNotification screenshotNotification;
-    GestureDetector mDetector;
     private final K3dPatcher k3dPatcher = new K3dPatcher();
     private final FpsPatcher fpsPatcher = new FpsPatcher();
 
@@ -239,6 +240,7 @@ public class BrowserActivity extends AppCompatActivity {
         }
 
         setupSmoothPipAnimation();
+        setScaleGestureDetector(mContentView);
     }
 
     private void setupSmoothPipAnimation(){
@@ -544,6 +546,12 @@ public class BrowserActivity extends AppCompatActivity {
         }
     }
 
+    private void onUserPinchIn(View v) {
+        // User pinch in to enter pip mode
+        // Same logic as UserLeaveHint (e.g. pressing home button)
+        onUserLeaveHint();
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private void setCaptureButton() {
         kcCameraButton.setVisibility(isCaptureMode ? View.VISIBLE : View.GONE);
@@ -732,6 +740,15 @@ public class BrowserActivity extends AppCompatActivity {
         view.setOnTouchListener((v, event) -> {
             mDetector.onTouchEvent(event);
             return event.getAction() != MotionEvent.ACTION_UP;
+        });
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void setScaleGestureDetector(View view) {
+        ScaleGestureDetector mDetector = new ScaleGestureDetector(this, new BrowserScaleGestureListener(this, this::onUserPinchIn));
+        view.setOnTouchListener((v, event) -> {
+            mDetector.onTouchEvent(event);
+            return true;
         });
     }
 }
