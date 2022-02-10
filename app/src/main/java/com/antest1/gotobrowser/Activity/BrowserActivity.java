@@ -748,7 +748,7 @@ public class BrowserActivity extends AppCompatActivity {
         ScaleGestureDetector mDetector = new ScaleGestureDetector(this, new BrowserScaleGestureListener(this, this::onUserPinchIn));
         view.setOnTouchListener((v, event) -> {
             mDetector.onTouchEvent(event);
-            return true;
+            return false;
         });
     }
 }
