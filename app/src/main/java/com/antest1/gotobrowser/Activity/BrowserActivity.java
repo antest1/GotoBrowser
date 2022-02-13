@@ -20,6 +20,7 @@ import android.util.Log;
 import android.util.Rational;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +38,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 
 import com.antest1.gotobrowser.Browser.BrowserGestureListener;
+import com.antest1.gotobrowser.Browser.BrowserScaleGestureListener;
 import com.antest1.gotobrowser.Browser.CustomDrawerLayout;
 import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
@@ -82,7 +84,6 @@ public class BrowserActivity extends AppCompatActivity {
     private WebViewL mContentView;
     private ProgressDialog downloadDialog;
     private ScreenshotNotification screenshotNotification;
-    GestureDetector mDetector;
     private final K3dPatcher k3dPatcher = new K3dPatcher();
     private final KenPatcher kenPatcher = new KenPatcher();
     private final FpsPatcher fpsPatcher = new FpsPatcher();
@@ -239,6 +240,34 @@ public class BrowserActivity extends AppCompatActivity {
             if (exception_str.toLowerCase().contains("no webview")) {
                 KcUtils.showToast(getApplicationContext(), "WebView not installed");
             }
+        }
+
+        setupSmoothPipAnimation();
+        setScaleGestureDetector(mContentView);
+    }
+
+    private void setupSmoothPipAnimation(){
+        // For Android 12+, PIP behaviour is changed
+        // PIP params need to be set before calling onUserLeaveHint
+        // In order to support smoother animation
+        // Listener is called right after the user exits PiP but before animating.
+        boolean pipEnabled = sharedPref.getBoolean(PREF_PIP_MODE, false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && supportsPiPMode() && pipEnabled) {
+            mContentView.addOnLayoutChangeListener((v, left, top, right, bottom,
+                                                    oldLeft, oldTop, oldRight, oldBottom) -> {
+                if (left != oldLeft || right != oldRight || top != oldTop
+                        || bottom != oldBottom) {
+                    final Rect sourceRectHint = new Rect();
+                    mContentView.getGlobalVisibleRect(sourceRectHint);
+                    setPictureInPictureParams(
+                            new PictureInPictureParams.Builder()
+                                    .setSeamlessResizeEnabled(false)
+                                    .setSourceRectHint(sourceRectHint)
+                                    .setAutoEnterEnabled(true)
+                                    .setAspectRatio(new Rational(1200, 720))
+                                    .build());
+                }
+            });
         }
     }
 
@@ -521,6 +550,12 @@ public class BrowserActivity extends AppCompatActivity {
         }
     }
 
+    private void onUserPinchIn(View v) {
+        // User pinch in to enter pip mode
+        // Same logic as UserLeaveHint (e.g. pressing home button)
+        onUserLeaveHint();
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private void setCaptureButton() {
         kcCameraButton.setVisibility(isCaptureMode ? View.VISIBLE : View.GONE);
@@ -693,7 +728,7 @@ public class BrowserActivity extends AppCompatActivity {
         }
     }
 
-    public boolean supportsPiPMode () {
+    private boolean supportsPiPMode() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
     }
 
@@ -709,6 +744,15 @@ public class BrowserActivity extends AppCompatActivity {
         view.setOnTouchListener((v, event) -> {
             mDetector.onTouchEvent(event);
             return event.getAction() != MotionEvent.ACTION_UP;
+        });
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void setScaleGestureDetector(View view) {
+        ScaleGestureDetector mDetector = new ScaleGestureDetector(this, new BrowserScaleGestureListener(this, this::onUserPinchIn));
+        view.setOnTouchListener((v, event) -> {
+            mDetector.onTouchEvent(event);
+            return false;
         });
     }
 }
