@@ -50,7 +50,8 @@
         <activity
             android:name=".Activity.EntranceActivity"
             android:label="@string/app_name"
-            android:theme="@style/FullscreenTheme">
+            android:theme="@style/FullscreenTheme"
+            android:exported="true">
             <layout
                 android:defaultWidth="400dp"
                 android:defaultHeight="240dp"
@@ -70,7 +71,8 @@
         <activity
             android:name=".Activity.SettingsActivity"
             android:label="@string/app_name"
-            android:theme="@style/FullscreenTheme">
+            android:theme="@style/FullscreenTheme"
+            android:exported="false">
             <layout
                 android:defaultWidth="400dp"
                 android:defaultHeight="240dp"
@@ -90,7 +92,8 @@
             android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout|uiMode|keyboard|navigation"
             android:label="@string/app_name"
             android:supportsPictureInPicture="true"
-            android:theme="@style/FullscreenTheme">
+            android:theme="@style/FullscreenTheme"
+            android:exported="false">
             <layout
                 android:defaultWidth="400dp"
                 android:defaultHeight="240dp"
