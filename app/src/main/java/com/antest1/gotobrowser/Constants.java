@@ -118,13 +118,13 @@ public class Constants {
     public static final String SUBTITLE_PATH_FORMAT = "data/%s/quotes.json";
 
     public static final String[] REQUEST_BLOCK_RULES = {
-        "twitter.com/i/jot",
-        "dmm.com/latest/js/dmm.tracking",
-        "doubleclick.net",
-        "googletagmanager.com/",
-        "facebook.com",
-        "pics.dmm.com/",
-        "/uikit"
+            "twitter.com/i/jot",
+            "dmm.com/latest/js/dmm.tracking",
+            "doubleclick.net",
+            "googletagmanager.com/",
+            "facebook.com",
+            "pics.dmm.com/",
+            "/uikit"
     };
 
     public static final String[] KANCOLLE_SERVER_LIST = {
@@ -133,7 +133,7 @@ public class Constants {
             "125.6.184.215",
             "203.104.209.183",
             "203.104.209.150",
-            "203.104.209.150",
+            "203.104.209.134",
             "203.104.209.167",
             "203.104.209.199",
             "125.6.189.7",
