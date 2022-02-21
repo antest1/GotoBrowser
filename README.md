@@ -4,14 +4,14 @@ Android Browser for KanColle 2nd Phase (HTML5)
 
 About Project
 -------
-GotoBrowser is an open-source browser for playing Kantai Collection HTML5 version easily in Android devices.
+GotoBrowser is an open-source browser to play the HTML5 version of Kantai Collection easily on Android devices.
 
-This application does not modify any incoming/outcoming packet when communicate with kancolle/DMM server, and it does not provide any cheat or macro tools.
+This application does not modify any incoming/outgoing packet when communicating with the KanColle/DMM servers, and it does not provide any cheat or macro tools.
 
 Requirement
 -------
-- Minimuim: Android 4.4 (Kitkat)
-- Recommend: Android 5.0 (Lollipop) or later
+- Minimum: Android 4.4 (Kitkat)
+- Recommended: Android 5.0 (Lollipop) or later
 
 Download
 -------
@@ -27,18 +27,18 @@ Main Features
 - Enhanced Resource Caching
 - True Multi-Window Support
 - Start with Sound Off Mode
-- Subtitle for in-game voiceline
+- Subtitle Feature for in-game Voicelines
 - Web Proxy Support (like [OOI](http://ooi.moe/))
 - In-game Screenshot
 
-Language
+Languages
 -------
 - Korean (한국어)
 - English
 - Simplified/Traditional Chinese (中文)
 - Japanese (日本語)
 
-Translations to other languages are welcomed. (please contact to developer to email)  
+Translations into other languages are welcome. (please contact the developer by email) 
 
 Attribution
 -------
@@ -49,11 +49,11 @@ Attribution
 
 Contact
 -------
-For suggestion or error report, make an [Issue](https://github.com/antest1/GotoBrowser/issues) or mail to me.  
+For suggestions or error reports, make an [Issue](https://github.com/antest1/GotoBrowser/issues) or email me.  
 
 I can speak Korean and English, and I can understand Japanese (but not good at writing).  
 
-**※ For non-supported locale, English is the default language.**
+**※ For nonsupported locales, English is the default language.**
 
 E-mail: kcanotify@gmail.com
 
