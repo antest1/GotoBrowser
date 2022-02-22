@@ -13,6 +13,7 @@ import android.webkit.WebResourceResponse;
 import android.widget.TextView;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
+import com.antest1.gotobrowser.Helpers.CritPatcher;
 import com.antest1.gotobrowser.Helpers.FpsPatcher;
 import com.antest1.gotobrowser.Helpers.K3dPatcher;
 import com.antest1.gotobrowser.Helpers.KcUtils;
@@ -49,8 +50,8 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
-import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
+import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
@@ -637,6 +638,7 @@ public class ResourceProcess {
 
         main_js = K3dPatcher.patchKantai3d(main_js);
         main_js = FpsPatcher.patchFps(main_js);
+        main_js = CritPatcher.patchCrit(main_js);
 
         // manage bgm loading strategy with global mute variable for audio focus issue
         if (activity.isMuteMode()) {

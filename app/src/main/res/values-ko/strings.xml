@@ -76,6 +76,8 @@
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_fps_enable">60FPS 제한 제거</string>
     <string name="settings_mod_fps_summary">더 높은 화면 재생 빈도 장치를 지원합니다. 애니메이션 속도는 영향을 받지 않습니다.</string>
+    <string name="settings_mod_crit_enable">진정한 크리티컬 히트</string>
+    <string name="settings_mod_crit_summary">하드 코딩된 히트의 난독화를 제거합니다. 크리티컬 히트만 크리티컬 히트로 표시됩니다. 저자: @Oradimi</string>
     <string name="settings_use_external_dir">리소스 캐싱 시 외부 저장소 사용</string>
     <string name="menu_tooltip_kantai3d">3D 적용</string>
     <string name="msg_kantai3d_init">비서함 감지 안됨</string>

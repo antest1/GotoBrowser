@@ -38,6 +38,7 @@ public class Constants {
     public static final String PREF_LEGACY_RENDERER = "pref_legacy_renderer";
     public static final String PREF_MOD_KANTAI3D = "pref_mod_kantai3d";
     public static final String PREF_MOD_FPS = "pref_mod_fps";
+    public static final String PREF_MOD_CRIT = "pref_mod_crit";
     public static final String PREF_USE_EXTCACHE = "pref_use_extcache";
     public static final String PREF_UI_HELP_CHECKED = "pref_ui_help_checked";
     public static final String PREF_DOWNLOAD_RETRY = "pref_retry";
@@ -57,6 +58,7 @@ public class Constants {
             PREF_LEGACY_RENDERER,
             PREF_MOD_KANTAI3D,
             PREF_MOD_FPS,
+            PREF_MOD_CRIT,
             PREF_USE_EXTCACHE
     };
 
