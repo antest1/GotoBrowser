@@ -52,7 +52,6 @@
     <string name="setting_devtools_enable">启用DevTools调试</string>
     <string name="connection_use_alter">启用登录伺服器封锁绕行</string>
     <string name="setting_connection">连接设置</string>
-    <string name="connection_block">跳过不需要的小工具资源</string>
     <string name="setting_alter_method_url">URL替换</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（远程服务器）</string>
     <string name="setting_alter_method">绕行方式</string>

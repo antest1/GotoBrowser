@@ -74,11 +74,6 @@
             app:iconSpaceReserved="false"
             app:key="pref_retry"
             app:title="@string/settings_retry_enable" />
-
-        <SwitchPreferenceCompat
-            app:iconSpaceReserved="false"
-            app:key="pref_block_gadget"
-            app:title="@string/connection_block" />
     </PreferenceCategory>
 
     <PreferenceCategory

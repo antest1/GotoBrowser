@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -48,7 +47,6 @@ import static com.antest1.gotobrowser.Constants.MUTE_LISTEN;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
-import static com.antest1.gotobrowser.Constants.PREF_BLOCK_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
@@ -57,7 +55,6 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
 import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
-import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_GADGET;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResource;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getEmptyStream;
@@ -105,7 +102,7 @@ public class ResourceProcess {
     private final Handler shipVoiceHandler = new Handler();
     private final Handler clearSubHandler = new Handler();
 
-    boolean prefAlterGadget, prefBlockGadget, isGadgetUrlReplaceMode, prefModKantaiEn;
+    boolean prefAlterGadget, isGadgetUrlReplaceMode, prefModKantaiEn;
     String alterEndpoint;
 
     ResourceProcess(BrowserActivity activity) {
@@ -148,15 +145,6 @@ public class ResourceProcess {
             state |= RES_KCSAPI;
         }
         return state;
-    }
-
-    public static boolean stringContainsItemFromList(String inputStr, String[] items) {
-        for(int i = 0; i < items.length; i++) {
-            if(inputStr.contains(items[i])) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public WebResourceResponse processWebRequest(Uri source) {

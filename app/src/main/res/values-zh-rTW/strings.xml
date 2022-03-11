@@ -51,7 +51,6 @@
     <string name="setting_panel_method_label">控制台打開方式</string>
     <string name="setting_devtools_enable">啟用DevTools除錯</string>
     <string name="connection_use_alter">啟用登入伺服器封鎖繞行</string>
-    <string name="connection_block">跳過不需要的小工具資源</string>
     <string name="setting_connection">連接設定</string>
     <string name="setting_alter_method_url">URL替換</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（遠端伺服器）</string>
