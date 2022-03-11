@@ -13,7 +13,6 @@ import androidx.annotation.RequiresApi;
 import androidx.preference.Preference;
 
 import com.antest1.gotobrowser.Activity.SettingsActivity;
-import com.antest1.gotobrowser.Browser.ResourceProcess;
 import com.antest1.gotobrowser.R;
 
 import net.lingala.zip4j.core.ZipFile;
@@ -40,10 +39,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class KcEnUtils {
@@ -165,6 +162,7 @@ public class KcEnUtils {
     }
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static void requestPatchUpdate(SettingsActivity.SettingsFragment fragment, Activity ac, Context context) throws IOException {
+        // To do: clean up this mess
         CompletableFuture
                 .runAsync(() -> {
                     if (newVersionFlag) {
@@ -260,7 +258,7 @@ public class KcEnUtils {
                             handler.post(() -> {
                                 KcUtils.showToastShort(ac, R.string.download_start);
                                 Preference kantaiEnUpdate = fragment.findPreference(PREF_MOD_KANTAIEN_UPDATE);
-                                kantaiEnUpdate.setSummary("Downloading... Wait for 'Installation Complete' toast");
+                                kantaiEnUpdate.setSummary("Downloading... Wait for 'Installation Complete' toast. This can take a while!");
                                 kantaiEnUpdate.setEnabled(false);
                             });
                             Log.i("GOTO", "Download start");

@@ -15,8 +15,8 @@ import android.widget.TextView;
 import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.Helpers.FpsPatcher;
 import com.antest1.gotobrowser.Helpers.K3dPatcher;
-import com.antest1.gotobrowser.Helpers.KenPatcher;
 import com.antest1.gotobrowser.Helpers.KcUtils;
+import com.antest1.gotobrowser.Helpers.KenPatcher;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleData;
@@ -50,9 +50,9 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
+import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
-import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
@@ -112,7 +112,6 @@ public class ResourceProcess {
         sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         prefAlterGadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false);
-        prefBlockGadget = sharedPref.getBoolean(PREF_BLOCK_GADGET, false);
         isGadgetUrlReplaceMode = sharedPref.getString(PREF_ALTER_METHOD, "")
                 .equals(PREF_ALTER_METHOD_URL);
         alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL);
@@ -245,14 +244,6 @@ public class ResourceProcess {
             if (url.contains(rule)) {
                 Log.e("GOTO", "blocked: ".concat(url));
                 return true;
-            }
-        }
-        if (prefBlockGadget) {
-            for (String rule : REQUEST_BLOCK_GADGET) {
-                if (url.contains(rule)) {
-                    Log.e("GOTO", "blocked: ".concat(url));
-                    return true;
-                }
             }
         }
         return false;
