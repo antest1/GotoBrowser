@@ -95,14 +95,17 @@ public class KcEnUtils {
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public static void checkKantaiEnUpdate(SettingsActivity.SettingsFragment fragment, Preference kantaiEnUpdate) {
+        // To do: clean up this mess
+        Path absolutePath = Paths.get(fragment.requireContext().getExternalFilesDir(null).getAbsolutePath());
         kantaiEnUpdate.setSummary("Checking updates...");
         kantaiEnUpdate.setEnabled(false);
         InputStream enPatchInfoFile;
         org.json.simple.JSONObject enPatchInfo = null;
         org.json.simple.JSONObject enPatchLocalInfo = null;
         String enPatchLocalInfoFileName = "EN-patch.mod.json";
-        String enPatchLocalFolder = KcUtils.getAppCacheFileDir(fragment.requireContext(), "/KanColle-English-Patch-KCCP-master/");
+        String enPatchLocalFolder = absolutePath + "/KanColle-English-Patch-KCCP-master/";
         String enPatchLocalInfoPath = enPatchLocalFolder.concat(enPatchLocalInfoFileName);
         int SDK_INT = android.os.Build.VERSION.SDK_INT;
         if (SDK_INT > 8) {
@@ -261,7 +264,7 @@ public class KcEnUtils {
                                 kantaiEnUpdate.setSummary("Downloading... Wait for 'Installation Complete' toast. This can take a while!");
                                 kantaiEnUpdate.setEnabled(false);
                             });
-                            Log.i("GOTO", "Download start");
+                            Log.e("GOTO", "Download start");
 
                             URL master = new URL("https://github.com/Oradimi/KanColle-English-Patch-KCCP/archive/master.zip");
                             ReadableByteChannel rbc = Channels.newChannel(master.openStream());
@@ -273,15 +276,23 @@ public class KcEnUtils {
                             handler.post(() -> {
                                 KcUtils.showToastShort(ac, R.string.installation_start);
                             });
-                            Log.i("GOTO", "Download complete");
+                            Log.e("GOTO", "Download complete");
 
                             ZipFile zipFile = new ZipFile(String.valueOf(out));
                             zipFile.extractAll(String.valueOf(absolutePath));
-                            Log.i("GOTO", "Zip extracted");
+                            Log.e("GOTO", "Zip extracted");
+
+                            File file = new File(absolutePath + "/KanColle-English-Patch-KCCP-master/.nomedia");
+                            try {
+                                file.createNewFile();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            Log.e("GOTO", "Created .nomedia file");
 
                             boolean deleted = zipOut.delete();
                             if (deleted) {
-                                Log.i("GOTO", "Zip successfully deleted");
+                                Log.e("GOTO", "Zip successfully deleted");
                                 handler.post(() -> {
                                     KcUtils.showToastShort(ac, R.string.installation_done);
                                 });
