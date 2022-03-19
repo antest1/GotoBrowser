@@ -11,7 +11,7 @@
     <string name="cache_clear_text">Clear Cache</string>
     <string name="cache_cleared_toast">Webview cache cleared</string>
     <string name="clearcache_msg">Only use this function when image or audio is not loaded properly. Do you really want to clear the cache?</string>
-    <string name="thirdpartyconnector_msg" translatable="false">In the case of non-official web proxy-based connectors (like OOI), there is a possibility of displaying different resources than the original, depending on their policy. Basically, GotoBrowser does not inference the policy of each connector. If you do not want to display unofficial resources with the GotoBrowser, please clear the cache and play KanColle through DMM Direct.</string>
+    <string name="thirdpartyconnector_msg" translatable="false">In the case of non-official web proxy-based connectors (like OOI), the game resources may be different from the original ones, depending on their policy. Basically, GotoBrowser does not inference the policy of each connector. If you do not want to display unofficial resources with GotoBrowser, please clear the cache and play KanColle through DMM Direct.</string>
     <string name="backpress_msg">Press back again to exit</string>
     <string name="refresh_msg">Do you really want to refresh?</string>
     <string name="mode_landscape">Landscape Mode</string>
@@ -45,7 +45,7 @@
     <string name="settings_resource_label">Download Resources</string>
     <string name="settings_resource_btn">Download</string>
     <string name="settings_appinfo_browsersettings">Browser Settings</string>
-    <string name="browser_fontprefetch">Prefetch Font Asset</string>
+    <string name="browser_fontprefetch">Prefetch Font Assets</string>
     <string name="browser_enablepipmode">Enable picture-in-picture mode</string>
     <string name="connection_use_alter">Enable Gadget Server Block Bypass</string>
     <string name="logout_msg">Are you sure you want to Logout?</string>
@@ -96,10 +96,10 @@
     <string name="browser_ui_hint_text">« click any outside area to open the panel »</string>
 
     <string name="settings_retry_enable">Retry Game Asset Download</string>
-    <string name="settings_retry_summary">Prompt a dialog to ask for retry when failed to download any in-game sound or image asset. Sometimes avoid cats caused by poor network. DO NOT apply to gameplay data API.</string>
+    <string name="settings_retry_summary">Prompt a dialog to ask for retry when the client fails to download any in-game sound or image asset. Can sometimes avoid catbombs caused by poor network. DOES NOT apply to game data API errors.</string>
     <string name="dialog_retry_title">Failed to download a game asset file</string>
     <string name="dialog_retry_yes">Retry the download</string>
     <string name="dialog_retry_no">Do nothing</string>
     <string name="dialog_retry_never">Do nothing and never ask again</string>
-    <string name="dialog_retry_message">A network issue occurs when game client downloads a resource file.\nDo you want to retry the download?\n%s</string>
+    <string name="dialog_retry_message">A network issue occurred while the game client was trying to download a resource file.\nDo you want to retry the download?\n%s</string>
 </resources>
