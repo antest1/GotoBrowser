@@ -421,6 +421,9 @@ public class ResourceProcess {
                 return new WebResourceResponse("text/css", "utf-8", is);
             }
 
+            if (url.contains("kcscontents/css/default.css")) return getEmptyResponse();
+            if (url.contains("kcscontents/css/style.css")) return getEmptyResponse();
+
             if (url.contains("www.dmm.com.netgame.css")) {
                 byte[] byteArray = KcUtils.downloadDataFromURL(url);
                 String css = new String(byteArray, StandardCharsets.UTF_8);
