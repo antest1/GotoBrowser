@@ -295,8 +295,9 @@ public class ResourceProcess {
         String path = file_info.get("path").getAsString();
         String resource_url = file_info.get("full_url").getAsString();
         String out_file_path = file_info.get("out_file_path").getAsString();
-        File file = getImageFile(out_file_path, false);
-        /*if (patch_mode) {
+        File file = getImageFile(out_file_path);
+        /*File file = getImageFile(out_file_path, false);
+        if (patch_mode) {
             File patched_file = getImageFile(out_file_path, true);
             if (!patched_file.exists() || KenPatcher.shouldBePatched(out_file_path)) {
                 versionTable.putDefaultValue(path);
