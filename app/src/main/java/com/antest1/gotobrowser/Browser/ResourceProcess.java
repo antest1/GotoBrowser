@@ -285,31 +285,31 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processImageDataResource(JsonObject file_info, JsonObject update_info, int resource_type) {
-        boolean patch_mode = KenPatcher.isPatcherEnabled();
+        //boolean patch_mode = KenPatcher.isPatcherEnabled();
         String version = update_info.get("version").getAsString();
         boolean is_last_modified = update_info.get("is_last_modified").getAsBoolean();
         boolean update_flag = update_info.get("update_flag").getAsBoolean();
-        boolean patched_update_flag = false;
+        //boolean patched_update_flag = false;
         String last_modified = is_last_modified ? version : null;
 
         String path = file_info.get("path").getAsString();
         String resource_url = file_info.get("full_url").getAsString();
         String out_file_path = file_info.get("out_file_path").getAsString();
         File file = getImageFile(out_file_path, false);
-        if (patch_mode) {
+        /*if (patch_mode) {
             File patched_file = getImageFile(out_file_path, true);
-            if (!patched_file.exists()/* || KenPatcher.shouldBePatched(out_file_path)*/) {
+            if (!patched_file.exists() || KenPatcher.shouldBePatched(out_file_path)) {
                 versionTable.putDefaultValue(path);
                 patched_update_flag = true;
             }
-        }
+        }*/
         if (!file.exists()) {
             versionTable.putDefaultValue(path);
             update_flag = true;
         }
         Log.e("GOTO", "requested: " + file.getPath());
         if (update_flag) {
-            KenPatcher.removePatchedFile(out_file_path);
+            //KenPatcher.removePatchedFile(out_file_path);
             String result = downloadResource(resourceClient, resource_url, last_modified, file);
             String new_value = version;
             if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value))
@@ -327,9 +327,9 @@ public class ResourceProcess {
             Log.e("GOTO", "load cached resource: " + file.getPath() + " " + version);
         }
 
-        if (patched_update_flag) {
+        /*if (patched_update_flag) {
             KenPatcher.execPatchTask(context, out_file_path);
-        }
+        }*/
 
         try {
             InputStream is = new BufferedInputStream(new FileInputStream(file));
@@ -564,11 +564,15 @@ public class ResourceProcess {
         Log.e("GOTO", "playHourVoice after: " + data.getExtraDelay() + " msec");
     }
 
-    private File getImageFile(String path, boolean patch_mode) {
+    private File getImageFile(String path) {
+        return new File(path);
+    }
+
+    /*private File getImageFile(String path, boolean patch_mode) {
         if (patch_mode && KenPatcher.isPatched(path))
             return new File(KenPatcher.getPatchedFilePath(path));
         else return new File(path);
-    }
+    }*/
 
     /*
     private void checkSpecialSubtitleMode() {
