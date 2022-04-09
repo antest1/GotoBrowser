@@ -6,7 +6,8 @@
     <string name="app_name">GotoBrowser</string>
     <string name="action_ok">Confirm</string>
     <string name="action_cancel">Cancel</string>
-    <string name="select_server">Select Web Based Proxy or Login Method</string>
+    <string name="selected_server">Login Method</string>
+    <string name="select_server">Select Login Method</string>
     <string name="select_server_toast">Login method must be chosen first</string>
     <string name="cache_clear_text">Clear Cache</string>
     <string name="cache_cleared_toast">Webview cache cleared</string>
@@ -28,6 +29,7 @@
     <string name="autocomplete_msg">This information will only be used to fill the login form</string>
     <string name="settings_version_label">Current Version</string>
     <string name="settings_version_check">Check Update</string>
+    <string name="settings_recommended_summary">Recommended</string>
     <string name="settings_subtitle_label">Subtitle Settings</string>
     <string name="settings_subtitle_download">Download Subtitle Data</string>
     <string name="settings_subtitle_language">Current Language</string>
@@ -46,8 +48,7 @@
     <string name="settings_resource_btn">Download</string>
     <string name="settings_appinfo_browsersettings">Browser Settings</string>
     <string name="browser_fontprefetch">Prefetch Font Assets</string>
-    <string name="browser_enablepipmode">Enable picture-in-picture mode</string>
-    <string name="connection_use_alter">Enable Gadget Server Block Bypass</string>
+    <string name="browser_enablepipmode">Picture-in-picture mode</string>
     <string name="logout_msg">Are you sure you want to Logout?</string>
     <string name="noti_screenshot_name">GotoBrowser Screenshot</string>
     <string name="noti_screenshot_title">Screenshot Captured</string>
@@ -62,11 +63,13 @@
     <string name="setting_panel_method_button">Button</string>
     <string name="setting_devtools_enable">Enable DevTools Debugging</string>
     <string name="setting_devtools_description" translatable="false">chrome://inspect</string>
+    <string name="connection_use_alter">Gadget Block Bypass</string>
+    <string name="connection_use_alter_summary">Use this setting if you\'re faced with the foreign IP block issue (infinite white screen)</string>
     <string name="setting_connection">Connection Settings</string>
     <string name="setting_alter_method">Bypass Method</string>
     <string name="setting_alter_method_url">URL Replacement</string>
     <string name="setting_alter_method_proxy">KCCacheProxy (remote)</string>
-    <string name="setting_alter_endpoint">Endpoint Server</string>
+    <string name="setting_alter_endpoint">Bypass Endpoint Server</string>
 
     <string name="menu_tooltip_refresh">Refresh</string>
     <string name="menu_tooltip_mute">Mute Audio</string>
@@ -76,7 +79,7 @@
     <string name="menu_tooltip_cc">Subtitle</string>
     <string name="menu_tooltip_logout">Logout</string>
 
-    <string name="settings_legacy_renderer_enable">Use Legacy Renderer</string>
+    <string name="settings_legacy_renderer_enable">Legacy Renderer</string>
     <string name="settings_legacy_renderer_summary">Force PixiJS game engine to use Canvas renderer instead of WebGL renderer. It may solve most display glitches but reduce performance.</string>
 
     <string name="settings_mod_label">Third Party Mods (use at your own risk)</string>
@@ -85,7 +88,7 @@
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_fps_enable">Remove 60 FPS limit</string>
     <string name="settings_mod_fps_summary">Support higher refresh rate devices. Animation speed is not affected.</string>
-    <string name="settings_use_external_dir">Use External Storage for Resource Caching</string>
+    <string name="settings_use_external_dir">External Storage for Resource Caching</string>
     <string name="menu_tooltip_kantai3d">Toggle 3D effects</string>
     <string name="msg_kantai3d_init">No secretary detected</string>
     <string name="msg_kantai3d_loaded">The depth map of the current secretary CG is loaded: %s</string>

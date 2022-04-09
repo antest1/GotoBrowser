@@ -360,7 +360,7 @@ public class WebViewManager {
             /// Do Nothing
         };
 
-        String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
+        String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         if (CONN_DMM.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_DMM, is_mute ? 1 : 0), callback);
         } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
@@ -370,7 +370,7 @@ public class WebViewManager {
 
     public void logoutGame(WebViewL webview) {
         logoutFlag = true;
-        String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
+        String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         if (CONN_DMM.equals(pref_connector)) {
             webview.loadUrl(URL_DMM_LOGOUT);
         } else if (CONN_OOI.equals(pref_connector)) {
@@ -393,7 +393,7 @@ public class WebViewManager {
         if (!isKcBrowser) {
             webview.loadUrl(connector_url);
         } else {
-            String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
+            String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
             if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
                 String postdata = "";
                 try {
@@ -446,7 +446,7 @@ public class WebViewManager {
             url_list.add(download_url);
             url_list.add(download_url);
         } else {
-            String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
+            String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
             if (CONN_DMM.equals(pref_connector)) {
                 url_list.add(URL_DMM);
                 url_list.add(URL_DMM);
@@ -523,7 +523,7 @@ public class WebViewManager {
             Log.e("GOTO", "capture " + s);
         };
 
-        String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
+        String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         if (CONN_DMM.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, CAPTURE_SEND_DMM), callback);
         } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {

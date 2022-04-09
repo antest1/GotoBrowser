@@ -5,17 +5,18 @@ apply plugin: 'com.google.firebase.crashlytics'
 android {
     compileSdkVersion 31
     defaultConfig {
-        applicationId "com.antest1.gotobrowser"
+        applicationId "com.oradimi.gotobrowser"
         minSdkVersion 19
         targetSdkVersion 30
         versionCode 56
         versionName "2.8-rev6"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
 
         buildTypes {
             debug {
-                applicationIdSuffix ".debug"
+                //applicationIdSuffix ".debug"
             }
             release {
                 minifyEnabled true

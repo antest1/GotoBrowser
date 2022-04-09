@@ -43,21 +43,22 @@ public class Constants {
     public static final String PREF_DOWNLOAD_RETRY = "pref_retry";
 
     public static final String[] PREF_SETTINGS = {
+            PREF_LANDSCAPE,
+            PREF_ADJUSTMENT,
             PREF_FONT_PREFETCH,
+            PREF_USE_EXTCACHE,
             PREF_PIP_MODE,
-            PREF_ALTER_GADGET,
-            PREF_SUBTITLE_LOCALE,
             PREF_MULTIWIN_MARGIN,
-            PREF_PANEL_METHOD,
-            PREF_DEVTOOLS_DEBUG,
+            PREF_LEGACY_RENDERER,
+            PREF_ALTER_GADGET,
             PREF_ALTER_METHOD,
             PREF_ALTER_ENDPOINT,
             PREF_DOWNLOAD_RETRY,
-            PREF_TP_DISCLAIMED,
-            PREF_LEGACY_RENDERER,
-            PREF_MOD_KANTAI3D,
+            PREF_SUBTITLE_LOCALE,
             PREF_MOD_FPS,
-            PREF_USE_EXTCACHE
+            PREF_MOD_KANTAI3D,
+            PREF_DEVTOOLS_DEBUG,
+            PREF_TP_DISCLAIMED
     };
 
     public static final String PANEL_METHOD_SWIPE = "0";

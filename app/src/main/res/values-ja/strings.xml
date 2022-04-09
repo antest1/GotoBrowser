@@ -3,6 +3,7 @@
     <string name="app_name">GotoBrowser</string>
     <string name="action_ok">OK</string>
     <string name="action_cancel">キャンセル</string>
+    <string name="selected_server">接続方式</string>
     <string name="select_server">接続方式選択</string>
     <string name="select_server_toast">接続方式を先に選択してください。</string>
     <string name="cache_clear_text">キャッシュ削除</string>
@@ -24,6 +25,7 @@
     <string name="autocomplete_msg">ログインフォームに入力するアカウント情報を入力してください。</string>
     <string name="settings_version_label">現在のバージョン</string>
     <string name="settings_version_check">更新の確認</string>
+    <string name="settings_recommended_summary">おすすめ</string>
     <string name="settings_subtitle_label">字幕設定</string>
     <string name="settings_subtitle_download">字幕データのダウンロード</string>
     <string name="settings_subtitle_language">字幕ロケール</string>
@@ -52,6 +54,7 @@
     <string name="setting_panel_method_button">ボタン</string>
     <string name="setting_devtools_enable">DevToolsデバッグを使用</string>
     <string name="connection_use_alter">国外ブロックのバイパス</string>
+    <string name="connection_use_alter_summary">外部IPブロックの問題（無限の白い画面）に直面している場合は、この設定を使用してください</string>
     <string name="setting_connection">接続設定</string>
     <string name="setting_alter_method_url">URL置換</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（リモート）</string>

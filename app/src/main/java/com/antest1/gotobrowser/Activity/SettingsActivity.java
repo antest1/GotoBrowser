@@ -1,10 +1,13 @@
 package com.antest1.gotobrowser.Activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Switch;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,10 +28,12 @@ import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.Locale;
 import java.util.Map;
 
 import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
+import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
@@ -37,6 +42,7 @@ import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
 import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
+import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_FPS;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
@@ -71,7 +77,10 @@ public class SettingsActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = sharedPref.edit();
         for (String key: PREF_SETTINGS) {
             if (!sharedPref.contains(key)) switch (key) {
+                case PREF_LANDSCAPE:
+                case PREF_ADJUSTMENT:
                 case PREF_FONT_PREFETCH:
+                case PREF_USE_EXTCACHE:
                 case PREF_DOWNLOAD_RETRY:
                     editor.putBoolean(key, true);
                     break;
@@ -82,12 +91,10 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_TP_DISCLAIMED:
                 case PREF_MOD_KANTAI3D:
                 case PREF_MOD_FPS:
-                case PREF_USE_EXTCACHE:
                 case PREF_LEGACY_RENDERER:
                     editor.putBoolean(key, false);
                     break;
                 case PREF_ALTER_METHOD:
-                case PREF_PANEL_METHOD:
                     editor.putString(key, "1");
                     break;
                 case PREF_ALTER_ENDPOINT:
@@ -99,6 +106,15 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
         editor.apply();
+    }
+
+    public static Locale getCurrentLocale(Context context){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+            return context.getResources().getConfiguration().getLocales().get(0);
+        } else{
+            //noinspection deprecation
+            return context.getResources().getConfiguration().locale;
+        }
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat

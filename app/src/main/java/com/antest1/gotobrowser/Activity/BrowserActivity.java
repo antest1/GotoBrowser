@@ -139,7 +139,7 @@ public class BrowserActivity extends AppCompatActivity {
             // panel, keyboard settings
             initPanelKeyboardFromIntent(getIntent());
 
-            boolean isLandscapeMode = sharedPref.getBoolean(PREF_LANDSCAPE, false);
+            boolean isLandscapeMode = sharedPref.getBoolean(PREF_LANDSCAPE, true);
             boolean isSilentMode = sharedPref.getBoolean(PREF_SILENT, false);
             isMuteMode = sharedPref.getBoolean(PREF_MUTEMODE, false);
             isLockMode = sharedPref.getBoolean(PREF_LOCKMODE, false);

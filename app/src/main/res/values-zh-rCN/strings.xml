@@ -2,6 +2,7 @@
     <string name="app_name">GotoBrowser</string>
     <string name="action_ok">确定</string>
     <string name="action_cancel">取消</string>
+    <string name="selected_server">在线缓存/登录方式</string>
     <string name="select_server">选择在线缓存/登录方式</string>
     <string name="select_server_toast">必须先选择一个登录方式</string>
     <string name="cache_clear_text">清除快取</string>
@@ -23,6 +24,7 @@
     <string name="autocomplete_msg">此资料将只用于填写登录信息</string>
     <string name="settings_version_label">当前版本</string>
     <string name="settings_version_check">检查更新</string>
+    <string name="settings_recommended_summary">受到推崇的</string>
     <string name="settings_subtitle_label">字幕设置</string>
     <string name="settings_subtitle_download">下载字幕数据</string>
     <string name="settings_subtitle_language">字幕语言</string>
@@ -51,6 +53,7 @@
     <string name="setting_panel_method_label">控制台打开方式</string>
     <string name="setting_devtools_enable">启用DevTools调试</string>
     <string name="connection_use_alter">启用登录伺服器封锁绕行</string>
+    <string name="connection_use_alter_summary">如果您遇到外国 IP 阻止问题（无限白屏），请使用此设置</string>
     <string name="setting_connection">连接设置</string>
     <string name="setting_alter_method_url">URL替换</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（远程服务器）</string>

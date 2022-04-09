@@ -19,8 +19,27 @@
 
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
+            app:key="pref_landscape"
+            app:title="@string/mode_landscape"
+            app:summary="@string/settings_recommended_summary" />
+
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="pref_adjustment"
+            app:title="@string/mode_adjustment"
+            app:summary="@string/settings_recommended_summary" />
+
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
             app:key="pref_font_prefetch"
-            app:title="@string/browser_fontprefetch" />
+            app:title="@string/browser_fontprefetch"
+            app:summary="@string/settings_recommended_summary" />
+
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="pref_use_extcache"
+            app:title="@string/settings_use_external_dir"
+            app:summary="@string/settings_recommended_summary" />
 
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
@@ -31,11 +50,6 @@
             app:iconSpaceReserved="false"
             app:key="pref_multiwin_margin"
             app:title="@string/settings_mw_margin" />
-
-        <SwitchPreferenceCompat
-            app:iconSpaceReserved="false"
-            app:key="pref_use_extcache"
-            app:title="@string/settings_use_external_dir" />
 
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
@@ -52,16 +66,18 @@
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="pref_alter_gadget"
-            app:title="@string/connection_use_alter" />
+            app:title="@string/connection_use_alter"
+            app:summary="@string/connection_use_alter_summary" />
 
         <ListPreference
+            android:dependency="pref_alter_gadget"
+            app:defaultValue="1"
+            app:entries="@array/alter_method"
+            app:entryValues="@array/alter_method_values"
             app:iconSpaceReserved="false"
             app:key="pref_alter_method"
             app:title="@string/setting_alter_method"
-            app:useSimpleSummaryProvider="true"
-            app:entries="@array/alter_method"
-            app:entryValues="@array/alter_method_values"
-            android:dependency="pref_alter_gadget"/>
+            app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
             android:key="pref_alter_endpoint"
