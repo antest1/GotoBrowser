@@ -69,7 +69,7 @@
     <string name="settings_legacy_renderer_summary">强制PixiJS引擎使用Canvas渲染器而非WebGL渲染器。可解决大部份图形奇怪错误但会降低效能。</string>
 
     <string name="settings_mod_label">第三方MOD（自担风险）</string>
-    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.1</string>
+    <string name="settings_mod_kantai3d_enable">Kantai3D v3.0</string>
     <string name="settings_mod_kantai3d_summary">为部份秘书舰添加仿立体的视觉效果及胸部物理。作者：@laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_fps_enable">移除60帧限制</string>

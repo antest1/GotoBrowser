@@ -80,7 +80,7 @@
     <string name="settings_legacy_renderer_summary">Force PixiJS game engine to use Canvas renderer instead of WebGL renderer. It may solve most display glitches but reduce performance.</string>
 
     <string name="settings_mod_label">Third Party Mods (use at your own risk)</string>
-    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.1</string>
+    <string name="settings_mod_kantai3d_enable">Kantai3D v3.0</string>
     <string name="settings_mod_kantai3d_summary">Add 3D-like visual effects and jiggle physics to some of your secretaries. Author: @laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_fps_enable">Remove 60 FPS limit</string>
