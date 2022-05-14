@@ -66,6 +66,7 @@
     <string name="setting_alter_method">Bypass Method</string>
     <string name="setting_alter_method_url">URL Replacement</string>
     <string name="setting_alter_method_proxy">KCCacheProxy (remote)</string>
+    <string name="setting_alter_method_proxy_error_toast">KCCacheProxy Endpoint Server is invalid. Please update your Bypass Method setting.</string>
     <string name="setting_alter_endpoint">Endpoint Server</string>
 
     <string name="menu_tooltip_refresh">Refresh</string>

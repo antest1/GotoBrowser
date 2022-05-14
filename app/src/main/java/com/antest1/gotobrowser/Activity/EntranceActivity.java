@@ -288,9 +288,12 @@ public class EntranceActivity extends AppCompatActivity {
 
             if (prefAlterGadget && isProxyMethod && pref_connector.equals(CONN_DMM)) {
                 WebViewManager.setKcCacheProxy(alterEndpoint, () -> {
-                    startActivity(intent);
-                    finish();
-                });
+                            startActivity(intent);
+                            finish();
+                        },
+                        () -> {
+                            KcUtils.showToast(getApplicationContext(), R.string.setting_alter_method_proxy_error_toast);
+                        });
             } else {
                 startActivity(intent);
                 finish();

@@ -54,6 +54,7 @@
     <string name="setting_connection">连接设置</string>
     <string name="setting_alter_method_url">URL替换</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（远程服务器）</string>
+    <string name="setting_alter_method_proxy_error_toast">KCCacheProxy端点服务器无效。请更改绕行方式设定。</string>
     <string name="setting_alter_method">绕行方式</string>
     <string name="setting_alter_endpoint">端点服务器</string>
 
