@@ -55,6 +55,7 @@
     <string name="setting_connection">接続設定</string>
     <string name="setting_alter_method_url">URL置換</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（リモート）</string>
+    <string name="setting_alter_method_proxy_error_toast">KCCacheProxyエンドポイントサーバーが無効です。バイパス方式設定を変更してください。</string>
     <string name="setting_alter_method">バイパス方式</string>
     <string name="setting_alter_endpoint">エンドポイントサーバー</string>
 
@@ -79,6 +80,8 @@
     <string name="settings_mod_kantaien_about">KanColle English Patchについて</string>
     <string name="settings_mod_fps_enable">60FPS制限を削除します</string>
     <string name="settings_mod_fps_summary">高リフレッシュ・レート対応。ゲームの速度は影響を受けません。</string>
+    <string name="settings_mod_crit_enable">真のクリティカルヒット</string>
+    <string name="settings_mod_crit_summary">ハードコードされたヒットの難読化を削除します。 クリティカルヒットのみがそのように表示されます。 作者：@Oradimi</string>
     <string name="settings_use_external_dir">キャッシングに外部ストレージを使用</string>
     <string name="menu_tooltip_kantai3d">3D効果</string>
     <string name="msg_kantai3d_init">秘書艦が検出されません</string>

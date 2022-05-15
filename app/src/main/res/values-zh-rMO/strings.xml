@@ -54,6 +54,7 @@
     <string name="setting_connection">連接設定</string>
     <string name="setting_alter_method_url">URL替換</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（遠端伺服器）</string>
+    <string name="setting_alter_method_proxy_error_toast">KCCacheProxy端點伺服器無效。請更改繞行方式設定。</string>
     <string name="setting_alter_method">繞行方式</string>
     <string name="setting_alter_endpoint">端點伺服器</string>
 
@@ -78,6 +79,8 @@
     <string name="settings_mod_kantaien_about">KanColle English Patch關於</string>
     <string name="settings_mod_fps_enable">移除60幀限制</string>
     <string name="settings_mod_fps_summary">支持高刷新率手機。遊戲速度不會受影響。</string>
+    <string name="settings_mod_crit_enable">真正的致命一擊</string>
+    <string name="settings_mod_crit_summary">刪除命中的一些硬編碼混淆。 只有重擊才會這樣顯示，等等。作者：@Oradimi</string>
     <string name="settings_use_external_dir">使用外部存儲存放快取</string>
     <string name="menu_tooltip_kantai3d">開關立體效果</string>
     <string name="msg_kantai3d_init">未偵察到秘書艦</string>

@@ -40,6 +40,7 @@ public class Constants {
     public static final String PREF_MOD_KANTAIEN = "pref_mod_kantaien";
     public static final String PREF_MOD_KANTAIEN_UPDATE = "pref_mod_kantaien_update";
     public static final String PREF_MOD_FPS = "pref_mod_fps";
+    public static final String PREF_MOD_CRIT = "pref_mod_crit";
     public static final String PREF_USE_EXTCACHE = "pref_use_extcache";
     public static final String PREF_UI_HELP_CHECKED = "pref_ui_help_checked";
     public static final String PREF_DOWNLOAD_RETRY = "pref_retry";
@@ -60,6 +61,7 @@ public class Constants {
             PREF_MOD_KANTAI3D,
             PREF_MOD_KANTAIEN,
             PREF_MOD_FPS,
+            PREF_MOD_CRIT,
             PREF_USE_EXTCACHE
     };
 
@@ -121,13 +123,13 @@ public class Constants {
     public static final String SUBTITLE_PATH_FORMAT = "data/%s/quotes.json";
 
     public static final String[] REQUEST_BLOCK_RULES = {
-        "twitter.com/i/jot",
-        "dmm.com/latest/js/dmm.tracking",
-        "doubleclick.net",
-        "googletagmanager.com/",
-        "facebook.com",
-        "pics.dmm.com/",
-        "/uikit"
+            "twitter.com/i/jot",
+            "dmm.com/latest/js/dmm.tracking",
+            "doubleclick.net",
+            "googletagmanager.com/",
+            "facebook.com",
+            "pics.dmm.com/",
+            "/uikit"
     };
 
     public static final String[] KANCOLLE_SERVER_LIST = {
@@ -136,7 +138,7 @@ public class Constants {
             "125.6.184.215",
             "203.104.209.183",
             "203.104.209.150",
-            "203.104.209.150",
+            "203.104.209.134",
             "203.104.209.167",
             "203.104.209.199",
             "125.6.189.7",

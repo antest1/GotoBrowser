@@ -13,6 +13,7 @@ import android.webkit.WebResourceResponse;
 import android.widget.TextView;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
+import com.antest1.gotobrowser.Helpers.CritPatcher;
 import com.antest1.gotobrowser.Helpers.FpsPatcher;
 import com.antest1.gotobrowser.Helpers.K3dPatcher;
 import com.antest1.gotobrowser.Helpers.KcUtils;
@@ -439,6 +440,9 @@ public class ResourceProcess {
                 return new WebResourceResponse("text/css", "utf-8", is);
             }
 
+            if (url.contains("kcscontents/css/default.css")) return getEmptyResponse();
+            if (url.contains("kcscontents/css/style.css")) return getEmptyResponse();
+
             if (url.contains("www.dmm.com.netgame.css")) {
                 byte[] byteArray = KcUtils.downloadDataFromURL(url);
                 String css = new String(byteArray, StandardCharsets.UTF_8);
@@ -662,6 +666,7 @@ public class ResourceProcess {
         main_js = K3dPatcher.patchKantai3d(main_js);
         main_js = KenPatcher.patchKantaiEn(main_js, activity);
         main_js = FpsPatcher.patchFps(main_js);
+        main_js = CritPatcher.patchCrit(main_js);
 
         // manage bgm loading strategy with global mute variable for audio focus issue
         if (activity.isMuteMode()) {

@@ -180,7 +180,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
     }
 
     public boolean loadQuoteData(Context context, String localeCode) {
-        // For KC3 Kai data format, need to load the quite size meta first
+        // For KC3 Kai data format, need to load the quote size meta first
         loadQuoteAnnotation(context);
 
         String filename = String.format(Locale.US, "quotes_%s.json", localeCode);
@@ -232,7 +232,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                     String commit = commit_log.get(0).getAsJsonObject().get("sha").getAsString();
                     downloadQuoteSizeData(versionTable, context, commit, submeta_file);
                     loadQuoteSizeData(submeta_path);
-                    Log.e("GOTO", "quote_size: " + quoteSizeData.size());
+                    Log.e("GOTO", "quote_size: " + (quoteSizeData == null ? -1 : quoteSizeData.size()));
                 }
             }
             @Override
@@ -243,7 +243,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         });
 
 
-        Log.e("GOTO", "quote_meta: " + quoteLabel.size());
+        Log.e("GOTO", "quote_meta: " + (quoteLabel == null ? -1 : quoteLabel.size()));
     }
 
     private static void downloadQuoteSizeData(VersionDatabase table, Context context, String commit, File file) {
