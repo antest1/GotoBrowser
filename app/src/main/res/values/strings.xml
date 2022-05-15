@@ -86,6 +86,8 @@
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_fps_enable">Remove 60 FPS limit</string>
     <string name="settings_mod_fps_summary">Support higher refresh rate devices. Animation speed is not affected.</string>
+    <string name="settings_mod_crit_enable">True Critical Hits</string>
+    <string name="settings_mod_crit_summary">Removes some hard-coded obfuscation for hits. Only a critical hit will be displayed as such, etc. Author: @Oradimi</string>
     <string name="settings_use_external_dir">Use External Storage for Resource Caching</string>
     <string name="menu_tooltip_kantai3d">Toggle 3D effects</string>
     <string name="msg_kantai3d_init">No secretary detected</string>
