@@ -121,6 +121,12 @@
                 android:action="android.intent.action.VIEW"
                 android:data="https://github.com/laplamgor/kantai3d"/>
         </Preference>
+
+        <SwitchPreferenceCompat
+            android:summary="@string/settings_mod_crit_summary"
+            app:iconSpaceReserved="false"
+            app:key="pref_mod_crit"
+            app:title="@string/settings_mod_crit_enable" />
     </PreferenceCategory>
 
     <PreferenceCategory
