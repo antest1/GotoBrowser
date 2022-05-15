@@ -56,7 +56,7 @@
     <string name="setting_connection">접속 설정</string>
     <string name="setting_alter_method_url">URL 교체</string>
     <string name="setting_alter_method_proxy">KCCacheProxy (remote)</string>
-    <string name="setting_alter_method_proxy_error_toast">KCCacheProxy Endpoint Server is invalid. Please update your Bypass Method setting.</string>
+    <string name="setting_alter_method_proxy_error_toast">올바른 KCCacheProxy Endpoint 서버가 아닙니다. 다른 우회 방식을 사용해주세요.</string>
     <string name="setting_alter_method">우회 방식</string>
     <string name="setting_alter_endpoint">Endpoint 서버</string>
 
