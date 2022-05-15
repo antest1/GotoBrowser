@@ -71,7 +71,7 @@
     <string name="settings_legacy_renderer_enable">レガシーレンダラを使用する</string>
 
     <string name="settings_mod_label">非公式のMOD（自己責任で使ってください）</string>
-    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.1</string>
+    <string name="settings_mod_kantai3d_enable">Kantai3D v3.0</string>
     <string name="settings_mod_kantai3d_summary">一部の秘書艦に3Dのような視覚効果とおける乳揺れを追加します。作者：@laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_kantaien_enable">[Alpha] KanColle English Patch</string>
