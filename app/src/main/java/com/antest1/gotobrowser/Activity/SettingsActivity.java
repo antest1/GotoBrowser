@@ -2,12 +2,14 @@ package com.antest1.gotobrowser.Activity;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.EditTextPreference;
@@ -19,6 +21,7 @@ import androidx.webkit.WebViewFeature;
 
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
+import com.antest1.gotobrowser.Helpers.KcEnUtils;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
@@ -38,6 +41,8 @@ import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_FPS;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_CRIT;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
@@ -52,6 +57,7 @@ import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
 
 import java.util.Map;
+import java.io.IOException;
 
 public class SettingsActivity extends AppCompatActivity {
     @Override
@@ -82,6 +88,7 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_DEVTOOLS_DEBUG:
                 case PREF_TP_DISCLAIMED:
                 case PREF_MOD_KANTAI3D:
+                case PREF_MOD_KANTAIEN:
                 case PREF_MOD_FPS:
                 case PREF_MOD_CRIT:
                 case PREF_USE_EXTCACHE:
@@ -142,16 +149,28 @@ public class SettingsActivity extends AppCompatActivity {
                 preference.setOnPreferenceChangeListener(this);
             }
             updateSubtitleDescriptionText();
+            updateKantaiEnDescriptionText();
             updateKantai3dDisable();
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         public boolean onPreferenceTreeClick(Preference preference) {
             String key = preference.getKey();
-            if (key.equals(PREF_CHECK_UPDATE)) {
-                KcUtils.requestLatestAppVersion(getActivity(), appCheck, true);
-            } else if (key.equals(PREF_SUBTITLE_UPDATE)) {
-                SubtitleProviderUtils.getCurrentSubtitleProvider().downloadUpdateFromPreference(this, versionTable);
+            switch (key) {
+                case PREF_CHECK_UPDATE:
+                    KcUtils.requestLatestAppVersion(getActivity(), appCheck, true);
+                    break;
+                case PREF_SUBTITLE_UPDATE:
+                    SubtitleProviderUtils.getCurrentSubtitleProvider().downloadUpdateFromPreference(this, versionTable);
+                    break;
+                case PREF_MOD_KANTAIEN_UPDATE:
+                    try {
+                        KcEnUtils.requestPatchUpdate(this, getActivity(), getContext());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
             }
             return super.onPreferenceTreeClick(preference);
         }
@@ -193,6 +212,9 @@ public class SettingsActivity extends AppCompatActivity {
                 if (key.equals(PREF_USE_EXTCACHE)) {
                     updateSubtitleDescriptionText();
                 }
+                if (key.equals(PREF_MOD_KANTAIEN)) {
+                    updateKantaiEnDescriptionText();
+                }
                 if (key.equals(PREF_LEGACY_RENDERER)) {
                     updateKantai3dDisable();
                 }
@@ -222,6 +244,16 @@ public class SettingsActivity extends AppCompatActivity {
             Preference subtitleUpdate = findPreference(PREF_SUBTITLE_UPDATE);
 
             SubtitleProviderUtils.getSubtitleProvider(subtitleLocaleCode).checkUpdateFromPreference(this, subtitleLocaleCode, subtitleUpdate, versionTable);
+        }
+
+        private void updateKantaiEnDescriptionText() {
+            Preference kantaiEnUpdate = findPreference(PREF_MOD_KANTAIEN_UPDATE);
+            if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
+                KcEnUtils.checkKantaiEnUpdate(this, kantaiEnUpdate);
+            } else {
+                kantaiEnUpdate.setEnabled(false);
+                kantaiEnUpdate.setSummary("Mod disabled.");
+            }
         }
     }
 }

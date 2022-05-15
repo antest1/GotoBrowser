@@ -73,6 +73,10 @@
     <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.1</string>
     <string name="settings_mod_kantai3d_summary">為部份秘書艦添加仿立體的視覺效果及胸部物理。作者：@laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
+    <string name="settings_mod_kantaien_enable">[Alpha] KanColle English Patch</string>
+    <string name="settings_mod_kantaien_summary">將游戲翻譯成英文。目前僅支持文本。作者：@Oradimi</string>
+    <string name="settings_mod_kantaien_download">下載English Patch數據</string>
+    <string name="settings_mod_kantaien_about">KanColle English Patch關於</string>
     <string name="settings_mod_fps_enable">移除60幀限制</string>
     <string name="settings_mod_fps_summary">支持高刷新率手機。遊戲速度不會受影響。</string>
     <string name="settings_mod_crit_enable">真正的致命一擊</string>

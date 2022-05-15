@@ -84,6 +84,10 @@
     <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.1</string>
     <string name="settings_mod_kantai3d_summary">Add 3D-like visual effects and jiggle physics to some of your secretaries. Author: @laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
+    <string name="settings_mod_kantaien_enable">[Alpha] KanColle English Patch</string>
+    <string name="settings_mod_kantaien_summary">Translates the game into English. Only text supported for now. Author: @Oradimi</string>
+    <string name="settings_mod_kantaien_download">Download English Patch Data</string>
+    <string name="settings_mod_kantaien_about">About KanColle English Patch</string>
     <string name="settings_mod_fps_enable">Remove 60 FPS limit</string>
     <string name="settings_mod_fps_summary">Support higher refresh rate devices. Animation speed is not affected.</string>
     <string name="settings_mod_crit_enable">True Critical Hits</string>
@@ -95,6 +99,10 @@
     <string name="msg_kantai3d_error">The depth map of the current secretary CG is unavailable: %s</string>
     <string name="msg_kantai3d_redirect">To see the list of all 3D-supported CG, or contribute new depth maps, please visit: https://github.com/laplamgor/kantai3d</string>
 
+
+    <string name="download_start" translatable="false">Download starting…</string>
+    <string name="installation_start" translatable="false">Installation starting…</string>
+    <string name="installation_done" translatable="false">Installation complete!</string>
 
     <string name="browser_ui_hint_text">« click any outside area to open the panel »</string>
 

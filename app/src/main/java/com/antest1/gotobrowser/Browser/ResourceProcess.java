@@ -17,6 +17,7 @@ import com.antest1.gotobrowser.Helpers.CritPatcher;
 import com.antest1.gotobrowser.Helpers.FpsPatcher;
 import com.antest1.gotobrowser.Helpers.K3dPatcher;
 import com.antest1.gotobrowser.Helpers.KcUtils;
+import com.antest1.gotobrowser.Helpers.KenPatcher;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleData;
@@ -52,6 +53,7 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
@@ -101,9 +103,9 @@ public class ResourceProcess {
     private final Handler shipVoiceHandler = new Handler();
     private final Handler clearSubHandler = new Handler();
 
-    boolean prefAlterGadget, isGadgetUrlReplaceMode;
+    boolean prefAlterGadget, isGadgetUrlReplaceMode, prefModKantaiEn;
     String alterEndpoint;
-    
+
     ResourceProcess(BrowserActivity activity) {
         this.activity = activity;
         context = activity.getApplicationContext();
@@ -114,6 +116,7 @@ public class ResourceProcess {
         isGadgetUrlReplaceMode = sharedPref.getString(PREF_ALTER_METHOD, "")
                 .equals(PREF_ALTER_METHOD_URL);
         alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL);
+        prefModKantaiEn = sharedPref.getBoolean(PREF_MOD_KANTAIEN, false);
         subtitleText = activity.findViewById(R.id.subtitle_view);
         subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
     }
@@ -283,21 +286,32 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processImageDataResource(JsonObject file_info, JsonObject update_info, int resource_type) {
+        //boolean patch_mode = KenPatcher.isPatcherEnabled();
         String version = update_info.get("version").getAsString();
         boolean is_last_modified = update_info.get("is_last_modified").getAsBoolean();
         boolean update_flag = update_info.get("update_flag").getAsBoolean();
+        //boolean patched_update_flag = false;
         String last_modified = is_last_modified ? version : null;
 
         String path = file_info.get("path").getAsString();
         String resource_url = file_info.get("full_url").getAsString();
         String out_file_path = file_info.get("out_file_path").getAsString();
         File file = getImageFile(out_file_path);
+        /*File file = getImageFile(out_file_path, false);
+        if (patch_mode) {
+            File patched_file = getImageFile(out_file_path, true);
+            if (!patched_file.exists() || KenPatcher.shouldBePatched(out_file_path)) {
+                versionTable.putDefaultValue(path);
+                patched_update_flag = true;
+            }
+        }*/
         if (!file.exists()) {
             versionTable.putDefaultValue(path);
             update_flag = true;
         }
         Log.e("GOTO", "requested: " + file.getPath());
         if (update_flag) {
+            //KenPatcher.removePatchedFile(out_file_path);
             String result = downloadResource(resourceClient, resource_url, last_modified, file);
             String new_value = version;
             if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value))
@@ -315,9 +329,13 @@ public class ResourceProcess {
             Log.e("GOTO", "load cached resource: " + file.getPath() + " " + version);
         }
 
+        /*if (patched_update_flag) {
+            KenPatcher.execPatchTask(context, out_file_path);
+        }*/
+
         try {
             InputStream is = new BufferedInputStream(new FileInputStream(file));
-            Log.e("GOTO" , out_file_path + " " + is.available());
+            Log.e("GOTO", out_file_path + " " + is.available());
 
             String type = ResourceProcess.isImage(resource_type) ? "image/png" : "application/json";
             return new WebResourceResponse(type, "utf-8", is);
@@ -555,6 +573,12 @@ public class ResourceProcess {
         return new File(path);
     }
 
+    /*private File getImageFile(String path, boolean patch_mode) {
+        if (patch_mode && KenPatcher.isPatched(path))
+            return new File(KenPatcher.getPatchedFilePath(path));
+        else return new File(path);
+    }*/
+
     /*
     private void checkSpecialSubtitleMode() {
         try {
@@ -640,6 +664,7 @@ public class ResourceProcess {
     private String patchMainScript(String main_js, boolean broadcast_mode) {
 
         main_js = K3dPatcher.patchKantai3d(main_js);
+        main_js = KenPatcher.patchKantaiEn(main_js, activity);
         main_js = FpsPatcher.patchFps(main_js);
         main_js = CritPatcher.patchCrit(main_js);
 
