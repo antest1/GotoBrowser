@@ -55,6 +55,7 @@
     <string name="setting_connection">接続設定</string>
     <string name="setting_alter_method_url">URL置換</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（リモート）</string>
+    <string name="setting_alter_method_proxy_error_toast">KCCacheProxyエンドポイントサーバーが無効です。バイパス方式設定を変更してください。</string>
     <string name="setting_alter_method">バイパス方式</string>
     <string name="setting_alter_endpoint">エンドポイントサーバー</string>
 

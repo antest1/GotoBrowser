@@ -416,7 +416,7 @@ public class WebViewManager {
         return url.replace(GADGET_URL, endpoint);
     }
 
-    public static void setKcCacheProxy(String endpoint, Runnable listener) {
+    public static void setKcCacheProxy(String endpoint, Runnable onSuccessListener, Runnable onFailureListener) {
         if (WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
             ProxyConfig proxyConfig = new ProxyConfig.Builder()
                     .addProxyRule(endpoint)
@@ -425,7 +425,11 @@ public class WebViewManager {
             Executor executor = command -> {
                 command.run();
             };
-            ProxyController.getInstance().setProxyOverride(proxyConfig, executor, listener);
+            try {
+                ProxyController.getInstance().setProxyOverride(proxyConfig, executor, onSuccessListener);
+            } catch (IllegalArgumentException exception) {
+                onFailureListener.run();
+            }
         }
     }
 
