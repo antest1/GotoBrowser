@@ -235,12 +235,23 @@ public class KenPatcher {
         return file.length() < 1048576 || outfile.exists();
     }
 
-    public static boolean shouldBePatched(String path) {
+    public static boolean checkPatch(Context context, JsonObject file_info, JsonObject update_info, int resource_type) {
+        String version = update_info.get("version").getAsString();
+        boolean is_last_modified = update_info.get("is_last_modified").getAsBoolean();
+        boolean update_flag = update_info.get("update_flag").getAsBoolean();
+        //boolean patched_update_flag = false;
+        String last_modified = is_last_modified ? version : null;
+        //"/sdcard/Android/data/com.antest1.gotobrowser.debug/files/KanColle-English-Patch-KCCP-master"
+        String path = file_info.get("path").getAsString();
+        String resource_url = file_info.get("full_url").getAsString();
+        String out_file_path = file_info.get("out_file_path").getAsString();
+        //File file = getImageFile(out_file_path);
         //Path absolutePath = Paths.get(getContext().getExternalFilesDir(null).getAbsolutePath());
-        if (path.contains(FILE_POSTFIX)) return false;
+        /*if (path.contains(FILE_POSTFIX)) return false;
         File file = new File(path);
         File outfile = new File(path.replace("cache", FILE_POSTFIX));
-        return file.exists() && file.length() >= 1048576 && !outfile.exists();
+        return file.exists() && file.length() >= 1048576 && !outfile.exists();*/
+        return false;
     }
 
     public static boolean removePatchedFile(String path) {

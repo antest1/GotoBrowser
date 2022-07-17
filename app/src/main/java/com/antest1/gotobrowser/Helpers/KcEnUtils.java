@@ -13,6 +13,7 @@ import androidx.annotation.RequiresApi;
 import androidx.preference.Preference;
 
 import com.antest1.gotobrowser.Activity.SettingsActivity;
+import com.antest1.gotobrowser.Browser.ResourceProcess;
 import com.antest1.gotobrowser.R;
 
 import net.lingala.zip4j.core.ZipFile;
@@ -250,7 +251,7 @@ public class KcEnUtils {
                                 }
                             }
                             handler.post(() -> {
-                                KcUtils.showToastShort(ac, R.string.installation_done);
+                                KcUtils.showToast(ac, R.string.installation_done);
                             });
                         } catch (IOException | ParseException | JSONException e) {
                             e.printStackTrace();
@@ -294,7 +295,7 @@ public class KcEnUtils {
                             if (deleted) {
                                 Log.e("GOTO", "Zip successfully deleted");
                                 handler.post(() -> {
-                                    KcUtils.showToastShort(ac, R.string.installation_done);
+                                    KcUtils.showToast(ac, R.string.installation_done);
                                 });
                             } else {
                                 Log.e("GOTO", "Zip wasn't deleted");
@@ -309,9 +310,30 @@ public class KcEnUtils {
                         System.out.println("exception occurs");
                         System.err.println(exception);
                         Log.e("GOTO", "Something went wrong with the patch download");
+                        KcUtils.showToast(ac, "Something went wrong with the patch download");
                     } else {
                         System.out.println("no exception, got result: " + input);
                     }
                 });
+    }
+
+    public static boolean checkPatchValidity(String local_path, String destination, String origin) {
+        Log.e("GOTO", "this is the destination boiiiiiii" + destination);
+        if (ResourceProcess.isImage(ResourceProcess.getCurrentState(destination))) {
+            Log.e("GOTO", "00000000000004");
+            File metadata_file = new File(local_path.replace(".png", ".json"));
+            if (!metadata_file.exists()) {
+                File source = new File(origin.concat("/patched.png"));
+                File dest = new File(destination);
+                try {
+                    Log.e("GOTO", "00000000000005");
+                    FileUtils.copyFile(source, dest);
+                    return true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
     }
 }

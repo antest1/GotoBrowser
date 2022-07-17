@@ -12,6 +12,7 @@ android {
         versionName "2.9"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
 
         buildTypes {
             debug {

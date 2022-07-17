@@ -16,6 +16,7 @@ import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.Helpers.CritPatcher;
 import com.antest1.gotobrowser.Helpers.FpsPatcher;
 import com.antest1.gotobrowser.Helpers.K3dPatcher;
+import com.antest1.gotobrowser.Helpers.KcEnUtils;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.KenPatcher;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
@@ -31,6 +32,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -203,6 +206,7 @@ public class ResourceProcess {
                     }
                 }
             }
+
         } catch (Exception e) {
             KcUtils.reportException(e);
         }
@@ -329,9 +333,34 @@ public class ResourceProcess {
             Log.e("GOTO", "load cached resource: " + file.getPath() + " " + version);
         }
 
-        /*if (patched_update_flag) {
-            KenPatcher.execPatchTask(context, out_file_path);
-        }*/
+        if (KenPatcher.isPatcherEnabled()) {
+            boolean patch_update_flag;
+            Log.e("GOTO", "00000000000001");
+            String filename = file_info.get("filename").getAsString();
+            String patch_output_path = "";
+            patch_output_path = KcUtils.getAppCacheFileDir(context, "/_patched_cache");
+            String patch_file_path = patch_output_path;
+            if (path != null) patch_file_path = patch_file_path.concat(path);
+            File patch_file = getImageFile(patch_file_path);
+            String absolutePath = context.getExternalFilesDir(null).getAbsolutePath();
+            String enPatchFilePath = absolutePath.concat("/KanColle-English-Patch-KCCP-master/EN-patch").concat(path);
+            File enPatchFile = new File(enPatchFilePath);
+
+            boolean use_patch = false;
+            if (enPatchFile.isDirectory()) {
+                Log.e("GOTO", "00000000000002");
+                if (!patch_file.exists()) {
+                    Log.e("GOTO", "00000000000003");
+                    use_patch = KcEnUtils.checkPatchValidity(out_file_path, patch_file_path, enPatchFilePath);
+                } else {
+                    Log.e("GOTO", "00000000000003_alt");
+                    use_patch = true;
+                }
+            }
+            if (use_patch) {
+                file = patch_file;
+            }
+        }
 
         try {
             InputStream is = new BufferedInputStream(new FileInputStream(file));
