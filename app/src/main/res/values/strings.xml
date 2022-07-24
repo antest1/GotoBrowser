@@ -101,7 +101,7 @@
 
 
     <string name="download_start" translatable="false">Download starting…</string>
-    <string name="installation_start" translatable="false">Installation starting…</string>
+    <string name="installation_start" translatable="false">Unzipping…</string>
     <string name="installation_done" translatable="false">Installation complete!</string>
 
     <string name="browser_ui_hint_text">« click any outside area to open the panel »</string>
