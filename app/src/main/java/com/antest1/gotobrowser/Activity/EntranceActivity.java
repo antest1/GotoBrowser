@@ -255,8 +255,10 @@ public class EntranceActivity extends AppCompatActivity {
         webview.clearCache(true);
         versionTable.clearVersionDatabase();
         String cache_dir = KcUtils.getAppCacheFileDir(getApplicationContext(), "/cache/");
+        String patched_cache_dir = KcUtils.getAppCacheFileDir(getApplicationContext(), "/_patched_cache/");
         clearApplicationCache(getApplicationContext(), getCacheDir());
         clearApplicationCache(getApplicationContext(), new File(cache_dir));
+        clearApplicationCache(getApplicationContext(), new File(patched_cache_dir));
     }
 
     private void startBrowserActivity() {

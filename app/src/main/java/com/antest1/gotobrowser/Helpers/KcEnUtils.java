@@ -4,9 +4,15 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_UPDATE;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.media.Image;
+import android.media.ImageReader;
 import android.os.Build;
 import android.os.Handler;
 import android.os.StrictMode;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
@@ -20,9 +26,11 @@ import com.antest1.gotobrowser.R;
 import net.lingala.zip4j.ZipFile;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.threeten.bp.Duration;
@@ -30,19 +38,27 @@ import org.threeten.bp.Instant;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -55,7 +71,7 @@ public class KcEnUtils {
 
     public static class Version implements Comparable<Version> {
 
-        private String version;
+        private final String version;
 
         public final String get() {
             return this.version;
@@ -109,7 +125,7 @@ public class KcEnUtils {
         org.json.simple.JSONObject enPatchInfo;
         org.json.simple.JSONObject enPatchLocalInfo;
         String enPatchLocalInfoFileName = "EN-patch.mod.json";
-        String enPatchLocalFolder = absolutePath + "/KanColle-English-Patch-KCCP-master/";
+        String enPatchLocalFolder = absolutePath.concat("/KanColle-English-Patch-KCCP-master/");
         String enPatchLocalInfoPath = enPatchLocalFolder.concat(enPatchLocalInfoFileName);
         int SDK_INT = android.os.Build.VERSION.SDK_INT;
         if (SDK_INT > 8) {
@@ -118,7 +134,6 @@ public class KcEnUtils {
             StrictMode.setThreadPolicy(policy);
         }
         try {
-            //The English Patch is about 291401713 bytes in size.
             String enPatchInfoUrl = "https://raw.githubusercontent.com/Oradimi/KanColle-English-Patch-KCCP/master/EN-patch.mod.json";
             enPatchInfoFile = new URL(enPatchInfoUrl).openConnection().getInputStream();
             JSONParser jsonParser = new JSONParser();
@@ -228,39 +243,68 @@ public class KcEnUtils {
                             Log.e("GOTO", "delUrl: " + delUrl);
                             Log.e("GOTO", "addUrl: " + addUrl);
                             for (int i = 0; i < delUrl.size(); i++) {
-                                //String progress = String.valueOf(i);
-                                //handler.post(() -> {
-                                //    KcUtils.showToastShort(ac, "Progress: " + progress + "/" + delUrl.size());
-                                //});
                                 for (int j = 0; j < delUrl.get(i).size(); j++) {
                                     String delPath = absolutePath + "/KanColle-English-Patch-KCCP-master/" + delUrl.get(i).get(j);
                                     File delFile = new File(delPath);
-                                    if (delFile.exists()) {
-                                        boolean deleted = delFile.delete();
-                                        if (deleted) {
-                                            Log.e("GOTO", "Deleted: " + delPath);
-                                        }
+                                    if (delFile.exists() && delFile.delete()) {
+                                        Log.e("GOTO", "patch file deleted: " + delPath);
                                     }
                                 }
+                                Instant start = Instant.now();
+                                Instant end;
                                 for (int j = 0; j < addUrl.get(i).size(); j++) {
                                     String addPath = absolutePath + "/KanColle-English-Patch-KCCP-master/" + addUrl.get(i).get(j);
                                     File addFile = new File(addPath);
-                                    Log.e("GOTO", "path dude add" + addFile);
                                     String masterPath = "https://raw.githubusercontent.com/Oradimi/KanColle-English-Patch-KCCP/master/" + addUrl.get(i).get(j);
                                     if (remoteFileExists(masterPath)) {
                                         URL master = new URL(masterPath);
                                         ReadableByteChannel rbc = Channels.newChannel(master.openStream());
                                         FileOutputStream fos = FileUtils.openOutputStream(addFile);
                                         fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                                        fos.close();
+                                        Log.e("GOTO", "patch file downloaded: " + addPath);
+                                        end = Instant.now();
+                                        if (Duration.between(start, end).compareTo(Duration.ofSeconds(5)) > 0) {
+                                            start = Instant.now();
+                                            String version_progress = String.valueOf(i + 1);
+                                            String file_progress = String.valueOf(j);
+                                            int finalI = i;
+                                            handler.post(() -> {
+                                                KcUtils.showToastShort(ac, String.format("English Patch Update %s/%s\n%s/%s %s",
+                                                        version_progress, delUrl.size(), file_progress, addUrl.get(finalI).size(), "files downloaded"));
+                                            });
+                                        }
                                     }
                                 }
                             }
-                            handler.post(() -> KcUtils.showToastShort(ac, R.string.installation_done));
+                            handler.post(() -> {
+                                AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
+                                mBuilder.setTitle("KanColle English Patch");
+                                mBuilder.setCancelable(false)
+                                        .setMessage("The update was successfully completed!")
+                                        .setPositiveButton(R.string.action_ok,
+                                                (dialog, id) -> dialog.cancel());
+                                AlertDialog alertDialog = mBuilder.create();
+                                alertDialog.show();
+                            });
                         } catch (IOException | ParseException | JSONException e) {
                             e.printStackTrace();
                         }
                     } else {
                         try {
+                            org.json.simple.JSONObject enPatchInfo;
+                            InputStream enPatchInfoFile;
+                            String enPatchInfoUrl = "https://raw.githubusercontent.com/Oradimi/KanColle-English-Patch-KCCP/master/EN-patch.mod.json";
+                            enPatchInfoFile = new URL(enPatchInfoUrl).openConnection().getInputStream();
+                            JSONParser jsonParserInfo = new JSONParser();
+                            enPatchInfo = (org.json.simple.JSONObject) jsonParserInfo.parse(
+                                    new InputStreamReader(enPatchInfoFile, StandardCharsets.UTF_8));
+                            String patchSize = String.valueOf(enPatchInfo.get("size"));
+                            if (patchSize.equals("null")) {
+                                patchSize = "310000000";
+                            }
+                            Log.e("GOTO", "patchSize: " + patchSize);
+
                             Handler handler = new Handler(context.getMainLooper());
                             handler.post(() -> {
                                 KcUtils.showToastShort(ac, R.string.download_start);
@@ -270,13 +314,13 @@ public class KcEnUtils {
                                 kantaiEnUpdate.setEnabled(false);
                             });
 
-                            Log.e("GOTO", "Download start");
-                            URL url = new URL("https://github.com/Oradimi/KanColle-English-Patch-KCCP/archive/master.zip");
+                            Log.e("GOTO", "english patch download start");
+                            URL url = new URL("https://github.com/Oradimi/KanColle-English-Patch-KCCP/archive/refs/heads/master.zip");
                             String absolutePath = context.getExternalFilesDir(null).getAbsolutePath();
                             String out = absolutePath + "/master.zip";
                             File zipOut = new File(out);
 
-                            byte data[] = new byte[8192];
+                            byte[] data = new byte[8192];
                             long transferred = 0;
                             Instant start = Instant.now();
                             Instant end;
@@ -289,10 +333,7 @@ public class KcEnUtils {
                                 fos.write(data, 0, count);
                                 transferred += count;
                                 end = Instant.now();
-                                long finalTransferred = transferred / 3104000;
-                                Log.e("GOTO", "Count: " + count);
-                                Log.e("GOTO", "Transferred so far: " + transferred);
-                                Log.e("GOTO", "Duration: " + Duration.between(start, end).compareTo(Duration.ofSeconds(5)));
+                                long finalTransferred = transferred * 100 / Integer.parseInt(patchSize);
                                 if (Duration.between(start, end).compareTo(Duration.ofSeconds(5)) > 0) {
                                     start = Instant.now();
                                     handler.post(() -> {
@@ -301,14 +342,12 @@ public class KcEnUtils {
                                 }
                             }
                             Instant countEnd = Instant.now();
-                            Log.e("GOTO", "English Patch download took " + Duration.between(countStart, countEnd) + " seconds");
+                            Log.e("GOTO", "english patch download complete: took " + Duration.between(countStart, countEnd));
                             handler.post(() -> KcUtils.showToastShort(ac, R.string.installation_start));
-                            Log.e("GOTO", "Download complete");
 
                             ZipFile zipFile = new ZipFile(out);
-                            Log.e("GOTO", "absolutePath: " + absolutePath);
                             zipFile.extractAll(absolutePath);
-                            Log.e("GOTO", "Zip extracted");
+                            Log.e("GOTO", "zip extracted to " + absolutePath);
 
                             File file = new File(absolutePath + "/KanColle-English-Patch-KCCP-master/.nomedia");
                             try {
@@ -321,7 +360,7 @@ public class KcEnUtils {
                             boolean deleted = zipOut.delete();
                             if (deleted) {
                                 handler.post(() -> {
-                                    Log.e("GOTO", "Zip successfully deleted");
+                                    Log.e("GOTO", "zip successfully deleted " + absolutePath);
                                     AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
                                     mBuilder.setTitle("KanColle English Patch");
                                     mBuilder.setCancelable(false)
@@ -335,7 +374,7 @@ public class KcEnUtils {
                             } else {
                                 Log.e("GOTO", "Zip wasn't deleted");
                             }
-                        } catch (IOException e) {
+                        } catch (IOException | ParseException e) {
                             e.printStackTrace();
                         }
                     }
@@ -360,40 +399,69 @@ public class KcEnUtils {
                 .collect(Collectors.toSet());
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    public static boolean checkPatchValidity(String local_path, String destination, String origin) {
-        Log.e("GOTO", "this is the destination boiiiiiii" + destination);
-        if (ResourceProcess.isImage(ResourceProcess.getCurrentState(destination))) {
-            Log.e("GOTO", "00000000000004");
-            File metadata_file = new File(local_path.replace(".png", ".json"));
-            File dest = new File(destination);
-            if (!metadata_file.exists()) {
-                File source = new File(origin.concat("/patched.png"));
-                try {
-                    Log.e("GOTO", "00000000000005");
-                    FileUtils.copyFile(source, dest);
-                    return true;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                try {
-                    JSONParser jsonParser = new JSONParser();
-                    org.json.simple.JSONObject metadata = null;
-                    metadata = (org.json.simple.JSONObject) jsonParser.parse(
-                            new FileReader(metadata_file));
-                    Set<String> original_files = listFiles(origin.concat("/original/"));
-                    Set<String> patched_files = listFiles(origin.concat("/patched/"));
-                    Log.e("GOTO", "welsh welsh" + original_files.toString());
-                    Log.e("GOTO", "wash wash" + patched_files.toString());
 
-                } catch (IOException | ParseException e) {
-                    e.printStackTrace();
-                }
-            }
+
+    public static boolean bitmapEqual(Bitmap bitmap1, Bitmap bitmap2) {
+        ByteBuffer buffer1 = ByteBuffer.allocate(bitmap1.getHeight() * bitmap1.getRowBytes());
+        bitmap1.copyPixelsToBuffer(buffer1);
+
+        ByteBuffer buffer2 = ByteBuffer.allocate(bitmap2.getHeight() * bitmap2.getRowBytes());
+        bitmap2.copyPixelsToBuffer(buffer2);
+
+        return Arrays.equals(buffer1.array(), buffer2.array());
+    }
+
+    public static String dirMD5(String dir) {
+        StringBuilder md5 = new StringBuilder();
+        File folder = new File(dir);
+        File[] files = folder.listFiles();
+
+        for (File file : Objects.requireNonNull(files)) {
+            md5.append(getMD5OfFile(file.toString()));
         }
-        return false;
+        md5 = new StringBuilder(GetMD5HashOfString(md5.toString()));
+        return md5.toString();
     }
 
 
+    public static String getMD5OfFile(String filePath) {
+        StringBuilder returnVal = new StringBuilder();
+        try {
+            InputStream input = new FileInputStream(filePath);
+            byte[] buffer = new byte[1024];
+            MessageDigest md5Hash = MessageDigest.getInstance("MD5");
+            int numRead = 0;
+            while (numRead != -1) {
+                numRead = input.read(buffer);
+                if (numRead > 0) {
+                    md5Hash.update(buffer, 0, numRead);
+                }
+            }
+            input.close();
+
+            byte[] md5Bytes = md5Hash.digest();
+            for (byte md5Byte : md5Bytes) {
+                returnVal.append(Integer.toString((md5Byte & 0xff) + 0x100, 16).substring(1));
+            }
+        }
+        catch(Throwable t) {t.printStackTrace();}
+        return returnVal.toString().toUpperCase();
+    }
+
+    public static String GetMD5HashOfString(String str) {
+        MessageDigest md5;
+        StringBuilder hexString = new StringBuilder();
+        try {
+            md5 = MessageDigest.getInstance("md5");
+            md5.reset();
+            md5.update(str.getBytes());
+            byte[] messageDigest = md5.digest();
+            for (byte b : messageDigest) {
+                hexString.append(Integer.toHexString((0xF0 & b) >> 4));
+                hexString.append(Integer.toHexString(0x0F & b));
+            }
+        }
+        catch (Throwable ignored) {}
+        return hexString.toString();
+    }
 }

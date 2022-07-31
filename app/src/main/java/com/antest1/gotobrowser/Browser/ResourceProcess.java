@@ -5,7 +5,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
@@ -29,15 +32,15 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
@@ -60,8 +63,18 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
+import static com.antest1.gotobrowser.Helpers.KcEnUtils.GetMD5HashOfString;
+import static com.antest1.gotobrowser.Helpers.KcEnUtils.dirMD5;
 import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResource;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getEmptyStream;
+
+import androidx.annotation.RequiresApi;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 public class ResourceProcess {
     private static final int RES_IMAGE  = 0b0000001;
@@ -290,32 +303,21 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processImageDataResource(JsonObject file_info, JsonObject update_info, int resource_type) {
-        //boolean patch_mode = KenPatcher.isPatcherEnabled();
         String version = update_info.get("version").getAsString();
         boolean is_last_modified = update_info.get("is_last_modified").getAsBoolean();
         boolean update_flag = update_info.get("update_flag").getAsBoolean();
-        //boolean patched_update_flag = false;
         String last_modified = is_last_modified ? version : null;
 
         String path = file_info.get("path").getAsString();
         String resource_url = file_info.get("full_url").getAsString();
         String out_file_path = file_info.get("out_file_path").getAsString();
         File file = getImageFile(out_file_path);
-        /*File file = getImageFile(out_file_path, false);
-        if (patch_mode) {
-            File patched_file = getImageFile(out_file_path, true);
-            if (!patched_file.exists() || KenPatcher.shouldBePatched(out_file_path)) {
-                versionTable.putDefaultValue(path);
-                patched_update_flag = true;
-            }
-        }*/
         if (!file.exists()) {
             versionTable.putDefaultValue(path);
             update_flag = true;
         }
         Log.e("GOTO", "requested: " + file.getPath());
         if (update_flag) {
-            //KenPatcher.removePatchedFile(out_file_path);
             String result = downloadResource(resourceClient, resource_url, last_modified, file);
             String new_value = version;
             if (new_value.length() == 0 || VersionDatabase.isDefaultValue(new_value))
@@ -335,7 +337,6 @@ public class ResourceProcess {
 
         if (KenPatcher.isPatcherEnabled()) {
             boolean patch_update_flag;
-            Log.e("GOTO", "00000000000001");
             String filename = file_info.get("filename").getAsString();
             String patch_output_path = "";
             patch_output_path = KcUtils.getAppCacheFileDir(context, "/_patched_cache");
@@ -348,12 +349,22 @@ public class ResourceProcess {
 
             boolean use_patch = false;
             if (enPatchFile.isDirectory()) {
-                Log.e("GOTO", "00000000000002");
-                if (!patch_file.exists()) {
-                    Log.e("GOTO", "00000000000003");
-                    use_patch = KcEnUtils.checkPatchValidity(out_file_path, patch_file_path, enPatchFilePath);
+                String patchStrings;
+                if (new File(enPatchFilePath.concat("/original")).isDirectory()) {
+                    patchStrings = dirMD5(enPatchFilePath.concat("/original")) + dirMD5(enPatchFilePath.concat("/patched"));
                 } else {
-                    Log.e("GOTO", "00000000000003_alt");
+                    patchStrings = dirMD5(enPatchFilePath);
+                }
+                String hash = GetMD5HashOfString(patchStrings);
+                if (!patch_file.exists() || update_flag ||
+                        versionTable.getValue(enPatchFilePath) == null || !Objects.equals(versionTable.getValue(enPatchFilePath), hash)) {
+                    versionTable.putValue(enPatchFilePath, hash);
+                    Log.e("GOTO", "needs repatch: " + patch_file_path + " " + hash);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        use_patch = patchImage(out_file_path, patch_file_path, enPatchFilePath);
+                    }
+                } else {
+                    Log.e("GOTO", "using cached patched file: " + patch_file_path + " " + hash);
                     use_patch = true;
                 }
             }
@@ -866,5 +877,89 @@ public class ResourceProcess {
         public void run() {
             setSubtitle(data);
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public static boolean patchImage(String local_path, String destination, String origin) {
+        if (ResourceProcess.isImage(ResourceProcess.getCurrentState(destination))) {
+            Bitmap spritesheet = BitmapFactory.decodeFile(local_path);
+            File metadata_file = new File(local_path.replace(".png", ".json"));
+            File dest = new File(destination);
+            if (!metadata_file.exists()) {
+                File source = new File(origin.concat("/patched.png"));
+                try {
+                    FileUtils.copyFile(source, dest);
+                    Log.e("GOTO", "image patched: " + destination);
+                    return true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                try {
+                    boolean patch_found = false;
+                    InputStream is = new FileInputStream(metadata_file);
+                    String jsonTxt = IOUtils.toString(is);
+                    JSONTokener tokener = new JSONTokener(jsonTxt);
+                    JSONObject metadata = new JSONObject(tokener);
+                    JSONObject frames = (JSONObject) metadata.get("frames");
+                    Object[] original_files = KcEnUtils.listFiles(origin.concat("/original/")).toArray();
+                    Object[] patched_files = KcEnUtils.listFiles(origin.concat("/patched/")).toArray();
+
+                    Bitmap pt_spritesheet = spritesheet.copy(spritesheet.getConfig(), true);
+                    int pt_ss_w = pt_spritesheet.getWidth();
+                    int pt_ss_h = pt_spritesheet.getHeight();
+                    int[] pt_spritesheet_pixels = new int[pt_ss_w * pt_ss_h];
+                    pt_spritesheet.getPixels(pt_spritesheet_pixels, 0, pt_ss_w, 0, 0, pt_ss_w, pt_ss_h);
+
+                    for (int i = 0; i < original_files.length; i++) {
+                        if (original_files[i].equals(patched_files[i])) {
+                            Bitmap og_sprite = BitmapFactory.decodeFile(origin.concat("/original/").concat((String) original_files[i]));
+                            Bitmap pt_sprite = BitmapFactory.decodeFile(origin.concat("/patched/").concat((String) patched_files[i]));
+                            int og_sprite_w = og_sprite.getWidth();
+                            int og_sprite_h = og_sprite.getHeight();
+                            int pt_sprite_w = pt_sprite.getWidth();
+                            int pt_sprite_h = pt_sprite.getHeight();
+                            if (og_sprite_w == pt_sprite_w && og_sprite_h == pt_sprite_h) {
+                                for (int j = 0; j < frames.length(); j++) {
+                                    JSONObject number = frames.getJSONObject((
+                                            (String) original_files[i]).substring(0,
+                                            ((String) original_files[i]).length() - 7).concat(String.valueOf(j)));
+                                    JSONObject sourceSize = number.getJSONObject("sourceSize");
+                                    int w = sourceSize.getInt("w");
+                                    int h = sourceSize.getInt("h");
+                                    if (w == og_sprite_w && h == og_sprite_h) {
+                                        JSONObject frame = number.getJSONObject("frame");
+                                        int frame_x = frame.getInt("x");
+                                        int frame_y = frame.getInt("y");
+                                        int[] ss_pixels = new int[w * h];
+                                        int[] pt_pixels = new int[w * h];
+                                        spritesheet.getPixels(ss_pixels, 0, w, frame_x, frame_y, w, h);
+                                        Bitmap ss_sprite = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+                                        ss_sprite.setPixels(ss_pixels, 0, w, 0, 0, w, h);
+                                        if (KcEnUtils.bitmapEqual(og_sprite, ss_sprite)) {
+                                            pt_sprite.getPixels(pt_pixels, 0, w, 0, 0, w, h);
+                                            pt_spritesheet.setPixels(pt_pixels, 0, w, frame_x, frame_y, w, h);
+                                            patch_found = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (patch_found) {
+                        dest.getParentFile().mkdirs();
+                        FileOutputStream fos = new FileOutputStream(dest);
+                        pt_spritesheet.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                        fos.close();
+
+                        return true;
+                    }
+                } catch (JSONException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
     }
 }
