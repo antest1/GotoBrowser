@@ -75,8 +75,8 @@
     <string name="settings_mod_kantai3d_enable">Kantai3D v3.0</string>
     <string name="settings_mod_kantai3d_summary">일부 비서함에 3D 효과 적용. 저자: @laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
-    <string name="settings_mod_kantaien_enable">[Alpha] KanColle English Patch</string>
-    <string name="settings_mod_kantaien_summary">게임 내 텍스트를 영어로 번역합니다. (현재 인게임 텍스트만 지원) 저자: @Oradimi</string>
+    <string name="settings_mod_kantaien_enable">[Beta] KanColle English Patch</string>
+    <string name="settings_mod_kantaien_summary">게임 내 텍스트를 영어로 번역합니다. 저자: @Oradimi</string>
     <string name="settings_mod_kantaien_download">English Patch 데이터 다운로드</string>
     <string name="settings_mod_kantaien_about">KanColle English Patch에 대해</string>
     <string name="settings_mod_fps_enable">60FPS 제한 제거</string>

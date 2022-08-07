@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.util.Log;
+import android.view.WindowManager;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
@@ -172,11 +173,14 @@ public class KcEnUtils {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public static void requestPatchUpdate(SettingsActivity.SettingsFragment fragment, Activity ac, Context context) throws IOException {
+    public static void requestPatchUpdate(SettingsActivity.SettingsFragment fragment) throws IOException {
         // To do: clean up this mess
+        Context context = fragment.requireContext();
         CompletableFuture
                 .runAsync(() -> {
                     if (newVersionFlag) {
+
+                        // Updates the patch by downloading each new file individually, and deleting outdated ones
                         try {
                             Version installedVersion = new Version(currentVersion);
                             InputStream enPatchVersionsFile;
@@ -194,12 +198,13 @@ public class KcEnUtils {
                             JSONParser jsonParser = new JSONParser();
                             enPatchVersions = (org.json.simple.JSONArray) jsonParser.parse(
                                     new InputStreamReader(enPatchVersionsFile, StandardCharsets.UTF_8));
+
                             ArrayList<List<String>> delUrl = new ArrayList<>();
                             ArrayList<List<String>> addUrl = new ArrayList<>();
 
                             Handler handler = new Handler(context.getMainLooper());
                             handler.post(() -> {
-                                KcUtils.showToastShort(ac, R.string.download_start);
+                                KcUtils.showToastShort(context, R.string.download_start);
                                 Preference kantaiEnUpdate = fragment.findPreference(PREF_MOD_KANTAIEN_UPDATE);
                                 assert kantaiEnUpdate != null;
                                 kantaiEnUpdate.setSummary("Downloading... Wait for 'Installation Complete' toast");
@@ -256,7 +261,7 @@ public class KcEnUtils {
                                             String version_progress = String.valueOf(i + 1);
                                             String file_progress = String.valueOf(j);
                                             int finalI = i;
-                                            handler.post(() -> KcUtils.showToastShort(ac, String.format("English Patch Update %s/%s\n%s/%s %s",
+                                            handler.post(() -> KcUtils.showToastShort(context, String.format("English Patch Update %s/%s\n%s/%s %s",
                                                     version_progress, delUrl.size(), file_progress, addUrl.get(finalI).size(), "files downloaded")));
                                         }
                                     }
@@ -276,6 +281,7 @@ public class KcEnUtils {
                             e.printStackTrace();
                         }
                     } else {
+                        // Downloads and extracts the English Patch zip
                         try {
                             org.json.simple.JSONObject enPatchInfo;
                             InputStream enPatchInfoFile;
@@ -292,7 +298,7 @@ public class KcEnUtils {
 
                             Handler handler = new Handler(context.getMainLooper());
                             handler.post(() -> {
-                                KcUtils.showToastShort(ac, R.string.download_start);
+                                KcUtils.showToastShort(context, R.string.download_start);
                                 Preference kantaiEnUpdate = fragment.findPreference(PREF_MOD_KANTAIEN_UPDATE);
                                 assert kantaiEnUpdate != null;
                                 kantaiEnUpdate.setSummary("Downloading... Wait for 'Installation Complete' toast. This can take a while!");
@@ -325,11 +331,11 @@ public class KcEnUtils {
                             }
                             Instant countEnd = Instant.now();
                             Log.e("GOTO", "english patch download complete: took " + Duration.between(countStart, countEnd));
-                            handler.post(() -> KcUtils.showToastShort(ac, R.string.installation_start));
+                            handler.post(() -> KcUtils.showToastShort(context, R.string.installation_start));
 
                             ZipFile zipFile = new ZipFile(out);
                             zipFile.extractAll(KcUtils.getAppCacheFileDir(context, ""));
-                            Log.e("GOTO", "zip extracted to " + KcUtils.getAppCacheFileDir(context, ""));
+                            Log.e("GOTO", "zip extracted to " + KcUtils.getAppCacheFileDir(fragment.requireContext(), ""));
 
                             File file = new File(KcUtils.getAppCacheFileDir(context, "/KanColle-English-Patch-KCCP-master/.nomedia"));
                             try {
@@ -341,7 +347,8 @@ public class KcEnUtils {
 
                             boolean deleted = zipOut.delete();
                             if (deleted) {
-                                handler.post(() -> {
+                                Log.e("GOTO", "Zip was deleted");
+                                /*handler.post(() -> {
                                     Log.e("GOTO", "zip successfully deleted " + KcUtils.getAppCacheFileDir(context, ""));
                                     AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
                                     mBuilder.setTitle("KanColle English Patch");
@@ -350,8 +357,15 @@ public class KcEnUtils {
                                             .setPositiveButton(R.string.action_ok,
                                                     (dialog, id) -> dialog.cancel());
                                     AlertDialog alertDialog = mBuilder.create();
-                                    alertDialog.show();
-                                });
+                                    try {
+                                        alertDialog.show();
+                                    }
+                                    catch (WindowManager.BadTokenException e) {
+                                        handler.post(() -> {
+                                            KcUtils.showToastShort(context, "The patch download and unzipping were successfully completed!");
+                                        });
+                                    }
+                                });*/
                             } else {
                                 Log.e("GOTO", "Zip wasn't deleted");
                             }
@@ -365,7 +379,7 @@ public class KcEnUtils {
                         System.out.println("exception occurs");
                         System.err.println(exception);
                         Log.e("GOTO", "Something went wrong with the patch download");
-                        KcUtils.showToastShort(ac, "Something went wrong with the patch download");
+                        KcUtils.showToastShort(context, "Something went wrong with the patch download");
                     } else {
                         System.out.println("no exception, got result: " + input);
                     }

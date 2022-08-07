@@ -1,6 +1,7 @@
 package com.antest1.gotobrowser.Activity;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -166,7 +167,7 @@ public class SettingsActivity extends AppCompatActivity {
                     break;
                 case PREF_MOD_KANTAIEN_UPDATE:
                     try {
-                        KcEnUtils.requestPatchUpdate(this, getActivity(), getContext());
+                        KcEnUtils.requestPatchUpdate(this);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -247,7 +248,14 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         private void updateKantaiEnDescriptionText() {
+            Preference kantaiEn = findPreference(PREF_MOD_KANTAIEN);
             Preference kantaiEnUpdate = findPreference(PREF_MOD_KANTAIEN_UPDATE);
+
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N) {
+                kantaiEn.setEnabled(false);
+                kantaiEn.setSummary("Requires Android 7 or above.");
+            }
+
             if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
                 KcEnUtils.checkKantaiEnUpdate(this, kantaiEnUpdate);
             } else {

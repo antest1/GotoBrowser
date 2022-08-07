@@ -74,8 +74,8 @@
     <string name="settings_mod_kantai3d_enable">Kantai3D v3.0</string>
     <string name="settings_mod_kantai3d_summary">一部の秘書艦に3Dのような視覚効果とおける乳揺れを追加します。作者：@laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
-    <string name="settings_mod_kantaien_enable">[Alpha] KanColle English Patch</string>
-    <string name="settings_mod_kantaien_summary">ゲームを英語に翻訳する。現在はテキストサポートのみ。作者：@Oradimi</string>
+    <string name="settings_mod_kantaien_enable">[Beta] KanColle English Patch</string>
+    <string name="settings_mod_kantaien_summary">ゲームを英語に翻訳する。作者：@Oradimi</string>
     <string name="settings_mod_kantaien_download">English Patchデータダウンロード</string>
     <string name="settings_mod_kantaien_about">KanColle English Patchについて</string>
     <string name="settings_mod_fps_enable">60FPS制限を削除します</string>

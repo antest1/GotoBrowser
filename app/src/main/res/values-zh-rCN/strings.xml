@@ -73,8 +73,8 @@
     <string name="settings_mod_kantai3d_enable">Kantai3D v3.0</string>
     <string name="settings_mod_kantai3d_summary">为部份秘书舰添加仿立体的视觉效果及胸部物理。作者：@laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
-    <string name="settings_mod_kantaien_enable">[Alpha] KanColle English Patch</string>
-    <string name="settings_mod_kantaien_summary">将游戏翻译成英文。目前仅支持文本。作者：@Oradimi</string>
+    <string name="settings_mod_kantaien_enable">[Beta] KanColle English Patch</string>
+    <string name="settings_mod_kantaien_summary">将游戏翻译成英文。作者：@Oradimi</string>
     <string name="settings_mod_kantaien_download">下载English Patch数据</string>
     <string name="settings_mod_kantaien_about">KanColle English Patch关于</string>
     <string name="settings_mod_fps_enable">移除60帧限制</string>
