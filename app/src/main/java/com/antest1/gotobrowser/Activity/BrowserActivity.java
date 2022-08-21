@@ -44,7 +44,9 @@ import com.antest1.gotobrowser.Browser.WebViewL;
 import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
+import com.antest1.gotobrowser.Helpers.CritPatcher;
 import com.antest1.gotobrowser.Helpers.FpsPatcher;
+import com.antest1.gotobrowser.Helpers.KenPatcher;
 import com.antest1.gotobrowser.Helpers.K3dPatcher;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Notification.ScreenshotNotification;
@@ -84,6 +86,8 @@ public class BrowserActivity extends AppCompatActivity {
     private ProgressDialog downloadDialog;
     private ScreenshotNotification screenshotNotification;
     private final K3dPatcher k3dPatcher = new K3dPatcher();
+    private final KenPatcher kenPatcher = new KenPatcher();
+    private final CritPatcher critPatcher = new CritPatcher();
     private final FpsPatcher fpsPatcher = new FpsPatcher();
 
     private boolean isKcBrowserMode = false;
@@ -107,7 +111,9 @@ public class BrowserActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         k3dPatcher.prepare(this);
+        kenPatcher.prepare(this);
         fpsPatcher.prepare(this);
+        critPatcher.prepare(this);
 
         Log.e("GOTO", "enter");
         super.onCreate(savedInstanceState);
@@ -380,6 +386,7 @@ public class BrowserActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case REQUEST_EXTERNAL_PERMISSION: {
                 boolean result = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;

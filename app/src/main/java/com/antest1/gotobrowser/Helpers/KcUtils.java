@@ -44,11 +44,16 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
+import java.net.URLConnection;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -67,6 +72,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import static com.antest1.gotobrowser.Constants.CACHE_SIZE_BYTES;
 import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
 
+import org.apache.commons.io.FileUtils;
+
 public class KcUtils {
     private static FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
 
@@ -76,6 +83,10 @@ public class KcUtils {
 
     public static void showToast(Context context, int resource_id) {
         Toast.makeText(context, context.getString(resource_id), Toast.LENGTH_LONG).show();
+    }
+
+    public static void showToastShort(Context context, String message) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
 
     public static void showToastShort(Context context, int resource_id) {
@@ -117,7 +128,7 @@ public class KcUtils {
         return request;
     }
 
-    public static boolean checkIsPlaying (MediaPlayer player) {
+    public static boolean checkIsPlaying(MediaPlayer player) {
         if (player == null) return false;
         try {
             return player.isPlaying();
@@ -171,7 +182,7 @@ public class KcUtils {
                     String content = baos.toString();
                     Log.e("GOTO", content);
                     String[] content_list = content.split("\\n", -1);
-                    for (String item: content_list) {
+                    for (String item : content_list) {
                         if (item.trim().length() > 0) {
                             String[] item_v = item.split("\\t");
                             String key = item_v[0];
@@ -188,13 +199,13 @@ public class KcUtils {
                         fout.write(buffer, 0, count);
                     }
                     if (version != null) db.putValue(path + filename, version);
-                    Log.e("GOTO", "cache resource " + path + filename +  ": " + version);
+                    Log.e("GOTO", "cache resource " + path + filename + ": " + version);
                     fout.close();
                 }
                 zis.closeEntry();
             }
             zis.close();
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
@@ -380,6 +391,7 @@ public class KcUtils {
                     Snackbar.make(ac.findViewById(R.id.main_container), message, Snackbar.LENGTH_LONG).show();
                 }
             }
+
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
                 Snackbar.make(ac.findViewById(R.id.main_container), String.valueOf(t.getLocalizedMessage()), Snackbar.LENGTH_LONG).show();
@@ -394,7 +406,8 @@ public class KcUtils {
             String tag = version_info.get("tag_name").getAsString().substring(1);
             String latest_file = String.format(Locale.US, "http://luckyjervis.com/GotoBrowser/apk_download.php?q=%s", tag);
             if (BuildConfig.VERSION_NAME.equals(tag)) {
-                if (show_toast) Snackbar.make(ac.findViewById(R.id.main_container), R.string.setting_latest_version, Snackbar.LENGTH_LONG).show();
+                if (show_toast)
+                    Snackbar.make(ac.findViewById(R.id.main_container), R.string.setting_latest_version, Snackbar.LENGTH_LONG).show();
             } else {
                 showAppUpdateDownloadDialog(ac, tag, latest_file);
             }
@@ -425,8 +438,8 @@ public class KcUtils {
     public static void processDataUriImage(ExecutorService executor, BrowserActivity activity, String data) {
         executor.submit(() -> {
             Context context = activity.getApplicationContext();
-            SimpleDateFormat dateFormat = new SimpleDateFormat ("yyyy-MM-dd HH-mm-ss");
-            String date = dateFormat.format (System.currentTimeMillis());
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
+            String date = dateFormat.format(System.currentTimeMillis());
             String filename = "gtb-".concat(date);
 
             String image = data.substring(data.indexOf(",") + 1);
@@ -486,7 +499,7 @@ public class KcUtils {
                 Environment.DIRECTORY_PICTURES).toString();
         File myDir = new File(root + "/GotoBrowser");
         myDir.mkdirs();
-        File file = new File (myDir, filename.concat(".png"));
+        File file = new File(myDir, filename.concat(".png"));
         Log.e("GOTO", file.getAbsolutePath());
 
         try {
@@ -520,5 +533,39 @@ public class KcUtils {
         Log.e("GOTO-Utils", diagonalInches + " inch");
         return diagonalInches >= 7.0;
     }
-}
 
+    public static void downloadFile(Activity ac, String download_url, File destination) {
+        //progressBar.setVisibility(View.VISIBLE);
+        ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        //Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(new Runnable() {
+            int count;
+            @Override
+            public void run() {
+                try {
+                    URL url = new URL(download_url);
+                    URLConnection connection = url.openConnection();
+                    connection.connect();
+
+                    int lengthOfFile = connection.getContentLength();
+
+                    ReadableByteChannel rbc = Channels.newChannel(url.openStream());
+                    FileOutputStream fos = FileUtils.openOutputStream(destination);
+
+                    //InputStream input = connection.getInputStream();
+                    //OutputStream output = new FileOutputStream(destination);
+
+                    byte[] data = new byte[1024];
+                    long total = 0;
+                    while ((count = rbc.read(ByteBuffer.wrap(data))) != -1) {
+                        total += count;
+                        KcUtils.showToastShort(ac, "" + (int) ((total * 100) / lengthOfFile));
+                        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                    }
+                } catch (Exception e) {
+
+                }
+            }
+        });
+    }
+}

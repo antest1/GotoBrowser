@@ -1,7 +1,11 @@
 package com.antest1.gotobrowser.Activity;
 
+import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,7 +15,9 @@ import android.widget.Switch;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
@@ -22,6 +28,7 @@ import androidx.webkit.WebViewFeature;
 
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
+import com.antest1.gotobrowser.Helpers.KcEnUtils;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
@@ -41,15 +48,19 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY;
 import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
 import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
+import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_FPS;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_DELETE;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_UPDATE;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_CRIT;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_PANEL_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
-import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_SETTINGS;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
@@ -57,6 +68,10 @@ import static com.antest1.gotobrowser.Constants.PREF_TP_DISCLAIMED;
 import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
+
+import java.util.Locale;
+import java.util.Map;
+import java.io.IOException;
 
 public class SettingsActivity extends AppCompatActivity {
     @Override
@@ -71,6 +86,7 @@ public class SettingsActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+        createNotificationChannel();
     }
 
     public static void setInitialSettings(SharedPreferences sharedPref) {
@@ -90,7 +106,10 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_DEVTOOLS_DEBUG:
                 case PREF_TP_DISCLAIMED:
                 case PREF_MOD_KANTAI3D:
+                case PREF_MOD_KANTAIEN:
                 case PREF_MOD_FPS:
+                case PREF_MOD_CRIT:
+                case PREF_USE_EXTCACHE:
                 case PREF_LEGACY_RENDERER:
                     editor.putBoolean(key, false);
                     break;
@@ -156,16 +175,32 @@ public class SettingsActivity extends AppCompatActivity {
                 preference.setOnPreferenceChangeListener(this);
             }
             updateSubtitleDescriptionText();
+            updateKantaiEnDescriptionText();
             updateKantai3dDisable();
         }
 
         @Override
         public boolean onPreferenceTreeClick(Preference preference) {
             String key = preference.getKey();
-            if (key.equals(PREF_CHECK_UPDATE)) {
-                KcUtils.requestLatestAppVersion(getActivity(), appCheck, true);
-            } else if (key.equals(PREF_SUBTITLE_UPDATE)) {
-                SubtitleProviderUtils.getCurrentSubtitleProvider().downloadUpdateFromPreference(this, versionTable);
+            switch (key) {
+                case PREF_CHECK_UPDATE:
+                    KcUtils.requestLatestAppVersion(getActivity(), appCheck, true);
+                    break;
+                case PREF_SUBTITLE_UPDATE:
+                    SubtitleProviderUtils.getCurrentSubtitleProvider().downloadUpdateFromPreference(this, versionTable);
+                    break;
+                case PREF_MOD_KANTAIEN_UPDATE:
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            KcEnUtils.requestPatchUpdate(this);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case PREF_MOD_KANTAIEN_DELETE:
+                    KcEnUtils.requestPatchDelete(this);
+                    break;
             }
             return super.onPreferenceTreeClick(preference);
         }
@@ -207,6 +242,9 @@ public class SettingsActivity extends AppCompatActivity {
                 if (key.equals(PREF_USE_EXTCACHE)) {
                     updateSubtitleDescriptionText();
                 }
+                if (key.equals(PREF_MOD_KANTAIEN)) {
+                    updateKantaiEnDescriptionText();
+                }
                 if (key.equals(PREF_LEGACY_RENDERER)) {
                     updateKantai3dDisable();
                 }
@@ -236,6 +274,41 @@ public class SettingsActivity extends AppCompatActivity {
             Preference subtitleUpdate = findPreference(PREF_SUBTITLE_UPDATE);
 
             SubtitleProviderUtils.getSubtitleProvider(subtitleLocaleCode).checkUpdateFromPreference(this, subtitleLocaleCode, subtitleUpdate, versionTable);
+        }
+
+        private void updateKantaiEnDescriptionText() {
+            Preference kantaiEn = findPreference(PREF_MOD_KANTAIEN);
+            Preference kantaiEnUpdate = findPreference(PREF_MOD_KANTAIEN_UPDATE);
+
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N) {
+                kantaiEn.setEnabled(false);
+                kantaiEn.setSummary("Requires Android 7 or above.");
+                kantaiEnUpdate.setEnabled(false);
+                kantaiEnUpdate.setSummary("Mod disabled.");
+            }
+
+            if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
+                KcEnUtils.checkKantaiEnUpdate(this, kantaiEnUpdate);
+            } else {
+                kantaiEnUpdate.setEnabled(false);
+                kantaiEnUpdate.setSummary("Mod disabled.");
+            }
+        }
+    }
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = new NotificationChannel("en_patch", name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
         }
     }
 }

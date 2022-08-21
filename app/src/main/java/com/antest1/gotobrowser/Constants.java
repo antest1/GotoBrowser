@@ -37,7 +37,11 @@ public class Constants {
     public static final String PREF_TP_DISCLAIMED = "pref_tp_disclaimed";
     public static final String PREF_LEGACY_RENDERER = "pref_legacy_renderer";
     public static final String PREF_MOD_KANTAI3D = "pref_mod_kantai3d";
+    public static final String PREF_MOD_KANTAIEN = "pref_mod_kantaien";
+    public static final String PREF_MOD_KANTAIEN_UPDATE = "pref_mod_kantaien_update";
+    public static final String PREF_MOD_KANTAIEN_DELETE = "pref_mod_kantaien_delete";
     public static final String PREF_MOD_FPS = "pref_mod_fps";
+    public static final String PREF_MOD_CRIT = "pref_mod_crit";
     public static final String PREF_USE_EXTCACHE = "pref_use_extcache";
     public static final String PREF_UI_HELP_CHECKED = "pref_ui_help_checked";
     public static final String PREF_DOWNLOAD_RETRY = "pref_retry";
@@ -55,10 +59,13 @@ public class Constants {
             PREF_ALTER_ENDPOINT,
             PREF_DOWNLOAD_RETRY,
             PREF_SUBTITLE_LOCALE,
-            PREF_MOD_FPS,
+            PREF_TP_DISCLAIMED,
+            PREF_LEGACY_RENDERER,
             PREF_MOD_KANTAI3D,
-            PREF_DEVTOOLS_DEBUG,
-            PREF_TP_DISCLAIMED
+            PREF_MOD_KANTAIEN,
+            PREF_MOD_FPS,
+            PREF_MOD_CRIT,
+            PREF_USE_EXTCACHE
     };
 
     public static final String PANEL_METHOD_SWIPE = "0";

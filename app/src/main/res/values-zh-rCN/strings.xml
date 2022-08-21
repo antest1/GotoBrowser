@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">GotoBrowser</string>
+    <string name="confirmation">你确定吗？</string>
     <string name="action_ok">确定</string>
     <string name="action_cancel">取消</string>
     <string name="selected_server">在线缓存/登录方式</string>
@@ -57,6 +58,7 @@
     <string name="setting_connection">连接设置</string>
     <string name="setting_alter_method_url">URL替换</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（远程服务器）</string>
+    <string name="setting_alter_method_proxy_error_toast">KCCacheProxy端点服务器无效。请更改绕行方式设定。</string>
     <string name="setting_alter_method">绕行方式</string>
     <string name="setting_alter_endpoint">端点服务器</string>
 
@@ -72,17 +74,33 @@
     <string name="settings_legacy_renderer_summary">强制PixiJS引擎使用Canvas渲染器而非WebGL渲染器。可解决大部份图形奇怪错误但会降低效能。</string>
 
     <string name="settings_mod_label">第三方MOD（自担风险）</string>
-    <string name="settings_mod_kantai3d_enable">[Beta] Kantai3D v2.1</string>
+    <string name="settings_mod_kantai3d_enable">Kantai3D v3.0</string>
     <string name="settings_mod_kantai3d_summary">为部份秘书舰添加仿立体的视觉效果及胸部物理。作者：@laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
+    <string name="settings_mod_kantaien_enable">[Beta] KanColle English Patch</string>
+    <string name="settings_mod_kantaien_summary">将游戏翻译成英文。作者：@Oradimi</string>
+    <string name="settings_mod_kantaien_download">下载English Patch数据</string>
+    <string name="settings_mod_kantaien_download_start">下载… 你可以在下载时将应用程序留在后台。</string>
+    <string name="settings_mod_kantaien_delete">删除English Patch数据</string>
+    <string name="settings_mod_kantaien_delete_summary">如果补丁出现意外行为，或者在下载过程中出现问题，请使用此设置。</string>
+    <string name="settings_mod_kantaien_about">KanColle English Patch关于</string>
     <string name="settings_mod_fps_enable">移除60帧限制</string>
     <string name="settings_mod_fps_summary">支持高刷新率手机。游戏速度不会受影响。</string>
+    <string name="settings_mod_crit_enable">真正的致命一击</string>
+    <string name="settings_mod_crit_summary">删除命中的一些硬编码混淆。 只有重击才会这样显示，等等。作者：@Oradimi</string>
     <string name="settings_use_external_dir">使用外部存储进行缓存</string>
     <string name="menu_tooltip_kantai3d">开关立体效果</string>
     <string name="msg_kantai3d_init">未检测到秘书舰</string>
     <string name="msg_kantai3d_loaded">已加载当前秘书舰CG的深度图： %s</string>
     <string name="msg_kantai3d_error">未发现当前秘书舰CG的深度图： %s</string>
     <string name="msg_kantai3d_redirect">欲查看所有支持 3D 的 CG 列表，或贡献新的深度图，请访问： https://github.com/laplamgor/kantai3d</string>
+
+    <string name="en_download_start">下载开始…</string>
+    <string name="en_unzip_start">正在解压……请稍候……</string>
+    <string name="en_unzip_done">补丁解压完成！</string>
+    <string name="en_update_done">补丁更新完成！</string>
+    <string name="en_install_done_notification">已安装英文补丁！ 请重新开始游戏。</string>
+    <string name="en_update_done_notification">英文补丁更新！ 请重新开始游戏。</string>
 
     <string name="browser_ui_hint_text">« 点击外侧任意位置以打开面板 »</string>
 
