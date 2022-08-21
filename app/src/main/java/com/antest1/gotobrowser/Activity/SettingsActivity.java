@@ -1,23 +1,17 @@
 package com.antest1.gotobrowser.Activity;
 
-import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.Intent;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Switch;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
@@ -46,6 +40,7 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY;
 import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
+import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
 import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
@@ -59,7 +54,6 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_CRIT;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
-import static com.antest1.gotobrowser.Constants.PREF_PANEL_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SETTINGS;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
@@ -69,8 +63,6 @@ import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
 
-import java.util.Locale;
-import java.util.Map;
 import java.io.IOException;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -98,6 +90,7 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_FONT_PREFETCH:
                 case PREF_USE_EXTCACHE:
                 case PREF_DOWNLOAD_RETRY:
+                case PREF_BROADCAST:
                     editor.putBoolean(key, true);
                     break;
                 case PREF_PIP_MODE:
@@ -109,7 +102,6 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_MOD_KANTAIEN:
                 case PREF_MOD_FPS:
                 case PREF_MOD_CRIT:
-                case PREF_USE_EXTCACHE:
                 case PREF_LEGACY_RENDERER:
                     editor.putBoolean(key, false);
                     break;

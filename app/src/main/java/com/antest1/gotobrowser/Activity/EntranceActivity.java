@@ -7,7 +7,6 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.CheckBox;
@@ -22,7 +21,6 @@ import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
 import com.antest1.gotobrowser.Helpers.KcEnUtils;
 import com.antest1.gotobrowser.Helpers.KcUtils;
-import com.antest1.gotobrowser.Helpers.KenPatcher;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 
@@ -30,7 +28,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;

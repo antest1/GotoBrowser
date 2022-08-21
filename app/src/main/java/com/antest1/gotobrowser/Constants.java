@@ -50,6 +50,7 @@ public class Constants {
             PREF_LANDSCAPE,
             PREF_ADJUSTMENT,
             PREF_FONT_PREFETCH,
+            PREF_BROADCAST,
             PREF_USE_EXTCACHE,
             PREF_PIP_MODE,
             PREF_MULTIWIN_MARGIN,
@@ -64,8 +65,7 @@ public class Constants {
             PREF_MOD_KANTAI3D,
             PREF_MOD_KANTAIEN,
             PREF_MOD_FPS,
-            PREF_MOD_CRIT,
-            PREF_USE_EXTCACHE
+            PREF_MOD_CRIT
     };
 
     public static final String PANEL_METHOD_SWIPE = "0";
