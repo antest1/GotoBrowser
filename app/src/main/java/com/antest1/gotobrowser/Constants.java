@@ -39,6 +39,7 @@ public class Constants {
     public static final String PREF_MOD_KANTAI3D = "pref_mod_kantai3d";
     public static final String PREF_MOD_KANTAIEN = "pref_mod_kantaien";
     public static final String PREF_MOD_KANTAIEN_UPDATE = "pref_mod_kantaien_update";
+    public static final String PREF_MOD_KANTAIEN_DELETE = "pref_mod_kantaien_delete";
     public static final String PREF_MOD_FPS = "pref_mod_fps";
     public static final String PREF_MOD_CRIT = "pref_mod_crit";
     public static final String PREF_USE_EXTCACHE = "pref_use_extcache";

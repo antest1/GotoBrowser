@@ -4,6 +4,7 @@
     <string name="copyright_info" translatable="false">Copyright © 2019 antest1(IE10)</string>
 
     <string name="app_name">GotoBrowser</string>
+    <string name="confirmation">Are you sure?</string>
     <string name="action_ok">Confirm</string>
     <string name="action_cancel">Cancel</string>
     <string name="select_server">Select Web Based Proxy or Login Method</string>
@@ -87,6 +88,9 @@
     <string name="settings_mod_kantaien_enable">[Beta] KanColle English Patch</string>
     <string name="settings_mod_kantaien_summary">Translates most of the game into English. Author: @Oradimi</string>
     <string name="settings_mod_kantaien_download">Download English Patch Data</string>
+    <string name="settings_mod_kantaien_download_start">Downloading… You can leave the application in the background while downloading.</string>
+    <string name="settings_mod_kantaien_delete">Delete English Patch Data</string>
+    <string name="settings_mod_kantaien_delete_summary">Use this setting if the patch is presenting unexpected behaviours, or if something went wrong during the download.</string>
     <string name="settings_mod_kantaien_about">About KanColle English Patch</string>
     <string name="settings_mod_fps_enable">Remove 60 FPS limit</string>
     <string name="settings_mod_fps_summary">Support higher refresh rate devices. Animation speed is not affected.</string>
@@ -99,10 +103,12 @@
     <string name="msg_kantai3d_error">The depth map of the current secretary CG is unavailable: %s</string>
     <string name="msg_kantai3d_redirect">To see the list of all 3D-supported CG, or contribute new depth maps, please visit: https://github.com/laplamgor/kantai3d</string>
 
-
-    <string name="download_start" translatable="false">Download starting…</string>
-    <string name="installation_start" translatable="false">Unzipping…</string>
-    <string name="installation_done" translatable="false">Installation complete!</string>
+    <string name="en_download_start">Download starting…</string>
+    <string name="en_unzip_start">Unzipping… Please wait…</string>
+    <string name="en_unzip_done">Patch unzip complete!</string>
+    <string name="en_update_done">Patch update complete!</string>
+    <string name="en_install_done_notification">English Patch installed! Please restart the game.</string>
+    <string name="en_update_done_notification">English Patch updated! Please restart the game.</string>
 
     <string name="browser_ui_hint_text">« click any outside area to open the panel »</string>
 
@@ -113,4 +119,7 @@
     <string name="dialog_retry_no">Do nothing</string>
     <string name="dialog_retry_never">Do nothing and never ask again</string>
     <string name="dialog_retry_message">A network issue occurred while the game client was trying to download a resource file.\nDo you want to retry the download?\n%s</string>
+
+    <string name="channel_name" translatable="false">gotobrowser_channel</string>
+    <string name="channel_description" translatable="false">gotobrowser_channel_description</string>
 </resources>

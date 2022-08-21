@@ -142,6 +142,12 @@
 
         <Preference
             app:iconSpaceReserved="false"
+            app:key="pref_mod_kantaien_delete"
+            app:title="@string/settings_mod_kantaien_delete"
+            app:summary="@string/settings_mod_kantaien_delete_summary" />
+
+        <Preference
+            app:iconSpaceReserved="false"
             app:key="pref_github2"
             app:title="@string/settings_mod_kantaien_about"
             app:summary="https://github.com/Oradimi/KanColle-English-Patch-KCCP">

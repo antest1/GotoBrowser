@@ -1,5 +1,8 @@
 package com.antest1.gotobrowser.Activity;
 
+import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -12,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
@@ -43,6 +47,7 @@ import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_FPS;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_DELETE;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_CRIT;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
@@ -57,6 +62,7 @@ import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
 
+import java.util.Locale;
 import java.util.Map;
 import java.io.IOException;
 
@@ -73,6 +79,7 @@ public class SettingsActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+        createNotificationChannel();
     }
 
     public static void setInitialSettings(SharedPreferences sharedPref) {
@@ -154,7 +161,6 @@ public class SettingsActivity extends AppCompatActivity {
             updateKantai3dDisable();
         }
 
-        @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         public boolean onPreferenceTreeClick(Preference preference) {
             String key = preference.getKey();
@@ -167,10 +173,15 @@ public class SettingsActivity extends AppCompatActivity {
                     break;
                 case PREF_MOD_KANTAIEN_UPDATE:
                     try {
-                        KcEnUtils.requestPatchUpdate(this);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            KcEnUtils.requestPatchUpdate(this);
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                    break;
+                case PREF_MOD_KANTAIEN_DELETE:
+                    KcEnUtils.requestPatchDelete(this);
                     break;
             }
             return super.onPreferenceTreeClick(preference);
@@ -254,6 +265,8 @@ public class SettingsActivity extends AppCompatActivity {
             if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N) {
                 kantaiEn.setEnabled(false);
                 kantaiEn.setSummary("Requires Android 7 or above.");
+                kantaiEnUpdate.setEnabled(false);
+                kantaiEnUpdate.setSummary("Mod disabled.");
             }
 
             if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
@@ -262,6 +275,22 @@ public class SettingsActivity extends AppCompatActivity {
                 kantaiEnUpdate.setEnabled(false);
                 kantaiEnUpdate.setSummary("Mod disabled.");
             }
+        }
+    }
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = new NotificationChannel("en_patch", name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
         }
     }
 }

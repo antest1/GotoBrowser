@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">GotoBrowser</string>
+    <string name="confirmation">よろしいですか？</string>
     <string name="action_ok">OK</string>
     <string name="action_cancel">キャンセル</string>
     <string name="select_server">接続方式選択</string>
@@ -77,6 +78,9 @@
     <string name="settings_mod_kantaien_enable">[Beta] KanColle English Patch</string>
     <string name="settings_mod_kantaien_summary">ゲームを英語に翻訳する。作者：@Oradimi</string>
     <string name="settings_mod_kantaien_download">English Patchデータダウンロード</string>
+    <string name="settings_mod_kantaien_download_start">ダウンロード中… アプリケーションをバックグラウンドにしたままにしておくことができます。</string>
+    <string name="settings_mod_kantaien_delete">English Patchデータ削除</string>
+    <string name="settings_mod_kantaien_delete_summary">パッチが予期しない動作を示している場合、またはダウンロード中に問題が発生した場合は、この設定を使用します。</string>
     <string name="settings_mod_kantaien_about">KanColle English Patchについて</string>
     <string name="settings_mod_fps_enable">60FPS制限を削除します</string>
     <string name="settings_mod_fps_summary">高リフレッシュ・レート対応。ゲームの速度は影響を受けません。</string>
@@ -88,6 +92,13 @@
     <string name="msg_kantai3d_loaded">現在の秘書艦CGの深度マップをダウンロードしました： %s</string>
     <string name="msg_kantai3d_error">現在の秘書艦CGの深度マップが見つからない： %s</string>
     <string name="msg_kantai3d_redirect">3D対応のCGリストをすべて表示したり、新しい深さマップに貢献したりするには: https://github.com/laplamgor/kantai3d</string>
+
+    <string name="en_download_start">ダウンロードを開始しています…</string>
+    <string name="en_unzip_start">解凍中…お待ちください…</string>
+    <string name="en_unzip_done">パッチ解凍完了！</string>
+    <string name="en_update_done">パッチアップデート完了！</string>
+    <string name="en_install_done_notification">英語パッチ搭載！ ゲームを再起動してください。</string>
+    <string name="en_update_done_notification">英語パッチ更新！ ゲームを再起動してください。</string>
 
     <string name="browser_ui_hint_text">« 外側をクリックしてパネルを開く »</string>
     <string name="settings_retry_enable">ゲームアセットのダウンロードの再試行</string>

@@ -1,18 +1,20 @@
 package com.antest1.gotobrowser.Helpers;
 
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_UPDATE;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_DELETE;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.util.Log;
-import android.view.WindowManager;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.preference.Preference;
 
 import com.antest1.gotobrowser.Activity.SettingsActivity;
@@ -156,6 +158,44 @@ public class KcEnUtils {
         }
     }
 
+    public static String checkKantaiEnUpdateEntrance(Context context) {
+        // To do: clean up this mess
+        InputStream enPatchInfoFile;
+        org.json.simple.JSONObject enPatchInfo;
+        org.json.simple.JSONObject enPatchLocalInfo;
+        String enPatchLocalInfoFileName = "EN-patch.mod.json";
+        String enPatchLocalFolder = KcUtils.getAppCacheFileDir(context, "/KanColle-English-Patch-KCCP-master/");
+        String enPatchLocalInfoPath = enPatchLocalFolder.concat(enPatchLocalInfoFileName);
+        int SDK_INT = android.os.Build.VERSION.SDK_INT;
+        if (SDK_INT > 8) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                    .permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
+        try {
+            String enPatchInfoUrl = "https://raw.githubusercontent.com/Oradimi/KanColle-English-Patch-KCCP/master/EN-patch.mod.json";
+            enPatchInfoFile = new URL(enPatchInfoUrl).openConnection().getInputStream();
+            JSONParser jsonParser = new JSONParser();
+            enPatchInfo = (org.json.simple.JSONObject) jsonParser.parse(
+                    new InputStreamReader(enPatchInfoFile, StandardCharsets.UTF_8));
+            String availableVersion = String.valueOf(enPatchInfo.get("version"));
+            enPatchInfoFile.close();
+            File enPatchLocalInfoFile = new File(enPatchLocalInfoPath);
+            if (enPatchLocalInfoFile.exists()) {
+                enPatchLocalInfo = (org.json.simple.JSONObject) jsonParser.parse(
+                        new FileReader(enPatchLocalInfoFile));
+                currentVersion = String.valueOf(enPatchLocalInfo.get("version"));
+                if (!currentVersion.equals(availableVersion)) {
+                    return availableVersion;
+                }
+            }
+            return null;
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static boolean remoteFileExists(String URLName){
         try {
             HttpURLConnection.setFollowRedirects(false);
@@ -204,11 +244,14 @@ public class KcEnUtils {
 
                             Handler handler = new Handler(context.getMainLooper());
                             handler.post(() -> {
-                                KcUtils.showToastShort(context, R.string.download_start);
+                                KcUtils.showToastShort(context, R.string.en_download_start);
+                                Preference kantaiEn = fragment.findPreference(PREF_MOD_KANTAIEN);
                                 Preference kantaiEnUpdate = fragment.findPreference(PREF_MOD_KANTAIEN_UPDATE);
-                                assert kantaiEnUpdate != null;
-                                kantaiEnUpdate.setSummary("Downloading... Wait for 'Installation Complete' toast");
+                                Preference kantaiEnDelete = fragment.findPreference(PREF_MOD_KANTAIEN_DELETE);
+                                kantaiEn.setEnabled(false);
+                                kantaiEnUpdate.setSummary(R.string.settings_mod_kantaien_download_start);
                                 kantaiEnUpdate.setEnabled(false);
+                                kantaiEnDelete.setEnabled(false);
                             });
 
                             for (int i = 0; i < enPatchVersions.size(); i++) {
@@ -268,15 +311,16 @@ public class KcEnUtils {
                                 }
                             }
                             handler.post(() -> {
-                                AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
-                                mBuilder.setTitle("KanColle English Patch");
-                                mBuilder.setCancelable(false)
-                                        .setMessage("The update was successfully completed!")
-                                        .setPositiveButton(R.string.action_ok,
-                                                (dialog, id) -> dialog.cancel());
-                                AlertDialog alertDialog = mBuilder.create();
-                                alertDialog.show();
+                                KcUtils.showToastShort(context, R.string.en_update_done);
                             });
+                            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "en_patch")
+                                    .setSmallIcon(R.mipmap.ic_launcher_foreground)
+                                    .setContentTitle("KanColle English Patch")
+                                    .setContentText(context.getString(R.string.en_update_done_notification))
+                                    .setPriority(NotificationCompat.PRIORITY_MAX);
+
+                            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+                            notificationManager.notify(0, builder.build());
                         } catch (IOException | ParseException | JSONException e) {
                             e.printStackTrace();
                         }
@@ -298,11 +342,14 @@ public class KcEnUtils {
 
                             Handler handler = new Handler(context.getMainLooper());
                             handler.post(() -> {
-                                KcUtils.showToastShort(context, R.string.download_start);
+                                KcUtils.showToastShort(context, R.string.en_download_start);
+                                Preference kantaiEn = fragment.findPreference(PREF_MOD_KANTAIEN);
                                 Preference kantaiEnUpdate = fragment.findPreference(PREF_MOD_KANTAIEN_UPDATE);
-                                assert kantaiEnUpdate != null;
-                                kantaiEnUpdate.setSummary("Downloading... Wait for 'Installation Complete' toast. This can take a while!");
+                                Preference kantaiEnDelete = fragment.findPreference(PREF_MOD_KANTAIEN_DELETE);
+                                kantaiEn.setEnabled(false);
+                                kantaiEnUpdate.setSummary(R.string.settings_mod_kantaien_download_start);
                                 kantaiEnUpdate.setEnabled(false);
+                                kantaiEnDelete.setEnabled(false);
                             });
 
                             Log.e("GOTO", "english patch download start");
@@ -331,11 +378,11 @@ public class KcEnUtils {
                             }
                             Instant countEnd = Instant.now();
                             Log.e("GOTO", "english patch download complete: took " + Duration.between(countStart, countEnd));
-                            handler.post(() -> KcUtils.showToastShort(context, R.string.installation_start));
+                            handler.post(() -> KcUtils.showToastShort(context, R.string.en_unzip_start));
 
                             ZipFile zipFile = new ZipFile(out);
                             zipFile.extractAll(KcUtils.getAppCacheFileDir(context, ""));
-                            Log.e("GOTO", "zip extracted to " + KcUtils.getAppCacheFileDir(fragment.requireContext(), ""));
+                            Log.e("GOTO", "zip extracted to " + KcUtils.getAppCacheFileDir(context, ""));
 
                             File file = new File(KcUtils.getAppCacheFileDir(context, "/KanColle-English-Patch-KCCP-master/.nomedia"));
                             try {
@@ -348,24 +395,17 @@ public class KcEnUtils {
                             boolean deleted = zipOut.delete();
                             if (deleted) {
                                 Log.e("GOTO", "Zip was deleted");
-                                /*handler.post(() -> {
-                                    Log.e("GOTO", "zip successfully deleted " + KcUtils.getAppCacheFileDir(context, ""));
-                                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(context);
-                                    mBuilder.setTitle("KanColle English Patch");
-                                    mBuilder.setCancelable(false)
-                                            .setMessage("The patch download and unzipping were successfully completed!")
-                                            .setPositiveButton(R.string.action_ok,
-                                                    (dialog, id) -> dialog.cancel());
-                                    AlertDialog alertDialog = mBuilder.create();
-                                    try {
-                                        alertDialog.show();
-                                    }
-                                    catch (WindowManager.BadTokenException e) {
-                                        handler.post(() -> {
-                                            KcUtils.showToastShort(context, "The patch download and unzipping were successfully completed!");
-                                        });
-                                    }
-                                });*/
+                                handler.post(() -> {
+                                    KcUtils.showToastShort(context, R.string.en_unzip_done);
+                                });
+                                NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "en_patch")
+                                        .setSmallIcon(R.mipmap.ic_launcher_foreground)
+                                        .setContentTitle("KanColle English Patch")
+                                        .setContentText(context.getString(R.string.en_install_done_notification))
+                                        .setPriority(NotificationCompat.PRIORITY_MAX);
+
+                                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+                                notificationManager.notify(0, builder.build());
                             } else {
                                 Log.e("GOTO", "Zip wasn't deleted");
                             }
@@ -379,11 +419,158 @@ public class KcEnUtils {
                         System.out.println("exception occurs");
                         System.err.println(exception);
                         Log.e("GOTO", "Something went wrong with the patch download");
-                        KcUtils.showToastShort(context, "Something went wrong with the patch download");
                     } else {
                         System.out.println("no exception, got result: " + input);
                     }
                 });
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public static void requestPatchUpdateEntrance(Context context) {
+        // To do: clean up this mess
+        CompletableFuture
+                .runAsync(() -> {
+                    // Updates the patch by downloading each new file individually, and deleting outdated ones
+                    try {
+                        Version installedVersion = new Version(currentVersion);
+                        InputStream enPatchVersionsFile;
+                        org.json.simple.JSONArray enPatchVersions;
+                        String enPatchVersionsUrl = "https://raw.githubusercontent.com/Oradimi/KanColle-English-Patch-KCCP/master/version.json";
+                        if (remoteFileExists(enPatchVersionsUrl)) {
+                            URL verUrl = new URL(enPatchVersionsUrl);
+                            ReadableByteChannel rbc = Channels.newChannel(verUrl.openStream());
+                            String verPath = KcUtils.getAppCacheFileDir(context, "/KanColle-English-Patch-KCCP-master/version.json");
+                            File verFile = new File(verPath);
+                            FileOutputStream fos = FileUtils.openOutputStream(verFile);
+                            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                        }
+                        enPatchVersionsFile = new URL(enPatchVersionsUrl).openConnection().getInputStream();
+                        JSONParser jsonParser = new JSONParser();
+                        enPatchVersions = (org.json.simple.JSONArray) jsonParser.parse(
+                                new InputStreamReader(enPatchVersionsFile, StandardCharsets.UTF_8));
+
+                        ArrayList<List<String>> delUrl = new ArrayList<>();
+                        ArrayList<List<String>> addUrl = new ArrayList<>();
+
+                        Handler handler = new Handler(context.getMainLooper());
+                        handler.post(() -> {
+                            KcUtils.showToastShort(context, R.string.en_download_start);
+                        });
+
+                        for (int i = 0; i < enPatchVersions.size(); i++) {
+                            JSONObject ver = new JSONObject(enPatchVersions.get(i).toString());
+                            Version lookoverVersion = new Version(String.valueOf(ver.get("version")));
+                            Log.i("GOTO", "installedVersion: " + installedVersion);
+                            Log.i("GOTO", "lookoverVersion: " + lookoverVersion);
+                            Log.i("GOTO", "compare: " + installedVersion.compareTo(lookoverVersion));
+                            if (installedVersion.compareTo(lookoverVersion) == -1) {
+                                List<String> currDelUrl = new ArrayList<>();
+                                List<String> currAddUrl = new ArrayList<>();
+                                JSONArray del = ver.getJSONArray("del");
+                                JSONArray add = ver.getJSONArray("add");
+                                for (int j = 0; j < del.length(); j++) {
+                                    currDelUrl.add(del.getString(j));
+                                }
+                                for (int j = 0; j < add.length(); j++) {
+                                    currAddUrl.add(add.getString(j));
+                                }
+                                delUrl.add(currDelUrl);
+                                addUrl.add(currAddUrl);
+                            }
+                        }
+                        Log.e("GOTO", "delUrl: " + delUrl);
+                        Log.e("GOTO", "addUrl: " + addUrl);
+                        for (int i = 0; i < delUrl.size(); i++) {
+                            for (int j = 0; j < delUrl.get(i).size(); j++) {
+                                String delPath = KcUtils.getAppCacheFileDir(context, "/KanColle-English-Patch-KCCP-master/".concat(delUrl.get(i).get(j)));
+                                File delFile = new File(delPath);
+                                if (delFile.exists() && delFile.delete()) {
+                                    Log.e("GOTO", "patch file deleted: " + delPath);
+                                }
+                            }
+                            Instant start = Instant.now();
+                            Instant end;
+                            for (int j = 0; j < addUrl.get(i).size(); j++) {
+                                String addPath = KcUtils.getAppCacheFileDir(context, "/KanColle-English-Patch-KCCP-master/".concat(addUrl.get(i).get(j)));
+                                File addFile = new File(addPath);
+                                String masterPath = "https://raw.githubusercontent.com/Oradimi/KanColle-English-Patch-KCCP/master/".concat(addUrl.get(i).get(j));
+                                if (remoteFileExists(masterPath)) {
+                                    URL master = new URL(masterPath);
+                                    ReadableByteChannel rbc = Channels.newChannel(master.openStream());
+                                    FileOutputStream fos = FileUtils.openOutputStream(addFile);
+                                    fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                                    fos.close();
+                                    Log.e("GOTO", "patch file downloaded: " + addPath);
+                                    end = Instant.now();
+                                    if (Duration.between(start, end).compareTo(Duration.ofSeconds(5)) > 0) {
+                                        start = Instant.now();
+                                        String version_progress = String.valueOf(i + 1);
+                                        String file_progress = String.valueOf(j);
+                                        int finalI = i;
+                                        handler.post(() -> KcUtils.showToastShort(context, String.format("English Patch Update %s/%s\n%s/%s %s",
+                                                version_progress, delUrl.size(), file_progress, addUrl.get(finalI).size(), "files downloaded")));
+                                    }
+                                }
+                            }
+                        }
+                        handler.post(() -> {
+                            KcUtils.showToastShort(context, R.string.en_update_done);
+                        });
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "en_patch")
+                                .setSmallIcon(R.mipmap.ic_launcher_foreground)
+                                .setContentTitle("KanColle English Patch")
+                                .setContentText(context.getString(R.string.en_update_done_notification))
+                                .setPriority(NotificationCompat.PRIORITY_MAX);
+
+                        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+                        notificationManager.notify(0, builder.build());
+                    } catch (IOException | ParseException | JSONException e) {
+                        e.printStackTrace();
+                    }
+                })
+                .whenComplete((input, exception) -> {
+                    if (exception != null) {
+                        System.out.println("exception occurs");
+                        System.err.println(exception);
+                        Log.e("GOTO", "Something went wrong with the patch download");
+                    } else {
+                        System.out.println("no exception, got result: " + input);
+                    }
+                });
+    }
+
+    public static void requestPatchDelete(SettingsActivity.SettingsFragment fragment) {
+        Context context = fragment.requireContext();
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+        alertDialogBuilder.setTitle(R.string.settings_mod_kantaien_delete);
+        alertDialogBuilder
+                .setCancelable(false)
+                .setMessage(R.string.settings_mod_kantaien_delete_summary)
+                .setPositiveButton(R.string.action_ok,
+                        (dialog, id) -> {
+                            deleteEnglishPatch(context);
+                            KcUtils.showToastShort(context, "English Patch deleted");
+                            dialog.dismiss();
+                        })
+                .setNegativeButton(R.string.action_cancel,
+                        (dialog, id) -> dialog.cancel());
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+    }
+
+    private static void deleteEnglishPatch(Context fragment) {
+        File zipFile = new File(KcUtils.getAppCacheFileDir(fragment, "/master.zip"));
+        zipFile.delete();
+        File patchFolder = new File(KcUtils.getAppCacheFileDir(fragment, "/KanColle-English-Patch-KCCP-master/"));
+        deleteRecursive(patchFolder);
+    }
+
+    private static void deleteRecursive(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory())
+            for (File child : Objects.requireNonNull(fileOrDirectory.listFiles()))
+                deleteRecursive(child);
+
+        fileOrDirectory.delete();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)

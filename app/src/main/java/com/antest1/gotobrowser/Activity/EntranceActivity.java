@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.CheckBox;
@@ -18,7 +20,9 @@ import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
+import com.antest1.gotobrowser.Helpers.KcEnUtils;
 import com.antest1.gotobrowser.Helpers.KcUtils;
+import com.antest1.gotobrowser.Helpers.KenPatcher;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 
@@ -26,6 +30,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -48,6 +53,7 @@ import static com.antest1.gotobrowser.Constants.PREF_KEYBOARD;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
 import static com.antest1.gotobrowser.Constants.PREF_PANELSTART;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_TP_DISCLAIMED;
@@ -79,6 +85,26 @@ public class EntranceActivity extends AppCompatActivity {
         backPressCloseHandler = new BackPressCloseHandler(this);
         sharedPref = getSharedPreferences(getString(R.string.preference_key), Context.MODE_PRIVATE);
         SettingsActivity.setInitialSettings(sharedPref);
+
+        if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            String availableVersion = KcEnUtils.checkKantaiEnUpdateEntrance(this);
+            if (availableVersion != null) {
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                alertDialogBuilder.setTitle(R.string.settings_mod_kantaien_enable);
+                alertDialogBuilder
+                        .setCancelable(false)
+                        .setMessage(String.format(Locale.US, this.getString(R.string.setting_latest_download), availableVersion))
+                        .setPositiveButton(R.string.action_ok,
+                                (dialog, id) -> {
+                                    KcEnUtils.requestPatchUpdateEntrance(this);
+                                    dialog.dismiss();
+                                })
+                        .setNegativeButton(R.string.action_cancel,
+                                (dialog, id) -> dialog.cancel());
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+            }
+        }
 
         SharedPreferences.Editor editor = sharedPref.edit();
 
