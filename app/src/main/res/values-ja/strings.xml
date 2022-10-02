@@ -100,8 +100,8 @@
     <string name="en_unzip_start">解凍中…お待ちください…</string>
     <string name="en_unzip_done">パッチ解凍完了！</string>
     <string name="en_update_done">パッチアップデート完了！</string>
-    <string name="en_install_done_notification">英語パッチ搭載！ ゲームを再起動してください。</string>
-    <string name="en_update_done_notification">英語パッチ更新！ ゲームを再起動してください。</string>
+    <string name="en_install_done_notification">英語化パッチ搭載！ ゲームを再起動してください。</string>
+    <string name="en_update_done_notification">英語化パッチ更新！ ゲームを再起動してください。</string>
 
     <string name="browser_ui_hint_text">« 外側をクリックしてパネルを開く »</string>
     <string name="settings_retry_enable">ゲームアセットのダウンロードの再試行</string>

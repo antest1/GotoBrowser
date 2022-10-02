@@ -26,7 +26,7 @@
     <string name="autocomplete_msg">로그인 폼에 입력할 계정 정보를 입력하세요.</string>
     <string name="settings_version_label">현재 버전</string>
     <string name="settings_version_check">업데이트 확인</string>
-    <string name="settings_recommended_summary">추천</string>
+    <string name="settings_recommended_summary">권장</string>
     <string name="settings_subtitle_label">자막 설정</string>
     <string name="settings_subtitle_download">자막 데이터 다운로드</string>
     <string name="settings_subtitle_language">자막 언어</string>
@@ -99,10 +99,10 @@
 
     <string name="en_download_start">다운로드 시작 중…</string>
     <string name="en_unzip_start">압축을 푸는 중… 잠시만 기다려 주세요…</string>
-    <string name="en_unzip_done">패치 압축 풀기 완료!</string>
+    <string name="en_unzip_done">패치 압축 해제 완료!</string>
     <string name="en_update_done">패치 업데이트 완료!</string>
-    <string name="en_install_done_notification">한글패치가 설치되었습니다! 게임을 다시 시작해 주세요.</string>
-    <string name="en_update_done_notification">영어 패치가 업데이트되었습니다! 게임을 다시 시작해 주세요.</string>
+    <string name="en_install_done_notification">영문패치가 설치되었습니다! 게임을 다시 시작해주세요.</string>
+    <string name="en_update_done_notification">영문패치가 업데이트되었습니다! 게임을 다시 시작해주세요.</string>
 
     <string name="browser_ui_hint_text">« 게임 화면 외의 공간을 눌러 패널을 여세요 »</string>
 
