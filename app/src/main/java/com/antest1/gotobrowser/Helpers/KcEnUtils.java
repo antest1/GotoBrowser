@@ -15,8 +15,7 @@ import androidx.preference.Preference;
 import com.antest1.gotobrowser.Activity.SettingsActivity;
 import com.antest1.gotobrowser.R;
 
-import net.lingala.zip4j.core.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.ZipFile;
 
 import org.apache.commons.io.FileUtils;
 import org.json.JSONArray;
@@ -299,7 +298,7 @@ public class KcEnUtils {
                             } else {
                                 Log.e("GOTO", "Zip wasn't deleted");
                             }
-                        } catch (IOException | ZipException e) {
+                        } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }

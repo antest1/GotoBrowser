@@ -85,7 +85,7 @@ public class WebViewManager {
     public static final String OPEN_KANCOLLE = "open_kancolle";
     public static final String OPEN_RES_DOWN = "open_res_down";
 
-    public static final String USER_AGENT = "Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36";
+    public static String USER_AGENT = "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Mobile Safari/537.36";
     public static final String USER_AGENT_IOS = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1";
 
     private boolean logoutFlag;
@@ -535,6 +535,12 @@ public class WebViewManager {
         }
     }
 
+    private void setWebViewUserAgent(WebViewL view, boolean change_to_ios) {
+        USER_AGENT = view.getSettings().getUserAgentString();
+        view.getSettings().setUserAgentString(change_to_ios ? USER_AGENT_IOS : USER_AGENT);
+        ResourceProcess.setUserAgent(view.getSettings().getUserAgentString());
+    }
+
     private void setWebViewRendererSetting(WebViewL view) {
         // Setting the user agent to change PIXI renderer type:
         // It is the easiest way to improve compatibility,
@@ -556,6 +562,6 @@ public class WebViewManager {
         // if user agent is iOS device, KC will set forceCanvas:true when init the PIXI Application
 
         boolean useCanvas = sharedPref.getBoolean(PREF_LEGACY_RENDERER, false);
-        view.getSettings().setUserAgentString(useCanvas ? USER_AGENT_IOS : USER_AGENT);
+        setWebViewUserAgent(view, useCanvas);
     }
 }

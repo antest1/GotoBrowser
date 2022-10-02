@@ -24,6 +24,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
+import com.antest1.gotobrowser.Browser.ResourceProcess;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.R;
 import com.google.android.material.snackbar.Snackbar;
@@ -46,9 +47,12 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -246,6 +250,20 @@ public class KcUtils {
         return new String(getBytesFromInputStream(in), StandardCharsets.UTF_8);
     }
 
+    public static String getExpireInfoFromCacheControl(String cache_control) {
+        Pattern p = Pattern.compile( "max-age=([0-9]+)(, public)?");
+        Matcher m = p.matcher(cache_control);
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
+
+        long current_time = System.currentTimeMillis();
+        long target_time = current_time;
+        if (m.lookingAt() && m.group(1) != null) {
+            long value = Integer.parseInt(m.group(1));
+            target_time += value * 1000;
+        }
+        return formatter.format(new Date(target_time));
+    }
+
     public static byte[] downloadDataFromURL(String url) throws IOException {
         InputStream in = new BufferedInputStream(new URL(url).openStream());
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -260,20 +278,18 @@ public class KcUtils {
         return byteArray;
     }
 
-    public static String downloadResource(OkHttpClient client, String fullpath, String last_modified, File file) {
-        Request.Builder builder = new Request.Builder().url(fullpath);
-        if (last_modified != null && !VersionDatabase.isDefaultValue(last_modified)) {
-            builder.addHeader("If-Modified-Since", last_modified);
-            Log.e("GOTO", "If-Modified-Since: " + last_modified);
-        } else {
-            builder.addHeader("Cache-Control", "no-cache");
-        }
+    public static String downloadResource(OkHttpClient client, String fullpath, File file) {
+        Request.Builder builder = new Request.Builder()
+                .header("User-Agent", ResourceProcess.getUserAgent())
+                .url(fullpath);
+
         Log.e("GOTO", "download " + fullpath);
         Request request = builder.build();
         try {
             Response response = client.newCall(request).execute();
             if (response.code() == 200) {
                 Log.e("GOTO", "200 OK " + fullpath);
+                String cache_control = response.header("Cache-Control", "none");
                 String new_last_modified = response.header("Last-Modified", "none");
                 ResponseBody body = response.body();
                 if (body != null) {
@@ -288,7 +304,7 @@ public class KcUtils {
                     fos.close();
                     body.close();
                 }
-                return new_last_modified;
+                return cache_control;
             } else if (response.code() == 304) {
                 Log.e("GOTO", "304 Not Modified " + fullpath);
                 return "304";
