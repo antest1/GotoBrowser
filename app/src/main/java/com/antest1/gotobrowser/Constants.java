@@ -164,6 +164,6 @@ public class Constants {
     };
 
     public static final String GADGET_URL = "http://203.104.209.7/";
-    public static final String DEFAULT_ALTER_GADGET_URL = "http://luckyjervis.com/";
+    public static final String DEFAULT_ALTER_GADGET_URL = "https://kcwiki.github.io/cache/";
     public static final String APP_UI_HELP_VER = "20211002";
 }
