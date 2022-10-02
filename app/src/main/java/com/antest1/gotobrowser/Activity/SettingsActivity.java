@@ -28,6 +28,7 @@ import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.JsonObject;
 
 import java.util.Locale;
 import java.util.Map;
@@ -133,6 +134,7 @@ public class SettingsActivity extends AppCompatActivity {
         private VersionDatabase versionTable;
         private SharedPreferences sharedPref;
         private GotoVersionCheck appCheck;
+        private KcEnUtils enUtils = new KcEnUtils();
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -184,14 +186,14 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_MOD_KANTAIEN_UPDATE:
                     try {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                            KcEnUtils.requestPatchUpdate(this);
+                            enUtils.requestPatchUpdate(this);
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                     break;
                 case PREF_MOD_KANTAIEN_DELETE:
-                    KcEnUtils.requestPatchDelete(this);
+                    enUtils.requestPatchDelete(this);
                     break;
             }
             return super.onPreferenceTreeClick(preference);
@@ -280,7 +282,9 @@ public class SettingsActivity extends AppCompatActivity {
             }
 
             if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
-                KcEnUtils.checkKantaiEnUpdate(this, kantaiEnUpdate);
+                kantaiEnUpdate.setSummary("Checking updates...");
+                kantaiEnUpdate.setEnabled(false);
+                enUtils.checkKantaiEnUpdate(this, kantaiEnUpdate);
             } else {
                 kantaiEnUpdate.setEnabled(false);
                 kantaiEnUpdate.setSummary("Mod disabled.");

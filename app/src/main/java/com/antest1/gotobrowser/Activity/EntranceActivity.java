@@ -81,26 +81,6 @@ public class EntranceActivity extends AppCompatActivity {
         sharedPref = getSharedPreferences(getString(R.string.preference_key), Context.MODE_PRIVATE);
         SettingsActivity.setInitialSettings(sharedPref);
 
-        if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            String availableVersion = KcEnUtils.checkKantaiEnUpdateEntrance(this);
-            if (availableVersion != null) {
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-                alertDialogBuilder.setTitle(R.string.settings_mod_kantaien_enable);
-                alertDialogBuilder
-                        .setCancelable(false)
-                        .setMessage(String.format(Locale.US, this.getString(R.string.setting_latest_download), availableVersion))
-                        .setPositiveButton(R.string.action_ok,
-                                (dialog, id) -> {
-                                    KcEnUtils.requestPatchUpdateEntrance(this);
-                                    dialog.dismiss();
-                                })
-                        .setNegativeButton(R.string.action_cancel,
-                                (dialog, id) -> dialog.cancel());
-                AlertDialog alertDialog = alertDialogBuilder.create();
-                alertDialog.show();
-            }
-        }
-
         SharedPreferences.Editor editor = sharedPref.edit();
 
         ImageView settingsButton = findViewById(R.id.icon_setting);
@@ -185,6 +165,27 @@ public class EntranceActivity extends AppCompatActivity {
         versionText.setText(String.format(Locale.US, getString(R.string.version_format), BuildConfig.VERSION_NAME));
 
         WebViewManager.clearKcCacheProxy();
+
+        KcEnUtils enUtils = new KcEnUtils();
+        if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
+            String availableVersion = enUtils.checkKantaiEnUpdateEntrance(this);
+            if (availableVersion != null) {
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                alertDialogBuilder.setTitle(R.string.settings_mod_kantaien_enable);
+                alertDialogBuilder
+                        .setCancelable(false)
+                        .setMessage(String.format(Locale.US, this.getString(R.string.setting_latest_download), availableVersion))
+                        .setPositiveButton(R.string.action_ok,
+                                (dialog, id) -> {
+                                    enUtils.requestPatchUpdateEntrance(this);
+                                    dialog.dismiss();
+                                })
+                        .setNegativeButton(R.string.action_cancel,
+                                (dialog, id) -> dialog.cancel());
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+            }
+        }
     }
 
     @Override

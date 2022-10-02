@@ -30,6 +30,8 @@ import com.antest1.gotobrowser.R;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
@@ -351,14 +353,23 @@ public class KcUtils {
         return resultStr;
     }
 
+    public static JsonObject parseJsonObject(String data) {
+        final Gson gson = new Gson();
+        return gson.fromJson(data, JsonObject.class);
+    }
+
+    public static JsonArray parseJsonArray(String data) {
+        final Gson gson = new Gson();
+        return gson.fromJson(data, JsonArray.class);
+    }
+
     public static JsonObject readJsonObjectFromFile(String path) {
         try {
-            final Gson gson = new Gson();
             final BufferedReader reader = new BufferedReader(new FileReader(path));
             String line;
             StringBuilder sb = new StringBuilder();
             while ((line = reader.readLine()) != null) sb.append(line);
-            return gson.fromJson(sb.toString(), JsonObject.class);
+            return parseJsonObject(sb.toString());
         } catch (IOException e) {
             KcUtils.reportException(e);
         }
