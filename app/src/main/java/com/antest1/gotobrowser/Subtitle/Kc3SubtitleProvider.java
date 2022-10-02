@@ -247,7 +247,6 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
     }
 
     private static void downloadQuoteSizeData(VersionDatabase table, Context context, String commit, File file) {
-        String filename = "quotes_size.json";
         String download_path = String.format(Locale.US, SUBTITLE_META_ROOT_FORMAT, commit);
         OkHttpClient resourceClient = new OkHttpClient();
         Thread downloadThread = new Thread() {
@@ -255,7 +254,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             public void run() {
                 String last_modified = table.getValue(file.getAbsolutePath());
                 if (!last_modified.equals(commit)) {
-                    String new_last_modified = KcUtils.downloadResource(resourceClient, download_path, commit, file);
+                    String new_last_modified = KcUtils.downloadResource(resourceClient, download_path, file);
                     if (new_last_modified != null && !new_last_modified.equals("304")) {
                         table.putValue(file.getAbsolutePath(), commit);
                     }

@@ -409,7 +409,7 @@ public class KcEnUtils {
                             } else {
                                 Log.e("GOTO", "Zip wasn't deleted");
                             }
-                        } catch (IOException | ParseException e) {
+                        } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
