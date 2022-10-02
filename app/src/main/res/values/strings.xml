@@ -4,9 +4,11 @@
     <string name="copyright_info" translatable="false">Copyright © 2019 antest1(IE10)</string>
 
     <string name="app_name">GotoBrowser</string>
+    <string name="confirmation">Are you sure?</string>
     <string name="action_ok">Confirm</string>
     <string name="action_cancel">Cancel</string>
-    <string name="select_server">Select Web Based Proxy or Login Method</string>
+    <string name="selected_server">Login Method</string>
+    <string name="select_server">Select Login Method</string>
     <string name="select_server_toast">Login method must be chosen first</string>
     <string name="cache_clear_text">Clear Cache</string>
     <string name="cache_cleared_toast">Webview cache cleared</string>
@@ -28,6 +30,7 @@
     <string name="autocomplete_msg">This information will only be used to fill the login form</string>
     <string name="settings_version_label">Current Version</string>
     <string name="settings_version_check">Check Update</string>
+    <string name="settings_recommended_summary">Recommended</string>
     <string name="settings_subtitle_label">Subtitle Settings</string>
     <string name="settings_subtitle_download">Download Subtitle Data</string>
     <string name="settings_subtitle_language">Current Language</string>
@@ -46,8 +49,7 @@
     <string name="settings_resource_btn">Download</string>
     <string name="settings_appinfo_browsersettings">Browser Settings</string>
     <string name="browser_fontprefetch">Prefetch Font Assets</string>
-    <string name="browser_enablepipmode">Enable picture-in-picture mode</string>
-    <string name="connection_use_alter">Enable Gadget Server Block Bypass</string>
+    <string name="browser_enablepipmode">Picture-in-picture mode</string>
     <string name="logout_msg">Are you sure you want to Logout?</string>
     <string name="noti_screenshot_name">GotoBrowser Screenshot</string>
     <string name="noti_screenshot_title">Screenshot Captured</string>
@@ -62,12 +64,14 @@
     <string name="setting_panel_method_button">Button</string>
     <string name="setting_devtools_enable">Enable DevTools Debugging</string>
     <string name="setting_devtools_description" translatable="false">chrome://inspect</string>
+    <string name="connection_use_alter">Gadget Block Bypass</string>
+    <string name="connection_use_alter_summary">Use this setting if you\'re faced with the foreign IP block issue (infinite white screen)</string>
     <string name="setting_connection">Connection Settings</string>
     <string name="setting_alter_method">Bypass Method</string>
     <string name="setting_alter_method_url">URL Replacement</string>
     <string name="setting_alter_method_proxy">KCCacheProxy (remote)</string>
     <string name="setting_alter_method_proxy_error_toast">KCCacheProxy Endpoint Server is invalid. Please update your Bypass Method setting.</string>
-    <string name="setting_alter_endpoint">Endpoint Server</string>
+    <string name="setting_alter_endpoint">Bypass Endpoint Server</string>
 
     <string name="menu_tooltip_refresh">Refresh</string>
     <string name="menu_tooltip_mute">Mute Audio</string>
@@ -77,32 +81,37 @@
     <string name="menu_tooltip_cc">Subtitle</string>
     <string name="menu_tooltip_logout">Logout</string>
 
-    <string name="settings_legacy_renderer_enable">Use Legacy Renderer</string>
+    <string name="settings_legacy_renderer_enable">Legacy Renderer</string>
     <string name="settings_legacy_renderer_summary">Force PixiJS game engine to use Canvas renderer instead of WebGL renderer. It may solve most display glitches but reduce performance.</string>
 
     <string name="settings_mod_label">Third Party Mods (use at your own risk)</string>
     <string name="settings_mod_kantai3d_enable">Kantai3D v3.0</string>
     <string name="settings_mod_kantai3d_summary">Add 3D-like visual effects and jiggle physics to some of your secretaries. Author: @laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
-    <string name="settings_mod_kantaien_enable">[Alpha] KanColle English Patch</string>
-    <string name="settings_mod_kantaien_summary">Translates the game into English. Only text supported for now. Author: @Oradimi</string>
+    <string name="settings_mod_kantaien_enable">[Beta] KanColle English Patch</string>
+    <string name="settings_mod_kantaien_summary">Translates most of the game into English. Author: @Oradimi</string>
     <string name="settings_mod_kantaien_download">Download English Patch Data</string>
+    <string name="settings_mod_kantaien_download_start">Downloading… You can leave the application in the background while downloading.</string>
+    <string name="settings_mod_kantaien_delete">Delete English Patch Data</string>
+    <string name="settings_mod_kantaien_delete_summary">Use this setting if the patch is presenting unexpected behaviours, or if something went wrong during the download.</string>
     <string name="settings_mod_kantaien_about">About KanColle English Patch</string>
     <string name="settings_mod_fps_enable">Remove 60 FPS limit</string>
     <string name="settings_mod_fps_summary">Support higher refresh rate devices. Animation speed is not affected.</string>
     <string name="settings_mod_crit_enable">True Critical Hits</string>
     <string name="settings_mod_crit_summary">Removes some hard-coded obfuscation for hits. Only a critical hit will be displayed as such, etc. Author: @Oradimi</string>
-    <string name="settings_use_external_dir">Use External Storage for Resource Caching</string>
+    <string name="settings_use_external_dir">External Storage for Resource Caching</string>
     <string name="menu_tooltip_kantai3d">Toggle 3D effects</string>
     <string name="msg_kantai3d_init">No secretary detected</string>
     <string name="msg_kantai3d_loaded">The depth map of the current secretary CG is loaded: %s</string>
     <string name="msg_kantai3d_error">The depth map of the current secretary CG is unavailable: %s</string>
     <string name="msg_kantai3d_redirect">To see the list of all 3D-supported CG, or contribute new depth maps, please visit: https://github.com/laplamgor/kantai3d</string>
 
-
-    <string name="download_start" translatable="false">Download starting…</string>
-    <string name="installation_start" translatable="false">Installation starting…</string>
-    <string name="installation_done" translatable="false">Installation complete!</string>
+    <string name="en_download_start">Download starting…</string>
+    <string name="en_unzip_start">Unzipping… Please wait…</string>
+    <string name="en_unzip_done">Patch unzip complete!</string>
+    <string name="en_update_done">Patch update complete!</string>
+    <string name="en_install_done_notification">English Patch installed! Please restart the game.</string>
+    <string name="en_update_done_notification">English Patch updated! Please restart the game.</string>
 
     <string name="browser_ui_hint_text">« click any outside area to open the panel »</string>
 
@@ -113,4 +122,7 @@
     <string name="dialog_retry_no">Do nothing</string>
     <string name="dialog_retry_never">Do nothing and never ask again</string>
     <string name="dialog_retry_message">A network issue occurred while the game client was trying to download a resource file.\nDo you want to retry the download?\n%s</string>
+
+    <string name="channel_name" translatable="false">gotobrowser_channel</string>
+    <string name="channel_description" translatable="false">gotobrowser_channel_description</string>
 </resources>

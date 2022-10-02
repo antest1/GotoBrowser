@@ -1,5 +1,7 @@
 package com.antest1.gotobrowser.Activity;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -9,7 +11,6 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.EditTextPreference;
@@ -28,25 +29,31 @@ import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.Locale;
+import java.util.Map;
+
 import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
+import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY;
 import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
+import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
 import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
+import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_FPS;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_DELETE;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_CRIT;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
-import static com.antest1.gotobrowser.Constants.PREF_PANEL_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SETTINGS;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
@@ -56,7 +63,6 @@ import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
 
-import java.util.Map;
 import java.io.IOException;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -72,14 +78,19 @@ public class SettingsActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+        createNotificationChannel();
     }
 
     public static void setInitialSettings(SharedPreferences sharedPref) {
         SharedPreferences.Editor editor = sharedPref.edit();
         for (String key: PREF_SETTINGS) {
             if (!sharedPref.contains(key)) switch (key) {
+                case PREF_LANDSCAPE:
+                case PREF_ADJUSTMENT:
                 case PREF_FONT_PREFETCH:
+                case PREF_USE_EXTCACHE:
                 case PREF_DOWNLOAD_RETRY:
+                case PREF_BROADCAST:
                     editor.putBoolean(key, true);
                     break;
                 case PREF_PIP_MODE:
@@ -91,12 +102,10 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_MOD_KANTAIEN:
                 case PREF_MOD_FPS:
                 case PREF_MOD_CRIT:
-                case PREF_USE_EXTCACHE:
                 case PREF_LEGACY_RENDERER:
                     editor.putBoolean(key, false);
                     break;
                 case PREF_ALTER_METHOD:
-                case PREF_PANEL_METHOD:
                     editor.putString(key, "1");
                     break;
                 case PREF_ALTER_ENDPOINT:
@@ -108,6 +117,15 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
         editor.apply();
+    }
+
+    public static Locale getCurrentLocale(Context context){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+            return context.getResources().getConfiguration().getLocales().get(0);
+        } else{
+            //noinspection deprecation
+            return context.getResources().getConfiguration().locale;
+        }
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat
@@ -153,7 +171,6 @@ public class SettingsActivity extends AppCompatActivity {
             updateKantai3dDisable();
         }
 
-        @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         public boolean onPreferenceTreeClick(Preference preference) {
             String key = preference.getKey();
@@ -166,10 +183,15 @@ public class SettingsActivity extends AppCompatActivity {
                     break;
                 case PREF_MOD_KANTAIEN_UPDATE:
                     try {
-                        KcEnUtils.requestPatchUpdate(this, getActivity(), getContext());
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            KcEnUtils.requestPatchUpdate(this);
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                    break;
+                case PREF_MOD_KANTAIEN_DELETE:
+                    KcEnUtils.requestPatchDelete(this);
                     break;
             }
             return super.onPreferenceTreeClick(preference);
@@ -247,13 +269,38 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         private void updateKantaiEnDescriptionText() {
+            Preference kantaiEn = findPreference(PREF_MOD_KANTAIEN);
             Preference kantaiEnUpdate = findPreference(PREF_MOD_KANTAIEN_UPDATE);
+
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N) {
+                kantaiEn.setEnabled(false);
+                kantaiEn.setSummary("Requires Android 7 or above.");
+                kantaiEnUpdate.setEnabled(false);
+                kantaiEnUpdate.setSummary("Mod disabled.");
+            }
+
             if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
                 KcEnUtils.checkKantaiEnUpdate(this, kantaiEnUpdate);
             } else {
                 kantaiEnUpdate.setEnabled(false);
                 kantaiEnUpdate.setSummary("Mod disabled.");
             }
+        }
+    }
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = new NotificationChannel("en_patch", name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
         }
     }
 }

@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">GotoBrowser</string>
+    <string name="confirmation">확실합니까?</string>
     <string name="action_ok">확인</string>
     <string name="action_cancel">취소</string>
+    <string name="selected_server">접속기</string>
     <string name="select_server">접속기 선택</string>
     <string name="select_server_toast">접속기를 먼저 선택해주세요.</string>
     <string name="cache_clear_text">캐시 비우기</string>
@@ -24,6 +26,7 @@
     <string name="autocomplete_msg">로그인 폼에 입력할 계정 정보를 입력하세요.</string>
     <string name="settings_version_label">현재 버전</string>
     <string name="settings_version_check">업데이트 확인</string>
+    <string name="settings_recommended_summary">추천</string>
     <string name="settings_subtitle_label">자막 설정</string>
     <string name="settings_subtitle_download">자막 데이터 다운로드</string>
     <string name="settings_subtitle_language">자막 언어</string>
@@ -53,6 +56,7 @@
     <string name="setting_panel_method_button">버튼</string>
     <string name="setting_devtools_enable">DevTools 디버깅 활성화</string>
     <string name="connection_use_alter" translatable="false">Gadget 서버 우회 활성화</string>
+    <string name="connection_use_alter_summary">외부 IP 차단 문제(무한 흰색 화면)에 직면한 경우 이 설정을 사용합니다.</string>
     <string name="setting_connection">접속 설정</string>
     <string name="setting_alter_method_url">URL 교체</string>
     <string name="setting_alter_method_proxy">KCCacheProxy (remote)</string>
@@ -75,9 +79,12 @@
     <string name="settings_mod_kantai3d_enable">Kantai3D v3.0</string>
     <string name="settings_mod_kantai3d_summary">일부 비서함에 3D 효과 적용. 저자: @laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
-    <string name="settings_mod_kantaien_enable">[Alpha] KanColle English Patch</string>
-    <string name="settings_mod_kantaien_summary">게임 내 텍스트를 영어로 번역합니다. (현재 인게임 텍스트만 지원) 저자: @Oradimi</string>
+    <string name="settings_mod_kantaien_enable">[Beta] KanColle English Patch</string>
+    <string name="settings_mod_kantaien_summary">게임 내 텍스트를 영어로 번역합니다. 저자: @Oradimi</string>
     <string name="settings_mod_kantaien_download">English Patch 데이터 다운로드</string>
+    <string name="settings_mod_kantaien_download_start">다운로드 중… 다운로드하는 동안 애플리케이션을 백그라운드에 그대로 둘 수 있습니다.</string>
+    <string name="settings_mod_kantaien_delete">English Patch 데이터 삭제</string>
+    <string name="settings_mod_kantaien_delete_summary">패치가 예기치 않은 동작을 나타내거나 다운로드 중에 문제가 발생한 경우 이 설정을 사용하십시오.</string>
     <string name="settings_mod_kantaien_about">KanColle English Patch에 대해</string>
     <string name="settings_mod_fps_enable">60FPS 제한 제거</string>
     <string name="settings_mod_fps_summary">더 높은 화면 재생 빈도 장치를 지원합니다. 애니메이션 속도는 영향을 받지 않습니다.</string>
@@ -89,6 +96,13 @@
     <string name="msg_kantai3d_loaded">현재 비서함 CG의 depth map 정보를 불러왔습니다： %s</string>
     <string name="msg_kantai3d_error">현재 비서함 CG의 depth map 정보를 찾을 수 없습니다： %s</string>
     <string name="msg_kantai3d_redirect">3D를 지원하는 모든 CG 목록을 보거나 새 depth map을 제출하려면 여기로 이동합니다： https://github.com/laplamgor/kantai3d</string>
+
+    <string name="en_download_start">다운로드 시작 중…</string>
+    <string name="en_unzip_start">압축을 푸는 중… 잠시만 기다려 주세요…</string>
+    <string name="en_unzip_done">패치 압축 풀기 완료!</string>
+    <string name="en_update_done">패치 업데이트 완료!</string>
+    <string name="en_install_done_notification">한글패치가 설치되었습니다! 게임을 다시 시작해 주세요.</string>
+    <string name="en_update_done_notification">영어 패치가 업데이트되었습니다! 게임을 다시 시작해 주세요.</string>
 
     <string name="browser_ui_hint_text">« 게임 화면 외의 공간을 눌러 패널을 여세요 »</string>
 

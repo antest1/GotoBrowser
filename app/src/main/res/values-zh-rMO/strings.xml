@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name">GotoBrowser</string>
+    <string name="confirmation">你確定嗎？</string>
     <string name="action_ok">確定</string>
     <string name="action_cancel">取消</string>
+    <string name="selected_server">在線快取/登入方式</string>
     <string name="select_server">選擇在線快取/登入方式</string>
     <string name="select_server_toast">必須先選擇一個登入方式</string>
     <string name="cache_clear_text">清除快取</string>
@@ -23,6 +25,7 @@
     <string name="autocomplete_msg">此資料將只用於填寫登入信息</string>
     <string name="settings_version_label">當前版本</string>
     <string name="settings_version_check">檢查更新</string>
+    <string name="settings_recommended_summary">受到推崇的</string>
     <string name="settings_subtitle_label">字幕設定</string>
     <string name="settings_subtitle_download">下載字幕數據</string>
     <string name="settings_subtitle_language">字幕語言</string>
@@ -51,6 +54,7 @@
     <string name="setting_panel_method_label">控制台打開方式</string>
     <string name="setting_devtools_enable">啟用DevTools除錯</string>
     <string name="connection_use_alter">啟用登入伺服器封鎖繞行</string>
+    <string name="connection_use_alter_summary">如果您遇到外國 IP 阻止問題（無限白屏），請使用此設置</string>
     <string name="setting_connection">連接設定</string>
     <string name="setting_alter_method_url">URL替換</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（遠端伺服器）</string>
@@ -73,9 +77,12 @@
     <string name="settings_mod_kantai3d_enable">Kantai3D v3.0</string>
     <string name="settings_mod_kantai3d_summary">為部份秘書艦添加仿立體的視覺效果及胸部物理。作者：@laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
-    <string name="settings_mod_kantaien_enable">[Alpha] KanColle English Patch</string>
-    <string name="settings_mod_kantaien_summary">將游戲翻譯成英文。目前僅支持文本。作者：@Oradimi</string>
+    <string name="settings_mod_kantaien_enable">[Beta] KanColle English Patch</string>
+    <string name="settings_mod_kantaien_summary">將游戲翻譯成英文。作者：@Oradimi</string>
     <string name="settings_mod_kantaien_download">下載English Patch數據</string>
+    <string name="settings_mod_kantaien_download_start">正在下載… 您可以在下載時將應用程序留在後台。</string>
+    <string name="settings_mod_kantaien_delete">刪除English Patch數據</string>
+    <string name="settings_mod_kantaien_delete_summary">如果補丁出現意外行為，或者在下載過程中出現問題，請使用此設置。</string>
     <string name="settings_mod_kantaien_about">KanColle English Patch關於</string>
     <string name="settings_mod_fps_enable">移除60幀限制</string>
     <string name="settings_mod_fps_summary">支持高刷新率手機。遊戲速度不會受影響。</string>
@@ -87,6 +94,13 @@
     <string name="msg_kantai3d_loaded">已載入目前秘書艦CG的深度圖： %s</string>
     <string name="msg_kantai3d_error">找不到目前秘書艦CG的深度圖： %s</string>
     <string name="msg_kantai3d_redirect">欲查看所有支持 3D 的 CG 列表，或貢獻新的深度圖，請前往： https://github.com/laplamgor/kantai3d</string>
+
+    <string name="en_download_start">下載開始…</string>
+    <string name="en_unzip_start">正在解壓……請稍候……</string>
+    <string name="en_unzip_done">補丁解壓完成！</string>
+    <string name="en_update_done">補丁更新完成！</string>
+    <string name="en_install_done_notification">已安裝英文補丁！ 請重新開始遊戲。</string>
+    <string name="en_update_done_notification">英文補丁更新！ 請重新開始遊戲。</string>
 
     <string name="browser_ui_hint_text">« 點擊外側任意位置以打開面板 »</string>
 

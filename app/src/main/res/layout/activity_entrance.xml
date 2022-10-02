@@ -115,16 +115,6 @@
                 android:paddingBottom="10dp">
 
                 <Switch
-                    android:id="@+id/switch_landscape"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="3dp"
-                    android:switchPadding="18dp"
-                    android:text="@string/mode_landscape"
-                    android:textColor="@color/white"
-                    android:textSize="15dp" />
-
-                <Switch
                     android:id="@+id/switch_silent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -135,22 +125,22 @@
                     android:textSize="15dp" />
 
                 <Switch
-                    android:id="@+id/switch_adjustment"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="3dp"
-                    android:switchPadding="18dp"
-                    android:text="@string/mode_adjustment"
-                    android:textColor="@color/white"
-                    android:textSize="15dp" />
-
-                <Switch
                     android:id="@+id/switch_broadcast"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="3dp"
                     android:switchPadding="18dp"
                     android:text="@string/mode_broadcast"
+                    android:textColor="@color/white"
+                    android:textSize="15dp" />
+
+                <Switch
+                    android:id="@+id/switch_gadget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="3dp"
+                    android:switchPadding="18dp"
+                    android:text="@string/connection_use_alter"
                     android:textColor="@color/white"
                     android:textSize="15dp" />
 

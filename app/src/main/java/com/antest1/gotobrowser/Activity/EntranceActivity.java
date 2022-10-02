@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebView;
@@ -18,6 +19,7 @@ import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
 import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
+import com.antest1.gotobrowser.Helpers.KcEnUtils;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
@@ -36,7 +38,6 @@ import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.CONN_DMM;
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
-import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
@@ -45,9 +46,9 @@ import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
 import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
 import static com.antest1.gotobrowser.Constants.PREF_KEYBOARD;
-import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
 import static com.antest1.gotobrowser.Constants.PREF_PANELSTART;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_TP_DISCLAIMED;
@@ -80,6 +81,26 @@ public class EntranceActivity extends AppCompatActivity {
         sharedPref = getSharedPreferences(getString(R.string.preference_key), Context.MODE_PRIVATE);
         SettingsActivity.setInitialSettings(sharedPref);
 
+        if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            String availableVersion = KcEnUtils.checkKantaiEnUpdateEntrance(this);
+            if (availableVersion != null) {
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                alertDialogBuilder.setTitle(R.string.settings_mod_kantaien_enable);
+                alertDialogBuilder
+                        .setCancelable(false)
+                        .setMessage(String.format(Locale.US, this.getString(R.string.setting_latest_download), availableVersion))
+                        .setPositiveButton(R.string.action_ok,
+                                (dialog, id) -> {
+                                    KcEnUtils.requestPatchUpdateEntrance(this);
+                                    dialog.dismiss();
+                                })
+                        .setNegativeButton(R.string.action_cancel,
+                                (dialog, id) -> dialog.cancel());
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+            }
+        }
+
         SharedPreferences.Editor editor = sharedPref.edit();
 
         ImageView settingsButton = findViewById(R.id.icon_setting);
@@ -107,16 +128,6 @@ public class EntranceActivity extends AppCompatActivity {
             }
         });
 
-        Switch landscapeSwitch = findViewById(R.id.switch_landscape);
-        landscapeSwitch.setChecked(sharedPref.getBoolean(PREF_LANDSCAPE, false));
-        landscapeSwitch.setOnCheckedChangeListener((buttonView, isChecked)
-                -> editor.putBoolean(PREF_LANDSCAPE, isChecked).apply());
-
-        Switch adjustmentSwitch = findViewById(R.id.switch_adjustment);
-        adjustmentSwitch.setChecked(sharedPref.getBoolean(PREF_ADJUSTMENT, false));
-        adjustmentSwitch.setOnCheckedChangeListener((buttonView, isChecked)
-                -> editor.putBoolean(PREF_ADJUSTMENT, isChecked).apply());
-
         Switch silentSwitch = findViewById(R.id.switch_silent);
         silentSwitch.setChecked(sharedPref.getBoolean(PREF_SILENT, false));
         silentSwitch.setOnCheckedChangeListener((buttonView, isChecked)
@@ -128,19 +139,25 @@ public class EntranceActivity extends AppCompatActivity {
                 -> editor.putBoolean(PREF_BROADCAST, isChecked).apply()
         );
 
+        Switch gadgetSwitch = findViewById(R.id.switch_gadget);
+        gadgetSwitch.setChecked(sharedPref.getBoolean(PREF_ALTER_GADGET, false));
+        gadgetSwitch.setOnCheckedChangeListener((buttonView, isChecked)
+                -> editor.putBoolean(PREF_ALTER_GADGET, isChecked).apply()
+        );
+
         CheckBox showControlPanelCheckbox = findViewById(R.id.layout_control);
         showControlPanelCheckbox.setChecked(sharedPref.getBoolean(PREF_PANELSTART, false));
         showControlPanelCheckbox.setOnCheckedChangeListener((buttonView, isChecked)
                 -> editor.putBoolean(PREF_PANELSTART, isChecked).apply());
 
         CheckBox showKeyboardCheckbox = findViewById(R.id.layout_keyboard);
-        showKeyboardCheckbox.setChecked(sharedPref.getBoolean(PREF_KEYBOARD, false));
+        showKeyboardCheckbox.setChecked(sharedPref.getBoolean(PREF_KEYBOARD, true));
         showKeyboardCheckbox.setOnCheckedChangeListener((buttonView, isChecked)
                 -> editor.putBoolean(PREF_KEYBOARD, isChecked).apply());
 
         selectButton = findViewById(R.id.connector_select);
         selectButton.setOnClickListener(v -> showConnectorSelectionDialog());
-        String connector = sharedPref.getString(PREF_CONNECTOR, null);
+        String connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         if (connector != null) {
             silentSwitch.setEnabled(CONN_DMM.equals(connector));
             selectButton.setText(connector);
@@ -156,7 +173,7 @@ public class EntranceActivity extends AppCompatActivity {
 
         TextView startButton = findViewById(R.id.webview_start);
         startButton.setOnClickListener(v -> {
-            String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
+            String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
             if (pref_connector != null && !pref_connector.equals(CONN_DMM)) {
                 showThirdPartyConnectorDialog();
             } else {
@@ -168,6 +185,13 @@ public class EntranceActivity extends AppCompatActivity {
         versionText.setText(String.format(Locale.US, getString(R.string.version_format), BuildConfig.VERSION_NAME));
 
         WebViewManager.clearKcCacheProxy();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Switch gadgetSwitch = findViewById(R.id.switch_gadget);
+        gadgetSwitch.setChecked(sharedPref.getBoolean(PREF_ALTER_GADGET, false));
     }
 
     @Override
@@ -189,7 +213,7 @@ public class EntranceActivity extends AppCompatActivity {
         Switch silentSwitch = findViewById(R.id.switch_silent);
         final String[] listItems = getResources().getStringArray(R.array.connector_list);
         int connector_idx = -1;
-        String connector1 = sharedPref.getString(PREF_CONNECTOR, null);
+        String connector1 = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         for (int i = 0; i < listItems.length; i++) {
             if (listItems[i].equals(connector1)) {
                 connector_idx = i;
@@ -255,12 +279,14 @@ public class EntranceActivity extends AppCompatActivity {
         webview.clearCache(true);
         versionTable.clearVersionDatabase();
         String cache_dir = KcUtils.getAppCacheFileDir(getApplicationContext(), "/cache/");
+        String patched_cache_dir = KcUtils.getAppCacheFileDir(getApplicationContext(), "/_patched_cache/");
         clearApplicationCache(getApplicationContext(), getCacheDir());
         clearApplicationCache(getApplicationContext(), new File(cache_dir));
+        clearApplicationCache(getApplicationContext(), new File(patched_cache_dir));
     }
 
     private void startBrowserActivity() {
-        String pref_connector = sharedPref.getString(PREF_CONNECTOR, null);
+        String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         if (pref_connector == null) {
             KcUtils.showToast(getApplicationContext(), R.string.select_server_toast);
         } else {
