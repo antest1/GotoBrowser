@@ -400,7 +400,7 @@ public class KcEnUtils {
             super.onPreExecute();
             mProgressDialog = new ProgressDialog(context);
             mProgressDialog.setTitle("Update Patch Files");
-            mProgressDialog.setMessage("Downloading..");
+            mProgressDialog.setMessage("Downloading...");
             mProgressDialog.setMax(100);
             mProgressDialog.setProgress(0);
             mProgressDialog.setIndeterminate(true);
@@ -539,7 +539,7 @@ public class KcEnUtils {
             super.onPreExecute();
             mProgressDialog = new ProgressDialog(context);
             mProgressDialog.setTitle("Update Patch Files");
-            mProgressDialog.setMessage("Downloading..");
+            mProgressDialog.setMessage("Downloading...");
             mProgressDialog.setMax(100);
             mProgressDialog.setProgress(0);
             mProgressDialog.setIndeterminate(false);
@@ -574,12 +574,12 @@ public class KcEnUtils {
                     mProgressDialog.setProgress(finalTransferred);
                 }
 
-                publishProgress("Extracting Zip File..");
+                publishProgress("Extracting Zip File...");
                 ZipFile zipFile = new ZipFile(out);
                 zipFile.extractAll(KcUtils.getAppCacheFileDir(context, ""));
                 Log.e("GOTO", "zip extracted to " + KcUtils.getAppCacheFileDir(context, ""));
 
-                publishProgress("Create .nomedia File..");
+                publishProgress("Create .nomedia File...");
                 File file = new File(getEnPatchLocalFolder(context).concat(".nomedia"));
                 try {
                     file.createNewFile();
@@ -589,7 +589,7 @@ public class KcEnUtils {
                 }
                 Log.e("GOTO", "Created .nomedia file");
 
-                publishProgress("Removing Zip File..");
+                publishProgress("Removing Zip File...");
                 boolean deleted = zipOut.delete();
                 return deleted ? 1 : 0;
             } catch (Exception e) {

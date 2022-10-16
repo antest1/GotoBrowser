@@ -274,13 +274,6 @@ public class SettingsActivity extends AppCompatActivity {
             Preference kantaiEn = findPreference(PREF_MOD_KANTAIEN);
             Preference kantaiEnUpdate = findPreference(PREF_MOD_KANTAIEN_UPDATE);
 
-            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N) {
-                kantaiEn.setEnabled(false);
-                kantaiEn.setSummary("Requires Android 7 or above.");
-                kantaiEnUpdate.setEnabled(false);
-                kantaiEnUpdate.setSummary("Mod disabled.");
-            }
-
             if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
                 kantaiEnUpdate.setSummary("Checking updates...");
                 kantaiEnUpdate.setEnabled(false);
