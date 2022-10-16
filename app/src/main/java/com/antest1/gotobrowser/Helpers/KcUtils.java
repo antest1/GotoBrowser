@@ -58,6 +58,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -229,6 +230,14 @@ public class KcUtils {
         return null;
     }
 
+    public static void deleteRecursive(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory())
+            for (File child : Objects.requireNonNull(fileOrDirectory.listFiles()))
+                deleteRecursive(child);
+
+        fileOrDirectory.delete();
+    }
+
     public static void clearApplicationCache(Context context, File file) {
         File dir = null;
         if (file == null) {
@@ -236,15 +245,7 @@ public class KcUtils {
         } else {
             dir = file;
         }
-        if (dir == null) return;
-        File[] children = dir.listFiles();
-        try {
-            for (File child : children)
-                if (child.isDirectory()) clearApplicationCache(context, child);
-                else child.delete();
-        } catch (Exception e) {
-            reportException(e);
-        }
+        if (dir != null) deleteRecursive(dir);
     }
 
     public static byte[] getBytesFromInputStream(InputStream in) throws IOException {

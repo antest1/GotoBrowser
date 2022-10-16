@@ -296,15 +296,7 @@ public class KcEnUtils {
         File zipFile = new File(KcUtils.getAppCacheFileDir(fragment, "/master.zip"));
         zipFile.delete();
         File patchFolder = new File(KcUtils.getAppCacheFileDir(fragment, ENPATCH_LOCAL_FOLDER));
-        deleteRecursive(patchFolder);
-    }
-
-    private static void deleteRecursive(File fileOrDirectory) {
-        if (fileOrDirectory.isDirectory())
-            for (File child : Objects.requireNonNull(fileOrDirectory.listFiles()))
-                deleteRecursive(child);
-
-        fileOrDirectory.delete();
+        KcUtils.deleteRecursive(patchFolder);
     }
 
     public static Set<String> listFiles(String dir) {

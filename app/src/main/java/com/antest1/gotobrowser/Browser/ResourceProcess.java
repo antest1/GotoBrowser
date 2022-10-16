@@ -899,12 +899,16 @@ public class ResourceProcess {
         if (ResourceProcess.isImage(ResourceProcess.getCurrentState(ptDestination))) {
             Bitmap ogSpritesheet = BitmapFactory.decodeFile(ogDestination);
             File metadataFile = new File(ogDestination.replace(".png", ".json"));
+            Log.e("GOTO-F", "patchImage-src: " + metadataFile.getAbsolutePath());
             File dest = new File(ptDestination);
+            Log.e("GOTO-F", "patchImage-desc: " + metadataFile.getAbsolutePath());
             if (!metadataFile.exists()) {
                 Bitmap ogImage = BitmapFactory.decodeFile(patchFile.concat("/original.png"));
                 if (KcEnUtils.bitmapEqual(ogSpritesheet, ogImage)) {
                     File source = new File(patchFile.concat("/patched.png"));
                     try {
+                        dest.getParentFile().mkdirs();
+                        dest.createNewFile();
                         KcUtils.copyFileUsingStream(source, dest);
                         Log.e("GOTO", "image patched: " + ptDestination);
                         return true;
