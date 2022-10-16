@@ -29,7 +29,9 @@ Main Features
 - Start with Sound Off Mode
 - Subtitle Feature for in-game Voicelines
 - Web Proxy Support (like [OOI](http://ooi.moe/))
+- Gadget Server Bypass
 - In-game Screenshot
+- Third-party Mods
 
 Languages
 -------
