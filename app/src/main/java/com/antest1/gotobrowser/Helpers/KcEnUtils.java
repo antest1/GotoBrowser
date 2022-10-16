@@ -1,8 +1,8 @@
 package com.antest1.gotobrowser.Helpers;
 
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_DELETE;
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_UPDATE;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
 import static com.antest1.gotobrowser.Helpers.KcUtils.parseJsonArray;
 import static com.antest1.gotobrowser.Helpers.KcUtils.parseJsonObject;
@@ -11,15 +11,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
-import androidx.fragment.app.Fragment;
 import androidx.preference.Preference;
 
 import com.antest1.gotobrowser.Activity.SettingsActivity;
@@ -29,42 +24,26 @@ import com.google.gson.JsonObject;
 
 import net.lingala.zip4j.ZipFile;
 
-import org.apache.commons.io.FileUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.threeten.bp.Duration;
-import org.threeten.bp.Instant;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -328,12 +307,14 @@ public class KcEnUtils {
         fileOrDirectory.delete();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     public static Set<String> listFiles(String dir) {
-        return Stream.of(new File(dir).listFiles())
-                .filter(file -> !file.isDirectory())
-                .map(File::getName)
-                .collect(Collectors.toSet());
+        Set<String> files = new HashSet<>();
+        File[] fileList = new File(dir).listFiles();
+
+        for (File f: fileList) {
+            if (!f.isDirectory()) files.add(f.getName());
+        }
+        return files;
     }
 
     public static boolean bitmapEqual(Bitmap bitmap1, Bitmap bitmap2) {
@@ -405,11 +386,13 @@ public class KcEnUtils {
         private Context context;
         private JsonArray enPatchVersions;
         private ProgressDialog mProgressDialog;
+        private OkHttpClient client;
 
         public PatchIndividualDownloader(Context c, JsonArray patch_info, SettingsActivity.SettingsFragment f) {
             fragment = f;
             context = c;
             enPatchVersions = patch_info;
+            client = new OkHttpClient();
         }
 
         @Override
@@ -493,11 +476,7 @@ public class KcEnUtils {
                             File addFile = new File(addPath);
                             String masterPath = ENPATCH_FILE_URL_ROOT.concat(addUrl.get(i).get(j));
                             if (remoteFileExists(masterPath)) {
-                                URL master = new URL(masterPath);
-                                ReadableByteChannel rbc = Channels.newChannel(master.openStream());
-                                FileOutputStream fos = FileUtils.openOutputStream(addFile);
-                                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                                fos.close();
+                                KcUtils.downloadResource(client, masterPath, addFile);
                                 Log.e("GOTO", "patch file downloaded: " + addPath);
 
                                 String version_progress = String.valueOf(i + 1);

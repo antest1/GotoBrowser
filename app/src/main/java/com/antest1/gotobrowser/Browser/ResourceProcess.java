@@ -27,14 +27,17 @@ import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleData;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -73,14 +76,6 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResource;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getEmptyStream;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getExpireInfoFromCacheControl;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
-
-import androidx.annotation.RequiresApi;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 public class ResourceProcess {
     private static final int RES_IMAGE  = 0b0000001;
@@ -145,7 +140,11 @@ public class ResourceProcess {
         subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
     }
 
-    public static String getUserAgent() { return userAgent; }
+    public static String getUserAgent() {
+        if (userAgent == null) return WebViewManager.USER_AGENT;
+        return userAgent;
+    }
+
     public static void setUserAgent(String agent) { userAgent = agent; }
 
     public static int getCurrentState(String url) {
@@ -896,7 +895,6 @@ public class ResourceProcess {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     public static boolean patchImage(String ogDestination, String ptDestination, String patchFile) {
         if (ResourceProcess.isImage(ResourceProcess.getCurrentState(ptDestination))) {
             Bitmap ogSpritesheet = BitmapFactory.decodeFile(ogDestination);
@@ -907,7 +905,7 @@ public class ResourceProcess {
                 if (KcEnUtils.bitmapEqual(ogSpritesheet, ogImage)) {
                     File source = new File(patchFile.concat("/patched.png"));
                     try {
-                        FileUtils.copyFile(source, dest);
+                        KcUtils.copyFileUsingStream(source, dest);
                         Log.e("GOTO", "image patched: " + ptDestination);
                         return true;
                     } catch (IOException e) {
@@ -919,11 +917,13 @@ public class ResourceProcess {
                     String ogFolder = "/original/";
                     String ptFolder = "/patched/";
                     boolean patchFound = false;
-                    InputStream is = new FileInputStream(metadataFile);
-                    String jsonTxt = IOUtils.toString(is);
-                    JSONTokener tokenizer = new JSONTokener(jsonTxt);
-                    JSONObject metadata = new JSONObject(tokenizer);
-                    JSONObject frames = (JSONObject) metadata.get("frames");
+
+                    Reader reader = new FileReader(metadataFile);
+                    JsonObject metadata = new JsonParser().parse(reader).getAsJsonObject();
+                    reader.close();
+
+                    JsonObject frames = metadata.getAsJsonObject("frames");
+
                     Set<String> originalFiles = KcEnUtils.listFiles(patchFile.concat(ogFolder));
                     Set<String> patchedFiles = KcEnUtils.listFiles(patchFile.concat(ptFolder));
 
@@ -947,7 +947,7 @@ public class ResourceProcess {
                         }
                     }
                     return patchExported(dest, patchFound, ptSpritesheet);
-                } catch (JSONException | IOException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -970,18 +970,18 @@ public class ResourceProcess {
         return false;
     }
 
-    private static boolean isSpritePatched(JSONObject frames, Bitmap ogSpritesheet, Bitmap ptSpritesheet, Bitmap ogSprite, Bitmap ptSprite, int ogSpriteWidth, int ogSpriteHeight) throws JSONException {
-        Iterator<String> framesKeys = frames.keys();
+    private static boolean isSpritePatched(JsonObject frames, Bitmap ogSpritesheet, Bitmap ptSpritesheet, Bitmap ogSprite, Bitmap ptSprite, int ogSpriteWidth, int ogSpriteHeight) {
+        Iterator<String> framesKeys = frames.keySet().iterator();
         while (framesKeys.hasNext()) {
-            JSONObject sprite = frames.getJSONObject(framesKeys.next());
+            JsonObject sprite = frames.getAsJsonObject(framesKeys.next());
 
-            JSONObject frame = sprite.getJSONObject("frame");
-            int frameX = frame.getInt("x");
-            int frameY = frame.getInt("y");
+            JsonObject frame = sprite.getAsJsonObject("frame");
+            int frameX = frame.get("x").getAsInt();
+            int frameY = frame.get("y").getAsInt();
 
-            JSONObject sourceSize = sprite.getJSONObject("sourceSize");
-            int w = sourceSize.getInt("w");
-            int h = sourceSize.getInt("h");
+            JsonObject sourceSize = sprite.getAsJsonObject("sourceSize");
+            int w = sourceSize.get("w").getAsInt();
+            int h = sourceSize.get("h").getAsInt();
 
             int[] spritesheetPixels = new int[w * h];
             Bitmap spritesheetSprite = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);

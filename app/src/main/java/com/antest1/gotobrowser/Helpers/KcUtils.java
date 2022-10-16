@@ -40,10 +40,12 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
@@ -77,8 +79,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.antest1.gotobrowser.Constants.CACHE_SIZE_BYTES;
 import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
-
-import org.apache.commons.io.FileUtils;
 
 public class KcUtils {
     private static FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
@@ -303,7 +303,6 @@ public class KcUtils {
             if (response.code() == 200) {
                 Log.e("GOTO", "200 OK " + fullpath);
                 String cache_control = response.header("Cache-Control", "none");
-                String new_last_modified = response.header("Last-Modified", "none");
                 ResponseBody body = response.body();
                 if (body != null) {
                     InputStream in = body.byteStream();
@@ -323,6 +322,7 @@ public class KcUtils {
                 return "304";
             }
         } catch (Exception e) {
+            Log.e("GOTO-E", getStringFromException(e));
             KcUtils.reportException(e);
             return null;
         }
@@ -561,38 +561,13 @@ public class KcUtils {
         return diagonalInches >= 7.0;
     }
 
-    public static void downloadFile(Activity ac, String download_url, File destination) {
-        //progressBar.setVisibility(View.VISIBLE);
-        ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        //Handler handler = new Handler(Looper.getMainLooper());
-        executor.execute(new Runnable() {
-            int count;
-            @Override
-            public void run() {
-                try {
-                    URL url = new URL(download_url);
-                    URLConnection connection = url.openConnection();
-                    connection.connect();
-
-                    int lengthOfFile = connection.getContentLength();
-
-                    ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-                    FileOutputStream fos = FileUtils.openOutputStream(destination);
-
-                    //InputStream input = connection.getInputStream();
-                    //OutputStream output = new FileOutputStream(destination);
-
-                    byte[] data = new byte[1024];
-                    long total = 0;
-                    while ((count = rbc.read(ByteBuffer.wrap(data))) != -1) {
-                        total += count;
-                        KcUtils.showToastShort(ac, "" + (int) ((total * 100) / lengthOfFile));
-                        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                    }
-                } catch (Exception e) {
-
-                }
+    public static void copyFileUsingStream(File source, File dest) throws IOException {
+        try (InputStream is = new FileInputStream(source); OutputStream os = new FileOutputStream(dest)) {
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = is.read(buffer)) > 0) {
+                os.write(buffer, 0, length);
             }
-        });
+        }
     }
 }
