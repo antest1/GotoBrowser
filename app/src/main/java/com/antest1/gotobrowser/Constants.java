@@ -83,7 +83,7 @@ public class Constants {
     public static final String CONN_NITRABBIT = "nitrabbit";
 
     public static final String URL_DMM = "http://www.dmm.com/netgame/social/-/gadgets/=/app_id=854854/";
-    public static final String URL_OOI = "http://ooi.moe/";
+    public static final String URL_OOI = "https://ooi.moe/";
     public static final String URL_KANSU = "http://kancolle.su/";
     public static final String URL_NITRABBIT = "http://connector.usagi.space/kancolle/";
 

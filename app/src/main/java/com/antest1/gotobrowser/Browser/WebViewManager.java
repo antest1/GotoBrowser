@@ -536,7 +536,6 @@ public class WebViewManager {
     }
 
     private void setWebViewUserAgent(WebViewL view, boolean change_to_ios) {
-        USER_AGENT = view.getSettings().getUserAgentString();
         view.getSettings().setUserAgentString(change_to_ios ? USER_AGENT_IOS : USER_AGENT);
         ResourceProcess.setUserAgent(view.getSettings().getUserAgentString());
     }
