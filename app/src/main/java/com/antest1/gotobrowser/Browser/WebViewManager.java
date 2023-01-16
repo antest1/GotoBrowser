@@ -40,9 +40,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.Executor;
 
 import okhttp3.OkHttpClient;
@@ -322,14 +326,16 @@ public class WebViewManager {
         String login_id = sharedPref.getString(PREF_DMM_ID, ""); // intent.getStringExtra("login_id");
         String login_password = sharedPref.getString(PREF_DMM_PASS, "");
 
+        String cookie = getDmmCookie(5);
+        Log.e("GOTO", "cookie - " + cookie);
         // Login
         if (url.contains(URL_DMM_FOREIGN)) {
-            webview.evaluateJavascript(DMM_COOKIE, null);
+            webview.evaluateJavascript(cookie, null);
             webview.evaluateJavascript("location.href='".concat(URL_DMM).concat("';"), null);
         }
         if (url.contains(URL_DMM_LOGIN) || url.contains(URL_DMM_LOGIN_2) || url.equals(URL_KANSU) || url.equals(URL_OOI)) {
             if (url.contains(URL_DMM_LOGIN) || url.contains(URL_DMM_LOGIN_2)) {
-                webview.evaluateJavascript(DMM_COOKIE, null);
+                webview.evaluateJavascript(cookie, null);
             }
             webview.evaluateJavascript(
                     String.format(Locale.US, AUTOCOMPLETE_OOI, login_id, login_password), null);
@@ -519,6 +525,14 @@ public class WebViewManager {
                 }
             }
         };
+    }
+
+    public String getDmmCookie(int years) {
+        Date targetTime = new Date();
+        targetTime.setTime(targetTime.getTime() + (365L * years * 24 * 60 * 60 * 1000));
+        DateFormat df = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss zzz", Locale.US);
+        df.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return DMM_COOKIE.replace("{date}", df.format(targetTime));
     }
 
     public void captureGameScreen(WebViewL webview) {
