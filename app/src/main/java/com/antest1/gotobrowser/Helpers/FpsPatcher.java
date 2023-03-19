@@ -34,7 +34,7 @@ public class FpsPatcher {
 
         // Change the create.js ticker mode from Timer to to RAF
         stringsToReplace.put(
-                "(createjs[^,;=]{0,40})\\=createjs[^,;=]{0,40},",
+                "(createjs[^,;=]{0,40})(\\=createjs[^,;=]{0,40}),",
                 "$1=createjs.Ticker.RAF,");
 
         String replaced = main_js;
