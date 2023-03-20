@@ -7,9 +7,9 @@ android {
     defaultConfig {
         applicationId "com.antest1.gotobrowser"
         minSdkVersion 19
-        targetSdkVersion 30
-        versionCode 61
-        versionName "2.10-rev3"
+        targetSdkVersion 31
+        versionCode 62
+        versionName "2.10-rev4"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
