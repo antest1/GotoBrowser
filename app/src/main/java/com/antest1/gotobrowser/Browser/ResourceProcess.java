@@ -835,8 +835,8 @@ public class ResourceProcess {
         // Reusing original names will cause a lot of conflict issues
         //main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
         //main_js = main_js.replace("out:n.pointer?\"pointerout\":\"mouseout\"", "out:\"touchout\"");
-        main_js = main_js.replaceFirst("'over':\\w+\\[\\w+\\('\\w+'\\)]\\?\\w+\\('\\w+'\\):\\w+\\('\\w+'\\)", "'over':'touchover'");
-        main_js = main_js.replaceFirst("'out':\\w+\\[\\w+\\('\\w+'\\)]\\?\\w+\\('\\w+'\\):\\w+\\('\\w+'\\)", "'out':'touchout'");
+        main_js = main_js.replaceFirst("'?over'?:[^,;=\\?:]{0,50}\\?[^,;=\\?:}]{0,50}:[^,;=\\?:}]{0,50}", "'over':'touchover'");
+        main_js = main_js.replaceFirst("'?out'?:[^,;=\\?:]{0,50}\\?[^,;=\\?:}]{0,50}:[^,;=\\?:}]{0,50}", "'out':'touchout'");
 
         main_js = main_js.concat(MUTE_LISTEN);
         main_js = main_js.concat(CAPTURE_LISTEN);
