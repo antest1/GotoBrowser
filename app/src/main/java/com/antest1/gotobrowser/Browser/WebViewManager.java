@@ -306,19 +306,24 @@ public class WebViewManager {
 
         String osapi_url = "http://osapi.dmm.com/";
         String osapi_value = cookieManager.getCookie(osapi_url);
+        boolean check_flag = false;
+
         if (osapi_value != null) {
             String[] cookie_list = osapi_value.split(";");
             for (String s: cookie_list) {
                 if (s.contains("kcs_options=")) {
+                    check_flag = true;
                     String match_result_group = s.replace("kcs_options=", "").trim();
                     match_result_group = match_result_group.replaceAll("vol_bgm%3D\\d+?%3B", "vol_bgm%3D0%3B");
                     match_result_group = match_result_group.replaceAll("vol_se%3D\\d+?%3B", "vol_se%3D0%3B");
                     match_result_group = match_result_group.replaceAll("vol_voice%3D\\d+?%3B", "vol_voice%3D0%3B");
-                    cookieManager.setCookie(osapi_url, String.format("kcs_options=%s;expires=Thu, 16-Jan-2023 00:00:00 GMT;path=/;domain=dmm.com", match_result_group));
+                    cookieManager.setCookie(osapi_url, String.format("kcs_options=%s;expires=%s;path=/;domain=dmm.com", match_result_group, KcUtils.getDefaultTimeForCookie()));
                 }
             }
-        } else {
-            cookieManager.setCookie(osapi_url, String.format("kcs_options=%s;expires=Thu, 16-Jan-2023 00:00:00 GMT;path=/;domain=dmm.com", "vol_bgm%3D0%3Bvol_se%3D0%3Bvol_voice%3D0%3Bv_be_left%3D1%3Bv_duty%3D1"));
+        }
+        if (!check_flag) {
+            String default_value = "vol_bgm%3D0%3Bvol_se%3D0%3Bvol_voice%3D0%3Bv_be_left%3D1%3Bv_duty%3D1";
+            cookieManager.setCookie(osapi_url, String.format("kcs_options=%s;expires=%s;path=/;domain=dmm.com", default_value, KcUtils.getDefaultTimeForCookie()));
         }
     }
 
@@ -326,7 +331,7 @@ public class WebViewManager {
         String login_id = sharedPref.getString(PREF_DMM_ID, ""); // intent.getStringExtra("login_id");
         String login_password = sharedPref.getString(PREF_DMM_PASS, "");
 
-        String cookie = getDmmCookie(5);
+        String cookie = getDmmCookie();
         Log.e("GOTO", "cookie - " + cookie);
         // Login
         if (url.contains(URL_DMM_FOREIGN)) {
@@ -527,12 +532,9 @@ public class WebViewManager {
         };
     }
 
-    public String getDmmCookie(int years) {
-        Date targetTime = new Date();
-        targetTime.setTime(targetTime.getTime() + (365L * years * 24 * 60 * 60 * 1000));
-        DateFormat df = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss zzz", Locale.US);
-        df.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return DMM_COOKIE.replace("{date}", df.format(targetTime));
+    public String getDmmCookie() {
+        String targetTime = KcUtils.getDefaultTimeForCookie();
+        return DMM_COOKIE.replace("{date}", targetTime);
     }
 
     public void captureGameScreen(WebViewL webview) {

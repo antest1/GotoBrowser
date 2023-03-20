@@ -54,11 +54,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -79,6 +81,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.antest1.gotobrowser.Constants.CACHE_SIZE_BYTES;
+import static com.antest1.gotobrowser.Constants.DMM_COOKIE;
 import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
 
 public class KcUtils {
@@ -548,6 +551,18 @@ public class KcUtils {
         ContentResolver contentResolver = context.getContentResolver();
         Uri item = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
         return item;
+    }
+
+    public static String getDefaultTimeForCookie() {
+        return getTimeForCookie(5);
+    }
+
+    public static String getTimeForCookie(int years) {
+        Date targetTime = new Date();
+        targetTime.setTime(targetTime.getTime() + (365L * years * 24 * 60 * 60 * 1000));
+        DateFormat df = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss zzz", Locale.US);
+        df.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return df.format(targetTime);
     }
 
     public static boolean checkIsLargeDisplay(Activity ac) {
