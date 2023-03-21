@@ -94,7 +94,7 @@
             android:label="@string/app_name"
             android:supportsPictureInPicture="true"
             android:theme="@style/FullscreenTheme"
-            android:exported="false">
+            android:exported="true">
             <layout
                 android:defaultWidth="400dp"
                 android:defaultHeight="240dp"
