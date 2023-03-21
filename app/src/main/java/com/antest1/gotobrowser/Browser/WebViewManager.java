@@ -55,6 +55,7 @@ import okhttp3.Response;
 
 import static com.antest1.gotobrowser.Browser.KcsInterface.GOTO_ANDROID;
 import static com.antest1.gotobrowser.Constants.ADD_VIEWPORT_META;
+import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_DMM;
 import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_OOI;
 import static com.antest1.gotobrowser.Constants.CAPTURE_SEND_DMM;
 import static com.antest1.gotobrowser.Constants.CAPTURE_SEND_OOI;
@@ -338,10 +339,10 @@ public class WebViewManager {
             webview.evaluateJavascript(cookie, null);
             webview.evaluateJavascript("location.href='".concat(URL_DMM).concat("';"), null);
         }
-        if (url.contains(URL_DMM_LOGIN) || url.contains(URL_DMM_LOGIN_2) || url.equals(URL_KANSU) || url.equals(URL_OOI)) {
-            if (url.contains(URL_DMM_LOGIN) || url.contains(URL_DMM_LOGIN_2)) {
-                webview.evaluateJavascript(cookie, null);
-            }
+
+        if (url.contains(URL_DMM_LOGIN) || url.contains(URL_DMM_LOGIN_2)) {
+            webview.evaluateJavascript(cookie + String.format(Locale.US, AUTOCOMPLETE_DMM, login_id, login_password), null);
+        } else if (url.contains(URL_KANSU) || url.contains(URL_OOI)) {
             webview.evaluateJavascript(
                     String.format(Locale.US, AUTOCOMPLETE_OOI, login_id, login_password), null);
         }
