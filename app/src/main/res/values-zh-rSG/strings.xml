@@ -43,9 +43,9 @@
     <string name="noti_screenshot_name">GotoBrowser截图</string>
     <string name="noti_screenshot_title">屏幕截图已保存</string>
     <string name="noti_screenshot_description">点按即可打开屏幕截图</string>
-    <string name="noti_screenshot_permission_message">截图功能需要储存权限。</string>
-    <string name="granted_true_storage_permission">已授予储存权限。</string>
-    <string name="granted_false_storage_permission">未授予储存权限。</string>
+    <string name="noti_screenshot_permission_message">显示截图结果需要通知权限。</string>
+    <string name="granted_true_notification_permission">已授予通知权限。</string>
+    <string name="granted_false_notification_permission">未授予通知权限。</string>
     <string name="settings_source_code">源代码</string>
     <string name="subtitle_select_language">必须先选择语言</string>
     <string name="settings_mw_margin">[多窗口] 从拆分栏添加边距</string>

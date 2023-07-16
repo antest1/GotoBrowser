@@ -44,9 +44,9 @@
     <string name="noti_screenshot_name">GotoBrowserスクリーンショット</string>
     <string name="noti_screenshot_title">スクリーンショットを保存しました</string>
     <string name="noti_screenshot_description">タップするとスクリーンショットが表示されます</string>
-    <string name="noti_screenshot_permission_message">スクリーンショット機能を使用するには、ストレージのアクセス許可が必要です。</string>
-    <string name="granted_true_storage_permission">ストレージ権限を獲得しました。</string>
-    <string name="granted_false_storage_permission">ストレージ権限を得ませんでした。</string>
+    <string name="noti_screenshot_permission_message">スクリーンショット結果を表示するには、通知の許可が必要です。</string>
+    <string name="granted_true_notification_permission">通知権限を獲得しました。</string>
+    <string name="granted_false_notification_permission">通知権限を得ませんでした。</string>
     <string name="settings_source_code">ソースコード</string>
     <string name="subtitle_select_language">ロケールを先に選択してください。</string>
     <string name="settings_mw_margin">[マルチウィンドウ] 分割バーから余白を追加</string>

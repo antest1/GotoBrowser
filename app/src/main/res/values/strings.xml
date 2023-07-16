@@ -54,9 +54,9 @@
     <string name="noti_screenshot_name">GotoBrowser Screenshot</string>
     <string name="noti_screenshot_title">Screenshot Captured</string>
     <string name="noti_screenshot_description">Tap to view your screenshot</string>
-    <string name="noti_screenshot_permission_message">Storage permission is required to use the screenshot function.</string>
-    <string name="granted_true_storage_permission">Storage permission granted.</string>
-    <string name="granted_false_storage_permission">Storage permission not granted.</string>
+    <string name="noti_screenshot_permission_message">Notification permission is required to show the screenshot result.</string>
+    <string name="granted_true_notification_permission">Notification permission granted.</string>
+    <string name="granted_false_notification_permission">Notification permission not granted.</string>
     <string name="subtitle_select_language">Language must be chosen first</string>
     <string name="settings_mw_margin">[Multi-Window] Add Margin from Divider</string>
     <string name="setting_panel_method_label">Panel Open Method</string>

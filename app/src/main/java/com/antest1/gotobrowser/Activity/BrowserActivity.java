@@ -74,7 +74,7 @@ import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_UI_HELP_CHECKED;
-import static com.antest1.gotobrowser.Constants.REQUEST_EXTERNAL_PERMISSION;
+import static com.antest1.gotobrowser.Constants.REQUEST_NOTIFICATION_PERMISSION;
 
 public class BrowserActivity extends AppCompatActivity {
     public static final String FOREGROUND_ACTION = BuildConfig.APPLICATION_ID + ".foreground";
@@ -222,10 +222,11 @@ public class BrowserActivity extends AppCompatActivity {
             connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
 
             boolean useDevTools = sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
+            WebViewManager.setWebViewDebugging(useDevTools);
+
             if (connector_info != null && connector_info.size() == 2) {
                 manager.setWebViewSettings(mContentView);
                 WebViewManager.enableBrowserCookie(mContentView);
-                WebViewManager.setWebViewDebugging(useDevTools);
                 manager.setWebViewClient(this, mContentView, connector_info);
                 manager.setWebViewDownloader(mContentView);
                 manager.setPopupView(mContentView);
@@ -388,13 +389,13 @@ public class BrowserActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
-            case REQUEST_EXTERNAL_PERMISSION: {
+            case REQUEST_NOTIFICATION_PERMISSION: {
                 boolean result = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
                 String message;
                 if (result) {
-                    message = getString(R.string.granted_true_storage_permission);
+                    message = getString(R.string.granted_true_notification_permission);
                 } else {
-                    message = getString(R.string.granted_false_storage_permission);
+                    message = getString(R.string.granted_false_notification_permission);
                 }
                 Snackbar.make(this.findViewById(R.id.main_container), message, Snackbar.LENGTH_SHORT).show();
             }
@@ -426,44 +427,45 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     private void setCaptureMode(View v) {
-        if (!checkStoragePermissionGrated()) {
-            showStoragePermissionDialog();
+        if (!checkStoragePermissionGrated()) showStoragePermissionDialog();
+        isCaptureMode = !isCaptureMode;
+        if (isCaptureMode) {
+            findViewById(R.id.kc_camera).setVisibility(View.VISIBLE);
+            ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            sharedPref.edit().putBoolean(PREF_CAPTURE, true).apply();
         } else {
-            isCaptureMode = !isCaptureMode;
-            if (isCaptureMode) {
-                findViewById(R.id.kc_camera).setVisibility(View.VISIBLE);
-                ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
-                sharedPref.edit().putBoolean(PREF_CAPTURE, true).apply();
-            } else {
-                findViewById(R.id.kc_camera).setVisibility(View.GONE);
-                ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
-                sharedPref.edit().putBoolean(PREF_CAPTURE, false).apply();
-            }
+            findViewById(R.id.kc_camera).setVisibility(View.GONE);
+            ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            sharedPref.edit().putBoolean(PREF_CAPTURE, false).apply();
         }
     }
 
     private boolean checkStoragePermissionGrated() {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+        } else {
+            return true;
+        }
     }
 
     private void showStoragePermissionDialog() {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-        alertDialogBuilder.setTitle(getString(R.string.app_name));
-        alertDialogBuilder
-                .setCancelable(false)
-                .setMessage(getString(R.string.noti_screenshot_permission_message))
-                .setPositiveButton(R.string.action_ok,
-                        (dialog, id) -> {
-                            ActivityCompat.requestPermissions(this, new String[]{
-                                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                            }, REQUEST_EXTERNAL_PERMISSION);
-                        })
-                .setNegativeButton(R.string.action_cancel,
-                        (dialog, id) -> dialog.cancel());
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+            alertDialogBuilder.setTitle(getString(R.string.app_name));
+            alertDialogBuilder
+                    .setCancelable(false)
+                    .setMessage(getString(R.string.noti_screenshot_permission_message))
+                    .setPositiveButton(R.string.action_ok,
+                            (dialog, id) -> {
+                                ActivityCompat.requestPermissions(this, new String[]{
+                                        Manifest.permission.POST_NOTIFICATIONS
+                                }, REQUEST_NOTIFICATION_PERMISSION);
+                            })
+                    .setNegativeButton(R.string.action_cancel,
+                            (dialog, id) -> dialog.cancel());
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+        }
     }
 
     @SuppressLint("SourceLockedOrientationActivity")

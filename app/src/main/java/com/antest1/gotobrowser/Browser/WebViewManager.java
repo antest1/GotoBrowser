@@ -135,7 +135,6 @@ public class WebViewManager {
         view.getSettings().setSupportZoom(false);
         setWebViewRendererSetting(view);
         view.setScrollbarFadingEnabled(true);
-        view.getSettings().setAppCacheEnabled(false);
         view.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             view.getSettings().setOffscreenPreRaster(true);

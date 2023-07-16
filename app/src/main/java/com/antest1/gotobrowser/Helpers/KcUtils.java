@@ -81,7 +81,6 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.antest1.gotobrowser.Constants.CACHE_SIZE_BYTES;
-import static com.antest1.gotobrowser.Constants.DMM_COOKIE;
 import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
 
 public class KcUtils {
