@@ -114,32 +114,35 @@
                 android:paddingRight="15dp"
                 android:paddingBottom="10dp">
 
-                <Switch
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/switch_silent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="3dp"
                     android:switchPadding="18dp"
+                    app:switchPadding="18dp"
                     android:text="@string/mode_silent"
                     android:textColor="@color/white"
                     android:textSize="15dp" />
 
-                <Switch
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/switch_broadcast"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="3dp"
                     android:switchPadding="18dp"
+                    app:switchPadding="18dp"
                     android:text="@string/mode_broadcast"
                     android:textColor="@color/white"
                     android:textSize="15dp" />
 
-                <Switch
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/switch_gadget"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="3dp"
                     android:switchPadding="18dp"
+                    app:switchPadding="18dp"
                     android:text="@string/connection_use_alter"
                     android:textColor="@color/white"
                     android:textSize="15dp" />

@@ -11,7 +11,6 @@ import android.webkit.WebView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import com.antest1.gotobrowser.Browser.WebViewManager;
@@ -30,6 +29,8 @@ import java.util.Locale;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.browser.customtabs.CustomTabColorSchemeParams;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.content.ContextCompat;
 
@@ -91,11 +92,14 @@ public class EntranceActivity extends AppCompatActivity {
 
         ImageView msgButton = findViewById(R.id.icon_msg);
         msgButton.setOnClickListener(v -> {
-            String url = "http://luckyjervis.com/noti.html";
+            String url = getString(R.string.notice_link);
             CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder();
             intentBuilder.setShowTitle(true);
-            intentBuilder.setToolbarColor(ContextCompat.getColor(getApplicationContext(), R.color.colorSettingsBackground));
-            intentBuilder.enableUrlBarHiding();
+            CustomTabColorSchemeParams params = new CustomTabColorSchemeParams.Builder()
+                    .setToolbarColor(ContextCompat.getColor(getApplicationContext(), R.color.colorSettingsBackground))
+                    .build();
+            intentBuilder.setDefaultColorSchemeParams(params);
+            intentBuilder.setUrlBarHidingEnabled(true);
 
             final CustomTabsIntent customTabsIntent = intentBuilder.build();
             final List<ResolveInfo> customTabsApps = getPackageManager().queryIntentActivities(customTabsIntent.intent, 0);
@@ -107,18 +111,18 @@ public class EntranceActivity extends AppCompatActivity {
             }
         });
 
-        Switch silentSwitch = findViewById(R.id.switch_silent);
+        SwitchCompat silentSwitch = findViewById(R.id.switch_silent);
         silentSwitch.setChecked(sharedPref.getBoolean(PREF_SILENT, false));
         silentSwitch.setOnCheckedChangeListener((buttonView, isChecked)
                 -> editor.putBoolean(PREF_SILENT, isChecked).apply());
 
-        Switch broadcastSwitch = findViewById(R.id.switch_broadcast);
+        SwitchCompat broadcastSwitch = findViewById(R.id.switch_broadcast);
         broadcastSwitch.setChecked(sharedPref.getBoolean(PREF_BROADCAST, false));
         broadcastSwitch.setOnCheckedChangeListener((buttonView, isChecked)
                 -> editor.putBoolean(PREF_BROADCAST, isChecked).apply()
         );
 
-        Switch gadgetSwitch = findViewById(R.id.switch_gadget);
+        SwitchCompat gadgetSwitch = findViewById(R.id.switch_gadget);
         gadgetSwitch.setChecked(sharedPref.getBoolean(PREF_ALTER_GADGET, false));
         gadgetSwitch.setOnCheckedChangeListener((buttonView, isChecked)
                 -> editor.putBoolean(PREF_ALTER_GADGET, isChecked).apply()
@@ -137,12 +141,8 @@ public class EntranceActivity extends AppCompatActivity {
         selectButton = findViewById(R.id.connector_select);
         selectButton.setOnClickListener(v -> showConnectorSelectionDialog());
         String connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
-        if (connector != null) {
-            silentSwitch.setEnabled(CONN_DMM.equals(connector));
-            selectButton.setText(connector);
-        } else {
-            selectButton.setText(getString(R.string.select_server));
-        }
+        silentSwitch.setEnabled(CONN_DMM.equals(connector));
+        selectButton.setText(connector);
 
         TextView autoCompleteButton = findViewById(R.id.webview_autocomplete);
         autoCompleteButton.setOnClickListener(v -> showAutoCompleteDialog());
@@ -190,7 +190,7 @@ public class EntranceActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        Switch gadgetSwitch = findViewById(R.id.switch_gadget);
+        SwitchCompat gadgetSwitch = findViewById(R.id.switch_gadget);
         gadgetSwitch.setChecked(sharedPref.getBoolean(PREF_ALTER_GADGET, false));
     }
 
@@ -210,7 +210,7 @@ public class EntranceActivity extends AppCompatActivity {
     }
 
     private void showConnectorSelectionDialog() {
-        Switch silentSwitch = findViewById(R.id.switch_silent);
+        SwitchCompat silentSwitch = findViewById(R.id.switch_silent);
         final String[] listItems = getResources().getStringArray(R.array.connector_list);
         int connector_idx = -1;
         String connector1 = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);

@@ -43,6 +43,7 @@
 
     <string name="github_link" translatable="false">https://github.com/antest1/GotoBrowser/</string>
     <string name="license_link" translatable="false">https://github.com/antest1/GotoBrowser/blob/master/LICENSE</string>
+    <string name="notice_link" translatable="false">https://luckyjervis.com/gotobrowser/notice</string>
     <string name="resource_download_link" translatable="false">https://antest1.github.io/kcs2-resources/</string>
     <string name="resource_download_prefix" translatable="false">/antest1/kcs2-resources/master</string>
     <string name="settings_resource_label">Download Resources</string>
