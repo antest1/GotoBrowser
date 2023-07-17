@@ -1,7 +1,7 @@
 <resources>
     <string name="preference_key" translatable="false">shared_pref</string>
     <string name="version_format" formatted="false" translatable="false">gotobrowser-%s</string>
-    <string name="copyright_info" translatable="false">Copyright © 2019 antest1(IE10)</string>
+    <string name="copyright_format" translatable="false">© 2019-%d antest1(IE10)</string>
 
     <string name="app_name">GotoBrowser</string>
     <string name="confirmation">Are you sure?</string>

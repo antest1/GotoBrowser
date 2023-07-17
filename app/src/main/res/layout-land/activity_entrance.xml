@@ -282,7 +282,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="2"
             android:padding="2dp"
-            android:text="@string/copyright_info"
             android:textAlignment="textEnd"
             android:textColor="@color/white"
             android:textSize="12dp" />

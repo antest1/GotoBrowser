@@ -23,6 +23,8 @@ import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 
 import java.io.File;
+import java.time.Year;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -161,7 +163,12 @@ public class EntranceActivity extends AppCompatActivity {
         });
 
         TextView versionText = findViewById(R.id.version_info);
-        versionText.setText(String.format(Locale.US, getString(R.string.version_format), BuildConfig.VERSION_NAME));
+        versionText.setText(String.format(Locale.US,
+                getString(R.string.version_format), BuildConfig.VERSION_NAME));
+
+        TextView copyrightText = findViewById(R.id.copyright);
+        copyrightText.setText(String.format(Locale.US,
+                getString(R.string.copyright_format),Calendar.getInstance().get(Calendar.YEAR)));
 
         WebViewManager.clearKcCacheProxy();
 
