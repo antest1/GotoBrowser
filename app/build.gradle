@@ -8,8 +8,8 @@ android {
         applicationId "com.antest1.gotobrowser"
         minSdkVersion 19
         targetSdkVersion 33
-        versionCode 64
-        versionName "2.10-rev6"
+        versionCode 65
+        versionName "2.10-rev7"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
