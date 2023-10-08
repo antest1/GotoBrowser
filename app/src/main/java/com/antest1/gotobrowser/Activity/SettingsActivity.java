@@ -43,6 +43,7 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY;
 import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
+import static com.antest1.gotobrowser.Constants.PREF_CLICK_SETTINGS;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
 import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
@@ -130,7 +131,9 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat
-            implements SharedPreferences.OnSharedPreferenceChangeListener, Preference.OnPreferenceChangeListener {
+            implements Preference.OnPreferenceChangeListener,
+            SharedPreferences.OnSharedPreferenceChangeListener,
+            Preference.OnPreferenceClickListener {
         private VersionDatabase versionTable;
         private SharedPreferences sharedPref;
         private GotoVersionCheck appCheck;
@@ -168,13 +171,18 @@ public class SettingsActivity extends AppCompatActivity {
                 }
                 preference.setOnPreferenceChangeListener(this);
             }
+            for (String key: PREF_CLICK_SETTINGS) {
+                Preference preference = findPreference(key);
+                if (preference == null) continue;
+                preference.setOnPreferenceClickListener(this);
+            }
             updateSubtitleDescriptionText();
             updateKantaiEnDescriptionText();
             updateKantai3dDisable();
         }
 
         @Override
-        public boolean onPreferenceTreeClick(Preference preference) {
+        public boolean onPreferenceClick(@NonNull Preference preference) {
             String key = preference.getKey();
             switch (key) {
                 case PREF_CHECK_UPDATE:
@@ -197,11 +205,6 @@ public class SettingsActivity extends AppCompatActivity {
                     break;
             }
             return super.onPreferenceTreeClick(preference);
-        }
-
-        @Override
-        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-
         }
 
         @Override
@@ -266,7 +269,6 @@ public class SettingsActivity extends AppCompatActivity {
 
         private void setSubtitlePreference(String subtitleLocaleCode) {
             Preference subtitleUpdate = findPreference(PREF_SUBTITLE_UPDATE);
-
             SubtitleProviderUtils.getSubtitleProvider(subtitleLocaleCode).checkUpdateFromPreference(this, subtitleLocaleCode, subtitleUpdate, versionTable);
         }
 
@@ -282,6 +284,11 @@ public class SettingsActivity extends AppCompatActivity {
                 kantaiEnUpdate.setEnabled(false);
                 kantaiEnUpdate.setSummary("Mod disabled.");
             }
+        }
+
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+
         }
     }
 

@@ -37,6 +37,7 @@ import retrofit2.Response;
 
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
+import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
 
 public class KcwikiSubtitleProvider implements SubtitleProvider  {
 
@@ -282,18 +283,22 @@ public class KcwikiSubtitleProvider implements SubtitleProvider  {
 
 
     public void downloadUpdateFromPreference(SettingsActivity.SettingsFragment fragment, VersionDatabase versionTable) {
-        KcwikiSubtitleApi downloader = getRetrofitAdapter(fragment.getContext(), "https://api.kcwiki.moe/").create(KcwikiSubtitleApi.class);
-        Call<JsonObject> call = downloader.getSubtitle(subtitleLocaleToDownload);
-        call.enqueue(new Callback<JsonObject>() {
-            @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                saveQuotesFile(fragment, response, versionTable);
-            }
-            @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                KcUtils.showToast(fragment.getContext(), t.getLocalizedMessage());
-            }
-        });
+        try {
+            KcwikiSubtitleApi downloader = getRetrofitAdapter(fragment.requireContext(), "https://api.kcwiki.moe/").create(KcwikiSubtitleApi.class);
+            Call<JsonObject> call = downloader.getSubtitle(subtitleLocaleToDownload);
+            call.enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    saveQuotesFile(fragment, response, versionTable);
+                }
+                @Override
+                public void onFailure(Call<JsonObject> call, Throwable t) {
+                    KcUtils.showToast(fragment.getContext(), t.getLocalizedMessage());
+                }
+            });
+        } catch (IllegalStateException e) {
+            Log.e("GOTO", getStringFromException(e));
+        }
     }
 
     private void saveQuotesFile(SettingsActivity.SettingsFragment fragment, Response<JsonObject> response, VersionDatabase versionTable) {

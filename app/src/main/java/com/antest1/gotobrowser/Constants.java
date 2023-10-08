@@ -68,6 +68,13 @@ public class Constants {
             PREF_MOD_CRIT
     };
 
+    public static final String[] PREF_CLICK_SETTINGS = {
+            PREF_CHECK_UPDATE,
+            PREF_SUBTITLE_UPDATE,
+            PREF_MOD_KANTAIEN_UPDATE,
+            PREF_MOD_KANTAIEN_DELETE
+    };
+
     public static final String PANEL_METHOD_SWIPE = "0";
     public static final String PANEL_METHOD_BUTTON = "1";
 
