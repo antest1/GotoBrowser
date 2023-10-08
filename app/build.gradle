@@ -3,13 +3,13 @@ apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
 android {
-    compileSdkVersion 33
     defaultConfig {
         applicationId "com.antest1.gotobrowser"
         minSdkVersion 19
+        compileSdk 33
         targetSdkVersion 33
-        versionCode 65
-        versionName "2.10-rev7"
+        versionCode 66
+        versionName "2.10-rev8"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
@@ -25,7 +25,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    buildToolsVersion '33.0.2'
+    namespace 'com.antest1.gotobrowser'
 }
 
 dependencies {
@@ -35,8 +35,8 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.10.0'
     implementation 'com.squareup.retrofit2:retrofit:2.5.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
-    implementation 'com.google.firebase:firebase-crashlytics:18.2.7'
-    implementation 'com.google.firebase:firebase-analytics:20.0.2'
+    implementation 'com.google.firebase:firebase-crashlytics:18.4.3'
+    implementation 'com.google.firebase:firebase-analytics:21.3.0'
     implementation 'net.lingala.zip4j:zip4j:2.11.1'
 
     implementation 'androidx.browser:browser:1.5.0'
@@ -45,6 +45,6 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.3.0'
     implementation 'androidx.webkit:webkit:1.7.0'
     implementation "com.google.android.material:material:1.9.0"
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.google.code.gson:gson:2.8.9'
     testImplementation 'junit:junit:4.12'
 }
