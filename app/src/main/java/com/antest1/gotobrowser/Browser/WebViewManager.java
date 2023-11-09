@@ -159,6 +159,8 @@ public class WebViewManager {
                         activity.setStartedFlag();
                         if (!KcUtils.checkIsLargeDisplay(activity)) {
                             webview.evaluateJavascript(ADD_VIEWPORT_META, null);
+                            webview.getSettings().setBuiltInZoomControls(true);
+                            webview.getSettings().setDisplayZoomControls(false);
                         }
                     }
                 }
@@ -514,7 +516,7 @@ public class WebViewManager {
                             String.format(Locale.US, "Extracting %s...", filename)));
                     KcUtils.unzipResource(context, in, outputpath, versionTable, version);
                     message = String.format(Locale.US, "Process finished: %s", filename);
-                } catch (NullPointerException | IOException e) {
+                } catch (NullPointerException | ArrayIndexOutOfBoundsException | IOException e) {
                     KcUtils.reportException(e);
                     message = getStringFromException(e);
                 } finally {
