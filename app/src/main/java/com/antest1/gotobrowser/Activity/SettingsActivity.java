@@ -150,9 +150,8 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-            super.onViewCreated(view, savedInstanceState);
-            findPreference(PREF_APP_VERSION).setSummary(BuildConfig.VERSION_NAME);
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
             Map<String, ?> allEntries = sharedPref.getAll();
             for (String key : allEntries.keySet()) {
                 Log.e("GOTO", key);
@@ -173,12 +172,20 @@ public class SettingsActivity extends AppCompatActivity {
             }
             for (String key: PREF_CLICK_SETTINGS) {
                 Preference preference = findPreference(key);
-                if (preference == null) continue;
-                preference.setOnPreferenceClickListener(this);
+                if (preference != null) {
+                    preference.setOnPreferenceClickListener(this);
+                }
             }
             updateSubtitleDescriptionText();
             updateKantaiEnDescriptionText();
             updateKantai3dDisable();
+        }
+
+        @Override
+        public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+            Preference version_pref = findPreference(PREF_APP_VERSION);
+            version_pref.setSummary(BuildConfig.VERSION_NAME);
         }
 
         @Override

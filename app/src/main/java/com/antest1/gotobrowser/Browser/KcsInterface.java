@@ -70,10 +70,12 @@ public class KcsInterface {
         try {
             response = response.replace("svdata=", "");
             Log.e("GOTO", "response: " + url);
-            JsonObject response_obj = new JsonParser().parse(response).getAsJsonObject();
-            if (url.contains("api_start2")) {
+            JsonObject response_obj = JsonParser.parseString(response).getAsJsonObject();
+            if (url.contains("api_start2") && response_obj != null) {
                 JsonObject api_data = response_obj.getAsJsonObject("api_data");
-                SubtitleProviderUtils.getCurrentSubtitleProvider().loadKcApiData(api_data);
+                if (api_data != null) {
+                    SubtitleProviderUtils.getCurrentSubtitleProvider().loadKcApiData(api_data);
+                }
             }
 
             String finalResponse = response;
