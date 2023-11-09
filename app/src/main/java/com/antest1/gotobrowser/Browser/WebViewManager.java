@@ -157,11 +157,9 @@ public class WebViewManager {
                     sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
                     if (url.contains(Constants.URL_KANSU_1) || url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
                         activity.setStartedFlag();
-                        if (!KcUtils.checkIsLargeDisplay(activity)) {
-                            webview.evaluateJavascript(ADD_VIEWPORT_META, null);
-                            webview.getSettings().setBuiltInZoomControls(true);
-                            webview.getSettings().setDisplayZoomControls(false);
-                        }
+                        webview.evaluateJavascript(ADD_VIEWPORT_META, null);
+                        webview.getSettings().setBuiltInZoomControls(true);
+                        webview.getSettings().setDisplayZoomControls(false);
                     }
                 }
             }
