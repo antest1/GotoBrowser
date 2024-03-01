@@ -187,7 +187,7 @@ public class ResourceProcess {
 
         if (checkBlockedContent(url)) return getEmptyResponse();
         if (url.contains("ooi.css")) return getOoiSheetFromAsset();
-        if (url.contains("tweenjs-0.6.2")) return getTweenJs();
+        if (url.contains("tweenjs.min.js")) return getTweenJs();
         if (url.contains("gadget_html5/script/rollover.js")) return getMuteInjectedRolloverJs();
         if (url.contains("gadget_html5/js/kcs_cda.js")) return getInjectedKcaCdaJs();
         if (url.contains("kcscontents/css/common.css")) return getBlackBackgroundSheet();

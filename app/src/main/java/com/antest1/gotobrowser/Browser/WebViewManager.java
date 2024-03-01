@@ -1,5 +1,9 @@
 package com.antest1.gotobrowser.Browser;
 
+import static com.antest1.gotobrowser.Browser.KcsInterface.GOTO_ANDROID;
+import static com.antest1.gotobrowser.Constants.*;
+import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
+
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.ProgressDialog;
@@ -40,51 +44,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.TimeZone;
 import java.util.concurrent.Executor;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-
-import static com.antest1.gotobrowser.Browser.KcsInterface.GOTO_ANDROID;
-import static com.antest1.gotobrowser.Constants.ADD_VIEWPORT_META;
-import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_DMM;
-import static com.antest1.gotobrowser.Constants.AUTOCOMPLETE_OOI;
-import static com.antest1.gotobrowser.Constants.CAPTURE_SEND_DMM;
-import static com.antest1.gotobrowser.Constants.CAPTURE_SEND_OOI;
-import static com.antest1.gotobrowser.Constants.CONN_DMM;
-import static com.antest1.gotobrowser.Constants.CONN_KANSU;
-import static com.antest1.gotobrowser.Constants.CONN_NITRABBIT;
-import static com.antest1.gotobrowser.Constants.CONN_OOI;
-import static com.antest1.gotobrowser.Constants.DMM_COOKIE;
-import static com.antest1.gotobrowser.Constants.DMM_REDIRECT_CODE;
-import static com.antest1.gotobrowser.Constants.GADGET_URL;
-import static com.antest1.gotobrowser.Constants.MUTE_SEND_DMM;
-import static com.antest1.gotobrowser.Constants.MUTE_SEND_OOI;
-import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
-import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
-import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
-import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
-import static com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER;
-import static com.antest1.gotobrowser.Constants.URL_DMM;
-import static com.antest1.gotobrowser.Constants.URL_DMM_FOREIGN;
-import static com.antest1.gotobrowser.Constants.URL_DMM_LOGIN;
-import static com.antest1.gotobrowser.Constants.URL_DMM_LOGIN_2;
-import static com.antest1.gotobrowser.Constants.URL_DMM_LOGOUT;
-import static com.antest1.gotobrowser.Constants.URL_KANSU;
-import static com.antest1.gotobrowser.Constants.URL_KANSU_LOGOUT;
-import static com.antest1.gotobrowser.Constants.URL_NITRABBIT;
-import static com.antest1.gotobrowser.Constants.URL_OOI;
-import static com.antest1.gotobrowser.Constants.URL_OOI_LOGOUT;
-import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
-import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
 
 public class WebViewManager {
     public static final String OPEN_KANCOLLE = "open_kancolle";
@@ -162,6 +129,15 @@ public class WebViewManager {
                         webview.getSettings().setDisplayZoomControls(false);
                     }
                 }
+            }
+
+            @Override
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                try {
+                    view.stopLoading();
+                } catch (Exception e) { }
+                activity.showWebkitErrorDialog(errorCode, description, failingUrl);
+                super.onReceivedError(view, errorCode, description, failingUrl);
             }
 
             @Override

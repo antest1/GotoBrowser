@@ -82,6 +82,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.antest1.gotobrowser.Constants.CACHE_SIZE_BYTES;
 import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
+import static android.webkit.WebViewClient.*;
 
 public class KcUtils {
     private static FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
@@ -583,6 +584,43 @@ public class KcUtils {
             while ((length = is.read(buffer)) > 0) {
                 os.write(buffer, 0, length);
             }
+        }
+    }
+
+    public static String getWebkitErrorCodeText(int errorCode) {
+        switch (errorCode) {
+            case ERROR_AUTHENTICATION:
+                return "ERROR_AUTHENTICATION";
+            case ERROR_BAD_URL:
+                return "ERROR_BAD_URL";
+            case ERROR_CONNECT:
+                return "ERROR_CONNECT";
+            case ERROR_FAILED_SSL_HANDSHAKE:
+                return "ERROR_FAILED_SSL_HANDSHAKE";
+            case ERROR_FILE:
+                return "ERROR_FILE";
+            case ERROR_FILE_NOT_FOUND:
+                return "ERROR_FILE_NOT_FOUND";
+            case ERROR_HOST_LOOKUP:
+                return "ERROR_HOST_LOOKUP";
+            case ERROR_IO:
+                return "ERROR_IO";
+            case ERROR_PROXY_AUTHENTICATION:
+                return "ERROR_PROXY_AUTHENTICATION";
+            case ERROR_REDIRECT_LOOP:
+                return "ERROR_REDIRECT_LOOP";
+            case ERROR_TIMEOUT:
+                return "ERROR_TIMEOUT";
+            case ERROR_TOO_MANY_REQUESTS:
+                return "ERROR_TOO_MANY_REQUESTS";
+            case ERROR_UNSUPPORTED_AUTH_SCHEME:
+                return "ERROR_UNSUPPORTED_AUTH_SCHEME";
+            case ERROR_UNSUPPORTED_SCHEME:
+                return "ERROR_UNSUPPORTED_SCHEME";
+            case ERROR_UNSAFE_RESOURCE:
+                return "ERROR_UNSAFE_RESOURCE";
+            default:
+                return String.format(Locale.US, "ERROR_UNKNOWN (%d)", errorCode);
         }
     }
 }

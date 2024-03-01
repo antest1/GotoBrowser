@@ -75,6 +75,7 @@ import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_UI_HELP_CHECKED;
 import static com.antest1.gotobrowser.Constants.REQUEST_NOTIFICATION_PERMISSION;
+import static com.antest1.gotobrowser.Helpers.KcUtils.getWebkitErrorCodeText;
 
 public class BrowserActivity extends AppCompatActivity {
     public static final String FOREGROUND_ACTION = BuildConfig.APPLICATION_ID + ".foreground";
@@ -471,6 +472,20 @@ public class BrowserActivity extends AppCompatActivity {
         }
     }
 
+    public void showWebkitErrorDialog(int errorCode, String description, String failingUrl) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle(getWebkitErrorCodeText(errorCode));
+        alertDialogBuilder
+                .setCancelable(false)
+                .setMessage(description + "\n\n" + failingUrl)
+                .setPositiveButton("Reload",
+                        (dialog, id) -> refreshPageOrFinish())
+                .setNegativeButton("Close",
+                        (dialog, id) -> dialog.cancel());
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+    }
+
     @SuppressLint("SourceLockedOrientationActivity")
     private void setOrientationLockMode(View v) {
         isLockMode = !isLockMode;
@@ -604,6 +619,16 @@ public class BrowserActivity extends AppCompatActivity {
         k3dPatcher.showDialog();
     }
 
+    private void refreshPageOrFinish() {
+        connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
+        if (manager != null && connector_info != null && connector_info.size() == 2) {
+            ((TextView) findViewById(R.id.kc_error_text)).setText("");
+            manager.openPage(mContentView, connector_info, isKcBrowserMode);
+        } else {
+            finish();
+        }
+    }
+
     public void showRefreshDialog() {
         mContentView.pauseTimers();
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
@@ -613,15 +638,7 @@ public class BrowserActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .setMessage(getString(R.string.refresh_msg))
                 .setPositiveButton(R.string.action_ok,
-                        (dialog, id) -> {
-                            connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
-                            if (manager != null && connector_info != null && connector_info.size() == 2) {
-                                ((TextView) findViewById(R.id.kc_error_text)).setText("");
-                                manager.openPage(mContentView, connector_info, isKcBrowserMode);
-                            } else {
-                                finish();
-                            }
-                        })
+                        (dialog, id) -> refreshPageOrFinish())
                 .setNegativeButton(R.string.action_cancel,
                         (dialog, id) -> {
                             dialog.cancel();
