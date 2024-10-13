@@ -60,12 +60,12 @@ public class Constants {
             PREF_ALTER_ENDPOINT,
             PREF_DOWNLOAD_RETRY,
             PREF_SUBTITLE_LOCALE,
-            PREF_TP_DISCLAIMED,
             PREF_LEGACY_RENDERER,
             PREF_MOD_KANTAI3D,
             PREF_MOD_KANTAIEN,
             PREF_MOD_FPS,
-            PREF_MOD_CRIT
+            PREF_MOD_CRIT,
+            PREF_DEVTOOLS_DEBUG
     };
 
     public static final String[] PREF_CLICK_SETTINGS = {

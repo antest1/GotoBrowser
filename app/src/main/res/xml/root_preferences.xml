@@ -130,7 +130,7 @@
 
         <Preference
             app:iconSpaceReserved="false"
-            app:key="pref_github2"
+            app:key="pref_github_kantai3d"
             app:title="@string/settings_mod_kantai3d_about"
             app:summary="https://github.com/laplamgor/kantai3d">
             <intent
@@ -164,7 +164,7 @@
 
         <Preference
             app:iconSpaceReserved="false"
-            app:key="pref_github2"
+            app:key="pref_github_kccp"
             app:title="@string/settings_mod_kantaien_about"
             app:summary="https://github.com/Oradimi/KanColle-English-Patch-KCCP">
             <intent
