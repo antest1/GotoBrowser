@@ -9,9 +9,9 @@
     <string name="select_server_toast">접속기를 먼저 선택해주세요.</string>
     <string name="cache_clear_text">캐시 비우기</string>
     <string name="cache_cleared_toast">웹뷰 캐시 비우기 완료</string>
-    <string name="clearcache_msg">이미지나 오디오 등이 제대로 나타나지 않을 때에만 사용하십시오. 정말 캐시를 비우시겠습니까?</string>
-    <string name="backpress_msg">종료하려면 뒤로 버튼을 다시 누르십시오</string>
-    <string name="refresh_msg">새로 고침 하시겠습니까?</string>
+    <string name="clearcache_msg">이미지나 오디오 등이 제대로 나타나지 않을 때에만 사용하세요. 정말 캐시를 비우시겠습니까?</string>
+    <string name="backpress_msg">종료하려면 뒤로 버튼을 다시 누르세요.</string>
+    <string name="refresh_msg">새로고침 하시겠습니까?</string>
     <string name="mode_landscape">가로 고정 모드</string>
     <string name="mode_adjustment">레이아웃 자동 조정</string>
     <string name="mode_silent">음량 OFF로 시작</string>
@@ -56,7 +56,7 @@
     <string name="setting_panel_method_button">버튼</string>
     <string name="setting_devtools_enable">DevTools 디버깅 활성화</string>
     <string name="connection_use_alter" translatable="false">Gadget 서버 우회 활성화</string>
-    <string name="connection_use_alter_summary">외부 IP 차단 문제(무한 흰색 화면)에 직면한 경우 이 설정을 사용합니다.</string>
+    <string name="connection_use_alter_summary">해외 IP 차단 문제(검은 화면에서 멈춤)가 발생하는 경우 이 설정을 활성화해야 합니다.</string>
     <string name="setting_connection">접속 설정</string>
     <string name="setting_alter_method_url">URL 교체</string>
     <string name="setting_alter_method_proxy">KCCacheProxy (remote)</string>
@@ -84,7 +84,7 @@
     <string name="settings_mod_kantaien_download">English Patch 데이터 다운로드</string>
     <string name="settings_mod_kantaien_download_start">다운로드 중… 다운로드하는 동안 애플리케이션을 백그라운드에 그대로 둘 수 있습니다.</string>
     <string name="settings_mod_kantaien_delete">English Patch 데이터 삭제</string>
-    <string name="settings_mod_kantaien_delete_summary">패치가 예기치 않은 동작을 나타내거나 다운로드 중에 문제가 발생한 경우 이 설정을 사용하십시오.</string>
+    <string name="settings_mod_kantaien_delete_summary">패치가 예기치 않은 동작을 나타내거나 다운로드 중에 문제가 발생한 경우 이 설정을 사용하세요.</string>
     <string name="settings_mod_kantaien_about">KanColle English Patch에 대해</string>
     <string name="settings_mod_fps_enable">60FPS 제한 제거</string>
     <string name="settings_mod_fps_summary">더 높은 화면 재생 빈도 장치를 지원합니다. 애니메이션 속도는 영향을 받지 않습니다.</string>

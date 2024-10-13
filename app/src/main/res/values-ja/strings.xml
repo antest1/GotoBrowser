@@ -55,7 +55,7 @@
     <string name="setting_panel_method_button">ボタン</string>
     <string name="setting_devtools_enable">DevToolsデバッグを使用</string>
     <string name="connection_use_alter">国外ブロックのバイパス</string>
-    <string name="connection_use_alter_summary">外部IPブロックの問題（無限の白い画面）に直面している場合は、この設定を使用してください</string>
+    <string name="connection_use_alter_summary">外部IPブロックの問題（無限の黒い画面）に直面している場合は、この設定を使用してください</string>
     <string name="setting_connection">接続設定</string>
     <string name="setting_alter_method_url">URL置換</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（リモート）</string>
