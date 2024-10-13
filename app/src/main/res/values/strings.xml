@@ -124,6 +124,9 @@
     <string name="dialog_retry_never">Do nothing and never ask again</string>
     <string name="dialog_retry_message">A network issue occurred while the game client was trying to download a resource file.\nDo you want to retry the download?\n%s</string>
 
+    <string name="dialog_ipblock_title">Foreign IP Block Detected</string>
+    <string name="dialog_ipblock_message" formatted="false">Please turn on 「%s」 option on the main screen or settings.</string>
+
     <string name="channel_name" translatable="false">gotobrowser_channel</string>
     <string name="channel_description" translatable="false">gotobrowser_channel_description</string>
 </resources>

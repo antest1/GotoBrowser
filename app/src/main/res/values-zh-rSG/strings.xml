@@ -46,15 +46,15 @@
     <string name="noti_screenshot_permission_message">显示截图结果需要授予通知权限。</string>
     <string name="granted_true_notification_permission">已授予通知权限。</string>
     <string name="granted_false_notification_permission">未授予通知权限。</string>
-    <string name="settings_source_code">原始碼</string>
-    <string name="subtitle_select_language">請先選擇語言</string>
-    <string name="settings_mw_margin">[多視窗模式] 在分隔條增添間隔</string>
-    <string name="setting_panel_method_button">按鍵</string>
-    <string name="setting_panel_method_swipe">滑動</string>
-    <string name="setting_panel_method_label">控制台開啟方式</string>
-    <string name="setting_devtools_enable">啟用DevTools除錯</string>
-    <string name="connection_use_alter">啟用登入伺服器封鎖繞行</string>
-    <string name="connection_use_alter_summary">如果您遇到封鎖外國IP的問題（無限黑螢幕），請使用此設定</string>
+    <string name="settings_source_code">原始码</string>
+    <string name="subtitle_select_language">请先选择语言</string>
+    <string name="settings_mw_margin">[多视窗模式]在分隔条增添间隔</string>
+    <string name="setting_panel_method_button">按键</string>
+    <string name="setting_panel_method_swipe">滑动</string>
+    <string name="setting_panel_method_label">控制台开启方式</string>
+    <string name="setting_devtools_enable">启用DevTools除错</string>
+    <string name="connection_use_alter">启用登入服务器封锁绕行</string>
+    <string name="connection_use_alter_summary">如果您遇到封锁外国IP的问题（无限黑屏幕），请使用此设定</string>
     <string name="setting_connection">连接设置</string>
     <string name="setting_alter_method_url">URL替换</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（远程服务器）</string>
@@ -111,4 +111,7 @@
     <string name="dialog_retry_no">什么也不做</string>
     <string name="dialog_retry_never">什么也不做，不要再询问</string>
     <string name="dialog_retry_message">游戏客户端下载资源档案时发生网路问题。\n重试下载吗\n%s</string>
+
+    <string name="dialog_ipblock_title">检测到外国IP阻止</string>
+    <string name="dialog_ipblock_message" formatted="false">请在主屏幕或设置中激活「%s」选项。</string>
 </resources>

@@ -312,18 +312,23 @@ public class KcUtils {
                     InputStream in = body.byteStream();
                     byte[] buffer = new byte[8 * 1024];
                     int bytes;
-                    file.getParentFile().mkdirs();
-                    FileOutputStream fos = new FileOutputStream(file);
-                    while ((bytes = in.read(buffer)) != -1) {
-                        fos.write(buffer, 0, bytes);
+                    if (file != null) {
+                        file.getParentFile().mkdirs();
+                        FileOutputStream fos = new FileOutputStream(file);
+                        while ((bytes = in.read(buffer)) != -1) {
+                            fos.write(buffer, 0, bytes);
+                        }
+                        fos.close();
                     }
-                    fos.close();
                     body.close();
                 }
                 return cache_control;
             } else if (response.code() == 304) {
                 Log.e("GOTO", "304 Not Modified " + fullpath);
                 return "304";
+            } else if (response.code() == 403) {
+                Log.e("GOTO", "403 Forbidden" + fullpath);
+                return "403";
             }
         } catch (Exception e) {
             Log.e("GOTO-E", getStringFromException(e));

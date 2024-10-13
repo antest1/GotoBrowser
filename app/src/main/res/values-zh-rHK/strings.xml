@@ -111,4 +111,7 @@
     <string name="dialog_retry_no">什麼也不做</string>
     <string name="dialog_retry_never">什麼也不做，不要再詢問</string>
     <string name="dialog_retry_message">遊戲客戶端下載資源檔案時發生網路問題。\n重試下載嗎\n%s</string>
+
+    <string name="dialog_ipblock_title">檢測到外國IP封锁</string>
+    <string name="dialog_ipblock_message" formatted="false">請在主荧幕或設定中啟動「%s」選項。</string>
 </resources>

@@ -111,4 +111,7 @@
     <string name="dialog_retry_no">何もしない</string>
     <string name="dialog_retry_never">何もしない，二度と聞かないでください</string>
     <string name="dialog_retry_message">ゲームクライアントがアセットファイルをダウンロードすると、ネットワークの問題が発生します。\nダウンロードを再試行しますか？\n%s</string>
+
+    <string name="dialog_ipblock_title">国外IPアクセス制限が検出されました</string>
+    <string name="dialog_ipblock_message" formatted="false">メイン画面で「%s」オプションを有効にしてください。（設定でも有効にできます）</string>
 </resources>

@@ -3,6 +3,7 @@ package com.antest1.gotobrowser.Browser;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -16,6 +17,7 @@ import android.webkit.WebResourceResponse;
 import android.widget.TextView;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
+import com.antest1.gotobrowser.Activity.EntranceActivity;
 import com.antest1.gotobrowser.Helpers.CritPatcher;
 import com.antest1.gotobrowser.Helpers.FpsPatcher;
 import com.antest1.gotobrowser.Helpers.K3dPatcher;
@@ -189,12 +191,18 @@ public class ResourceProcess {
         if (url.contains("ooi.css")) return getOoiSheetFromAsset();
         if (url.contains("tweenjs.min.js")) return getTweenJs();
         if (url.contains("gadget_html5/script/rollover.js")) return getMuteInjectedRolloverJs();
-        if (url.contains("gadget_html5/js/kcs_cda.js")) return getInjectedKcaCdaJs();
         if (url.contains("kcscontents/css/common.css")) return getBlackBackgroundSheet();
         if (url.contains("html/maintenance.html")) return getMaintenanceFiles(false);
         if (url.contains("html/maintenance.png")) return getMaintenanceFiles(true);
         if (resource_type == 0) return null;
         if (url.contains("ooi_moe_")) return null; // Prevent OOI from caching the server name display
+
+        if (url.contains("gadget_html5/js/kcs_cda.js")) {
+            if (!prefAlterGadget && getIpBannedStatus(url)) {;
+                showGadgetIpServerBlockedDialog();
+            }
+            return getInjectedKcaCdaJs();
+        }
 
         JsonObject file_info = getPathAndFileInfo(source);
         String path = file_info.get("path").getAsString();
@@ -406,6 +414,28 @@ public class ResourceProcess {
             // Fail to load
             return promptForRetry(file_info, update_info, resource_type);
         }
+    }
+
+    private void showGadgetIpServerBlockedDialog() {
+        activity.runOnUiThread(() -> {
+            DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+                switch (which) {
+                    case DialogInterface.BUTTON_POSITIVE:
+                        Intent intent = new Intent(activity, EntranceActivity.class);
+                        activity.startActivity(intent);
+                        activity.finish();
+                        break;
+                }
+                dialog.dismiss();
+            };
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.setTitle(activity.getString(R.string.dialog_ipblock_title))
+                    .setMessage(String.format(activity.getString(R.string.dialog_ipblock_message),
+                            activity.getString(R.string.connection_use_alter)))
+                    .setPositiveButton(activity.getString(R.string.action_ok), dialogClickListener)
+                    .setCancelable(false).show();
+        });
     }
 
     private WebResourceResponse promptForRetry(JsonObject file_info, JsonObject update_info, int resource_type) {
@@ -629,29 +659,6 @@ public class ResourceProcess {
         return new File(path);
     }
 
-    /*private File getImageFile(String path, boolean patch_mode) {
-        if (patch_mode && KenPatcher.isPatched(path))
-            return new File(KenPatcher.getPatchedFilePath(path));
-        else return new File(path);
-    }*/
-
-    /*
-    private void checkSpecialSubtitleMode() {
-        try {
-            String voice_url = "http://antest1.cf/gotobrowser/sub_special";
-            Request voiceCodeRequest = new Request.Builder().url(voice_url)
-                    .header("Referer", "goto/webkit").build();
-            Response voice_special = resourceClient.newCall(voiceCodeRequest).execute();
-            if (voice_special.body() != null) {
-                String voice_special_code = voice_special.body().string();
-                KcSubtitleUtils.specialVoiceCode = voice_special_code.trim();
-                Log.e("GOTO", "special_voice: " + voice_special_code);
-            }
-        } catch (IOException e) {
-            KcUtils.reportException(e);
-        }
-    }*/
-
     private WebResourceResponse getOoiSheetFromAsset() {
         try {
             AssetManager as = context.getAssets();
@@ -670,6 +677,12 @@ public class ResourceProcess {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    private boolean getIpBannedStatus(String url) {
+        String result = downloadResource(resourceClient, url, null);
+        Log.e("GOTO", "IpBannedStatus: " + result);
+        return "403".equals(result);
     }
 
     private WebResourceResponse getInjectedKcaCdaJs() {
