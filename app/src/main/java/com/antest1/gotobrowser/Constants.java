@@ -121,7 +121,7 @@ public class Constants {
     public static final String CAPTURE_SEND = "(function(){var msg={capture:true};var origin=\"*\";var doc=document.getElementById(\"htmlWrap\");if(doc){doc.contentWindow.postMessage(msg,origin)}else{document.getElementsByTagName(\"iframe\")[0].contentWindow.postMessage(msg,origin)};return\"done\"})()";
     public static final String CAPTURE_LISTEN = "window.addEventListener(\"message\",function(e){if(e.data.capture!=null){(async function(){{let canvas=document.querySelector('canvas');requestAnimationFrame(()=>{{if(canvas!=null){let dataurl=canvas.toDataURL('image/png');GotoBrowser.kcs_process_canvas_dataurl(dataurl);}}});}})();}});";
 
-    public static final String AUTOCOMPLETE_DMM = "document.forms[\"loginForm\"].elements[\"login_id\"].value=\"%s\";document.forms[\"loginForm\"].elements[\"password\"].value=\"%s\";";
+    public static final String AUTOCOMPLETE_DMM = "function v(e,t){let o=Object.getOwnPropertyDescriptor(e,\"value\").set,s=Object.getPrototypeOf(e),l=Object.getOwnPropertyDescriptor(s,\"value\").set;o&&o!==l?l.call(e,t):o.call(e,t)}v(document.forms.loginForm.elements.login_id,\"%s\"),document.forms.loginForm.elements.login_id.dispatchEvent(new Event(\"input\",{bubbles:!0})),v(document.forms.loginForm.elements.password,\"%s\"),document.forms.loginForm.elements.password.dispatchEvent(new Event(\"input\",{bubbles:!0}));";
     public static final String AUTOCOMPLETE_OOI = "$('input[name=\"login_id\"]').val(\"%s\");$('input[name=\"password\"]').val(\"%s\");";
 
     public static final String BROWSER_USERAGENT = String.format("Goto/%s ", BuildConfig.VERSION_NAME);
