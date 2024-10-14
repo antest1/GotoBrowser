@@ -35,8 +35,6 @@
     <string name="setting_latest_version">最新バージョンです。</string>
     <string name="setting_latest_download" formatted="false">アップデートがあります。(%s)\nダウンロードしますか？</string>
     <string name="setting_latest_download_subtitle" formatted="false">アップデートがあります。(%s)</string>
-    <string name="settings_resource_label">リソースのダウンロード</string>
-    <string name="settings_resource_btn">ダウンロード</string>
     <string name="settings_appinfo_browsersettings">ブラウザ設定</string>
     <string name="browser_fontprefetch">フォントをプリロード</string>
     <string name="browser_enablepipmode">PIPモードを有効にする</string>

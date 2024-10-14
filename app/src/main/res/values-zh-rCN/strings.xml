@@ -34,8 +34,6 @@
     <string name="setting_latest_version">已是最新版本</string>
     <string name="setting_latest_download" formatted="false">已推出新版本 (%s)\n是否要下载？</string>
     <string name="setting_latest_download_subtitle" formatted="false">已推出新版本 (%s)</string>
-    <string name="settings_resource_label">下载图像资源</string>
-    <string name="settings_resource_btn">下载</string>
     <string name="settings_appinfo_browsersettings">浏览器设定</string>
     <string name="browser_fontprefetch">预先载入字体</string>
     <string name="browser_enablepipmode">启用画中画模式</string>

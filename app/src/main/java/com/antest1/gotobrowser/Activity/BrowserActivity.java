@@ -60,6 +60,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
+import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.APP_UI_HELP_VER;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CAPTURE;
@@ -136,15 +137,16 @@ public class BrowserActivity extends AppCompatActivity {
             ActionBar actionBar = getSupportActionBar();
             if (actionBar != null) actionBar.hide();
 
+            Intent intent = getIntent();
+            isKcBrowserMode = OPEN_KANCOLLE.equals(intent.getAction());
+
             mContentView = findViewById(R.id.main_browser);
-
             mContentView.addJavascriptInterface(k3dPatcher,"kantai3dInterface");
-
-
             manager.setHardwareAcceleratedFlag();
 
             // panel, keyboard settings
-            initPanelKeyboardFromIntent(getIntent());
+            initPanelVisibility(intent);
+            initPanelKeyboardFromIntent(intent);
 
             boolean isLandscapeMode = sharedPref.getBoolean(PREF_LANDSCAPE, true);
             boolean isSilentMode = sharedPref.getBoolean(PREF_SILENT, false);
@@ -232,11 +234,10 @@ public class BrowserActivity extends AppCompatActivity {
                 manager.setWebViewSettings(mContentView);
                 WebViewManager.enableBrowserCookie(mContentView);
                 manager.setWebViewClient(this, mContentView, connector_info);
-                manager.setWebViewDownloader(mContentView);
                 manager.setPopupView(mContentView);
                 manager.openPage(mContentView, connector_info, isKcBrowserMode);
             } else {
-                finish();
+                showWebkitErrorDialog(-1, "invalid connector info", "");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -477,7 +478,7 @@ public class BrowserActivity extends AppCompatActivity {
         alertDialogBuilder.setTitle(getWebkitErrorCodeText(errorCode));
         alertDialogBuilder
                 .setCancelable(false)
-                .setMessage(description + "\n\n" + failingUrl)
+                .setMessage((description + "\n\n" + failingUrl).trim())
                 .setPositiveButton("Reload",
                         (dialog, id) -> refreshPageOrFinish())
                 .setNegativeButton("Close",
@@ -540,23 +541,24 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     private void initPanelKeyboardFromIntent(Intent intent) {
-        CustomDrawerLayout drawerLayout = findViewById(R.id.main_container);
-
         if (intent != null) {
-            String action = intent.getAction();
-            isKcBrowserMode = OPEN_KANCOLLE.equals(action);
             String options = intent.getStringExtra("options");
-            Log.e("GOTO", "options: " + options);
-            if (options != null) {
-                if (!options.contains(ACTION_SHOWKEYBOARD)) {
-                    mContentView.setFocusableInTouchMode(false);
-                    mContentView.setFocusable(false);
-                    mContentView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
-                }
+            if (options != null && !options.contains(ACTION_SHOWKEYBOARD)) {
+                mContentView.setFocusableInTouchMode(false);
+                mContentView.setFocusable(false);
+                mContentView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
             }
         }
-
         setGestureDetector(findViewById(R.id.background_area));
+    }
+
+    private void initPanelVisibility(Intent intent) {
+        if (intent != null) {
+            String options = intent.getStringExtra("options");
+            if (options != null && options.contains(ACTION_SHOWPANEL)) {
+                togglePanelVisibility(null);
+            }
+        }
     }
 
     private void setUiHintInvisible(View v) {

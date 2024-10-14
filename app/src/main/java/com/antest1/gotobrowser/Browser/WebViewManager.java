@@ -2,11 +2,9 @@ package com.antest1.gotobrowser.Browser;
 
 import static com.antest1.gotobrowser.Browser.KcsInterface.GOTO_ANDROID;
 import static com.antest1.gotobrowser.Constants.*;
-import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -37,11 +35,8 @@ import com.antest1.gotobrowser.Activity.EntranceActivity;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Constants;
 import com.antest1.gotobrowser.Helpers.KcUtils;
-import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -49,13 +44,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executor;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-
 public class WebViewManager {
     public static final String OPEN_KANCOLLE = "open_kancolle";
-    public static final String OPEN_RES_DOWN = "open_res_down";
 
     public static String USER_AGENT = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36";
     public static final String USER_AGENT_IOS = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
@@ -164,20 +154,6 @@ public class WebViewManager {
         });
     }
 
-    public void setWebViewDownloader(WebViewL webview) {
-        ProgressDialog downloadDialog = activity.getDownloadDialog();
-        webview.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
-            Uri uri = Uri.parse(url);
-            String filename = uri.getLastPathSegment();
-            Log.e("GOTO", url);
-            WebViewManager.setDownloadProgressDialog(downloadDialog);
-            WebViewManager.setProgressDialogMessage(downloadDialog,
-                    String.format(Locale.US, "Downloading %s...", filename));
-            downloadDialog.show();
-            getResourceDownloadThread(activity, url, userAgent, mimetype).start();
-        });
-    }
-
     @SuppressLint("SetJavaScriptEnabled")
     private static void setPopupWebViewSetting(WebViewL webview) {
         webview.getSettings().setJavaScriptEnabled(true);
@@ -186,18 +162,6 @@ public class WebViewManager {
         webview.getSettings().setDomStorageEnabled(true);
         webview.getSettings().setUseWideViewPort(true);
         webview.getSettings().setSupportZoom(true);
-    }
-
-    public static void setDownloadProgressDialog(ProgressDialog progress) {
-        progress.setCancelable(false);
-        progress.setProgressNumberFormat(null);
-        progress.setProgressPercentFormat(null);
-        progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        progress.setIndeterminate(true);
-    }
-
-    public static void setProgressDialogMessage(ProgressDialog progress, String message) {
-        progress.setMessage(message);
     }
 
     public static void enableBrowserCookie(WebViewL webview) {
@@ -262,17 +226,6 @@ public class WebViewManager {
                 super.onCloseWindow(window);
             }
         });
-    }
-
-    public static String getResourceDownloadOutputPath(Context context, Uri uri) {
-        String outputpath = "";
-        if (uri.getPath().contains(context.getString(R.string.resource_download_prefix))) {
-            outputpath = uri.getPath().replace(context.getString(R.string.resource_download_prefix), "")
-                    .replace(".zip", "/");
-        } else if (uri.getPath().contains("kcs2-all") || uri.getPath().contains("kcs2-event")) {
-            outputpath = "/";
-        }
-        return outputpath;
     }
 
     public static void setSoundMuteCookie(WebViewL webview) {
@@ -432,11 +385,7 @@ public class WebViewManager {
         List<String> url_list = new ArrayList<>();
         SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
-        if (!isKcBrowser) {
-            String download_url = activity.getString(R.string.resource_download_link);
-            url_list.add(download_url);
-            url_list.add(download_url);
-        } else {
+        if (isKcBrowser) {
             String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
             if (CONN_DMM.equals(pref_connector)) {
                 url_list.add(URL_DMM);
@@ -457,55 +406,10 @@ public class WebViewManager {
                 url_list.add(URL_NITRABBIT);
                 url_list.add(sharedPref.getString(PREF_LATEST_URL, URL_NITRABBIT));
             }
+            return url_list;
+        } else {
+            return null;
         }
-        return url_list;
-    }
-
-    public static Thread getResourceDownloadThread(BrowserActivity activity, String url, String userAgent, String mimetype) {
-        Context context = activity.getApplicationContext();
-        ProgressDialog downloadDialog = activity.getDownloadDialog();
-        
-        Uri uri = Uri.parse(url);
-        activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        VersionDatabase versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
-
-        return new Thread() {
-            public void run() {
-                OkHttpClient client = new OkHttpClient();
-                Request request = KcUtils.getDownloadRequest(url, userAgent, mimetype);
-
-                String message = "";
-                String filename = uri.getLastPathSegment();
-                String outputpath = WebViewManager.getResourceDownloadOutputPath(context, uri);
-                String version = uri.getQueryParameter("v");
-                if (version == null) version = "";
-
-                Log.e("GOTO", outputpath);
-                Log.e("GOTO", "version: " + version);
-
-                try {
-                    Response response = client.newCall(request).execute();
-                    InputStream in = response.body().byteStream();
-                    activity.runOnUiThread(() -> WebViewManager.setProgressDialogMessage(downloadDialog,
-                            String.format(Locale.US, "Extracting %s...", filename)));
-                    KcUtils.unzipResource(context, in, outputpath, versionTable, version);
-                    message = String.format(Locale.US, "Process finished: %s", filename);
-                } catch (NullPointerException | ArrayIndexOutOfBoundsException | IOException e) {
-                    KcUtils.reportException(e);
-                    message = getStringFromException(e);
-                } finally {
-                    String finish_message = message;
-                    activity.runOnUiThread(() -> {
-                        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                        if (!activity.isFinishing() && downloadDialog != null && downloadDialog.isShowing()) {
-                            downloadDialog.dismiss();
-                        }
-                        KcUtils.showToast(context, finish_message);
-                    });
-                    versionTable.close();
-                }
-            }
-        };
     }
 
     public String getDmmCookie() {
