@@ -96,7 +96,6 @@ public class SettingsActivity extends AppCompatActivity {
                     editor.putBoolean(key, true);
                     break;
                 case PREF_PIP_MODE:
-                case PREF_ALTER_GADGET:
                 case PREF_MULTIWIN_MARGIN:
                 case PREF_DEVTOOLS_DEBUG:
                 case PREF_TP_DISCLAIMED:
@@ -106,6 +105,9 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_MOD_CRIT:
                 case PREF_LEGACY_RENDERER:
                     editor.putBoolean(key, false);
+                    break;
+                case PREF_ALTER_GADGET:
+                    editor.putBoolean(key, !Locale.getDefault().getCountry().equals("JP"));
                     break;
                 case PREF_ALTER_METHOD:
                     editor.putString(key, "1");
