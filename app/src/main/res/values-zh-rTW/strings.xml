@@ -109,4 +109,8 @@
     <string name="dialog_retry_no">什麼也不做</string>
     <string name="dialog_retry_never">什麼也不做，不要再詢問</string>
     <string name="dialog_retry_message">遊戲客戶端下載資源檔案時發生網路問題。\n重試下載嗎\n%s</string>
+    <string name="dialog_ipblock_title">檢測到外國IP封锁</string>
+    <string name="dialog_ipblock_message">請在主荧幕或設定中啟動「%s」選項。</string>
+    <string name="kcanotify_broadcast_dialog_title">檢測到Kcanotify</string>
+    <string name="kcanotify_broadcast_dialog_message">若要將GotoBrowser與Kcanotify一起使用，必須啟動「%s」。 您想通過按一下%s啟動它嗎？</string>
 </resources>

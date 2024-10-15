@@ -65,6 +65,7 @@ public class EntranceActivity extends AppCompatActivity {
     private TextView selectButton;
     private VersionDatabase versionTable;
     private GotoVersionCheck appCheck;
+    private boolean kcanotifyInstalledFlag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +78,8 @@ public class EntranceActivity extends AppCompatActivity {
 
         appCheck = getRetrofitAdapter(getApplicationContext(), GITHUBAPI_ROOT).create(GotoVersionCheck.class);
         KcUtils.requestLatestAppVersion(this, appCheck, true);
+
+        kcanotifyInstalledFlag = KcUtils.isKcanotifyInstalled(getApplicationContext());
 
         versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
         backPressCloseHandler = new BackPressCloseHandler(this);
@@ -121,7 +124,10 @@ public class EntranceActivity extends AppCompatActivity {
         SwitchCompat broadcastSwitch = findViewById(R.id.switch_broadcast);
         broadcastSwitch.setChecked(sharedPref.getBoolean(PREF_BROADCAST, false));
         broadcastSwitch.setOnCheckedChangeListener((buttonView, isChecked)
-                -> editor.putBoolean(PREF_BROADCAST, isChecked).apply()
+                -> {
+                    editor.putBoolean(PREF_BROADCAST, isChecked).apply();
+                    if (kcanotifyInstalledFlag && !isChecked) showKcanotifyBroadcastSetDialog();
+                }
         );
 
         SwitchCompat gadgetSwitch = findViewById(R.id.switch_gadget);
@@ -155,7 +161,7 @@ public class EntranceActivity extends AppCompatActivity {
         TextView startButton = findViewById(R.id.webview_start);
         startButton.setOnClickListener(v -> {
             String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
-            if (pref_connector != null && !pref_connector.equals(CONN_DMM)) {
+            if (!pref_connector.equals(CONN_DMM)) {
                 showThirdPartyConnectorDialog();
             } else {
                 startBrowserActivity();
@@ -171,6 +177,10 @@ public class EntranceActivity extends AppCompatActivity {
                 getString(R.string.copyright_format),Calendar.getInstance().get(Calendar.YEAR)));
 
         WebViewManager.clearKcCacheProxy();
+
+        if (kcanotifyInstalledFlag && !sharedPref.getBoolean(PREF_BROADCAST, false)) {
+            showKcanotifyBroadcastSetDialog();
+        }
 
         KcEnUtils enUtils = new KcEnUtils();
         if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
@@ -281,6 +291,26 @@ public class EntranceActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
+    private void showKcanotifyBroadcastSetDialog() {
+        SwitchCompat broadcastSwitch = findViewById(R.id.switch_broadcast);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(EntranceActivity.this);
+        alertDialogBuilder.setTitle(getString(R.string.kcanotify_broadcast_dialog_title));
+        alertDialogBuilder
+                .setCancelable(false)
+                .setMessage(String.format(Locale.US, getString(R.string.kcanotify_broadcast_dialog_message),
+                        getString(R.string.mode_broadcast), getString(R.string.action_ok)))
+                .setPositiveButton(R.string.action_ok,
+                        (dialog, id) -> {
+                            broadcastSwitch.setChecked(true);
+                            dialog.dismiss();
+                        })
+                .setNegativeButton(R.string.action_cancel,
+                        (dialog, id) -> dialog.cancel());
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+    }
+
+
     private void clearBrowserCache() {
         WebView webview = new WebView(getApplicationContext());
         webview.clearCache(true);
@@ -294,43 +324,39 @@ public class EntranceActivity extends AppCompatActivity {
 
     private void startBrowserActivity() {
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
-        if (pref_connector == null) {
-            KcUtils.showToast(getApplicationContext(), R.string.select_server_toast);
+        Intent intent = new Intent(EntranceActivity.this, BrowserActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                | Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setAction(WebViewManager.OPEN_KANCOLLE);
+
+        String options = "";
+        CheckBox showControlPanelCheckbox = findViewById(R.id.layout_control);
+        CheckBox showKeyboardCheckbox = findViewById(R.id.layout_keyboard);
+        if (showControlPanelCheckbox.isChecked()) options = options.concat(ACTION_SHOWPANEL);
+        if (showKeyboardCheckbox.isChecked()) options = options.concat(ACTION_SHOWKEYBOARD);
+        intent.putExtra("options", options);
+
+        String login_id = sharedPref.getString(PREF_DMM_ID, "");
+        String login_password = sharedPref.getString(PREF_DMM_PASS, "");
+        intent.putExtra("login_id", login_id);
+        intent.putExtra("login_pw", login_password);
+
+        boolean prefAlterGadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false);
+        boolean isProxyMethod = sharedPref.getString(PREF_ALTER_METHOD, "").equals(PREF_ALTER_METHOD_PROXY);
+        String alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, "");
+
+        if (prefAlterGadget && isProxyMethod && pref_connector.equals(CONN_DMM)) {
+            WebViewManager.setKcCacheProxy(alterEndpoint, () -> {
+                        startActivity(intent);
+                        finish();
+                    },
+                    () -> {
+                        KcUtils.showToast(getApplicationContext(), R.string.setting_alter_method_proxy_error_toast);
+                    });
         } else {
-            Intent intent = new Intent(EntranceActivity.this, BrowserActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    | Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    | Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setAction(WebViewManager.OPEN_KANCOLLE);
-
-            String options = "";
-            CheckBox showControlPanelCheckbox = findViewById(R.id.layout_control);
-            CheckBox showKeyboardCheckbox = findViewById(R.id.layout_keyboard);
-            if (showControlPanelCheckbox.isChecked()) options = options.concat(ACTION_SHOWPANEL);
-            if (showKeyboardCheckbox.isChecked()) options = options.concat(ACTION_SHOWKEYBOARD);
-            intent.putExtra("options", options);
-
-            String login_id = sharedPref.getString(PREF_DMM_ID, "");
-            String login_password = sharedPref.getString(PREF_DMM_PASS, "");
-            intent.putExtra("login_id", login_id);
-            intent.putExtra("login_pw", login_password);
-
-            boolean prefAlterGadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false);
-            boolean isProxyMethod = sharedPref.getString(PREF_ALTER_METHOD, "").equals(PREF_ALTER_METHOD_PROXY);
-            String alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, "");
-
-            if (prefAlterGadget && isProxyMethod && pref_connector.equals(CONN_DMM)) {
-                WebViewManager.setKcCacheProxy(alterEndpoint, () -> {
-                            startActivity(intent);
-                            finish();
-                        },
-                        () -> {
-                            KcUtils.showToast(getApplicationContext(), R.string.setting_alter_method_proxy_error_toast);
-                        });
-            } else {
-                startActivity(intent);
-                finish();
-            }
+            startActivity(intent);
+            finish();
         }
     }
 

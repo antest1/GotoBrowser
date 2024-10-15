@@ -125,4 +125,6 @@
 
     <string name="channel_name" translatable="false">gotobrowser_channel</string>
     <string name="channel_description" translatable="false">gotobrowser_channel_description</string>
+    <string name="kcanotify_broadcast_dialog_title">Kcanotify Detected</string>
+    <string name="kcanotify_broadcast_dialog_message" formatted="false">To use GotoBrowser with Kcanotify, 「%s」 must be turned on. Do you want to enable it by clicking %s?</string>
 </resources>

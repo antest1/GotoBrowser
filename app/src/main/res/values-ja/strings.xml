@@ -112,4 +112,6 @@
 
     <string name="dialog_ipblock_title">国外IPアクセス制限が検出されました</string>
     <string name="dialog_ipblock_message" formatted="false">メイン画面で「%s」オプションを有効にしてください。（設定でも有効にできます）</string>
+    <string name="kcanotify_broadcast_dialog_title">Kcanotifyが検出されました</string>
+    <string name="kcanotify_broadcast_dialog_message">GotoBrowserをKcanotifyと一緒に使用するには、「%s」を有効にする必要があります。%sをクリックして有効にしますか?</string>
 </resources>

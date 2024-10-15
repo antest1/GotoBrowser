@@ -7,6 +7,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
@@ -81,6 +82,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static com.antest1.gotobrowser.Constants.CACHE_SIZE_BYTES;
+import static com.antest1.gotobrowser.Constants.KCANOTIFY_PACKAGE_NAME;
 import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
 import static android.webkit.WebViewClient.*;
 
@@ -570,16 +572,18 @@ public class KcUtils {
         return df.format(targetTime);
     }
 
-    public static boolean checkIsLargeDisplay(Activity ac) {
-        Display display = ac.getWindowManager().getDefaultDisplay();
-        DisplayMetrics metrics = new DisplayMetrics();
-        display.getMetrics(metrics);
-
-        float widthInches = metrics.widthPixels / metrics.xdpi;
-        float heightInches = metrics.heightPixels / metrics.ydpi;
-        double diagonalInches = Math.sqrt(Math.pow(widthInches, 2) + Math.pow(heightInches, 2));
-        Log.e("GOTO-Utils", diagonalInches + " inch");
-        return diagonalInches >= 7.0;
+    public static boolean isKcanotifyInstalled(Context context) {
+        PackageManager pm = context.getPackageManager();
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                pm.getPackageInfo(KCANOTIFY_PACKAGE_NAME, PackageManager.PackageInfoFlags.of(0));
+            } else {
+                pm.getPackageInfo(KCANOTIFY_PACKAGE_NAME, 0);
+            }
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
     }
 
     public static void copyFileUsingStream(File source, File dest) throws IOException {

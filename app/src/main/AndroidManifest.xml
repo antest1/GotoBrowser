@@ -114,6 +114,10 @@
             android:exported="true"
             android:grantUriPermissions="true"
             android:readPermission="com.antest1.gotobrowser.contentprovider.READ_DATA" />
+
     </application>
 
+    <queries>
+        <package android:name="com.antest1.kcanotify" />
+    </queries>
 </manifest>
