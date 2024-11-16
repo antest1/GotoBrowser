@@ -26,7 +26,7 @@ function get_default_language() {
     else return "en";
 }
 
-function setPage(lang, page) {
+function setPage(lang, page, isNext) {
     // language settings
     if (!menu_data.hasOwnProperty(lang)) {
         const menu_url = location.origin + location.pathname + "md/" + currentLang + "/menu.json";
@@ -34,10 +34,13 @@ function setPage(lang, page) {
             .then((response) => response.json())
             .then((json) => {
                 menu_data[lang] = json;
-                setPage(lang, page);
+                setPage(lang, page, isNext);
             })
             .catch((error) => console.log(error));
     } else {
+        currentLang = lang;
+        currentPage = page;
+
         const langTextData = menu_data[lang]["text"];
         Object.entries(langTextData).forEach(([k, v]) => {
             document.querySelector("span[data-text='" + k + "']").innerText = v;
@@ -58,22 +61,35 @@ function setPage(lang, page) {
                 Array.from(document.querySelectorAll("#rendered-md-content span.link")).forEach((el) => {
                     el.addEventListener('click', (event) => {
                         currentPage = event.currentTarget.getAttribute("data-move");
-                        setPage(currentLang, currentPage);
+                        setPage(currentLang, currentPage, true);
                     });
                 });
             })
             .catch((error) => console.log(error));
         window.scrollTo({top: 0, behavior: 'instant'});
-        window.history.replaceState(null, null, location.pathname + "?hl=" + lang + "&page=" + page);
+
+        const state = {"hl": lang, "page": page};
+        const url = location.pathname + "?hl=" + lang + "&page=" + page;
+        if (isNext) {
+            history.pushState(state, "", url);
+        } else {
+            history.replaceState(state, "", url);
+        }
         document.title = langTextData["nav_app_brand"] + " | " + selectedPage.firstChild.innerText;
     }                
 }
+
+window.addEventListener('popstate', (event) => {
+    if (event.state != null) {
+        setPage(event.state.hl, event.state.page, false);
+    }    
+});
 
 const langDropdown = document.querySelectorAll(".dropdown-item");
 Array.from(langDropdown).forEach(el => {
     el.addEventListener('click', (event) => {
         currentLang = event.currentTarget.getAttribute("data-lang");
-        setPage(currentLang, currentPage);
+        setPage(currentLang, currentPage, true);
     });
 });
 
@@ -81,7 +97,7 @@ const sidebarItems = document.querySelectorAll(".sidebar .item.lv2");
 Array.from(sidebarItems).forEach(el => {
     el.addEventListener('click', (event) => {
         currentPage = event.currentTarget.getAttribute("data-page");
-        setPage(currentLang, currentPage);
+        setPage(currentLang, currentPage, true);
         document.querySelector("#page-name-text").innerText = event.currentTarget.innerText;
         document.querySelector(".page-group-list").classList.add("d-none");
         document.querySelector(".page-show-icon").classList.add("bi-chevron-down");
@@ -94,4 +110,4 @@ document.querySelector(".page-name").addEventListener('click', (event) => {
     ["bi-chevron-down", "bi-chevron-up"].forEach(x => document.querySelector(".page-show-icon").classList.toggle(x));
 })
 
-setPage(currentLang, currentPage);
+setPage(currentLang, currentPage, false);
