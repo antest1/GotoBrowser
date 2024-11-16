@@ -228,34 +228,6 @@ public class WebViewManager {
         });
     }
 
-    public static void setSoundMuteCookie(WebViewL webview) {
-        CookieSyncManager syncManager = CookieSyncManager.createInstance(webview.getContext());
-        syncManager.sync();
-        CookieManager cookieManager = CookieManager.getInstance();
-
-        String osapi_url = "http://osapi.dmm.com/";
-        String osapi_value = cookieManager.getCookie(osapi_url);
-        boolean check_flag = false;
-
-        if (osapi_value != null) {
-            String[] cookie_list = osapi_value.split(";");
-            for (String s: cookie_list) {
-                if (s.contains("kcs_options=")) {
-                    check_flag = true;
-                    String match_result_group = s.replace("kcs_options=", "").trim();
-                    match_result_group = match_result_group.replaceAll("vol_bgm%3D\\d+?%3B", "vol_bgm%3D0%3B");
-                    match_result_group = match_result_group.replaceAll("vol_se%3D\\d+?%3B", "vol_se%3D0%3B");
-                    match_result_group = match_result_group.replaceAll("vol_voice%3D\\d+?%3B", "vol_voice%3D0%3B");
-                    cookieManager.setCookie(osapi_url, String.format("kcs_options=%s;expires=%s;path=/;domain=dmm.com", match_result_group, KcUtils.getDefaultTimeForCookie()));
-                }
-            }
-        }
-        if (!check_flag) {
-            String default_value = "vol_bgm%3D0%3Bvol_se%3D0%3Bvol_voice%3D0%3Bv_be_left%3D1%3Bv_duty%3D1";
-            cookieManager.setCookie(osapi_url, String.format("kcs_options=%s;expires=%s;path=/;domain=dmm.com", default_value, KcUtils.getDefaultTimeForCookie()));
-        }
-    }
-
     public void runLoginLogoutScript(WebViewL webview, String url) {
         String login_id = sharedPref.getString(PREF_DMM_ID, ""); // intent.getStringExtra("login_id");
         String login_password = sharedPref.getString(PREF_DMM_PASS, "");

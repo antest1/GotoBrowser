@@ -72,7 +72,6 @@ import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
-import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_UI_HELP_CHECKED;
 import static com.antest1.gotobrowser.Constants.REQUEST_NOTIFICATION_PERMISSION;
@@ -149,7 +148,6 @@ public class BrowserActivity extends AppCompatActivity {
             initPanelKeyboardFromIntent(intent);
 
             boolean isLandscapeMode = sharedPref.getBoolean(PREF_LANDSCAPE, true);
-            boolean isSilentMode = sharedPref.getBoolean(PREF_SILENT, false);
             isMuteMode = sharedPref.getBoolean(PREF_MUTEMODE, false);
             isLockMode = sharedPref.getBoolean(PREF_LOCKMODE, false);
             isKeepMode = sharedPref.getBoolean(PREF_KEEPMODE, false);
@@ -159,7 +157,6 @@ public class BrowserActivity extends AppCompatActivity {
             executor = Executors.newScheduledThreadPool(1);
 
             if (isLandscapeMode) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
-            if (isSilentMode) WebViewManager.setSoundMuteCookie(mContentView);
             if (isKeepMode) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
             kcCameraButton = findViewById(R.id.kc_camera);

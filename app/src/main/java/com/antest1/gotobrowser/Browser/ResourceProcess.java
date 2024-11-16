@@ -65,10 +65,10 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
-import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
-import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
+    import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
+import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
@@ -497,7 +497,7 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processScriptFile(JsonObject file_info) throws IOException {
-        boolean broadcast_mode = sharedPref.getBoolean(PREF_BROADCAST, false);
+        boolean silent_mode = sharedPref.getBoolean(PREF_SILENT, false);
         String url = file_info.get("url").getAsString();
         if (prefAlterGadget && isGadgetUrlReplaceMode && url.contains("gadget_html5")) {
             url = WebViewManager.replaceEndpoint(url, alterEndpoint);
@@ -508,7 +508,7 @@ public class ResourceProcess {
 
         if (url.contains("kcs2/js/main.js")) {
             byte[] byteArray = KcUtils.downloadDataFromURL(url);
-            String main_js = patchMainScript(new String(byteArray, StandardCharsets.UTF_8), broadcast_mode);
+            String main_js = patchMainScript(new String(byteArray, StandardCharsets.UTF_8), silent_mode);
             InputStream is = new ByteArrayInputStream(main_js.getBytes());
             return new WebResourceResponse("application/javascript", "utf-8", is);
         } else {
@@ -730,12 +730,27 @@ public class ResourceProcess {
         }
     }
 
-    private String patchMainScript(String main_js, boolean broadcast_mode) {
+    private String patchMainScript(String main_js, boolean silent_mode) {
 
         main_js = K3dPatcher.patchKantai3d(main_js);
         main_js = KenPatcher.patchKantaiEn(main_js, activity);
         main_js = FpsPatcher.patchFps(main_js);
         main_js = CritPatcher.patchCrit(main_js);
+
+        // 2024.11 update: fix patch logic for slient mode
+        if (silent_mode) {
+            Pattern initOptionPattern = Pattern.compile("var (\\w+)=\\w+(?:\\[\\w+\\(\\w+\\)\\]){2}\\(this\\[\\w+\\(\\w+\\)\\],\\w+\\(\\w+\\)\\);(\\1)\\?");
+            Matcher optPatternMatcher = initOptionPattern.matcher(main_js);
+            boolean opt_found = optPatternMatcher.find();
+            if (opt_found) {
+                String statement = optPatternMatcher.group(0);
+                String variable = optPatternMatcher.group(1);
+                String newStatement = statement.split(";")[0] + ";"
+                        + variable + "['api_bgm']=0;" + variable + "['api_se']=0;"
+                        + variable + "['api_voice']=0;" + variable + "?";
+                main_js = main_js.replace(statement, newStatement);
+            }
+        }
 
         // manage bgm loading strategy with global mute variable for audio focus issue
         if (activity.isMuteMode()) {
@@ -745,37 +760,21 @@ public class ResourceProcess {
         }
         main_js = "var gb_h=null;\nfunction add_bgm(b){b.onend=function(){(global_mute||gb_h.volume()==0)&&(gb_h.unload(),console.log('unload'))};global_mute&&(b.autoplay=false);gb_h=new Howl(b);return gb_h;}\n" + main_js;
 
-        // main_js = main_js.replaceAll("new Howl\\(d\\)", "add_bgm(d)");
-        Pattern howlPattern = Pattern.compile("new Howl\\((_0x\\w+)\\)");
+        Pattern howlPattern = Pattern.compile("(new \\w+\\[\\(\\w+\\(\\w+\\)\\)\\])(\\(\\w+\\)),this(?:\\[\\w+\\(\\w+\\)\\]){2}\\(\\w+,\\w+,\\w+\\)\\):");
         Matcher howlPatternMatcher = howlPattern.matcher(main_js);
         boolean howl_found = howlPatternMatcher.find();
         if (howl_found) {
-            String _instance = howlPatternMatcher.group(1);
-            main_js = main_js.replaceAll("new Howl\\(".concat(_instance).concat("\\)"), "add_bgm(".concat(_instance).concat(")"));
+            String _howl_fn = howlPatternMatcher.group(1)
+                    .replace("(", "\\(").replace(")", "\\)")
+                    .replace("[", "\\[").replace("]", "\\]");
+            main_js = main_js.replaceAll(_howl_fn, "add_bgm");
         }
 
-        // main_js = main_js.replaceAll("function\\(_0x17657d\\)\\{", "function(_0x17657d){GotoBrowser.kcs_axios_error(_0x17657d['stack']);");
-        Pattern axiosPattern = Pattern.compile("axios\\[.{10,300}\\(function\\(\\w+.{10,300}\\(function\\((\\w+)\\)\\{");
-        Matcher axiosPatternMatcher = axiosPattern.matcher(main_js);
-        boolean axios_found = axiosPatternMatcher.find();
-        if (axios_found) {
-            String _failureCode = axiosPatternMatcher.group(0);
-            String _var = axiosPatternMatcher.group(1);
-            main_js = main_js.replace(_failureCode, _failureCode.concat("GotoBrowser.kcs_axios_error(".concat(_var).concat("['stack']);")));
-        }
-
-        // Prevent Possible Item Purchase Crash
-        main_js = main_js.replaceFirst(
-                "function\\((\\w+)\\)\\{(window\\[\\w+\\('\\w+'\\)]\\(\\w+\\('\\w+'\\),\\w+\\[\\w+\\('\\w+'\\)]\\);)",
-                "function($1){if(typeof $1['data']=='number')$2");
-
-        // handling port button behavior (sally)
-        // handling port button behavior (others)
+        // handling port button behavior (sally/others, 2024.11 update)
         // main_js = main_js.replaceAll("_.EventType\\.MOUSEUP,this\\._onMouseUp", "_.EventType.MOUSEDOWN,this._onMouseUp");
         // main_js = main_js.replaceAll("c.EventType\\.MOUSEUP,this\\._onMouseUp", "c.EventType.MOUSEDOWN,this._onMouseUp");
-
-        String mouseup_detect_code = "=!0x1,".concat(TextUtils.join(",", Collections.nCopies(4,
-                "this(?:\\[\\w+\\('\\w+'\\)]){2}\\((\\w+\\[\\w+\\('\\w+'\\)\\])(\\[\\w+\\('\\w+'\\)\\]),this(\\[\\w+\\('\\w+'\\)\\])\\)")));
+        String mouseup_detect_code = "=!0x0,".concat(TextUtils.join(",", Collections.nCopies(4,
+                "this(?:\\[\\w+\\(\\w+\\)])\\['\\w+'\\]\\((\\w+\\[\\w+\\(\\w+\\)\\])(\\[\\w+\\(\\w+\\)\\]),this(\\[\\w+\\(\\w+\\)\\])\\)")));
         Pattern buttonMousePattern = Pattern.compile(mouseup_detect_code);
         Matcher buttonPatternMatcher = buttonMousePattern.matcher(main_js);
         while (buttonPatternMatcher.find()) {
@@ -789,7 +788,7 @@ public class ResourceProcess {
                 String replaceEventType = _EventType.concat(_propMOUSEDOWN).concat(",this").concat(_onMouseUp);
                 main_js = main_js.replaceAll(regexEventType, replaceEventType);
             } catch (NullPointerException e) {
-                KcUtils.reportException(e);;
+                KcUtils.reportException(e);
                 // do nothing
             }
         }
