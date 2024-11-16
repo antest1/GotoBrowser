@@ -220,14 +220,15 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:id="@+id/icon_msg"
+            android:id="@+id/icon_manual"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
+            android:layout_weight="1"
             android:background="?android:selectableItemBackground"
             android:padding="8dp"
-            android:src="@mipmap/msg"
-            app:srcCompat="@mipmap/msg" />
+            android:src="@drawable/twotone_help_24"
+            app:srcCompat="@drawable/twotone_help_24" />
 
         <ImageView
             android:id="@+id/icon_setting"

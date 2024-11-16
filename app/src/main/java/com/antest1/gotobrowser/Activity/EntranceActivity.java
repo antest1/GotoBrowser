@@ -23,7 +23,6 @@ import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 
 import java.io.File;
-import java.time.Year;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -95,9 +94,9 @@ public class EntranceActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        ImageView msgButton = findViewById(R.id.icon_msg);
+        ImageView msgButton = findViewById(R.id.icon_manual);
         msgButton.setOnClickListener(v -> {
-            String url = getString(R.string.notice_link);
+            String url = getString(R.string.manual_link);
             CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder();
             intentBuilder.setShowTitle(true);
             CustomTabColorSchemeParams params = new CustomTabColorSchemeParams.Builder()
