@@ -115,5 +115,5 @@
     <string name="dialog_ipblock_title">해외 IP 차단이 감지됨</string>
     <string name="dialog_ipblock_message" formatted="false">메인 화면에서 「%s」 옵션을 켜주세요.\n(설정에서도 활성화 가능)</string>
     <string name="kcanotify_broadcast_dialog_title">시제 깡들리티 설치 감지됨</string>
-    <string name="kcanotify_broadcast_dialog_message">고토브라우저를 깡들리티와 함께 사용하기 위해서는 「%s」가 켜져 있어야 합니다. %s을 눌러 활성화하시겠습니까?</string>
+    <string name="kcanotify_broadcast_dialog_message" formatted="false">고토브라우저를 깡들리티와 함께 사용하기 위해서는 「%s」가 켜져 있어야 합니다. %s을 눌러 활성화하시겠습니까?</string>
 </resources>

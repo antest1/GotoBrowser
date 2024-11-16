@@ -113,5 +113,5 @@
     <string name="dialog_ipblock_title">檢測到外國IP封锁</string>
     <string name="dialog_ipblock_message" formatted="false">請在主荧幕或設定中啟動「%s」選項。</string>
     <string name="kcanotify_broadcast_dialog_title">檢測到Kcanotify</string>
-    <string name="kcanotify_broadcast_dialog_message">若要將GotoBrowser與Kcanotify一起使用，必須啟動「%s」。 您想通過按一下%s啟動它嗎？</string>
+    <string name="kcanotify_broadcast_dialog_message" formatted="false">若要將GotoBrowser與Kcanotify一起使用，必須啟動「%s」。 您想通過按一下%s啟動它嗎？</string>
 </resources>

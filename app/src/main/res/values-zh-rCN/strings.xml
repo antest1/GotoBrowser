@@ -113,5 +113,5 @@
     <string name="dialog_ipblock_title">检测到外国IP阻止</string>
     <string name="dialog_ipblock_message" formatted="false">请在主屏幕或设置中激活「%s」选项。</string>
     <string name="kcanotify_broadcast_dialog_title">检测到Kcanotify</string>
-    <string name="kcanotify_broadcast_dialog_message">若要将GotoBrowser与Kcanotify一起使用，必须激活「%s」。您想通过单击%s激活它吗？</string>
+    <string name="kcanotify_broadcast_dialog_message" formatted="false">若要将GotoBrowser与Kcanotify一起使用，必须激活「%s」。您想通过单击%s激活它吗？</string>
 </resources>
