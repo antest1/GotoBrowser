@@ -1,0 +1,21 @@
+{
+    "version": "1.0.0",
+    "text": {
+        "nav_app_brand": "고토브라우저",
+        "sidebar_group_getstarted": "시작하기",
+        "sidebar_group_manual": "사용 방법",
+        "sidebar_group_functions": "기능 상세",
+        "sidebar_group_others": "기타",
+        "sidebar_page_index": "소개",
+        "sidebar_page_installation": "설치 방법",
+        "sidebar_page_entrance": "메인 화면",
+        "sidebar_page_browserui": "브라우저 UI",
+        "sidebar_page_settings": "설정",
+        "sidebar_page_screenshot": "스크린샷 저장",
+        "sidebar_page_voiceline": "인게임 대사 자막",
+        "sidebar_page_gadgetbypass": "해외 IP 차단 우회",
+        "sidebar_page_kcanotify": "시제 깡들리티 연동",
+        "sidebar_page_pipmode": "PIP/멀티윈도우",
+        "sidebar_page_knownissue": "알려진 문제"
+    }
+}

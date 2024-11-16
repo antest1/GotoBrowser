@@ -1,0 +1,21 @@
+{
+    "version": "1.0.0",
+    "text": {
+        "nav_app_brand": "GotoBrowser",
+        "sidebar_group_getstarted": "Get Started",
+        "sidebar_group_manual": "Guides",
+        "sidebar_group_functions": "Feature Details",
+        "sidebar_group_others": "Others",
+        "sidebar_page_index": "Welcome",
+        "sidebar_page_installation": "Installation",
+        "sidebar_page_entrance": "Main Screen",
+        "sidebar_page_browserui": "Browser UI",
+        "sidebar_page_settings": "Settings",
+        "sidebar_page_screenshot": "Saving Screenshots",
+        "sidebar_page_voiceline": "Game Voiceline Subtitle",
+        "sidebar_page_gadgetbypass": "IP Block Bypass (Non-Japan)",
+        "sidebar_page_kcanotify": "Using with Kcanotify",
+        "sidebar_page_pipmode": "PIP/Multi-window",
+        "sidebar_page_knownissue": "Known Issues"
+    }
+}
