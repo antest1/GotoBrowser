@@ -98,4 +98,8 @@ main {
     #rendered-md-content h1, h2 {
         display: none;
     }
+
+    #rendered-md-content h2 + h5 {
+        margin-top: 0;
+    }
 }

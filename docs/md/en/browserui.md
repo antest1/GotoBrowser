@@ -26,5 +26,5 @@ You can use various functions such as refreshing the game or taking a screenshot
 | <span class="material-symbols-outlined">screen_lock_rotation</span> | Fix screen rotation | Prevents the screen from rotating regardless of device settings. |
 | <span class="material-symbols-rounded">wb_sunny</span> | Disable Screen Timeout | Set the screen to not turn off in idle state. |
 | <span class="material-symbols-outlined">closed_caption</span> | Show Subtitles | Shows or hides in-game subtitles at the bottom of the screen. |
-| <span class="material-symbols-outlined">exit_to_app</span> | Logout | Log out of the game and return to the DMM login screen. |
+| <span class="material-symbols-outlined">exit_to_app</span> | Logout | Log out of the game and return to main screen. |
 | <span class="material-symbols-outlined">close</span> | Close Panel | Hides the panel from the screen. |

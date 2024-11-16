@@ -2,7 +2,7 @@
 
 ## 설정 
 
-메인 화면 우측 상단의 톱니바퀴 아이콘(<span class="material-symbols-outlined inline-icon">settings</span>)을 눌러 접근 가능
+메인 우측 상단의 톱니바퀴 아이콘(<span class="material-symbols-outlined inline-icon">settings</span>)을 눌러 접근 가능
 
 ##### 브라우저 설정
 

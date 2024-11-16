@@ -43,7 +43,7 @@
 
     <string name="github_link" translatable="false">https://github.com/antest1/GotoBrowser/</string>
     <string name="license_link" translatable="false">https://github.com/antest1/GotoBrowser/blob/master/LICENSE</string>
-    <string name="manual_link" translatable="false">https://luckyjervis.com/gotobrowser/docs</string>
+    <string name="manual_link" translatable="false">https://luckyjervis.com/gotobrowser/docs/?from_app=true</string>
     <string name="settings_appinfo_browsersettings">Browser Settings</string>
     <string name="browser_fontprefetch">Prefetch Font Assets</string>
     <string name="browser_enablepipmode">Picture-in-picture mode</string>

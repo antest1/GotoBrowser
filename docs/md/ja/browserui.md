@@ -27,5 +27,5 @@
 | <span class="material-symbols-outlined">screen_lock_rotation</span> | 画面方向の固定 | 現在の画面状態でデバイス設定に関係なく回転しないように設定します。 |
 | <span class="material-symbols-rounded">wb_sunny</span> | 画面スリープ防止 | 待機状態で画面が暗くならないように設定します。 |
 | <span class="material-symbols-outlined">closed_caption</span> | 字幕表示 | 画面下部にインゲーム音声の字幕を表示または非表示にします。 |
-| <span class="material-symbols-outlined">exit_to_app</span> | ログアウト | ゲームでログアウトし、DMMログイン画面に戻ります。 |
+| <span class="material-symbols-outlined">exit_to_app</span> | ログアウト | ゲームでログアウトし、メイン画面に戻ります。 |
 | <span class="material-symbols-outlined">close</span> | パネルを閉じる |　パネルを画面から非表示にします。 |
