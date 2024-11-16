@@ -5,7 +5,7 @@ const urlParams = new URLSearchParams(queryString);
 
 var menu_data = {};
 var currentPage = urlParams.has("page") ? urlParams.get("page") : "index";
-var currentLang = urlParams.has("hl") ? urlParams.get("hl") : "en";
+var currentLang = urlParams.has("hl") ? urlParams.get("hl") : get_default_language();
 if (!lang_list.includes(currentLang)) currentLang = "en";
 
 var renderer = new marked.Renderer();
@@ -18,6 +18,13 @@ renderer.table = function(token) {
     return link.replace("<table","<table class='table'");
 };
 marked.setOptions({ renderer: renderer });
+
+function get_default_language() {
+    const navLang = navigator.language;
+    if (navLang.includes("ko-KR") || navLang.includes("ko")) return "ko";
+    else if (navLang.includes("ja-JP") || navLang.includes("ja")) return "jp";
+    else return "en";
+}
 
 function setPage(lang, page) {
     // language settings
@@ -57,8 +64,8 @@ function setPage(lang, page) {
             })
             .catch((error) => console.log(error));
         window.scrollTo({top: 0, behavior: 'instant'});
-        document.title = langTextData["nav_app_brand"] + " | " + selectedPage.firstChild.innerText;
         window.history.replaceState(null, null, location.pathname + "?hl=" + lang + "&page=" + page);
+        document.title = langTextData["nav_app_brand"] + " | " + selectedPage.firstChild.innerText;
     }                
 }
 

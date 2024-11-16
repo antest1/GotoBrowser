@@ -3,7 +3,7 @@
 
 ## メイン画面
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/main_screen.png" height="550px"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/main_screen.png" height="550px"/>
 
 ##### 接続サイトの選択
 - ほとんどの場合、「DMM DIRECT」の設定を変更する必要はありません。
