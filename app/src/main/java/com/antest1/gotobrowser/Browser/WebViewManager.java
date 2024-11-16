@@ -8,6 +8,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Message;
@@ -103,11 +104,17 @@ public class WebViewManager {
         WebView.setWebContentsDebuggingEnabled(enabled);
     }
 
-    public void setWebViewClient(BrowserActivity activity, WebViewL webview, List<String> connector_info) {
+    public void setWebViewClient(BrowserActivity activity, WebViewL webview) {
         Context context = activity.getApplicationContext();
         boolean is_kcbrowser_mode = activity.isKcMode();
         webview.addJavascriptInterface(new KcsInterface(activity), GOTO_ANDROID);
         webview.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                if (logoutFlag) closeWebView();
+            }
+
             public void onPageFinished(WebView view, String url) {
                 runLoginLogoutScript(webview, url);
                 if (is_kcbrowser_mode) {
@@ -245,15 +252,6 @@ public class WebViewManager {
         } else if (url.contains(URL_KANSU) || url.contains(URL_OOI)) {
             webview.evaluateJavascript(
                     String.format(Locale.US, AUTOCOMPLETE_OOI, login_id, login_password), null);
-        }
-
-        // Logout
-        if (logoutFlag && url.contains("rurl") && url.contains(DMM_REDIRECT_CODE)) {
-            closeWebView();
-        }
-
-        if (logoutFlag && (url.contains(CONN_OOI) || url.contains(CONN_KANSU))) {
-            closeWebView();
         }
     }
 

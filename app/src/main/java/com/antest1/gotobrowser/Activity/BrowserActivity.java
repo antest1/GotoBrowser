@@ -230,7 +230,7 @@ public class BrowserActivity extends AppCompatActivity {
             if (connector_info != null && connector_info.size() == 2) {
                 manager.setWebViewSettings(mContentView);
                 WebViewManager.enableBrowserCookie(mContentView);
-                manager.setWebViewClient(this, mContentView, connector_info);
+                manager.setWebViewClient(this, mContentView);
                 manager.setPopupView(mContentView);
                 manager.openPage(mContentView, connector_info, isKcBrowserMode);
             } else {
