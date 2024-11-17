@@ -8,8 +8,8 @@ android {
         minSdkVersion 19
         compileSdk 33
         targetSdkVersion 33
-        versionCode 72
-        versionName "2.13"
+        versionCode 73
+        versionName "2.13-rev1"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
