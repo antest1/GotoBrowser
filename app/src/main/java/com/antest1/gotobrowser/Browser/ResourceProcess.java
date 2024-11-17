@@ -730,6 +730,13 @@ public class ResourceProcess {
         }
     }
 
+    private String escapeMatchedGroup(String group) {
+        if (group != null) {
+            return group.replace("(", "\\(").replace(")", "\\)").replace("[", "\\[").replace("]", "\\]");
+        }
+        return null;
+    }
+
     private String patchMainScript(String main_js, boolean silent_mode) {
 
         main_js = K3dPatcher.patchKantai3d(main_js);
@@ -739,15 +746,23 @@ public class ResourceProcess {
 
         // 2024.11 update: fix patch logic for slient mode
         if (silent_mode) {
-            Pattern initOptionPattern = Pattern.compile("var (\\w+)=\\w+(?:\\[\\w+\\(\\w+\\)\\]){2}\\(this\\[\\w+\\(\\w+\\)\\],\\w+\\(\\w+\\)\\);(\\1)\\?");
-            Matcher optPatternMatcher = initOptionPattern.matcher(main_js);
-            boolean opt_found = optPatternMatcher.find();
-            if (opt_found) {
-                String statement = optPatternMatcher.group(0);
-                String variable = optPatternMatcher.group(1);
-                String newStatement = statement.split(";")[0] + ";"
-                        + variable + "['api_bgm']=0;" + variable + "['api_se']=0;"
-                        + variable + "['api_voice']=0;" + variable + "?";
+            List<String> initVolumePattern1 = Collections.nCopies(3,"this\\[\\w+\\(\\w+\\)\\]=(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\)\\))");
+            List<String> initVolumePattern2 = Collections.nCopies(2,"this\\[\\w+\\(\\w+\\)\\]=0x1===\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\)\\)");
+
+            List<String> initVolumePatternConcat = new ArrayList<>();
+            initVolumePatternConcat.addAll(initVolumePattern1);
+            initVolumePatternConcat.addAll(initVolumePattern2);
+
+            Pattern initVolumePattern = Pattern.compile(TextUtils.join(",", initVolumePatternConcat).concat(";"));
+            Matcher invPatternMatcher = initVolumePattern.matcher(main_js);
+
+            if (invPatternMatcher.find()) {
+                String statement = invPatternMatcher.group(0);
+                String varBgm = invPatternMatcher.group(1);
+                String varSe = invPatternMatcher.group(2);
+                String varVoice = invPatternMatcher.group(3);
+
+                String newStatement = statement.replace(varBgm, "0").replace(varSe, "0").replace(varVoice, "0");
                 main_js = main_js.replace(statement, newStatement);
             }
         }
@@ -764,9 +779,7 @@ public class ResourceProcess {
         Matcher howlPatternMatcher = howlPattern.matcher(main_js);
         boolean howl_found = howlPatternMatcher.find();
         if (howl_found) {
-            String _howl_fn = howlPatternMatcher.group(1)
-                    .replace("(", "\\(").replace(")", "\\)")
-                    .replace("[", "\\[").replace("]", "\\]");
+            String _howl_fn = escapeMatchedGroup(howlPatternMatcher.group(1));
             main_js = main_js.replaceAll(_howl_fn, "add_bgm");
         }
 
@@ -783,10 +796,9 @@ public class ResourceProcess {
                 String _propMOUSEDOWN = buttonPatternMatcher.group(8);
                 String _propMOUSEUP = buttonPatternMatcher.group(11);
                 String _onMouseUp = buttonPatternMatcher.group(12);
-                String regexEventType = _EventType.concat(_propMOUSEUP).concat(",this").concat(_onMouseUp)
-                        .replace("(", "\\(").replace(")", "\\)").replace("[", "\\[");
+                String regexEventType = _EventType.concat(_propMOUSEUP).concat(",this").concat(_onMouseUp);
                 String replaceEventType = _EventType.concat(_propMOUSEDOWN).concat(",this").concat(_onMouseUp);
-                main_js = main_js.replaceAll(regexEventType, replaceEventType);
+                main_js = main_js.replaceAll(escapeMatchedGroup(regexEventType), replaceEventType);
             } catch (NullPointerException e) {
                 KcUtils.reportException(e);
                 // do nothing
