@@ -232,17 +232,17 @@ public class K3dPatcher implements SensorEventListener {
                         "    this._toggle3d.initialize(),\n" +
                         "    this._toggle3d_ai.initialize(),");
 
-        stringsToReplace.put("(function\\(\\)\\{[^=]{0,90},([^;=]{0,90}\\(\\),this[^=]{0,90}=null){11})([^,])",
+        stringsToReplace.put("(function\\(\\)\\{[^{]{0,90},([^;=]{0,90}\\(\\),this[^=]{0,90}=null){11})([^,])",
                 "$1\n ;" +
                         "    this._toggle3d.dispose();\n" +
                         "    this._toggle3d = null;\n" +
                         "    this._toggle3d_ai.dispose();\n" +
                         "    this._toggle3d_ai = null; $3");
 
-        stringsToReplace.put("(,[^,;=]{0,70}\\(\\),0(x0)?==this[^,;=]{0,20}&&0(x0)?<[^,;=]{0,2000}:0(x0)?<this[^,;=]{0,20}&&0(x0)?)",
-                ",window.isDepthEnabled = this._sound._toggle3d.value, \n" +
-                        "    window.isDepthAiEnabled = this._sound._toggle3d_ai.value\n" +
-                        "    $1");
+        stringsToReplace.put("(,'skin_id':this\\[[^{]{0,90}\\]\\};)",
+                "$1\nwindow.isDepthEnabled = this._sound._toggle3d.value; \n" +
+                        "    window.isDepthAiEnabled = this._sound._toggle3d_ai.value;\n" +
+                        "    ");
 
         stringsToReplace.put("((null==this[^,;=]{0,40}&&\\(this[^,;=]{0,40}=[^,;=]{0,70}\\),this[^,;=]{0,40}=[^,;=]{0,70},){2})",
                 "$1\n" +
@@ -251,17 +251,17 @@ public class K3dPatcher implements SensorEventListener {
 
 
 
-        stringsToReplace.put("(return[^,;=]{0,30}\\=[^,;=]{0,30}[^,;=]{0,20}\\!\\=[^,;=]{0,10}\\|\\|null\\!\\=\\([^,;=]{0,10}\\=[^,;=]{0,100}\\)&&\\([^,;=]{0,10}\\=(\"_\"|'_')\\+[^,;=]{0,30}\\),[^,;=]{0,70}\\+\\([^,;=]{0,70}\\+[^,;=]{0,10}\\+(\"\\/\"|'\\/')\\+\\([^,;=]{0,20}\\+[^,;=]{0,30}\\([^,;=]{0,20},[^,;=]{0,20}\\)\\)\\+(\"_\"|'_')\\+[^,;=]{0,20}\\+[^,;=]{0,20}\\+[^,;=]{0,20}\\+[^,;=]{0,60}\\(0(x0)?,parseInt\\([^,;=]{0,20}\\)\\)\\);?)",
-                "\n return window.displacementPath = (function () {\n$1\n})();\n");
+        stringsToReplace.put("\\}(return.{0,599}\\(0(x0)?,parseInt\\([^,;=]{0,20}\\)\\)\\))",
+                "\n } return window.displacementPath = (function () {\n$1\n})();\n");
 
         stringsToReplace.put("(new PIXI[^,;=]{0,20}\\([^,;=]{0,70},[^,;=]{0,60},[^,;=]{0,20}\\);document)",
                 "\n window.pixiApp = $1");
 
-        stringsToReplace.put("(\\=[^,;=]{0,200},[^,;=]{0,200}\\=0(x0)?\\=\\=[^,;=]{0,200}\\?0(x0)?\\:[^:]*\\:[^:]*,[^,;=]{0,200}\\=.{0,500}\\((0x1eb,-0x58|491,-88)\\);var [^=]{0,99}=)",
-                "\n = window.charar $1 window.charal = \n");
+        stringsToReplace.put("(var[^=]{0,19}=[^=]{0,29},[^=]{0,39}=[^=]{0,99},[^=]{0,99})(=.{0,99}0x0.{0,99}0x0.{0,99}PIXI.{0,999}\\((0x1eb,-0x58|491,-88)\\);var [^=]{0,99}=)",
+                "\n $1  = window.charar $2 window.charal = \n");
 
-        stringsToReplace.put("(\\=[^,;=]{0,40}\\([^,;=]{0,20}\\)[^,;=]{0,30}\\([^,;=]{0,60}\\);this[^,;=]{0,70}\\-[^,;=]{0,70}\\+[^,;=]{0,20}x[^,;=]{0,20}\\+[^,;=]{0,20},\\-[^,;=]{0,40}y[^,;=]{0,20},[^,;=]{0,200},[^,;=]{0,10}-(0x58|88)\\)[^;]{0,200};?)",
-                "\n = window.charah $1 ;" + "\n" +
+        stringsToReplace.put("(\\/0x2.{0,99}\\/0x2,[^,;=]{0,99})(\\=.{0,999}-(0x58|88)[^;]{0,200};?)(\\})",
+                "\n $1 = window.charah $2" + "\n" +
                 "window.portOffset = -window.charal + window.charah.x;//-l+h.x\n" +
                 "window.portOffsetR = window.charar;//r\n" +
                 "\n" +
@@ -417,7 +417,7 @@ public class K3dPatcher implements SensorEventListener {
                 "    window.pixiApp.ticker.add(function (t) {\n" +
                 "\n" +
                 "    });\n" +
-                "}");
+                "} $4");
 
 
         stringsToReplace.put("(\\=Math[^,;=]{0,40},[^,;=]{0,30}\\=(0x)?1\\+(0)?\\.012[^,;=]{0,10}\\*\\(.{0,29}\\);this[^,;=]{0,90}\\([^,;=]{0,90}\\),this(\\.y|\\['y'\\])=this[^,;=]{0,20}-1.5\\*[^,;=]{0,40}\\*1.8;?)",
