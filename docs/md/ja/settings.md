@@ -36,11 +36,11 @@
 
 ##### 非公式MOD
 
-| 設定 | 説明 | 作成者 |
-| --- | --- | --- |
-| 60FPS制限を削除します | 高い画面再生率（120hz）に対応するデバイスでスムーズなアニメーション再生を支援 | [@laplamgor](https://x.com/laplamgor) |
-| Kantai3D v3.7 | 一部の秘書艦に3Dのような視覚効果とおける乳揺れを追加 | [@laplamgor](https://x.com/laplamgor) |
-| 真のクリティカルヒット | ハードコードされたヒットの難読化を削除する（CL2のみ表示） | [@Oradimi](https://x.com/oradimi) |
+| 設定                     | 説明 | 作成者 |
+|------------------------| --- | --- |
+| 60FPS制限を削除します          | 高い画面再生率（120hz）に対応するデバイスでスムーズなアニメーション再生を支援 | [@laplamgor](https://x.com/laplamgor) |
+| Kantai3D v4.0          | 一部の秘書艦に3Dのような視覚効果とおける乳揺れを追加 | [@laplamgor](https://x.com/laplamgor) |
+| 真のクリティカルヒット            | ハードコードされたヒットの難読化を削除する（CL2のみ表示） | [@Oradimi](https://x.com/oradimi) |
 | KanColle English Patch | ゲーム内リソースに[英語パッチ](https://github.com/Oradimi/KanColle-English-Patch-KCCP)を適用（ベータ版） | [@Oradimi](https://x.com/oradimi) |
 
 ##### アプリケーション情報
