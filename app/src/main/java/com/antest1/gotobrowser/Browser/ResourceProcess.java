@@ -739,7 +739,7 @@ public class ResourceProcess {
 
     private String patchMainScript(String main_js, boolean silent_mode) {
 
-        main_js = K3dPatcher.patchKantai3d(main_js);
+        main_js = K3dPatcher.patchKantai3d(context, main_js);
         main_js = KenPatcher.patchKantaiEn(main_js, activity);
         main_js = FpsPatcher.patchFps(main_js);
         main_js = CritPatcher.patchCrit(main_js);
