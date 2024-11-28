@@ -205,7 +205,7 @@ public class K3dPatcher implements SensorEventListener {
         dialog.show();
     }
 
-    public static String patchKantai3d(Context context, String main_js){
+    public static String patchKantai3d(Context context, String main_js) {
         if (!isPatcherEnabled) {
             return main_js;
         }
@@ -228,19 +228,30 @@ public class K3dPatcher implements SensorEventListener {
         }
 
         String replaced = main_js;
+        StringBuffer sb = new StringBuffer();
+        Matcher matcher = null;
         for (Map.Entry<String, String> stringToReplace : stringsToReplace.entrySet()) {
             Pattern pattern = Pattern.compile(stringToReplace.getKey());
-            Matcher matcher = pattern.matcher(replaced);
-            if (matcher.find() && !matcher.find()) {
+            // Match the next pattern using the same matcher
+            if (matcher == null) {
+                matcher = pattern.matcher(replaced);
+            } else {
+                matcher.usePattern(pattern);
+            }
+            if (matcher.find()) {
                 // Find one and only one match
-                matcher.reset();
-                replaced = matcher.replaceFirst(stringToReplace.getValue());
+                matcher.appendReplacement(sb, stringToReplace.getValue());
             } else {
                 // The main.js is probably updated and no longer support the 3D patch currently
                 // Immediately return the unpatched main.js
                 return main_js;
             }
         }
-        return replaced;
+        if (matcher != null) {
+            matcher.appendTail(sb);
+            return sb.toString();
+        } else {
+            return main_js;
+        }
     }
 }
