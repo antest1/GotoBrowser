@@ -3,6 +3,7 @@ package com.antest1.gotobrowser.Browser;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteFullException;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -89,7 +90,15 @@ public class KcsInterface {
             e.printStackTrace();
             KcUtils.reportException(e);
         }
-        if (broadcast_mode) sendBroadcast(url, request, response);
+
+        try {
+            if (broadcast_mode) sendBroadcast(url, request, response);
+        } catch (SQLiteFullException e) {
+            activity.runOnUiThread(() -> {
+                String text = "[error] broadcast failed: database or disk is full";
+                ((TextView) activity.findViewById(R.id.kc_error_text)).setText(text);
+            });
+        }
     }
 
     public void sendBroadcast(String url, String request, String response) {

@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.WindowManager;
 import android.webkit.WebResourceResponse;
 import android.widget.TextView;
 
@@ -207,10 +208,9 @@ public class ResourceProcess {
         JsonObject file_info = getPathAndFileInfo(source);
         String path = file_info.get("path").getAsString();
         String filename = file_info.get("filename").getAsString();
-        String filepath = file_info.get("out_file_path").getAsString();
 
         try {
-            if (path != null && filename != null) {
+            if (!path.equals("") && !filename.equals("")) {
                 Log.e("GOTO", source.getPath());
                 if (filename.equals("version.json") || filename.contains("index.php")) {
                     titlePath.clear();
@@ -467,14 +467,20 @@ public class ResourceProcess {
                 dialog.dismiss();
             };
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-            String path = file_info.get("path").getAsString();
-            builder.setTitle(activity.getString(R.string.dialog_retry_title))
-                    .setMessage(String.format(activity.getString(R.string.dialog_retry_message), path))
-                    .setPositiveButton(activity.getString(R.string.dialog_retry_yes), dialogClickListener)
-                    .setNeutralButton(activity.getString(R.string.dialog_retry_no), dialogClickListener)
-                    .setNegativeButton(activity.getString(R.string.dialog_retry_never), dialogClickListener)
-                    .setCancelable(false).show();
+            if (!activity.isFinishing()) {
+                try {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                    String path = file_info.get("path").getAsString();
+                    builder.setTitle(activity.getString(R.string.dialog_retry_title))
+                            .setMessage(String.format(activity.getString(R.string.dialog_retry_message), path))
+                            .setPositiveButton(activity.getString(R.string.dialog_retry_yes), dialogClickListener)
+                            .setNeutralButton(activity.getString(R.string.dialog_retry_no), dialogClickListener)
+                            .setNegativeButton(activity.getString(R.string.dialog_retry_never), dialogClickListener)
+                            .setCancelable(false).show();
+                } catch (WindowManager.BadTokenException e) {
+                    // invalid activity, do nothing
+                }
+            }
         });
 
         try {
