@@ -19,11 +19,10 @@ public class VersionDatabase extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        StringBuffer sb = new StringBuffer();
-        sb.append(" CREATE TABLE IF NOT EXISTS ".concat(table_name).concat(" ( "));
-        sb.append(" KEY TEXT PRIMARY KEY, ");
-        sb.append(" VALUE TEXT ) ");
-        db.execSQL(sb.toString());
+        String sb = " CREATE TABLE IF NOT EXISTS " + table_name +
+                " ( \"KEY\" TEXT PRIMARY KEY, " +
+                " VALUE TEXT ) ";
+        db.execSQL(sb);
     }
 
     @Override
