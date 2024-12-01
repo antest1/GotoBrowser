@@ -47,9 +47,6 @@
     <string name="settings_source_code">原始码</string>
     <string name="subtitle_select_language">请先选择语言</string>
     <string name="settings_mw_margin">[多视窗模式]在分隔条增添间隔</string>
-    <string name="setting_panel_method_button">按键</string>
-    <string name="setting_panel_method_swipe">滑动</string>
-    <string name="setting_panel_method_label">控制台开启方式</string>
     <string name="setting_devtools_enable">启用DevTools除错</string>
     <string name="connection_use_alter">启用登入服务器封锁绕行</string>
     <string name="connection_use_alter_summary">如果您遇到封锁外国IP的问题（无限黑屏幕），请使用此设定</string>

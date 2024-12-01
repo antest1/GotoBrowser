@@ -48,9 +48,6 @@
     <string name="settings_source_code">ソースコード</string>
     <string name="subtitle_select_language">ロケールを先に選択してください。</string>
     <string name="settings_mw_margin">[マルチウィンドウ] 分割バーから余白を追加</string>
-    <string name="setting_panel_method_label">パネルを開く方法</string>
-    <string name="setting_panel_method_swipe">スワイプ</string>
-    <string name="setting_panel_method_button">ボタン</string>
     <string name="setting_devtools_enable">DevToolsデバッグを使用</string>
     <string name="connection_use_alter">国外ブロックのバイパス</string>
     <string name="connection_use_alter_summary">外部IPブロックの問題（無限の黒い画面）に直面している場合は、この設定を使用してください</string>

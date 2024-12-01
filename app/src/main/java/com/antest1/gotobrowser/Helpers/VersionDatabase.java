@@ -10,7 +10,6 @@ import android.util.Log;
 import com.google.gson.JsonObject;
 
 public class VersionDatabase extends SQLiteOpenHelper {
-    private Context context;
     private static final String db_name = "gotobrowser_db";
     private static final String table_name = "version_table";
 

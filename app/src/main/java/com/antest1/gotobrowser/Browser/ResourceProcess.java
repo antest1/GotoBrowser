@@ -65,7 +65,7 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
-    import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
+import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
@@ -87,7 +87,6 @@ public class ResourceProcess {
     private static final int RES_FONT   = 0b0010000;
     private static final int RES_CSS    = 0b0100000;
     private static final int RES_KCSAPI = 0b1000000;
-    private static final int CACHE_MAX = 60;
 
     private static String userAgent;
 
@@ -330,8 +329,6 @@ public class ResourceProcess {
     private WebResourceResponse processImageDataResource(JsonObject file_info, JsonObject update_info, int resource_type) {
         String version = update_info.get("version").getAsString();
         boolean update_flag = update_info.get("update_flag").getAsBoolean();
-        //boolean patched_update_flag = false;
-
 
         String path = file_info.get("path").getAsString();
         String resource_url = file_info.get("full_url").getAsString();
@@ -604,7 +601,6 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processFontFile(JsonObject file_info, JsonObject update_info) throws IOException {
-        String url = file_info.get("url").getAsString();
         String version = update_info.get("version").getAsString();
         boolean update_flag = update_info.get("update_flag").getAsBoolean();
 
@@ -738,7 +734,6 @@ public class ResourceProcess {
     }
 
     private String patchMainScript(String main_js, boolean silent_mode) {
-
         main_js = K3dPatcher.patchKantai3d(context, main_js);
         main_js = KenPatcher.patchKantaiEn(main_js, activity);
         main_js = FpsPatcher.patchFps(main_js);

@@ -28,7 +28,6 @@ import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.gson.JsonObject;
 
 import java.util.Locale;
 import java.util.Map;
@@ -282,7 +281,6 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         private void updateKantaiEnDescriptionText() {
-            Preference kantaiEn = findPreference(PREF_MOD_KANTAIEN);
             Preference kantaiEnUpdate = findPreference(PREF_MOD_KANTAIEN_UPDATE);
 
             if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
