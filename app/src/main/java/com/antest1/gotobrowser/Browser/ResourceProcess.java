@@ -785,26 +785,18 @@ public class ResourceProcess {
         }
 
         // handling port button behavior (sally/others, 2024.11 update)
+        // Original event code patterns of each buttons: ... _onMouseOver ... _onMouseOut ... _onMouseDown ... _onMouseUp ...
+        // To avoid the mouseUp event, replace _onMouseUp with _onMouseDown
         // main_js = main_js.replaceAll("_.EventType\\.MOUSEUP,this\\._onMouseUp", "_.EventType.MOUSEDOWN,this._onMouseUp");
         // main_js = main_js.replaceAll("c.EventType\\.MOUSEUP,this\\._onMouseUp", "c.EventType.MOUSEDOWN,this._onMouseUp");
-        String mouseup_detect_code = "=!0x0,".concat(TextUtils.join(",", Collections.nCopies(4,
-                "this(?:\\[\\w+\\(\\w+\\)])\\['\\w+'\\]\\((\\w+\\[\\w+\\(\\w+\\)\\])(\\[\\w+\\(\\w+\\)\\]),this(\\[\\w+\\(\\w+\\)\\])\\)")));
+        String mouseup_detect_code = "(=!0x0," +
+                "this\\[\\w+\\(\\w+\\)]\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\],this\\[\\w+\\(\\w+\\)\\]\\),"+
+                "this\\[\\w+\\(\\w+\\)]\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\],this\\[\\w+\\(\\w+\\)\\]\\),"+
+                "this\\[\\w+\\(\\w+\\)]\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\])(\\[\\w+\\(\\w+\\)\\])(,this\\[\\w+\\(\\w+\\)\\]\\),"+
+                "this\\[\\w+\\(\\w+\\)]\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\])(\\[\\w+\\(\\w+\\)\\])(,this\\[\\w+\\(\\w+\\)\\]\\))";
         Pattern buttonMousePattern = Pattern.compile(mouseup_detect_code);
         Matcher buttonPatternMatcher = buttonMousePattern.matcher(main_js);
-        while (buttonPatternMatcher.find()) {
-            try {
-                String _EventType = buttonPatternMatcher.group(1);
-                String _propMOUSEDOWN = buttonPatternMatcher.group(8);
-                String _propMOUSEUP = buttonPatternMatcher.group(11);
-                String _onMouseUp = buttonPatternMatcher.group(12);
-                String regexEventType = _EventType.concat(_propMOUSEUP).concat(",this").concat(_onMouseUp);
-                String replaceEventType = _EventType.concat(_propMOUSEDOWN).concat(",this").concat(_onMouseUp);
-                main_js = main_js.replaceAll(escapeMatchedGroup(regexEventType), replaceEventType);
-            } catch (NullPointerException e) {
-                KcUtils.reportException(e);
-                // do nothing
-            }
-        }
+        main_js = buttonPatternMatcher.replaceAll("$1$2$3$2$5");
 
         // Simulate mouse hover effects by dispatching new custom events "touchover" and "touchout"
         main_js +=  "function patchInteractionManager () {\n" +
