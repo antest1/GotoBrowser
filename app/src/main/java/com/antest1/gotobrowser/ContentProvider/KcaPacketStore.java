@@ -52,7 +52,7 @@ public class KcaPacketStore extends SQLiteOpenHelper {
         String[] request_data = request.split("&");
         List<String> new_request_data = new ArrayList<>();
         for (String s: request_data) {
-            String decodedData = null;
+            String decodedData;
             try {
                 decodedData = URLDecoder.decode(s, "utf-8");
                 if (!decodedData.startsWith("api_token")) {

@@ -209,7 +209,7 @@ public class ResourceProcess {
         String filename = file_info.get("filename").getAsString();
 
         try {
-            if (!path.equals("") && !filename.equals("")) {
+            if (!path.isEmpty() && !filename.isEmpty()) {
                 Log.e("GOTO", source.getPath());
                 if (filename.equals("version.json") || filename.contains("index.php")) {
                     titlePath.clear();

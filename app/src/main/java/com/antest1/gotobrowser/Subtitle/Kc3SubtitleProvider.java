@@ -328,7 +328,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         if (url.contains("/kcs/sound/kc")) {
             String info = path.replace("/kcs/sound/kc", "").replace(".mp3", "");
             String[] fn_code = info.split("/");
-            String voiceLine = "";
+            String voiceLine;
             String voice_filename = fn_code[0];
             String voice_code = fn_code[1];
             String shipId = voice_filename;
@@ -523,7 +523,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
     }
 
     private void saveQuotesFile(SettingsActivity.SettingsFragment fragment, Response<JsonObject> response, VersionDatabase versionTable) {
-        String message = "";
+        String message;
         String locale_code = subtitleData.get("locale_code").getAsString();
         String commit = subtitleData.get("latest_commit").getAsString();
 

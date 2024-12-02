@@ -108,7 +108,7 @@ public class K3dPatcher implements SensorEventListener {
         long newTime = System.currentTimeMillis();
         if (oldTime != 0) {
             // The angle becomes 95% after every 10ms
-            double decay = Math.pow(0.994359f, (newTime - oldTime) / 1.0);
+            double decay = Math.pow(0.994359f, (newTime - oldTime));
             gyroX *= decay;
             gyroY *= decay;
         }
