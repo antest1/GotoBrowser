@@ -745,7 +745,7 @@ public class ResourceProcess {
         main_js = FpsPatcher.patchFps(main_js);
         main_js = CritPatcher.patchCrit(main_js);
 
-        // 2024.11 update: fix patch logic for slient mode
+        // 2024.11 update: fix patch logic for silent mode
         if (silent_mode) {
             List<String> initVolumePattern1 = Collections.nCopies(3,"this\\[\\w+\\(\\w+\\)\\]=(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\)\\))");
             List<String> initVolumePattern2 = Collections.nCopies(2,"this\\[\\w+\\(\\w+\\)\\]=0x1===\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\)\\)");
@@ -795,8 +795,8 @@ public class ResourceProcess {
         // Reusing original names will cause a lot of conflict issues
         //main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
         //main_js = main_js.replace("out:n.pointer?\"pointerout\":\"mouseout\"", "out:\"touchout\"");
-        main_js = main_js.replaceFirst("'?over'?:[^,;=\\?:]{0,50}\\?[^,;=\\?:}]{0,50}:[^,;=\\?:}]{0,50}", "'over':'touchover'");
-        main_js = main_js.replaceFirst("'?out'?:[^,;=\\?:]{0,50}\\?[^,;=\\?:}]{0,50}:[^,;=\\?:}]{0,50}", "'out':'touchout'");
+        main_js = main_js.replaceFirst("'?over'?:[^,;=\\?:]{0,50}\\?[^,;=\\?:}]{0,50}:[^,;=\\?:}]{0,50},'?out'?:[^,;=\\?:]{0,50}\\?[^,;=\\?:}]{0,50}:[^,;=\\?:}]{0,50}",
+                "'over':'touchover','out':'touchout'");
 
         main_js = "var gb_h=null;\nfunction add_bgm(b){b.onend=function(){(global_mute||gb_h.volume()==0)&&(gb_h.unload(),console.log('unload'))};global_mute&&(b.autoplay=false);gb_h=new Howl(b);return gb_h;}\n"
 
@@ -854,7 +854,9 @@ public class ResourceProcess {
                 "  };\n" +
                 "}\n" +
                 "patchInteractionManager();"
-                + MUTE_LISTEN + CAPTURE_LISTEN + "\n" + KcsInterface.AXIOS_INTERCEPT_SCRIPT;
+                + MUTE_LISTEN
+                + CAPTURE_LISTEN + "\n"
+                + KcsInterface.AXIOS_INTERCEPT_SCRIPT;
         return main_js;
     }
 
