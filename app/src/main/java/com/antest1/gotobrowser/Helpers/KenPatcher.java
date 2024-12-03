@@ -17,7 +17,6 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -88,8 +87,8 @@ public class KenPatcher {
         regex.append("]");
 
         return main_js + ";\n" +
-                "var KCT_TLS = " + translations.toString() + "\n" +
-                "var KCT_REPLACEMENTS = " + regex.toString() + "\n\n" +
+                "var KCT_TLS = " + translations + "\n" +
+                "var KCT_REPLACEMENTS = " + regex + "\n\n" +
 
                 "Object.defineProperty(PIXI.Text.prototype, \"text\", {  get() { return this._text; }, set(text) {\n" +
                 "        const replaced = KCT_TLS[text]\n" +
@@ -109,45 +108,12 @@ public class KenPatcher {
                 "}})\n";
     }
 
-    private static boolean listAssetFiles(String path, List<String> fileList, Activity activity) {
-        String[] list;
-        try {
-            list = activity.getAssets().list(path);
-            if (list.length > 0) {
-                for (String file : list) {
-                    if (!listAssetFiles(path + "/" + file, fileList, activity))
-                        return false;
-                    else {
-                        fileList.add(path + "/" + file);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            return false;
-        }
-        return true;
-    }
-
-    public static JsonElement loadJSON(String filename, Activity activity) {
-        try {
-            InputStream stream = activity.getAssets().open(filename);
-            byte[] buffer = new byte[stream.available()];
-            stream.read(buffer);
-            stream.close();
-            return new JsonParser().parse(new String(buffer, "UTF-8"));
-
-        } catch (IOException | JsonSyntaxException ex) {
-            ex.printStackTrace();
-        }
-        return null;
-    }
-
     private static boolean listExternalFiles(String path, List<String> fileList, Activity activity) {
         String absolutePath = activity.getExternalFilesDir(null).getAbsolutePath();
         File[] files = new File(absolutePath + "/" + path).listFiles();
         if (files != null) {
-            for(File file : files){
-                if(file.isFile()){
+            for (File file : files) {
+                if (file.isFile()) {
                     fileList.add(String.valueOf(file));
                 } else {
                     return false;

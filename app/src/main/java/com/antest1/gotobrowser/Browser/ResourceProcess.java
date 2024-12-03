@@ -66,7 +66,7 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
-    import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
+import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
@@ -88,7 +88,6 @@ public class ResourceProcess {
     private static final int RES_FONT   = 0b0010000;
     private static final int RES_CSS    = 0b0100000;
     private static final int RES_KCSAPI = 0b1000000;
-    private static final int CACHE_MAX = 60;
 
     private static String userAgent;
 
@@ -210,7 +209,7 @@ public class ResourceProcess {
         String filename = file_info.get("filename").getAsString();
 
         try {
-            if (!path.equals("") && !filename.equals("")) {
+            if (!path.isEmpty() && !filename.isEmpty()) {
                 Log.e("GOTO", source.getPath());
                 if (filename.equals("version.json") || filename.contains("index.php")) {
                     titlePath.clear();
@@ -330,8 +329,6 @@ public class ResourceProcess {
     private WebResourceResponse processImageDataResource(JsonObject file_info, JsonObject update_info, int resource_type) {
         String version = update_info.get("version").getAsString();
         boolean update_flag = update_info.get("update_flag").getAsBoolean();
-        //boolean patched_update_flag = false;
-
 
         String path = file_info.get("path").getAsString();
         String resource_url = file_info.get("full_url").getAsString();
@@ -610,7 +607,6 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processFontFile(JsonObject file_info, JsonObject update_info) throws IOException {
-        String url = file_info.get("url").getAsString();
         String version = update_info.get("version").getAsString();
         boolean update_flag = update_info.get("update_flag").getAsBoolean();
 
@@ -744,13 +740,12 @@ public class ResourceProcess {
     }
 
     private String patchMainScript(String main_js, boolean silent_mode) {
-
         main_js = K3dPatcher.patchKantai3d(context, main_js);
         main_js = KenPatcher.patchKantaiEn(main_js, activity);
         main_js = FpsPatcher.patchFps(main_js);
         main_js = CritPatcher.patchCrit(main_js);
 
-        // 2024.11 update: fix patch logic for slient mode
+        // 2024.11 update: fix patch logic for silent mode
         if (silent_mode) {
             List<String> initVolumePattern1 = Collections.nCopies(3,"this\\[\\w+\\(\\w+\\)\\]=(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\)\\))");
             List<String> initVolumePattern2 = Collections.nCopies(2,"this\\[\\w+\\(\\w+\\)\\]=0x1===\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\)\\)");
@@ -773,14 +768,6 @@ public class ResourceProcess {
             }
         }
 
-        // manage bgm loading strategy with global mute variable for audio focus issue
-        if (activity.isMuteMode()) {
-            main_js = "var global_mute=1;Howler.mute(true);\n".concat(main_js);
-        } else {
-            main_js = "var global_mute=0;Howler.mute(false);\n".concat(main_js);
-        }
-        main_js = "var gb_h=null;\nfunction add_bgm(b){b.onend=function(){(global_mute||gb_h.volume()==0)&&(gb_h.unload(),console.log('unload'))};global_mute&&(b.autoplay=false);gb_h=new Howl(b);return gb_h;}\n" + main_js;
-
         Pattern howlPattern = Pattern.compile("(new \\w+\\[\\(\\w+\\(\\w+\\)\\)\\])(\\(\\w+\\)),this(?:\\[\\w+\\(\\w+\\)\\]){2}\\(\\w+,\\w+,\\w+\\)\\):");
         Matcher howlPatternMatcher = howlPattern.matcher(main_js);
         boolean howl_found = howlPatternMatcher.find();
@@ -790,87 +777,86 @@ public class ResourceProcess {
         }
 
         // handling port button behavior (sally/others, 2024.11 update)
+        // Original event code patterns of each buttons: ... _onMouseOver ... _onMouseOut ... _onMouseDown ... _onMouseUp ...
+        // To avoid the mouseUp event, replace _onMouseUp with _onMouseDown
         // main_js = main_js.replaceAll("_.EventType\\.MOUSEUP,this\\._onMouseUp", "_.EventType.MOUSEDOWN,this._onMouseUp");
         // main_js = main_js.replaceAll("c.EventType\\.MOUSEUP,this\\._onMouseUp", "c.EventType.MOUSEDOWN,this._onMouseUp");
-        String mouseup_detect_code = "=!0x0,".concat(TextUtils.join(",", Collections.nCopies(4,
-                "this(?:\\[\\w+\\(\\w+\\)])\\['\\w+'\\]\\((\\w+\\[\\w+\\(\\w+\\)\\])(\\[\\w+\\(\\w+\\)\\]),this(\\[\\w+\\(\\w+\\)\\])\\)")));
+        String mouseup_detect_code = "(=!0x0," +
+                "this\\[\\w+\\(\\w+\\)]\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\],this\\[\\w+\\(\\w+\\)\\]\\),"+
+                "this\\[\\w+\\(\\w+\\)]\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\],this\\[\\w+\\(\\w+\\)\\]\\),"+
+                "this\\[\\w+\\(\\w+\\)]\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\])(\\[\\w+\\(\\w+\\)\\])(,this\\[\\w+\\(\\w+\\)\\]\\),"+
+                "this\\[\\w+\\(\\w+\\)]\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\])(\\[\\w+\\(\\w+\\)\\])(,this\\[\\w+\\(\\w+\\)\\]\\))";
         Pattern buttonMousePattern = Pattern.compile(mouseup_detect_code);
         Matcher buttonPatternMatcher = buttonMousePattern.matcher(main_js);
-        while (buttonPatternMatcher.find()) {
-            try {
-                String _EventType = buttonPatternMatcher.group(1);
-                String _propMOUSEDOWN = buttonPatternMatcher.group(8);
-                String _propMOUSEUP = buttonPatternMatcher.group(11);
-                String _onMouseUp = buttonPatternMatcher.group(12);
-                String regexEventType = _EventType.concat(_propMOUSEUP).concat(",this").concat(_onMouseUp);
-                String replaceEventType = _EventType.concat(_propMOUSEDOWN).concat(",this").concat(_onMouseUp);
-                main_js = main_js.replaceAll(escapeMatchedGroup(regexEventType), replaceEventType);
-            } catch (NullPointerException e) {
-                KcUtils.reportException(e);
-                // do nothing
-            }
-        }
+        main_js = buttonPatternMatcher.replaceAll("$1$2$3$2$5");
 
-        // Simulate mouse hover effects by dispatching new custom events "touchover" and "touchout"
-        main_js +=  "function patchInteractionManager () {\n" +
-                    "  var proto = PIXI.interaction.InteractionManager.prototype;\n" +
-                    "\n" +
-                    "  function extendMethod (method, extFn) {\n" +
-                    "    var old = proto[method];\n" +
-                    "    proto[method] = function () {\n" +
-                    "      old.call(this, ...arguments);\n" +
-                    "      extFn.call(this, ...arguments);\n" +
-                    "    };\n" +
-                    "  }\n" +
-                    "  proto.update = mobileUpdate;\n" +
-                    "\n" +
-                    "  function mobileUpdate(deltaTime) {\n" +
-                    "    if (!this.interactionDOMElement) {\n" +
-                    "      return;\n" +
-                    "    }\n" +
-                         // Only trigger "touchout" when there is another object start "touchover", do nothing when "touchend"
-                         // So that alert bubbles persist after a simple tap, do not disappear when the finger leaves
-                    "    if (this.eventData.data && (this.eventData.type == 'touchmove' || this.eventData.type == 'touchstart')) {\n" +
-                    "      window.__eventData = this.eventData;\n" +
-                    "      this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
-                    "    }\n" +
-                    "  }\n" +
-                    "\n" +
-                    "  extendMethod('processTouchMove', function(displayObject, hit) {\n" +
-                    "      this.processTouchOverOut('processTouchMove', displayObject, hit);\n" +
-                    "  });\n" +
-                    "  extendMethod('processTouchStart', function(displayObject, hit) {\n" +
-                    "      this.processTouchOverOut('processTouchStart', displayObject, hit);\n" +
-                    "  });\n" +
-                    "\n" +
-                    "  proto.processTouchOverOut = function (interactionEvent, displayObject, hit) {\n" +
-                    "    if(hit) {\n" +
-                    "      if(!displayObject.__over && displayObject._events.touchover) {\n" +
-                    "        if (displayObject.parent._onClickAll2) return;\n" +
-                    "        displayObject.__over = true;\n" +
-                    "        proto.dispatchEvent( displayObject, 'touchover', window.__eventData);\n" +
-                    "      }\n" +
-                    "    } else {\n" +
-                             // Only trigger "touchout" when user starts touching another object
-                    "        if(displayObject.__over && displayObject._events.touchover && interactionEvent.target != displayObject) {\n" +
-                    "            displayObject.__over = false;\n" +
-                    "            proto.dispatchEvent( displayObject, 'touchout', window.__eventData);\n" +
-                    "        }\n" +
-                    "    }\n" +
-                    "  };\n" +
-                    "}\n" +
-                    "patchInteractionManager();";
 
         // Rename the original "mouseout" and "mouseover" event name to custom names for objects to listen on
         // Reusing original names will cause a lot of conflict issues
         //main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
         //main_js = main_js.replace("out:n.pointer?\"pointerout\":\"mouseout\"", "out:\"touchout\"");
-        main_js = main_js.replaceFirst("'?over'?:[^,;=\\?:]{0,50}\\?[^,;=\\?:}]{0,50}:[^,;=\\?:}]{0,50}", "'over':'touchover'");
-        main_js = main_js.replaceFirst("'?out'?:[^,;=\\?:]{0,50}\\?[^,;=\\?:}]{0,50}:[^,;=\\?:}]{0,50}", "'out':'touchout'");
+        main_js = main_js.replaceFirst("'?over'?:[^,;=\\?:]{0,50}\\?[^,;=\\?:}]{0,50}:[^,;=\\?:}]{0,50},'?out'?:[^,;=\\?:]{0,50}\\?[^,;=\\?:}]{0,50}:[^,;=\\?:}]{0,50}",
+                "'over':'touchover','out':'touchout'");
 
-        main_js = main_js.concat(MUTE_LISTEN);
-        main_js = main_js.concat(CAPTURE_LISTEN);
-        main_js = main_js.concat("\n").concat(KcsInterface.AXIOS_INTERCEPT_SCRIPT);
+        main_js = "var gb_h=null;\nfunction add_bgm(b){b.onend=function(){(global_mute||gb_h.volume()==0)&&(gb_h.unload(),console.log('unload'))};global_mute&&(b.autoplay=false);gb_h=new Howl(b);return gb_h;}\n"
+
+                // manage bgm loading strategy with global mute variable for audio focus issue
+                + (activity.isMuteMode() ? "var global_mute=1;Howler.mute(true);\n" : "var global_mute=0;Howler.mute(false);\n")
+
+                + main_js +
+
+                // Simulate mouse hover effects by dispatching new custom events "touchover" and "touchout"
+                "function patchInteractionManager () {\n" +
+                "  var proto = PIXI.interaction.InteractionManager.prototype;\n" +
+                "\n" +
+                "  function extendMethod (method, extFn) {\n" +
+                "    var old = proto[method];\n" +
+                "    proto[method] = function () {\n" +
+                "      old.call(this, ...arguments);\n" +
+                "      extFn.call(this, ...arguments);\n" +
+                "    };\n" +
+                "  }\n" +
+                "  proto.update = mobileUpdate;\n" +
+                "\n" +
+                "  function mobileUpdate(deltaTime) {\n" +
+                "    if (!this.interactionDOMElement) {\n" +
+                "      return;\n" +
+                "    }\n" +
+                // Only trigger "touchout" when there is another object start "touchover", do nothing when "touchend"
+                // So that alert bubbles persist after a simple tap, do not disappear when the finger leaves
+                "    if (this.eventData.data && (this.eventData.type == 'touchmove' || this.eventData.type == 'touchstart')) {\n" +
+                "      window.__eventData = this.eventData;\n" +
+                "      this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
+                "    }\n" +
+                "  }\n" +
+                "\n" +
+                "  extendMethod('processTouchMove', function(displayObject, hit) {\n" +
+                "      this.processTouchOverOut('processTouchMove', displayObject, hit);\n" +
+                "  });\n" +
+                "  extendMethod('processTouchStart', function(displayObject, hit) {\n" +
+                "      this.processTouchOverOut('processTouchStart', displayObject, hit);\n" +
+                "  });\n" +
+                "\n" +
+                "  proto.processTouchOverOut = function (interactionEvent, displayObject, hit) {\n" +
+                "    if(hit) {\n" +
+                "      if(!displayObject.__over && displayObject._events.touchover) {\n" +
+                "        if (displayObject.parent._onClickAll2) return;\n" +
+                "        displayObject.__over = true;\n" +
+                "        proto.dispatchEvent( displayObject, 'touchover', window.__eventData);\n" +
+                "      }\n" +
+                "    } else {\n" +
+                // Only trigger "touchout" when user starts touching another object
+                "        if(displayObject.__over && displayObject._events.touchover && interactionEvent.target != displayObject) {\n" +
+                "            displayObject.__over = false;\n" +
+                "            proto.dispatchEvent( displayObject, 'touchout', window.__eventData);\n" +
+                "        }\n" +
+                "    }\n" +
+                "  };\n" +
+                "}\n" +
+                "patchInteractionManager();"
+                + MUTE_LISTEN
+                + CAPTURE_LISTEN + "\n"
+                + KcsInterface.AXIOS_INTERCEPT_SCRIPT;
         return main_js;
     }
 

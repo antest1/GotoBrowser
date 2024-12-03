@@ -3,7 +3,6 @@ package com.antest1.gotobrowser.Activity;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.PictureInPictureParams;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -84,7 +83,6 @@ public class BrowserActivity extends AppCompatActivity {
     private SharedPreferences sharedPref;
     private WebViewManager manager;
     private WebViewL mContentView;
-    private ProgressDialog downloadDialog;
     private ScreenshotNotification screenshotNotification;
     private final K3dPatcher k3dPatcher = new K3dPatcher();
     private final KenPatcher kenPatcher = new KenPatcher();
@@ -95,7 +93,6 @@ public class BrowserActivity extends AppCompatActivity {
     private boolean isStartedFlag = false;
     private boolean isAdjustChangedByUser = false;
     private List<String> connector_info;
-    private boolean pause_flag = false;
     private boolean isMuteMode, isCaptureMode, isLockMode, isKeepMode, isCaptionMode;
     private boolean isSubtitleLoaded = false;
     private TextView subtitleText;
@@ -160,7 +157,6 @@ public class BrowserActivity extends AppCompatActivity {
             if (isKeepMode) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
             kcCameraButton = findViewById(R.id.kc_camera);
-            downloadDialog = new ProgressDialog(BrowserActivity.this);
 
             // Browser Panel Buttons
             View menuRefresh = findViewById(R.id.menu_refresh);
@@ -213,10 +209,8 @@ public class BrowserActivity extends AppCompatActivity {
             subtitleText.setVisibility(isKcBrowserMode && isCaptionMode ? View.VISIBLE : View.GONE);
             subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
 
-            // defaultSubtitleMargin = getDefaultSubtitleMargin();
-            //setSubtitleMargin(sharedPref.getInt(PREF_PADDING, 0));
             String subtitle_local = sharedPref.getString(PREF_SUBTITLE_LOCALE, "");
-            if (subtitle_local.length() > 0) {
+            if (!subtitle_local.isEmpty()) {
                 isSubtitleLoaded = SubtitleProviderUtils.getSubtitleProvider(subtitle_local)
                         .loadQuoteData(getApplicationContext(), subtitle_local);
             }
@@ -298,7 +292,6 @@ public class BrowserActivity extends AppCompatActivity {
         super.onPostCreate(savedInstanceState);
         mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
-                // | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
@@ -316,7 +309,6 @@ public class BrowserActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        pause_flag = true;
         manager.runMuteScript(mContentView, true, true);
         sendIsFrontChanged(false);
     }
@@ -333,7 +325,6 @@ public class BrowserActivity extends AppCompatActivity {
         super.onResume();
         Log.e("GOTO", "onResume");
         Log.e("GOTO", isAdjustChangedByUser + " " + isInPictureInPictureMode + " " + isMultiWindowMode());
-        pause_flag = false;
         mContentView.resumeTimers();
         sendIsFrontChanged(true);
         if (isAdjustChangedByUser || isInPictureInPictureMode || isMultiWindowMode()) {
@@ -406,12 +397,10 @@ public class BrowserActivity extends AppCompatActivity {
         }
     }
 
-    public ProgressDialog getDownloadDialog() { return downloadDialog; }
     public boolean isKcMode() { return isKcBrowserMode; }
     public boolean isMuteMode() { return isMuteMode; }
     public boolean isCaptionAvailable() { return isCaptionMode; }
     public boolean isSubtitleAvailable() { return isSubtitleLoaded; }
-    public boolean isBrowserPaused() { return pause_flag; }
     public void setStartedFlag() { isStartedFlag = true; }
 
     private void setMuteMode(View v) {
@@ -673,13 +662,6 @@ public class BrowserActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
-    /*
-    public void setSubtitleMargin(int value) {
-        FrameLayout.LayoutParams param = (FrameLayout.LayoutParams) subtitleText.getLayoutParams();
-        param.setMargins(param.leftMargin + value, param.topMargin, param.rightMargin + value, param.bottomMargin);
-        subtitleText.setLayoutParams(param);
-    }*/
-
     public void setMultiwindowMargin() {
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) mContentView.getLayoutParams();
         if (isMultiWindowMode() && !isInPictureInPictureMode) {
@@ -710,7 +692,7 @@ public class BrowserActivity extends AppCompatActivity {
         screenshotNotification.showNotification(bitmap, uri);
     }
 
-    private Runnable clearSubtitle = new Runnable() {
+    private final Runnable clearSubtitle = new Runnable() {
         @Override
         public void run() {
             subtitleText.setText("");
@@ -733,6 +715,7 @@ public class BrowserActivity extends AppCompatActivity {
 
     @Override
     public void onPictureInPictureModeChanged(boolean newMode, Configuration newConfig) {
+        super.onPictureInPictureModeChanged(newMode, newConfig);
         isInPictureInPictureMode = newMode;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP || !isStartedFlag) {
             return;

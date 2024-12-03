@@ -56,9 +56,6 @@
     <string name="granted_false_notification_permission">Notification permission not granted.</string>
     <string name="subtitle_select_language">Language must be chosen first</string>
     <string name="settings_mw_margin">[Multi-Window] Add Margin from Divider</string>
-    <string name="setting_panel_method_label">Panel Open Method</string>
-    <string name="setting_panel_method_swipe">Swipe</string>
-    <string name="setting_panel_method_button">Button</string>
     <string name="setting_devtools_enable">Enable DevTools Debugging</string>
     <string name="setting_devtools_description" translatable="false">chrome://inspect</string>
     <string name="connection_use_alter">Gadget Block Bypass</string>

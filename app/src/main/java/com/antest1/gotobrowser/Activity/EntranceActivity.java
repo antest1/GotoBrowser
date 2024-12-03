@@ -220,11 +220,6 @@ public class EntranceActivity extends AppCompatActivity {
         super.onPostCreate(savedInstanceState);
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
     private void showConnectorSelectionDialog() {
         SwitchCompat silentSwitch = findViewById(R.id.switch_silent);
         final String[] listItems = getResources().getStringArray(R.array.connector_list);

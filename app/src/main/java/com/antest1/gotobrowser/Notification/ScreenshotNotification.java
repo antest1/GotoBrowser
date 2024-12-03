@@ -32,7 +32,7 @@ public class ScreenshotNotification {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String name = context.getString(R.string.noti_screenshot_name);
             NotificationChannel mChannel = new NotificationChannel(NOTI_CHANNEL_SCREENSHOT, name, NotificationManager.IMPORTANCE_LOW);
-            NotificationManager manager = (NotificationManager) context.getSystemService(NotificationManager.class);
+            NotificationManager manager = context.getSystemService(NotificationManager.class);
             manager.createNotificationChannel(mChannel);
         }
     }

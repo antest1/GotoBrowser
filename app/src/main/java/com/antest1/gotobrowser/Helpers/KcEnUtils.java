@@ -509,7 +509,7 @@ public class KcEnUtils {
     }
 
 
-    private class PatchZipDownloader extends AsyncTask<Integer, String, Integer> {
+    private static class PatchZipDownloader extends AsyncTask<Integer, String, Integer> {
         private SettingsActivity.SettingsFragment fragment;
         private Context context;
         private JsonObject patchInfo;

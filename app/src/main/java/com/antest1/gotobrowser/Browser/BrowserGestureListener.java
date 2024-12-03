@@ -8,11 +8,9 @@ import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.R;
 
 public class BrowserGestureListener extends GestureDetector.SimpleOnGestureListener {
-    private final BrowserActivity activity;
     private final View browserPanel;
 
     public BrowserGestureListener(BrowserActivity activity, View.OnClickListener onClickListener) {
-        this.activity = activity;
         this.onClickListener = onClickListener;
         browserPanel = activity.findViewById(R.id.browser_panel);
     }

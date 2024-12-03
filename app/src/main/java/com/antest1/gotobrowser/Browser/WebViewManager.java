@@ -16,7 +16,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
 import android.webkit.JsResult;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -105,7 +104,6 @@ public class WebViewManager {
     }
 
     public void setWebViewClient(BrowserActivity activity, WebViewL webview) {
-        Context context = activity.getApplicationContext();
         boolean is_kcbrowser_mode = activity.isKcMode();
         webview.addJavascriptInterface(new KcsInterface(activity), GOTO_ANDROID);
         webview.setWebViewClient(new WebViewClient() {
@@ -139,8 +137,8 @@ public class WebViewManager {
 
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
-                Uri source = Uri.parse(url);
                 if (is_kcbrowser_mode) {
+                    Uri source = Uri.parse(url);
                     WebResourceResponse response = resourceProcess.processWebRequest(source);
                     if (response != null) return response;
                 }
@@ -150,8 +148,8 @@ public class WebViewManager {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    Uri source = request.getUrl();
                     if (is_kcbrowser_mode) {
+                        Uri source = request.getUrl();
                         WebResourceResponse response = resourceProcess.processWebRequest(source);
                         if (response != null) return response;
                     }

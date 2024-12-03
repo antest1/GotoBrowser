@@ -6,8 +6,6 @@ import android.content.SharedPreferences;
 
 import com.antest1.gotobrowser.R;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,27 +28,9 @@ public class FpsPatcher {
             return main_js;
         }
 
-        Map<String, String> stringsToReplace = new LinkedHashMap<>();
-
         // Change the create.js ticker mode from Timer to to RAF
-        stringsToReplace.put(
-                "(createjs[^,;=]{0,40})(\\=createjs[^,;=]{0,40}),",
-                "$1=createjs.Ticker.RAF,");
-
-        String replaced = main_js;
-        for (Map.Entry<String, String> stringToReplace : stringsToReplace.entrySet()) {
-            Pattern pattern = Pattern.compile(stringToReplace.getKey());
-            Matcher matcher = pattern.matcher(replaced);
-            if (matcher.find() && !matcher.find()) {
-                // Find one and only one match
-                matcher.reset();
-                replaced = matcher.replaceFirst(stringToReplace.getValue());
-            } else {
-                // The main.js is probably updated and no longer support the 3D patch currently
-                // Immediately return the unpatched main.js
-                return main_js;
-            }
-        }
-        return replaced;
+        Pattern pattern = Pattern.compile("(createjs[^,;=]{0,40})(\\=createjs[^,;=]{0,40}),");
+        Matcher matcher = pattern.matcher(main_js);
+        return matcher.replaceFirst("$1=createjs.Ticker.RAF,");
     }
 }

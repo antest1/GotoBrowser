@@ -28,7 +28,6 @@ import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.gson.JsonObject;
 
 import java.util.Locale;
 import java.util.Map;
@@ -121,15 +120,6 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
         editor.apply();
-    }
-
-    public static Locale getCurrentLocale(Context context){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
-            return context.getResources().getConfiguration().getLocales().get(0);
-        } else{
-            //noinspection deprecation
-            return context.getResources().getConfiguration().locale;
-        }
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat
@@ -239,7 +229,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
             if (preference instanceof EditTextPreference) {
                 String stringValue = (String) newValue;
-                if (stringValue.length() == 0) stringValue = DEFAULT_ALTER_GADGET_URL;
+                if (stringValue.isEmpty()) stringValue = DEFAULT_ALTER_GADGET_URL;
                 sharedPref.edit().putString(key, stringValue).apply();
                 preference.setSummary(stringValue);
             }
@@ -260,7 +250,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         private void updateSubtitleDescriptionText() {
             String subtitleLocale = sharedPref.getString(PREF_SUBTITLE_LOCALE, "");
-            if (subtitleLocale.length() > 0) {
+            if (!subtitleLocale.isEmpty()) {
                 setSubtitlePreference(subtitleLocale);
             } else {
                 findPreference(PREF_SUBTITLE_UPDATE).setEnabled(false);
@@ -282,7 +272,6 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         private void updateKantaiEnDescriptionText() {
-            Preference kantaiEn = findPreference(PREF_MOD_KANTAIEN);
             Preference kantaiEnUpdate = findPreference(PREF_MOD_KANTAIEN_UPDATE);
 
             if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {

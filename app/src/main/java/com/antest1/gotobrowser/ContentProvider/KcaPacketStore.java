@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.antest1.gotobrowser.Helpers.KcUtils;
-import com.google.gson.JsonObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -31,14 +30,13 @@ public class KcaPacketStore extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        StringBuffer sb = new StringBuffer();
-        sb.append(" CREATE TABLE ".concat(table_name).concat(" ( "));
-        sb.append(" DKEY INTEGER PRIMARY KEY, ");
-        sb.append(" TIMESTAMP INTEGER, ");
-        sb.append(" URL TEXT, ");
-        sb.append(" REQUEST TEXT, ");
-        sb.append(" RESPONSE TEXT ) ");
-        db.execSQL(sb.toString());
+        String sb = " CREATE TABLE " + table_name +
+                " ( DKEY INTEGER PRIMARY KEY, " +
+                " TIMESTAMP INTEGER, " +
+                " URL TEXT, " +
+                " REQUEST TEXT, " +
+                " RESPONSE TEXT ) ";
+        db.execSQL(sb);
     }
 
     @Override
@@ -54,7 +52,7 @@ public class KcaPacketStore extends SQLiteOpenHelper {
         String[] request_data = request.split("&");
         List<String> new_request_data = new ArrayList<>();
         for (String s: request_data) {
-            String decodedData = null;
+            String decodedData;
             try {
                 decodedData = URLDecoder.decode(s, "utf-8");
                 if (!decodedData.startsWith("api_token")) {
@@ -76,26 +74,11 @@ public class KcaPacketStore extends SQLiteOpenHelper {
 
         // remove older rows
         db.delete(table_name, "ROWID NOT IN (SELECT ROWID FROM " + table_name +
-                " ORDER BY DKEY DESC LIMIT " + String.valueOf(limit) + ")", null);
+                " ORDER BY DKEY DESC LIMIT " + limit + ")", null);
     }
 
     public Cursor getRecentDataCursor() {
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery(String.format(Locale.US, "SELECT URL, REQUEST, RESPONSE, TIMESTAMP FROM %s ORDER BY DKEY DESC LIMIT 1",
-                KcaPacketStore.getTableName()), null);
-    }
-
-    public JsonObject getRecentData() {
-        SQLiteDatabase db = this.getReadableDatabase();
-        JsonObject data = new JsonObject();
-        Cursor c = db.rawQuery("SELECT URL, REQUEST, RESPONSE, TIMESTAMP ORDER BY DKEY DESC LIMIT 1", null);
-        while (c.moveToNext()) {
-            data.addProperty("url", c.getString(c.getColumnIndex("URL")));
-            data.addProperty("request", c.getString(c.getColumnIndex("REQUEST")));
-            data.addProperty("response", c.getString(c.getColumnIndex("RESPONSE")));
-            data.addProperty("timestamp", c.getLong(c.getColumnIndex("TIMESTAMP")));
-        }
-        c.close();
-        return data;
+        return db.rawQuery("SELECT URL, REQUEST, RESPONSE, TIMESTAMP FROM " + KcaPacketStore.getTableName() + " ORDER BY DKEY DESC LIMIT 1", null);
     }
 }
