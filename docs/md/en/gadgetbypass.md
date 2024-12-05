@@ -1,5 +1,7 @@
 ## IP Block Bypass (Non-Japan)
 
+<div class="alert alert-danger" role="alert">You need not to do this since gadget server is now available in all country. (2024/12/03)</div>
+
 Since February 2020, KanColle gadget server is blocking all non-Japanese IP addresses due to DDoS attacks, etc. Therefore, in order to play KanColle normally in countries other than Japan at this point in time, you need to bypass the above blocking.
 
 When IP block is detected, the following notification will appear when you start the game.
