@@ -796,6 +796,34 @@ public class ResourceProcess {
         main_js = buttonPatternMatcher.replaceAll("$1$2$3$2$5");
 
 
+        // workaround for equipment filter menu behavior (2024.12 update)
+        // Original event code patterns of each buttons: ... _onMouseOver ... _onMouseOut ... _onMouseMove ... _onClick ...
+        // use MOUSEDOWN event for _onMouseOver, MOUSEUP event for _onMouseOut and _onClick
+        // main_js = main_js.replaceAll("_bxy\\.EventType\\.MOUSEOVER,_c07\\._onMouseOver", "_bxy.EventType.MOUSEDOWN,_c07._onMouseOver");
+        // main_js = main_js.replaceAll("_bxy\\.EventType\\.MOUSEOUT,_c07\\._onMouseOut", "_bxy.EventType.MOUSEUP,_c07._onMouseOut");
+        // main_js = main_js.replaceAll("_bxy\\.EventType\\.CLICK,_c07\\._onClick", "_bxy.EventType.MOUSEUP,_c07._onClick");
+
+        String constMouseDown = "'MOUSEDOWN'";
+        String constMouseUp = "'MOUSEUP'";
+        String mouseover_on_detect_code = "(" +
+                "\\w+\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[)(\\w+\\(\\w+\\))(\\],\\w+\\[\\w+\\(\\w+\\)\\]\\),"+
+                "\\w+\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[)(\\w+\\(\\w+\\))(\\],\\w+\\[\\w+\\(\\w+\\)\\]\\),"+
+                "\\w+\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\],\\w+\\[\\w+\\(\\w+\\)\\]\\),"+
+                "\\w+\\[\\w+\\(\\w+\\)\\]\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[)(\\w+\\(\\w+\\))(\\],\\w+\\[\\w+\\(\\w+\\)\\]\\),)";
+        Pattern equipmentFilterMousePattern = Pattern.compile(mouseover_on_detect_code);
+        Matcher equipmentFilterPatternMatcher = equipmentFilterMousePattern.matcher(main_js);
+        main_js = equipmentFilterPatternMatcher.replaceAll(String.format("$1%s$3%s$5%s$7", constMouseDown, constMouseUp, constMouseUp));
+
+        String mouseover_off_detect_code = "(" +
+                "this\\[\\w+\\(\\w+\\)\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[)(\\w+\\(\\w+\\))(\\]\\),"+
+                "this\\[\\w+\\(\\w+\\)\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[)(\\w+\\(\\w+\\))(\\]\\),"+
+                "this\\[\\w+\\(\\w+\\)\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\),"+
+                "this\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[)(\\w+\\(\\w+\\))(\\]\\),)";
+        Pattern equipmentFilterMouseOffPattern = Pattern.compile(mouseover_off_detect_code);
+        Matcher equipmentFilterOffPatternMatcher = equipmentFilterMouseOffPattern.matcher(main_js);
+        main_js = equipmentFilterOffPatternMatcher.replaceAll(String.format("$1%s$3%s$5%s$7", constMouseDown, constMouseUp, constMouseUp));
+
+
         // Rename the original "mouseout" and "mouseover" event name to custom names for objects to listen on
         // Reusing original names will cause a lot of conflict issues
         //main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
