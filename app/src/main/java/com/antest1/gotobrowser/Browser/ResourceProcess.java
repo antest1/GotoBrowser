@@ -1,5 +1,6 @@
 package com.antest1.gotobrowser.Browser;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -175,6 +176,7 @@ public class ResourceProcess {
         return state;
     }
 
+    @SuppressLint("ApplySharedPref")
     public WebResourceResponse processWebRequest(Uri source) {
         String url = source.toString();
         int resource_type = getCurrentState(url);
@@ -198,7 +200,10 @@ public class ResourceProcess {
         if (url.contains("ooi_moe_")) return null; // Prevent OOI from caching the server name display
 
         if (url.contains("gadget_html5/js/kcs_cda.js")) {
-            if (!prefAlterGadget && getIpBannedStatus(url)) {;
+            boolean ip_banned = getIpBannedStatus(url);
+            if (prefAlterGadget && !ip_banned) {
+                sharedPref.edit().putBoolean(PREF_ALTER_GADGET, false).commit();
+            } else if (!prefAlterGadget && ip_banned) {;
                 showGadgetIpServerBlockedDialog();
             }
             return getInjectedKcaCdaJs();

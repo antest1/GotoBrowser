@@ -103,10 +103,8 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_MOD_FPS:
                 case PREF_MOD_CRIT:
                 case PREF_LEGACY_RENDERER:
-                    editor.putBoolean(key, false);
-                    break;
                 case PREF_ALTER_GADGET:
-                    editor.putBoolean(key, !Locale.getDefault().getCountry().equals("JP"));
+                    editor.putBoolean(key, false);
                     break;
                 case PREF_ALTER_METHOD:
                     editor.putString(key, "1");
