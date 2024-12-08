@@ -781,55 +781,12 @@ public class ResourceProcess {
             main_js = main_js.replaceAll(_howl_fn, "add_bgm");
         }
 
-        // handling port button behavior (sally/others, 2024.11 update)
-        // Original event code patterns of each buttons: ... _onMouseOver ... _onMouseOut ... _onMouseDown ... _onMouseUp ...
-        // To avoid the mouseUp event, replace _onMouseUp with _onMouseDown
-        // main_js = main_js.replaceAll("_.EventType\\.MOUSEUP,this\\._onMouseUp", "_.EventType.MOUSEDOWN,this._onMouseUp");
-        // main_js = main_js.replaceAll("c.EventType\\.MOUSEUP,this\\._onMouseUp", "c.EventType.MOUSEDOWN,this._onMouseUp");
-        String mouseup_detect_code = "(=!0x0," +
-                "this\\[\\w+\\(\\w+\\)]\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\],this\\[\\w+\\(\\w+\\)\\]\\),"+
-                "this\\[\\w+\\(\\w+\\)]\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\],this\\[\\w+\\(\\w+\\)\\]\\),"+
-                "this\\[\\w+\\(\\w+\\)]\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\])(\\[\\w+\\(\\w+\\)\\])(,this\\[\\w+\\(\\w+\\)\\]\\),"+
-                "this\\[\\w+\\(\\w+\\)]\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\])(\\[\\w+\\(\\w+\\)\\])(,this\\[\\w+\\(\\w+\\)\\]\\))";
-        Pattern buttonMousePattern = Pattern.compile(mouseup_detect_code);
-        Matcher buttonPatternMatcher = buttonMousePattern.matcher(main_js);
-        main_js = buttonPatternMatcher.replaceAll("$1$2$3$2$5");
-
-
-        // workaround for equipment filter menu behavior (2024.12 update)
-        // Original event code patterns of each buttons: ... _onMouseOver ... _onMouseOut ... _onMouseMove ... _onClick ...
-        // use MOUSEDOWN event for _onMouseOver, MOUSEUP event for _onMouseOut and _onClick
-        // main_js = main_js.replaceAll("_bxy\\.EventType\\.MOUSEOVER,_c07\\._onMouseOver", "_bxy.EventType.MOUSEDOWN,_c07._onMouseOver");
-        // main_js = main_js.replaceAll("_bxy\\.EventType\\.MOUSEOUT,_c07\\._onMouseOut", "_bxy.EventType.MOUSEUP,_c07._onMouseOut");
-        // main_js = main_js.replaceAll("_bxy\\.EventType\\.CLICK,_c07\\._onClick", "_bxy.EventType.MOUSEUP,_c07._onClick");
-
-        String constMouseDown = "'MOUSEDOWN'";
-        String constMouseUp = "'MOUSEUP'";
-        String mouseover_on_detect_code = "(" +
-                "\\w+\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[)(\\w+\\(\\w+\\))(\\],\\w+\\[\\w+\\(\\w+\\)\\]\\),"+
-                "\\w+\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[)(\\w+\\(\\w+\\))(\\],\\w+\\[\\w+\\(\\w+\\)\\]\\),"+
-                "\\w+\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\],\\w+\\[\\w+\\(\\w+\\)\\]\\),"+
-                "\\w+\\[\\w+\\(\\w+\\)\\]\\['on'\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[)(\\w+\\(\\w+\\))(\\],\\w+\\[\\w+\\(\\w+\\)\\]\\),)";
-        Pattern equipmentFilterMousePattern = Pattern.compile(mouseover_on_detect_code);
-        Matcher equipmentFilterPatternMatcher = equipmentFilterMousePattern.matcher(main_js);
-        main_js = equipmentFilterPatternMatcher.replaceAll(String.format("$1%s$3%s$5%s$7", constMouseDown, constMouseUp, constMouseUp));
-
-        String mouseover_off_detect_code = "(" +
-                "this\\[\\w+\\(\\w+\\)\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[)(\\w+\\(\\w+\\))(\\]\\),"+
-                "this\\[\\w+\\(\\w+\\)\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[)(\\w+\\(\\w+\\))(\\]\\),"+
-                "this\\[\\w+\\(\\w+\\)\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\),"+
-                "this\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+\\[\\w+\\(\\w+\\)\\]\\[)(\\w+\\(\\w+\\))(\\]\\),)";
-        Pattern equipmentFilterMouseOffPattern = Pattern.compile(mouseover_off_detect_code);
-        Matcher equipmentFilterOffPatternMatcher = equipmentFilterMouseOffPattern.matcher(main_js);
-        main_js = equipmentFilterOffPatternMatcher.replaceAll(String.format("$1%s$3%s$5%s$7", constMouseDown, constMouseUp, constMouseUp));
-
-
         // Rename the original "mouseout" and "mouseover" event name to custom names for objects to listen on
         // Reusing original names will cause a lot of conflict issues
         //main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
         //main_js = main_js.replace("out:n.pointer?\"pointerout\":\"mouseout\"", "out:\"touchout\"");
-        main_js = main_js.replaceFirst("'?over'?:[^,;=\\?:]{0,50}\\?[^,;=\\?:}]{0,50}:[^,;=\\?:}]{0,50},'?out'?:[^,;=\\?:]{0,50}\\?[^,;=\\?:}]{0,50}:[^,;=\\?:}]{0,50}",
-                "'over':'touchover','out':'touchout'");
+        main_js = main_js.replaceFirst("('(out|over|down|move|up)'?:[^,;=}]{20,150},?){5,}",
+                "'down': 'touchstart',\n" + "'move': 'touchmove',\n" + "'up': 'touchend',\n" + "'over': 'touchover',\n" + "'out': 'touchout'");
 
         main_js = "var gb_h=null;\nfunction add_bgm(b){b.onend=function(){(global_mute||gb_h.volume()==0)&&(gb_h.unload(),console.log('unload'))};global_mute&&(b.autoplay=false);gb_h=new Howl(b);return gb_h;}\n"
 
@@ -839,53 +796,58 @@ public class ResourceProcess {
                 + main_js +
 
                 // Simulate mouse hover effects by dispatching new custom events "touchover" and "touchout"
-                "function patchInteractionManager () {\n" +
-                "  var proto = PIXI.interaction.InteractionManager.prototype;\n" +
+                "function patchInteractionManager() {\n" +
+                "    var proto = PIXI.interaction.InteractionManager.prototype;\n" +
+                "    proto.update = mobileUpdate;\n" +
                 "\n" +
-                "  function extendMethod (method, extFn) {\n" +
-                "    var old = proto[method];\n" +
-                "    proto[method] = function () {\n" +
-                "      old.call(this, ...arguments);\n" +
-                "      extFn.call(this, ...arguments);\n" +
-                "    };\n" +
-                "  }\n" +
-                "  proto.update = mobileUpdate;\n" +
-                "\n" +
-                "  function mobileUpdate(deltaTime) {\n" +
-                "    if (!this.interactionDOMElement) {\n" +
-                "      return;\n" +
+                "    function extendMethod(method, extFn) {\n" +
+                "        var old = proto[method];\n" +
+                "        proto[method] = function () {\n" +
+                "            old.call(this, ...arguments);\n" +
+                "            extFn.call(this, ...arguments);\n" +
+                "        };\n" +
                 "    }\n" +
-                // Only trigger "touchout" when there is another object start "touchover", do nothing when "touchend"
+                "\n" +
+                "    extendMethod('onPointerDown', function (displayObject, hit) {\n" +
+                "        if (this.eventData.data)\n" +
+                "            this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
+                "    });\n" +
+                "\n" +
+                "    extendMethod('onPointerUp', function (displayObject, hit) {\n" +
+                "        if (this.eventData.data)\n" +
+                "            this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
+                "    });\n" +
+                "\n" +
+                "    function mobileUpdate(deltaTime) {\n" +
+                // Fixed interactionFrequency = 4ms
+                "        this._deltaTime += deltaTime;\n" +
+                "        if (this._deltaTime < 4)\n" +
+                "            return;\n" +
+                "        this._deltaTime = 0;\n" +
+                "        if (!this.interactionDOMElement)\n" +
+                "            return;\n" +
+                "        if (!this.eventData || !this.eventData.data)  return;\n" +
+                "        if (this.eventData.data && (this.eventData.type == 'touchmove' || this.eventData.type == 'touchend' || this.eventData.type == 'tap'))\n" +
+                "            this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
+                "    }\n" +
+                "\n" +
+                "    proto.processTouchOverOut = function (interactionEvent, displayObject, hit) {\n" +
+                "        if (!interactionEvent.data)  return;\n" +
+                "        if (hit) {\n" +
+                "            if (!displayObject.___over && displayObject._events.touchover) {\n" +
+                "                this._hoverObject = displayObject;\n" +
+                "                displayObject.___over = true;\n" +
+                "                proto.dispatchEvent(displayObject, 'touchover', interactionEvent);\n" +
+                "            }\n" +
+                "        } else if (displayObject.___over && displayObject._events.touchover && \n" +
+                // Only trigger "touchout" when user starts touching another object or empty space
                 // So that alert bubbles persist after a simple tap, do not disappear when the finger leaves
-                "    if (this.eventData.data && (this.eventData.type == 'touchmove' || this.eventData.type == 'touchstart')) {\n" +
-                "      window.__eventData = this.eventData;\n" +
-                "      this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
-                "    }\n" +
-                "  }\n" +
-                "\n" +
-                "  extendMethod('processTouchMove', function(displayObject, hit) {\n" +
-                "      this.processTouchOverOut('processTouchMove', displayObject, hit);\n" +
-                "  });\n" +
-                "  extendMethod('processTouchStart', function(displayObject, hit) {\n" +
-                "      this.processTouchOverOut('processTouchStart', displayObject, hit);\n" +
-                "  });\n" +
-                "\n" +
-                "  proto.processTouchOverOut = function (interactionEvent, displayObject, hit) {\n" +
-                "    if(hit) {\n" +
-                "      if(!displayObject.__over && displayObject._events.touchover) {\n" +
-                "        if (displayObject.parent._onClickAll2) return;\n" +
-                "        displayObject.__over = true;\n" +
-                "        proto.dispatchEvent( displayObject, 'touchover', window.__eventData);\n" +
-                "      }\n" +
-                "    } else {\n" +
-                // Only trigger "touchout" when user starts touching another object
-                "        if(displayObject.__over && displayObject._events.touchover && interactionEvent.target != displayObject) {\n" +
-                "            displayObject.__over = false;\n" +
-                "            proto.dispatchEvent( displayObject, 'touchout', window.__eventData);\n" +
+                "            ((this._hoverObject && this._hoverObject != displayObject) || !interactionEvent.target)) {\n" +
+                "            displayObject.___over = false;\n" +
+                "            proto.dispatchEvent(displayObject, 'touchout', interactionEvent);\n" +
                 "        }\n" +
-                "    }\n" +
-                "  };\n" +
-                "}\n" +
+                "    };\n" +
+                "}" +
                 "patchInteractionManager();"
                 + MUTE_LISTEN
                 + CAPTURE_LISTEN + "\n"
