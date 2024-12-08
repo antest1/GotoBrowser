@@ -14,7 +14,3 @@
 ##### Overseas Blocking Issues
 
 - If you see the DMM region-restricted page at startup, clear the cache on the main screen and try again.
-
-##### S-Pen Related Issues (Samsung Galaxy)
-
-- Due to the limitation of web browser games, S Pen input is not supported in GotoBrowser.
