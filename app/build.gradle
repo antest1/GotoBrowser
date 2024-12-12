@@ -5,9 +5,9 @@ apply plugin: 'com.google.firebase.crashlytics'
 android {
     defaultConfig {
         applicationId "com.antest1.gotobrowser"
-        minSdkVersion 19
-        compileSdk 33
-        targetSdkVersion 33
+        minSdkVersion 21
+        compileSdk 34
+        targetSdkVersion 34
         versionCode 75
         versionName "2.13-rev3"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
@@ -22,28 +22,28 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     namespace 'com.antest1.gotobrowser'
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.squareup.okhttp3:okhttp:4.10.0'
-    implementation 'com.squareup.retrofit2:retrofit:2.5.0'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
-    implementation 'com.google.firebase:firebase-crashlytics:18.4.3'
-    implementation 'com.google.firebase:firebase-analytics:21.3.0'
+    implementation 'com.google.firebase:firebase-crashlytics:19.3.0'
+    implementation 'com.google.firebase:firebase-analytics:22.1.2'
     implementation 'net.lingala.zip4j:zip4j:2.11.1'
 
-    implementation 'androidx.browser:browser:1.5.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.preference:preference:1.2.0'
-    implementation 'androidx.webkit:webkit:1.7.0'
-    implementation "com.google.android.material:material:1.9.0"
+    implementation 'androidx.browser:browser:1.8.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
+    implementation 'androidx.preference:preference:1.2.1'
+    implementation 'androidx.webkit:webkit:1.12.1'
+    implementation "com.google.android.material:material:1.12.0"
     implementation 'com.google.code.gson:gson:2.8.9'
     testImplementation 'junit:junit:4.12'
 }

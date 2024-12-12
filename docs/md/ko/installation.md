@@ -2,7 +2,7 @@
 
 ##### 요구 사양
 
-- 최소: Android 4.4 (Kitkat)
+- 최소: Android 5.0 (Lollipop)
 - 권장: Android 8.0 (Oreo) 이상
 
 

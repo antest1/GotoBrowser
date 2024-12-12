@@ -2,7 +2,7 @@
 
 ##### 要求仕様
 
-- 最小: Android 4.4 (Kitkat)
+- 最小: Android 5.0 (Lollipop)
 - 推奨: Android 8.0 (Oreo) 以上
 
 

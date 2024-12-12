@@ -2,7 +2,7 @@
 
 ##### Requirements
 
-- Minimum: Android 4.4 (Kitkat)
+- Minimum: Android 5.0 (Lollipop)
 - Recommended: Android 8.0 (Oreo) or later
 
 
