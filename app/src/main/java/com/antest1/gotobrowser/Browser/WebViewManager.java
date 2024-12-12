@@ -370,9 +370,6 @@ public class WebViewManager {
                 }
                 url_list.add(connector_url_default);
                 url_list.add(connector_url);
-            } else if (CONN_NITRABBIT.equals(pref_connector)) {
-                url_list.add(URL_NITRABBIT);
-                url_list.add(sharedPref.getString(PREF_LATEST_URL, URL_NITRABBIT));
             }
             return url_list;
         } else {

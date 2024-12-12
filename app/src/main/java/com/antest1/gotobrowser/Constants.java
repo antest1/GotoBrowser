@@ -82,13 +82,10 @@ public class Constants {
     public static final String CONN_DMM = "DMM direct";
     public static final String CONN_KANSU = "kancolle.su";
     public static final String CONN_OOI = "ooi.moe";
-    public static final String CONN_NITRABBIT = "nitrabbit";
 
     public static final String URL_DMM = "http://www.dmm.com/netgame/social/-/gadgets/=/app_id=854854/";
     public static final String URL_OOI = "https://ooi.moe/";
     public static final String URL_KANSU = "http://kancolle.su/";
-    public static final String URL_NITRABBIT = "http://connector.usagi.space/kancolle/";
-
     public static final String[] URL_LIST = {URL_DMM, URL_KANSU, URL_OOI};
 
     public static final String URL_DMM_LOGIN = "www.dmm.com/my/-/login/";
@@ -128,32 +125,8 @@ public class Constants {
             "/uikit"
     };
 
-    public static final String[] KANCOLLE_SERVER_LIST = {
-            "203.104.209.71",
-            "203.104.209.87",
-            "125.6.184.215",
-            "203.104.209.183",
-            "203.104.209.150",
-            "203.104.209.134",
-            "203.104.209.167",
-            "203.104.209.199",
-            "125.6.189.7",
-            "125.6.189.39",
-            "125.6.189.71",
-            "125.6.189.103",
-            "125.6.189.135",
-            "125.6.189.167",
-            "125.6.189.215",
-            "125.6.189.247",
-            "203.104.209.23",
-            "203.104.209.39",
-            "203.104.209.55",
-            "203.104.209.102"
-    };
-
-    public static final String GADGET_URL = "http://203.104.209.7/";
+    public static final String GADGET_URL = "http://w00g.kancolle-server.com/";
     public static final String DEFAULT_ALTER_GADGET_URL = "https://kcwiki.github.io/cache/";
     public static final String APP_UI_HELP_VER = "20211002";
-
     public static final String KCANOTIFY_PACKAGE_NAME = "com.antest1.kcanotify";
 }

@@ -1,5 +1,6 @@
 package com.antest1.gotobrowser.Notification;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -7,10 +8,12 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -38,22 +41,25 @@ public class ScreenshotNotification {
     }
 
     public void showNotification(Bitmap bitmap, Uri uri) {
-        Intent intent = new Intent();
-        intent.setAction(android.content.Intent.ACTION_VIEW);
-        intent.setDataAndType(uri, "image/png");
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent contentIntent = PendingIntent.getActivity(activity, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        if (activity != null && ActivityCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+            Intent intent = new Intent();
+            intent.setAction(android.content.Intent.ACTION_VIEW);
+            intent.setDataAndType(uri, "image/png");
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            PendingIntent contentIntent = PendingIntent.getActivity(activity, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        Notification notification = new NotificationCompat.Builder(activity, NOTI_CHANNEL_SCREENSHOT)
-                .setSmallIcon(R.drawable.ic_noti_screenshot)
-                .setContentTitle(activity.getString(R.string.noti_screenshot_title))
-                .setContentText(activity.getString(R.string.noti_screenshot_description))
-                .setContentIntent(contentIntent)
-                .setLargeIcon(bitmap)
-                .setStyle(new NotificationCompat.BigPictureStyle()
-                        .bigPicture(bitmap)
-                        .bigLargeIcon(null))
-                .build();
-        notificationManager.notify(SCREENSHOT, notification);
+            Notification notification = new NotificationCompat.Builder(activity, NOTI_CHANNEL_SCREENSHOT)
+                    .setSmallIcon(R.drawable.ic_noti_screenshot)
+                    .setContentTitle(activity.getString(R.string.noti_screenshot_title))
+                    .setContentText(activity.getString(R.string.noti_screenshot_description))
+                    .setContentIntent(contentIntent)
+                    .setLargeIcon(bitmap)
+                    .setStyle(new NotificationCompat.BigPictureStyle()
+                            .bigPicture(bitmap)
+                            .bigLargeIcon((Bitmap) null))
+                    .build();
+
+            notificationManager.notify(SCREENSHOT, notification);
+        }
     }
 }
