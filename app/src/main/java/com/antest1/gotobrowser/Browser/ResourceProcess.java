@@ -835,6 +835,7 @@ public class ResourceProcess {
                 "        if (!interactionEvent.data)  return;\n" +
                 "        if (hit) {\n" +
                 "            if (!displayObject.___over && displayObject._events.touchover) {\n" +
+                "                if (displayObject.parent._onClickAll2) return;\n" +
                 "                this._hoverObject = displayObject;\n" +
                 "                displayObject.___over = true;\n" +
                 "                proto.dispatchEvent(displayObject, 'touchover', interactionEvent);\n" +
