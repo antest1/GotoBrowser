@@ -10,8 +10,8 @@ This application does not modify any incoming/outgoing packet when communicating
 
 Requirement
 -------
-- Minimum: Android 4.4 (Kitkat)
-- Recommended: Android 5.0 (Lollipop) or later
+- Minimum: Android 5.0 (Lollipop)
+- Recommended: Android 8.0 (Oreo) or later
 
 Download
 -------
@@ -63,7 +63,7 @@ License
 -------
 [GNU General Public License version 3](http://www.gnu.org/licenses/gpl.txt)
 
-Copyright (c) 2019 antest1(IE10)
+Copyright (c) 2019-2025 antest1(IE10)
 
 All rights reserved
 
