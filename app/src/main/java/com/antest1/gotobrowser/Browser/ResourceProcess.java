@@ -786,7 +786,7 @@ public class ResourceProcess {
         //main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
         //main_js = main_js.replace("out:n.pointer?\"pointerout\":\"mouseout\"", "out:\"touchout\"");
         main_js = main_js.replaceFirst("('(out|over|down|move|up)'?:[^,;=}]{20,150},?){5,}",
-                "'down': 'touchstart',\n" + "'move': 'touchmove',\n" + "'up': 'touchend',\n" + "'over': 'touchover',\n" + "'out': 'touchout'");
+                "down:void 0!==document.ontouchstart?'touchstart':'mousedown',\n" + "move:void 0!==document.ontouchstart?'touchmove':'mousemove',\n" + "up:void 0!==document.ontouchstart?'touchend':'mouseup',\n" + "over:'touchover',\n" + "out:'touchout'");
 
         main_js = "var gb_h=null;\nfunction add_bgm(b){b.onend=function(){(global_mute||gb_h.volume()==0)&&(gb_h.unload(),console.log('unload'))};global_mute&&(b.autoplay=false);gb_h=new Howl(b);return gb_h;}\n"
 

@@ -122,6 +122,9 @@ public class WebViewManager {
                         webview.evaluateJavascript(ADD_VIEWPORT_META, null);
                         webview.getSettings().setBuiltInZoomControls(true);
                         webview.getSettings().setDisplayZoomControls(false);
+                        if (sharedPref.getBoolean(PREF_ADJUSTMENT, false)) {
+                            webview.evaluateJavascript(ADJUST_JS, null);
+                        }
                     }
                 }
             }
@@ -147,12 +150,10 @@ public class WebViewManager {
 
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    if (is_kcbrowser_mode) {
-                        Uri source = request.getUrl();
-                        WebResourceResponse response = resourceProcess.processWebRequest(source);
-                        if (response != null) return response;
-                    }
+                if (is_kcbrowser_mode) {
+                    Uri source = request.getUrl();
+                    WebResourceResponse response = resourceProcess.processWebRequest(source);
+                    if (response != null) return response;
                 }
                 return super.shouldInterceptRequest(view, request);
             }
@@ -170,13 +171,9 @@ public class WebViewManager {
     }
 
     public static void enableBrowserCookie(WebViewL webview) {
-        if (Build.VERSION.SDK_INT >= 21) {
-            webview.getSettings().setMixedContentMode(WebSettings
-                    .MIXED_CONTENT_ALWAYS_ALLOW);
-            CookieManager.getInstance().setAcceptThirdPartyCookies(webview, true);
-        } else {
-            CookieManager.getInstance().setAcceptCookie(true);
-        }
+        webview.getSettings().setMixedContentMode(WebSettings
+                .MIXED_CONTENT_ALWAYS_ALLOW);
+        CookieManager.getInstance().setAcceptThirdPartyCookies(webview, true);
     }
 
 
@@ -193,9 +190,7 @@ public class WebViewManager {
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
                 final WebViewL popupWebView = new WebViewL(activity);
                 ImageView closeButton = activity.findViewById(R.id.dmm_browser_close);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    CookieManager.getInstance().setAcceptThirdPartyCookies(popupWebView, true);
-                }
+                CookieManager.getInstance().setAcceptThirdPartyCookies(popupWebView, true);
                 closeButton.setVisibility(View.VISIBLE);
 
                 setPopupWebViewSetting(popupWebView);

@@ -717,7 +717,7 @@ public class BrowserActivity extends AppCompatActivity {
     public void onPictureInPictureModeChanged(boolean newMode, Configuration newConfig) {
         super.onPictureInPictureModeChanged(newMode, newConfig);
         isInPictureInPictureMode = newMode;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP || !isStartedFlag) {
+        if (!isStartedFlag) {
             return;
         }
         boolean adjust_layout = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
