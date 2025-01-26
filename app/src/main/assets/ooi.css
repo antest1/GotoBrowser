@@ -2,6 +2,7 @@ body {
 	overflow-y: hidden;
 	background-color: #30384A;
 	color: #eeeeee;
+	margin: 0px;
 }
 
 a:link {
@@ -84,9 +85,4 @@ z-index:-1;
 
 #ooi-page, #ooi-content, #ooi-game {
    margin: 0; padding: 0;
-}
-
-#ooi-game {
-    margin-left: -8px;
-    margin-top: -8px;
 }

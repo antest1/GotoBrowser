@@ -110,6 +110,8 @@ public class Constants {
     public static final String AUTOCOMPLETE_DMM = "function v(e,t){let o=Object.getOwnPropertyDescriptor(e,\"value\").set,s=Object.getPrototypeOf(e),l=Object.getOwnPropertyDescriptor(s,\"value\").set;o&&o!==l?l.call(e,t):o.call(e,t)}v(document.forms.loginForm.elements.login_id,\"%s\"),document.forms.loginForm.elements.login_id.dispatchEvent(new Event(\"input\",{bubbles:!0})),v(document.forms.loginForm.elements.password,\"%s\"),document.forms.loginForm.elements.password.dispatchEvent(new Event(\"input\",{bubbles:!0}));";
     public static final String AUTOCOMPLETE_OOI = "$('input[name=\"login_id\"]').val(\"%s\");$('input[name=\"password\"]').val(\"%s\");";
 
+    public static final String ADJUST_JS = "((e,t)=>{let n=0;function d(){document.body.style.transform=`scale(${window.innerWidth/1200})`,document.body.style.transformOrigin='0 0',document.body.style.width='1200px'}window.addEventListener('load',()=>{clearTimeout(n),n=setTimeout(d,10)}),window.addEventListener('resize',()=>{clearTimeout(n),n=setTimeout(d,10)}),d()})(document,window);";
+
     public static final String GITHUBAPI_ROOT = "https://api.github.com/";
     public static final String SUBTITLE_ROOT = "https://raw.githubusercontent.com/";
     public static final String SUBTITLE_SIZE_PATH = "src/data/quotes_size.json";
