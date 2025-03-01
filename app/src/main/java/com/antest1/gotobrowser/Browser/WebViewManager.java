@@ -226,7 +226,7 @@ public class WebViewManager {
         String cookie = getDmmCookie();
         Log.e("GOTO", "cookie - " + cookie);
         // Login
-        if (url.contains(URL_DMM_FOREIGN)) {
+        if (url.contains(URL_DMM_FOREIGN) || url.contains(URL_DMM_FOREIGN_2)) {
             webview.evaluateJavascript(cookie, null);
             webview.evaluateJavascript("location.href='".concat(URL_DMM).concat("';"), null);
         }

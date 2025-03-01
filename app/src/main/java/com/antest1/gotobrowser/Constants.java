@@ -91,6 +91,7 @@ public class Constants {
     public static final String URL_DMM_LOGIN = "www.dmm.com/my/-/login/";
     public static final String URL_DMM_LOGIN_2 = "accounts.dmm.com/service/login/password";
     public static final String URL_DMM_FOREIGN = "www.dmm.com/netgame/foreign";
+    public static final String URL_DMM_FOREIGN_2 = "special.dmm.com/not-available-in-your-region";
     public static final String URL_OOI_1 = "ooi.moe/kancolle";
     public static final String URL_KANSU_1 = "kancolle.su/kancolle";
     public static final String URL_DMM_LOGOUT = "https://www.dmm.com/my/-/login/logout/=/path=Sg9VTQFXDFcXFl5bWlcKGExKUVdUXgFNEU0KSVMVR28MBQ0BUwJZBwxK";
