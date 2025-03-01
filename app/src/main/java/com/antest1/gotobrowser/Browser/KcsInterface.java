@@ -74,7 +74,7 @@ public class KcsInterface {
             JsonObject response_obj = JsonParser.parseString(response).getAsJsonObject();
             if (url.contains("api_start2") && response_obj != null) {
                 JsonObject api_data = response_obj.getAsJsonObject("api_data");
-                if (api_data != null) {
+                if (api_data != null && api_data.has("api_mst_shipgraph")) {
                     SubtitleProviderUtils.getCurrentSubtitleProvider().loadKcApiData(api_data);
                 }
             }

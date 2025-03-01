@@ -403,7 +403,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             boolean is_npc = shipId.equals("9999");
             boolean is_title = shipId.contains("titlecall");
             boolean is_special = is_abyssal || is_npc || is_title;
-            if (quoteData.size() == 0 || !(is_special || quoteData.has(shipId))) {
+            if (quoteData == null || quoteData.size() == 0 || !(is_special || quoteData.has(shipId))) {
                 return voicedata_base;
             }
 

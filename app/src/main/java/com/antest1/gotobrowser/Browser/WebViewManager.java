@@ -316,6 +316,7 @@ public class WebViewManager {
     }
 
     public static String replaceEndpoint(String url, String endpoint) {
+        if (!endpoint.endsWith("/")) endpoint += "/";
         return url.replace(GADGET_URL, endpoint);
     }
 

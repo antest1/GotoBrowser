@@ -916,7 +916,7 @@ public class ResourceProcess {
             Log.e("GOTO-F", "patchImage-desc: " + metadataFile.getAbsolutePath());
             if (!metadataFile.exists()) {
                 Bitmap ogImage = BitmapFactory.decodeFile(patchFile.concat("/original.png"));
-                if (KcEnUtils.bitmapEqual(ogSpritesheet, ogImage)) {
+                if (ogSpritesheet != null && ogImage != null && KcEnUtils.bitmapEqual(ogSpritesheet, ogImage)) {
                     File source = new File(patchFile.concat("/patched.png"));
                     try {
                         dest.getParentFile().mkdirs();
