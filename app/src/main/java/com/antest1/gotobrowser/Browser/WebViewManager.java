@@ -39,6 +39,7 @@ import com.antest1.gotobrowser.R;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -133,19 +134,9 @@ public class WebViewManager {
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
                 try {
                     view.stopLoading();
-                } catch (Exception e) { }
+                } catch (Exception ignored) { }
                 activity.showWebkitErrorDialog(errorCode, description, failingUrl);
                 super.onReceivedError(view, errorCode, description, failingUrl);
-            }
-
-            @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
-                if (is_kcbrowser_mode) {
-                    Uri source = Uri.parse(url);
-                    WebResourceResponse response = resourceProcess.processWebRequest(source);
-                    if (response != null) return response;
-                }
-                return super.shouldInterceptRequest(view, url);
             }
 
             @Override
@@ -274,12 +265,10 @@ public class WebViewManager {
     public void logoutGame(WebViewL webview) {
         logoutFlag = true;
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
-        if (CONN_DMM.equals(pref_connector)) {
-            webview.loadUrl(URL_DMM_LOGOUT);
-        } else if (CONN_OOI.equals(pref_connector)) {
-            webview.loadUrl(URL_OOI_LOGOUT);
-        } else if (CONN_KANSU.equals(pref_connector)) {
-            webview.loadUrl(URL_KANSU_LOGOUT);
+        switch (pref_connector) {
+            case CONN_DMM -> webview.loadUrl(URL_DMM_LOGOUT);
+            case CONN_OOI -> webview.loadUrl(URL_OOI_LOGOUT);
+            case CONN_KANSU -> webview.loadUrl(URL_KANSU_LOGOUT);
         }
     }
 
@@ -298,17 +287,10 @@ public class WebViewManager {
         } else {
             String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
             if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
-                String postdata = "";
-                try {
-                    int connect_mode = connector_url_default.equals(URL_OOI) ? 1 : 1;
-                    postdata = String.format(Locale.US, "login_id=%s&password=%s&mode=%d",
-                            URLEncoder.encode(login_id, "utf-8"),
-                            URLEncoder.encode(login_password, "utf-8"),
-                            connect_mode);
-                    webview.postUrl(connector_url, postdata.getBytes());
-                } catch (UnsupportedEncodingException e) {
-                    KcUtils.reportException(e);
-                }
+                int connect_mode = 1;
+                String post_data = String.format(Locale.US, "login_id=%s&password=%s&mode=%d",
+                        encodeText(login_id), encodeText(login_password), connect_mode);
+                webview.postUrl(connector_url, post_data.getBytes());
             } else {
                 webview.loadUrl(connector_url_default);
             }
@@ -326,9 +308,7 @@ public class WebViewManager {
                     .addProxyRule(endpoint)
                     .addBypassRule("*com").addBypassRule("*jp")
                     .addDirect().build();
-            Executor executor = command -> {
-                command.run();
-            };
+            Executor executor = Runnable::run;
             try {
                 ProxyController.getInstance().setProxyOverride(proxyConfig, executor, onSuccessListener);
             } catch (IllegalArgumentException exception) {
@@ -389,6 +369,18 @@ public class WebViewManager {
             webview.evaluateJavascript(String.format(Locale.US, CAPTURE_SEND_DMM), callback);
         } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, CAPTURE_SEND_OOI), callback);
+        }
+    }
+
+    private String encodeText(String text) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return URLEncoder.encode(text, StandardCharsets.UTF_8);
+        } else {
+            try {
+                return URLEncoder.encode(text, "utf-8");
+            } catch (UnsupportedEncodingException e) {
+                return text;
+            }
         }
     }
 

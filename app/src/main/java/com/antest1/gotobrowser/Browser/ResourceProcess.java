@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -112,16 +113,13 @@ public class ResourceProcess {
         return (state & RES_KCSAPI) > 0;
     }
 
-    private BrowserActivity activity;
-    private Context context;
-    private VersionDatabase versionTable;
+    private final BrowserActivity activity;
+    private final Context context;
+    private final VersionDatabase versionTable;
     private final OkHttpClient resourceClient = new OkHttpClient();
     SharedPreferences sharedPref;
 
-    private List<String> titlePath = new ArrayList<>();
-    private List<File> titleFiles = new ArrayList<>();
-
-    private TextView subtitleText;
+    private final TextView subtitleText;
     private final Handler shipVoiceHandler = new Handler();
     private final Handler clearSubHandler = new Handler();
 
@@ -180,7 +178,7 @@ public class ResourceProcess {
     public WebResourceResponse processWebRequest(Uri source) {
         String url = source.toString();
         int resource_type = getCurrentState(url);
-        if (resource_type > 0) Log.e("GOTO", url + " - " + String.valueOf(resource_type));
+        if (resource_type > 0) Log.e("GOTO", url + " - " + resource_type);
         boolean is_image = ResourceProcess.isImage(resource_type);
         boolean is_audio = ResourceProcess.isAudio(resource_type);
         boolean is_json = ResourceProcess.isJson(resource_type);
@@ -203,7 +201,7 @@ public class ResourceProcess {
             boolean ip_banned = getIpBannedStatus(url);
             if (prefAlterGadget && !ip_banned) {
                 sharedPref.edit().putBoolean(PREF_ALTER_GADGET, false).commit();
-            } else if (!prefAlterGadget && ip_banned) {;
+            } else if (!prefAlterGadget && ip_banned) {
                 showGadgetIpServerBlockedDialog();
             }
             return getInjectedKcaCdaJs();
@@ -215,10 +213,7 @@ public class ResourceProcess {
 
         try {
             if (!path.isEmpty() && !filename.isEmpty()) {
-                Log.e("GOTO", source.getPath());
                 if (filename.equals("version.json") || filename.contains("index.php")) {
-                    titlePath.clear();
-                    titleFiles.clear();
                     return null;
                 }
 
@@ -314,11 +309,16 @@ public class ResourceProcess {
         }
 
         String version_tb = versionTable.getValue(path);
+        Date parsed = null;
         try {
-            Date parsed = formatter.parse(version_tb);
-            update_flag = parsed.compareTo(new Date()) < 0;
-        } catch (Exception e){
+            parsed = formatter.parse(version_tb);
+        } catch (ParseException e) {
             Log.e("GOTO-E", getStringFromException(e));
+        }
+
+        if (parsed != null) {
+            update_flag = parsed.compareTo(new Date()) < 0;
+        } else {
             if (version_tb.contains(":")) versionTable.putDefaultValue(path);
             update_flag = !version_tb.equals(version);
         }
@@ -352,7 +352,7 @@ public class ResourceProcess {
                 Log.e("GOTO", "return null: " + path + " " + version);
                 return promptForRetry(file_info, update_info, resource_type);
             } else {
-                if (version.length() > 0 && !VersionDatabase.isDefaultValue(version)) {
+                if (!version.isEmpty() && !VersionDatabase.isDefaultValue(version)) {
                     if (result.equals("304")) {
                         Log.e("GOTO", "load 304 resource: " + path + " " + version);
                     } else {
@@ -421,12 +421,10 @@ public class ResourceProcess {
     private void showGadgetIpServerBlockedDialog() {
         activity.runOnUiThread(() -> {
             DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
-                switch (which) {
-                    case DialogInterface.BUTTON_POSITIVE:
-                        Intent intent = new Intent(activity, EntranceActivity.class);
-                        activity.startActivity(intent);
-                        activity.finish();
-                        break;
+                if (which == DialogInterface.BUTTON_POSITIVE) {
+                    Intent intent = new Intent(activity, EntranceActivity.class);
+                    activity.startActivity(intent);
+                    activity.finish();
                 }
                 dialog.dismiss();
             };
@@ -452,19 +450,19 @@ public class ResourceProcess {
         activity.runOnUiThread(() -> {
             DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
                 switch (which) {
-                    case DialogInterface.BUTTON_NEGATIVE: // no and never ask again
-                        // User give up and it is ok to stop loading
-                        // And change preference to never ask again
-                        sharedPref.edit().putBoolean(PREF_DOWNLOAD_RETRY, false).apply();
-                    default:
-                    case DialogInterface.BUTTON_NEUTRAL: // no
-                        // User give up and it is ok to stop loading
-                        cancelled.set(true);
                     case DialogInterface.BUTTON_POSITIVE: // yes
                         // User allow retry recovery
                         // We can proceed to next iteration
                         retryReady.countDown();
                         break;
+                    case DialogInterface.BUTTON_NEGATIVE: // no and never ask again
+                        // User give up and it is ok to stop loading
+                        // And change preference to never ask again
+                        sharedPref.edit().putBoolean(PREF_DOWNLOAD_RETRY, false).apply();
+                    case DialogInterface.BUTTON_NEUTRAL: // no
+                    default:
+                        // User give up and it is ok to stop loading
+                        cancelled.set(true);
                 }
                 dialog.dismiss();
             };
@@ -496,12 +494,13 @@ public class ResourceProcess {
         if (cancelled.get()) {
             return null;
         } else {
-            if (ResourceProcess.isImage(resource_type) || ResourceProcess.isAudio(resource_type)) {
+            if (ResourceProcess.isImage(resource_type)) {
                 return processImageDataResource(file_info, update_info, resource_type);
-            } else {
+            } else if (ResourceProcess.isAudio(resource_type)) {
                 return processAudioFile(file_info, update_info, resource_type);
             }
         }
+        return null;
     }
 
     private WebResourceResponse processScriptFile(JsonObject file_info) throws IOException {
@@ -573,7 +572,7 @@ public class ResourceProcess {
                 Log.e("GOTO", "return null: " + path + " " + version);
                 return promptForRetry(file_info, update_info, resource_type);
             } else {
-                if (version.length() > 0 && !VersionDatabase.isDefaultValue(version)) {
+                if (!version.isEmpty() && !VersionDatabase.isDefaultValue(version)) {
                     if (result.equals("304")) {
                         Log.e("GOTO", "load 304 resource: " + path + " " + version);
                     } else {
@@ -627,15 +626,19 @@ public class ResourceProcess {
 
         if (update_flag) {
             String result = downloadResource(resourceClient, resource_url, file);
-            if (version.length() > 0 && !VersionDatabase.isDefaultValue(version)) {
-                if (result.equals("304")) {
-                    Log.e("GOTO", "load 304 resource: " + path + " " + version);
-                } else {
-                    Log.e("GOTO", "cache resource: " + path + " " + version);
-                    versionTable.putValue(path, version);
-                }
+            if (result == null) {
+                return null;
             } else {
-                versionTable.putValue(path, getExpireInfoFromCacheControl(result));
+                if (!version.isEmpty() && !VersionDatabase.isDefaultValue(version)) {
+                    if (result.equals("304")) {
+                        Log.e("GOTO", "load 304 resource: " + path + " " + version);
+                    } else {
+                        Log.e("GOTO", "cache resource: " + path + " " + version);
+                        versionTable.putValue(path, version);
+                    }
+                } else {
+                    versionTable.putValue(path, getExpireInfoFromCacheControl(result));
+                }
             }
         } else {
             Log.e("GOTO", "load cached resource: " + file.getPath() + " " + version);
@@ -773,12 +776,12 @@ public class ResourceProcess {
             }
         }
 
-        Pattern howlPattern = Pattern.compile("(new \\w+\\[\\(\\w+\\(\\w+\\)\\)\\])(\\(\\w+\\)),this(?:\\[\\w+\\(\\w+\\)\\]){2}\\(\\w+,\\w+,\\w+\\)\\):");
+        Pattern howlPattern = Pattern.compile("(new \\w+\\[\\(\\w+\\(\\w+\\)\\)])(\\(\\w+\\)),this(?:\\[\\w+\\(\\w+\\)]){2}\\(\\w+,\\w+,\\w+\\)\\):");
         Matcher howlPatternMatcher = howlPattern.matcher(main_js);
         boolean howl_found = howlPatternMatcher.find();
         if (howl_found) {
             String _howl_fn = escapeMatchedGroup(howlPatternMatcher.group(1));
-            main_js = main_js.replaceAll(_howl_fn, "add_bgm");
+            if (_howl_fn != null) main_js = main_js.replaceAll(_howl_fn, "add_bgm");
         }
 
         // Rename the original "mouseout" and "mouseover" event name to custom names for objects to listen on
@@ -857,7 +860,7 @@ public class ResourceProcess {
     }
 
     // Reference: https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Translation.js
-    private Runnable clearSubtitle = new Runnable() {
+    private final Runnable clearSubtitle = new Runnable() {
         @Override
         public void run() {
             subtitleText.setText("");

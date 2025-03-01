@@ -29,8 +29,8 @@ import static com.antest1.gotobrowser.ContentProvider.KcaPacketStore.PACKETSTORE
 public class KcsInterface {
     public static final String GOTO_ANDROID = "GotoBrowser";
     public static final String AXIOS_INTERCEPT_SCRIPT = "axios.interceptors.response.use(function(response){if(response.config.url.includes(\"kcsapi\")){var url=response.config.url;var request=response.config.data;var data=response.data;GotoBrowser.kcs_xhr_intercept(url,request,data);}return response;},function(error){return Promise.reject(error);});";
-    private BrowserActivity activity;
-    private KcaPacketStore packetTable;
+    private final BrowserActivity activity;
+    private final KcaPacketStore packetTable;
     private final Handler handler = new Handler();
     ExecutorService executorService = Executors.newFixedThreadPool(30);
     private boolean broadcast_mode = false;
