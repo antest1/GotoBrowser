@@ -57,6 +57,9 @@
     <string name="setting_alter_method_proxy_error_toast">KCCacheProxyエンドポイントサーバーが無効です。バイパス方式設定を変更してください。</string>
     <string name="setting_alter_method">バイパス方式</string>
     <string name="setting_alter_endpoint">エンドポイントサーバー</string>
+    <string name="setting_cursor_mode">入力モード</string>
+    <string name="setting_cursor_mode_touch">画面タッチ</string>
+    <string name="setting_cursor_mode_mouse">マウス使用</string>
 
     <string name="menu_tooltip_refresh">リフレッシュ</string>
     <string name="menu_tooltip_mute">ミュート</string>

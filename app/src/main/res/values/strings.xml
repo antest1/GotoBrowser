@@ -66,6 +66,9 @@
     <string name="setting_alter_method_proxy">KCCacheProxy (remote)</string>
     <string name="setting_alter_method_proxy_error_toast">KCCacheProxy Endpoint Server is invalid. Please update your Bypass Method setting.</string>
     <string name="setting_alter_endpoint">Bypass Endpoint Server</string>
+    <string name="setting_cursor_mode">Input Mode</string>
+    <string name="setting_cursor_mode_touch">Screen Touch</string>
+    <string name="setting_cursor_mode_mouse">Using Mouse</string>
 
     <string name="menu_tooltip_refresh">Refresh</string>
     <string name="menu_tooltip_mute">Mute Audio</string>

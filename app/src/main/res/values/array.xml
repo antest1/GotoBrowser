@@ -26,6 +26,16 @@
         <item>2</item>
     </string-array>
 
+    <string-array name="cursor_mode" translatable="false">
+        <item>@string/setting_cursor_mode_touch</item>
+        <item>@string/setting_cursor_mode_mouse</item>
+    </string-array>
+
+    <string-array name="cursor_mode_values" translatable="false">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
     <string-array name="connector_list">
         <item>DMM direct</item>
         <item>kancolle.su</item>

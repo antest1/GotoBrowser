@@ -43,6 +43,7 @@ public class Constants {
     public static final String PREF_USE_EXTCACHE = "pref_use_extcache";
     public static final String PREF_UI_HELP_CHECKED = "pref_ui_help_checked";
     public static final String PREF_DOWNLOAD_RETRY = "pref_retry";
+    public static final String PREF_CURSOR_MODE = "pref_cursor_mode";
 
     public static final String[] PREF_SETTINGS = {
             PREF_LANDSCAPE,
@@ -63,7 +64,8 @@ public class Constants {
             PREF_MOD_KANTAIEN,
             PREF_MOD_FPS,
             PREF_MOD_CRIT,
-            PREF_DEVTOOLS_DEBUG
+            PREF_DEVTOOLS_DEBUG,
+            PREF_CURSOR_MODE
     };
 
     public static final String[] PREF_CLICK_SETTINGS = {
@@ -130,6 +132,10 @@ public class Constants {
 
     public static final String GADGET_URL = "http://w00g.kancolle-server.com/";
     public static final String DEFAULT_ALTER_GADGET_URL = "https://kcwiki.github.io/cache/";
+
+    public static final String PREF_CURSOR_MODE_TOUCH = "1";
+    public static final String PREF_CURSOR_MODE_MOUSE = "2";
+
     public static final String APP_UI_HELP_VER = "20211002";
     public static final String KCANOTIFY_PACKAGE_NAME = "com.antest1.kcanotify";
 }
