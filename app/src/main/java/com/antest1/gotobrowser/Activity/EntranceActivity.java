@@ -107,7 +107,7 @@ public class EntranceActivity extends AppCompatActivity {
 
             final CustomTabsIntent customTabsIntent = intentBuilder.build();
             final List<ResolveInfo> customTabsApps = getPackageManager().queryIntentActivities(customTabsIntent.intent, 0);
-            if (customTabsApps.size() > 0) {
+            if (!customTabsApps.isEmpty()) {
                 customTabsIntent.launchUrl(EntranceActivity.this, Uri.parse(url));
             } else {
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));

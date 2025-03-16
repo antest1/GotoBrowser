@@ -2,6 +2,7 @@ package com.antest1.gotobrowser.Subtitle;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.preference.Preference;
@@ -182,20 +183,26 @@ public class KcwikiSubtitleProvider implements SubtitleProvider  {
     public SubtitleData getSubtitleData(String url, String path, String voiceSize) {
         SubtitleData data = null;
         if (url.contains("/kcs/sound/kc")) {
-            String info = path.replace("/kcs/sound/kc", "").replace(".mp3", "");
+            String info = path.replace("/kcs/sound/kc", "")
+                              .replace(".mp3", "");
             String[] fn_code = info.split("/");
-            String voiceLine;
+            String voiceLine = null;
             String voice_filename = fn_code[0];
             String voice_code = fn_code[1];
             String shipId = voice_filename;
             if (filenameToShipId.containsKey(voice_filename)) {
                 shipId = filenameToShipId.get(voice_filename);
-                voiceLine = getVoiceLineByFilename(shipId, voice_code);
-            } else {
+                if (shipId != null) {
+                    voiceLine = getVoiceLineByFilename(shipId, voice_code);
+                }
+            } else if (!voice_filename.isEmpty() && TextUtils.isDigitsOnly(voice_filename)) {
                 voiceLine = getVoiceLineByFilename(voice_filename, voice_code);
             }
+
+            if (voiceLine == null) return null;
             Log.e("GOTO", "file info: " + info);
             Log.e("GOTO", "voiceline: " + voiceLine);
+
             int voiceLineValue = Integer.parseInt(voiceLine);
             data = getSubtitleDataInternal(shipId, voiceLine);
             if (data != null && voiceLineValue >= 30 && voiceLineValue <= 53) {
