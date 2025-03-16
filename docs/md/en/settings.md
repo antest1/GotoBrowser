@@ -11,9 +11,19 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 | Landscape Mode | Whether to always play in landscape mode regardless of device orientation |
 | Prefetch Font Assets | Use built-in font files instead of loading file from the game server (slightly speeds up startup) |
 | External Storage for Resource Caching | Use external storage instead of internal storage when caching game resources<br/>(allows access of image/voice resources via PC) |
+| Input Mode | Choose input method when playing the game (Screen Touch or Using Mouse) |
 | Picture-in-picture mode | Display game on small screen when switching to other app or home screen (Android 8.0+)|
 | [Multi-Window] Add Margin from Divider | Added margins to prevent the screen from sticking to the bar when using the multi-window function (Samsung Galaxy/Android 7.0 only) |
 | Legacy Renderer< | Force PixiJS game engine to use Canvas renderer instead of WebGL renderer. (recommended to disable if no graphic related issues occur) | 
+
+##### Subtitle Settings
+
+| Name | Description |
+| --- | --- |
+| Subtitle language | Select the language to use for subtitles. |
+| Download subtitle data | You can download the subtitle data when update available. |
+
+For information about the function, refer to the <span class="link" data-move="voiceline">Game Voiceline Subtitle</span> page.
 
 ##### Connection Settings
 
@@ -24,15 +34,6 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 | Bypass Endpoint Server | Server URL to use for bypass<br/>Use `https://kcwiki.github.io/cache/` or `https://luckyjervis.com/` |
 
 For related information, refer to the <span class="link" data-move="gadgetbypass">IP Block Bypass (Non-Japan)</span> page.
-
-##### Subtitle Settings
-
-| Name | Description |
-| --- | --- |
-| Subtitle language | Select the language to use for subtitles. |
-| Download subtitle data | You can download the subtitle data when update available. |
-
-For information about the function, refer to the <span class="link" data-move="voiceline">Game Voiceline Subtitle</span> page.
 
 ##### Third Party Mods
 
