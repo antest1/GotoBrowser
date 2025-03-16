@@ -56,6 +56,9 @@
     <string name="setting_alter_method_proxy_error_toast">KCCacheProxy端点服务器无效。请更改绕行方式设定。</string>
     <string name="setting_alter_method">绕行方式</string>
     <string name="setting_alter_endpoint">端点服务器</string>
+    <string name="setting_cursor_mode">输入方式</string>
+    <string name="setting_cursor_mode_touch">屏幕触摸</string>
+    <string name="setting_cursor_mode_mouse">使用鼠标</string>
 
     <string name="menu_tooltip_refresh">重新整理页面</string>
     <string name="menu_tooltip_mute">静音</string>

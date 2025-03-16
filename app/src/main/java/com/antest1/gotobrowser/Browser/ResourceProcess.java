@@ -68,6 +68,8 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
+import static com.antest1.gotobrowser.Constants.PREF_CURSOR_MODE;
+import static com.antest1.gotobrowser.Constants.PREF_CURSOR_MODE_TOUCH;
 import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
@@ -123,7 +125,7 @@ public class ResourceProcess {
     private final Handler shipVoiceHandler = new Handler();
     private final Handler clearSubHandler = new Handler();
 
-    boolean prefAlterGadget, isGadgetUrlReplaceMode, prefModKantaiEn;
+    boolean prefAlterGadget, prefModKantaiEn, isGadgetUrlReplaceMode, isCursorTouchMode;
     String alterEndpoint;
 
     ResourceProcess(BrowserActivity activity) {
@@ -133,8 +135,10 @@ public class ResourceProcess {
         sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         prefAlterGadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false);
-        isGadgetUrlReplaceMode = sharedPref.getString(PREF_ALTER_METHOD, "")
+        isGadgetUrlReplaceMode = sharedPref.getString(PREF_ALTER_METHOD, PREF_ALTER_METHOD_URL)
                 .equals(PREF_ALTER_METHOD_URL);
+        isCursorTouchMode = sharedPref.getString(PREF_CURSOR_MODE, PREF_CURSOR_MODE_TOUCH)
+                .equals(PREF_CURSOR_MODE_TOUCH);
         alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL);
         prefModKantaiEn = sharedPref.getBoolean(PREF_MOD_KANTAIEN, false);
         subtitleText = activity.findViewById(R.id.subtitle_view);
@@ -762,7 +766,8 @@ public class ResourceProcess {
             initVolumePatternConcat.addAll(initVolumePattern1);
             initVolumePatternConcat.addAll(initVolumePattern2);
 
-            Pattern initVolumePattern = Pattern.compile(TextUtils.join(",", initVolumePatternConcat).concat(";"));
+            Pattern initVolumePattern = Pattern.compile(
+                    TextUtils.join(",", initVolumePatternConcat).concat(";"));
             Matcher invPatternMatcher = initVolumePattern.matcher(main_js);
 
             if (invPatternMatcher.find()) {
@@ -771,8 +776,11 @@ public class ResourceProcess {
                 String varSe = invPatternMatcher.group(2);
                 String varVoice = invPatternMatcher.group(3);
 
-                String newStatement = statement.replace(varBgm, "0").replace(varSe, "0").replace(varVoice, "0");
-                main_js = main_js.replace(statement, newStatement);
+                if (statement != null && varBgm != null && varSe != null && varVoice != null) {
+                    String newStatement = statement.replace(varBgm, "0")
+                            .replace(varSe, "0").replace(varVoice, "0");
+                    main_js = main_js.replace(statement, newStatement);
+                }
             }
         }
 
@@ -788,74 +796,79 @@ public class ResourceProcess {
         // Reusing original names will cause a lot of conflict issues
         //main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
         //main_js = main_js.replace("out:n.pointer?\"pointerout\":\"mouseout\"", "out:\"touchout\"");
-        main_js = main_js.replaceFirst("('(out|over|down|move|up)'?:[^,;=}]{20,150},?){5,}",
-                "down:void 0!==document.ontouchstart?'touchstart':'mousedown',\n" + "move:void 0!==document.ontouchstart?'touchmove':'mousemove',\n" + "up:void 0!==document.ontouchstart?'touchend':'mouseup',\n" + "over:'touchover',\n" + "out:'touchout'");
+        if (isCursorTouchMode) {
+            main_js = main_js.replaceFirst("('(out|over|down|move|up)'?:[^,;=}]{20,150},?){5,}",
+                    "down:void 0!==document.ontouchstart?'touchstart':'mousedown',\n" + "move:void 0!==document.ontouchstart?'touchmove':'mousemove',\n" + "up:void 0!==document.ontouchstart?'touchend':'mouseup',\n" + "over:'touchover',\n" + "out:'touchout'");
+        }
 
+        // manage bgm loading strategy with global mute variable for audio focus issue
         main_js = "var gb_h=null;\nfunction add_bgm(b){b.onend=function(){(global_mute||gb_h.volume()==0)&&(gb_h.unload(),console.log('unload'))};global_mute&&(b.autoplay=false);gb_h=new Howl(b);return gb_h;}\n"
-
-                // manage bgm loading strategy with global mute variable for audio focus issue
                 + (activity.isMuteMode() ? "var global_mute=1;Howler.mute(true);\n" : "var global_mute=0;Howler.mute(false);\n")
+                + main_js;
 
-                + main_js +
+        if (isCursorTouchMode) {
+            main_js = main_js +
+                    // Simulate mouse hover effects by dispatching new custom events "touchover" and "touchout"
+                    "function patchInteractionManager() {\n" +
+                    "    var proto = PIXI.interaction.InteractionManager.prototype;\n" +
+                    "    proto.update = mobileUpdate;\n" +
+                    "\n" +
+                    "    function extendMethod(method, extFn) {\n" +
+                    "        var old = proto[method];\n" +
+                    "        proto[method] = function () {\n" +
+                    "            old.call(this, ...arguments);\n" +
+                    "            extFn.call(this, ...arguments);\n" +
+                    "        };\n" +
+                    "    }\n" +
+                    "\n" +
+                    "    extendMethod('onPointerDown', function (displayObject, hit) {\n" +
+                    "        if (this.eventData.data)\n" +
+                    "            this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
+                    "    });\n" +
+                    "\n" +
+                    "    extendMethod('onPointerUp', function (displayObject, hit) {\n" +
+                    "        if (this.eventData.data)\n" +
+                    "            this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
+                    "    });\n" +
+                    "\n" +
+                    "    function mobileUpdate(deltaTime) {\n" +
+                    // Fixed interactionFrequency = 4ms
+                    "        this._deltaTime += deltaTime;\n" +
+                    "        if (this._deltaTime < 4)\n" +
+                    "            return;\n" +
+                    "        this._deltaTime = 0;\n" +
+                    "        if (!this.interactionDOMElement)\n" +
+                    "            return;\n" +
+                    "        if (!this.eventData || !this.eventData.data)  return;\n" +
+                    "        if (this.eventData.data && (this.eventData.type == 'touchmove' || this.eventData.type == 'touchend' || this.eventData.type == 'tap'))\n" +
+                    "            this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
+                    "    }\n" +
+                    "\n" +
+                    "    proto.processTouchOverOut = function (interactionEvent, displayObject, hit) {\n" +
+                    "        if (!interactionEvent.data)  return;\n" +
+                    "        if (hit) {\n" +
+                    "            if (!displayObject.___over && displayObject._events.touchover) {\n" +
+                    "                if (displayObject.parent._onClickAll2) return;\n" +
+                    "                this._hoverObject = displayObject;\n" +
+                    "                displayObject.___over = true;\n" +
+                    "                proto.dispatchEvent(displayObject, 'touchover', interactionEvent);\n" +
+                    "            }\n" +
+                    "        } else if (displayObject.___over && displayObject._events.touchover && \n" +
+                    // Only trigger "touchout" when user starts touching another object or empty space
+                    // So that alert bubbles persist after a simple tap, do not disappear when the finger leaves
+                    "            ((this._hoverObject && this._hoverObject != displayObject) || !interactionEvent.target)) {\n" +
+                    "            displayObject.___over = false;\n" +
+                    "            proto.dispatchEvent(displayObject, 'touchout', interactionEvent);\n" +
+                    "        }\n" +
+                    "    };\n" +
+                    "}" +
+                    "patchInteractionManager();";
+        }
 
-                // Simulate mouse hover effects by dispatching new custom events "touchover" and "touchout"
-                "function patchInteractionManager() {\n" +
-                "    var proto = PIXI.interaction.InteractionManager.prototype;\n" +
-                "    proto.update = mobileUpdate;\n" +
-                "\n" +
-                "    function extendMethod(method, extFn) {\n" +
-                "        var old = proto[method];\n" +
-                "        proto[method] = function () {\n" +
-                "            old.call(this, ...arguments);\n" +
-                "            extFn.call(this, ...arguments);\n" +
-                "        };\n" +
-                "    }\n" +
-                "\n" +
-                "    extendMethod('onPointerDown', function (displayObject, hit) {\n" +
-                "        if (this.eventData.data)\n" +
-                "            this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
-                "    });\n" +
-                "\n" +
-                "    extendMethod('onPointerUp', function (displayObject, hit) {\n" +
-                "        if (this.eventData.data)\n" +
-                "            this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
-                "    });\n" +
-                "\n" +
-                "    function mobileUpdate(deltaTime) {\n" +
-                // Fixed interactionFrequency = 4ms
-                "        this._deltaTime += deltaTime;\n" +
-                "        if (this._deltaTime < 4)\n" +
-                "            return;\n" +
-                "        this._deltaTime = 0;\n" +
-                "        if (!this.interactionDOMElement)\n" +
-                "            return;\n" +
-                "        if (!this.eventData || !this.eventData.data)  return;\n" +
-                "        if (this.eventData.data && (this.eventData.type == 'touchmove' || this.eventData.type == 'touchend' || this.eventData.type == 'tap'))\n" +
-                "            this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
-                "    }\n" +
-                "\n" +
-                "    proto.processTouchOverOut = function (interactionEvent, displayObject, hit) {\n" +
-                "        if (!interactionEvent.data)  return;\n" +
-                "        if (hit) {\n" +
-                "            if (!displayObject.___over && displayObject._events.touchover) {\n" +
-                "                if (displayObject.parent._onClickAll2) return;\n" +
-                "                this._hoverObject = displayObject;\n" +
-                "                displayObject.___over = true;\n" +
-                "                proto.dispatchEvent(displayObject, 'touchover', interactionEvent);\n" +
-                "            }\n" +
-                "        } else if (displayObject.___over && displayObject._events.touchover && \n" +
-                // Only trigger "touchout" when user starts touching another object or empty space
-                // So that alert bubbles persist after a simple tap, do not disappear when the finger leaves
-                "            ((this._hoverObject && this._hoverObject != displayObject) || !interactionEvent.target)) {\n" +
-                "            displayObject.___over = false;\n" +
-                "            proto.dispatchEvent(displayObject, 'touchout', interactionEvent);\n" +
-                "        }\n" +
-                "    };\n" +
-                "}" +
-                "patchInteractionManager();"
-                + MUTE_LISTEN
-                + CAPTURE_LISTEN + "\n"
+        // add other script patches
+        main_js = main_js + MUTE_LISTEN + CAPTURE_LISTEN + "\n"
                 + KcsInterface.AXIOS_INTERCEPT_SCRIPT;
+
         return main_js;
     }
 

@@ -39,10 +39,13 @@ import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
 import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_CLICK_SETTINGS;
+import static com.antest1.gotobrowser.Constants.PREF_CURSOR_MODE;
+import static com.antest1.gotobrowser.Constants.PREF_CURSOR_MODE_TOUCH;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
 import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
@@ -107,10 +110,13 @@ public class SettingsActivity extends AppCompatActivity {
                     editor.putBoolean(key, false);
                     break;
                 case PREF_ALTER_METHOD:
-                    editor.putString(key, "1");
+                    editor.putString(key, PREF_ALTER_METHOD_URL);
                     break;
                 case PREF_ALTER_ENDPOINT:
                     editor.putString(key, DEFAULT_ALTER_GADGET_URL);
+                    break;
+                case PREF_CURSOR_MODE:
+                    editor.putString(key, PREF_CURSOR_MODE_TOUCH);
                     break;
                 default:
                     editor.putString(key, "");
@@ -132,50 +138,51 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
-            sharedPref = getContext().getSharedPreferences(
-                    getString(R.string.preference_key), Context.MODE_PRIVATE);
-            sharedPref.registerOnSharedPreferenceChangeListener(this);
-            versionTable = new VersionDatabase(getContext(), null, VERSION_TABLE_VERSION);
-            appCheck = getRetrofitAdapter(getContext(), GITHUBAPI_ROOT).create(GotoVersionCheck.class);
-        }
+            Context context = getContext();
+            if (context != null) {
+                sharedPref = context.getSharedPreferences(
+                        getString(R.string.preference_key), Context.MODE_PRIVATE);
+                sharedPref.registerOnSharedPreferenceChangeListener(this);
+                versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
+                appCheck = getRetrofitAdapter(context, GITHUBAPI_ROOT).create(GotoVersionCheck.class);
 
-        @Override
-        public void onCreate(@Nullable Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            Map<String, ?> allEntries = sharedPref.getAll();
-            for (String key : allEntries.keySet()) {
-                Log.e("GOTO", key);
-                Preference preference = findPreference(key);
-                if (preference == null) continue;
-                if (preference instanceof ListPreference) {
-                    Log.e("GOTO", key + ": " + sharedPref.getString(key, ""));
-                } else if (preference instanceof EditTextPreference) {
-                    Log.e("GOTO", key + ": " + sharedPref.getString(key, ""));
-                    EditTextPreference ep = (EditTextPreference) preference;
-                    ep.setSummary(sharedPref.getString(key, ""));
-                } else if (preference instanceof SwitchPreferenceCompat) {
-                    Log.e("GOTO", key + ": " + sharedPref.getBoolean(key, false));
-                    SwitchPreferenceCompat sp = (SwitchPreferenceCompat) preference;
-                    sp.setChecked(sharedPref.getBoolean(key, false));
+                Map<String, ?> allEntries = sharedPref.getAll();
+                for (String key : allEntries.keySet()) {
+                    Log.e("GOTO", key);
+                    Preference preference = findPreference(key);
+                    if (preference == null) continue;
+                    if (preference instanceof ListPreference) {
+                        Log.e("GOTO", key + ": " + sharedPref.getString(key, ""));
+                    } else if (preference instanceof EditTextPreference) {
+                        Log.e("GOTO", key + ": " + sharedPref.getString(key, ""));
+                        EditTextPreference ep = (EditTextPreference) preference;
+                        ep.setSummary(sharedPref.getString(key, ""));
+                    } else if (preference instanceof SwitchPreferenceCompat) {
+                        Log.e("GOTO", key + ": " + sharedPref.getBoolean(key, false));
+                        SwitchPreferenceCompat sp = (SwitchPreferenceCompat) preference;
+                        sp.setChecked(sharedPref.getBoolean(key, false));
+                    }
+                    preference.setOnPreferenceChangeListener(this);
                 }
-                preference.setOnPreferenceChangeListener(this);
-            }
-            for (String key: PREF_CLICK_SETTINGS) {
-                Preference preference = findPreference(key);
-                if (preference != null) {
-                    preference.setOnPreferenceClickListener(this);
+                for (String key: PREF_CLICK_SETTINGS) {
+                    Preference preference = findPreference(key);
+                    if (preference != null) {
+                        preference.setOnPreferenceClickListener(this);
+                    }
                 }
+                updateSubtitleDescriptionText();
+                updateKantaiEnDescriptionText();
+                updateKantai3dDisable();
             }
-            updateSubtitleDescriptionText();
-            updateKantaiEnDescriptionText();
-            updateKantai3dDisable();
         }
 
         @Override
         public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
             super.onViewCreated(view, savedInstanceState);
             Preference version_pref = findPreference(PREF_APP_VERSION);
-            version_pref.setSummary(BuildConfig.VERSION_NAME);
+            if (version_pref != null) {
+                version_pref.setSummary(BuildConfig.VERSION_NAME);
+            }
         }
 
         @Override

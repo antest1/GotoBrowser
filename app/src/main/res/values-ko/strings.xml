@@ -58,6 +58,9 @@
     <string name="setting_alter_method_proxy_error_toast">올바른 KCCacheProxy Endpoint 서버가 아닙니다. 다른 우회 방식을 사용해주세요.</string>
     <string name="setting_alter_method">우회 방식</string>
     <string name="setting_alter_endpoint">Endpoint 서버</string>
+    <string name="setting_cursor_mode">입력 모드</string>
+    <string name="setting_cursor_mode_touch">화면 터치</string>
+    <string name="setting_cursor_mode_mouse">마우스 사용</string>
 
     <string name="menu_tooltip_refresh">새로고침</string>
     <string name="menu_tooltip_mute">음소거</string>

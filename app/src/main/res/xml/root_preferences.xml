@@ -31,6 +31,15 @@
             app:title="@string/settings_use_external_dir"
             app:summary="@string/settings_recommended_summary" />
 
+        <ListPreference
+            app:defaultValue="1"
+            app:entries="@array/cursor_mode"
+            app:entryValues="@array/cursor_mode_values"
+            app:iconSpaceReserved="false"
+            app:key="pref_cursor_mode"
+            app:title="@string/setting_cursor_mode"
+            app:useSimpleSummaryProvider="true" />
+
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:key="pref_pip_mode"
@@ -46,6 +55,26 @@
             app:key="pref_legacy_renderer"
             app:title="@string/settings_legacy_renderer_enable"
             app:summary="@string/settings_legacy_renderer_summary"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/settings_subtitle_label">
+
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:key="pref_subtitle_locale"
+            app:title="@string/settings_subtitle_language"
+            app:useSimpleSummaryProvider="true"
+            app:entries="@array/subtitle_list"
+            app:entryValues="@array/subtitle_list_values" />
+
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_subtitle_update"
+            app:title="@string/settings_subtitle_download"
+            app:summary="checking updates..." />
 
     </PreferenceCategory>
 
@@ -80,26 +109,6 @@
             app:iconSpaceReserved="false"
             app:key="pref_retry"
             app:title="@string/settings_retry_enable" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        app:iconSpaceReserved="false"
-        app:title="@string/settings_subtitle_label">
-
-        <ListPreference
-            app:iconSpaceReserved="false"
-            app:key="pref_subtitle_locale"
-            app:title="@string/settings_subtitle_language"
-            app:useSimpleSummaryProvider="true"
-            app:entries="@array/subtitle_list"
-            app:entryValues="@array/subtitle_list_values" />
-
-        <Preference
-            app:iconSpaceReserved="false"
-            app:key="pref_subtitle_update"
-            app:title="@string/settings_subtitle_download"
-            app:summary="checking updates..." />
-
     </PreferenceCategory>
 
     <PreferenceCategory
