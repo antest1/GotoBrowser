@@ -27,6 +27,8 @@
     <string name="settings_version_check">檢查更新</string>
     <string name="settings_recommended_summary">推薦</string>
     <string name="settings_subtitle_label">字幕設定</string>
+    <string name="settings_subtitle_fontsize" >字體大小</string>
+    <string name="settings_subtitle_example" formatted="false">文字大小：%d</string>
     <string name="settings_subtitle_download">下載字幕資料</string>
     <string name="settings_subtitle_language">字幕語言</string>
     <string name="settings_appinfo_label">應用程式資訊</string>
@@ -37,6 +39,7 @@
     <string name="settings_appinfo_browsersettings">瀏覽器設定</string>
     <string name="browser_fontprefetch">預先載入字體</string>
     <string name="browser_enablepipmode">啟用畫中畫模式</string>
+    <string name="browser_disable_refresh_dialog">禁用重新加載確認</string>
     <string name="logout_msg">您確定要登出嗎？</string>
     <string name="noti_screenshot_name">GotoBrowser截圖</string>
     <string name="noti_screenshot_title">已儲存螢幕截圖</string>

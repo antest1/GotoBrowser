@@ -18,6 +18,7 @@ public class Constants {
     public static final String PREF_LOCKMODE = "pref_lockmode";
     public static final String PREF_KEEPMODE = "pref_keepmode";
     public static final String PREF_SHOWCC = "pref_showcc";
+    public static final String PREF_DISABLE_REFRESH_DIALOG = "pref_disable_refresh_dialog";
     public static final String PREF_LATEST_URL = "pref_latest_url";
     public static final String PREF_DMM_ID = "pref_autocomplete_id";
     public static final String PREF_DMM_PASS = "pref_autocomplete_pass";
@@ -44,6 +45,7 @@ public class Constants {
     public static final String PREF_UI_HELP_CHECKED = "pref_ui_help_checked";
     public static final String PREF_DOWNLOAD_RETRY = "pref_retry";
     public static final String PREF_CURSOR_MODE = "pref_cursor_mode";
+    public static final String PREF_SUBTITLE_FONTSIZE = "pref_subtitle_size";
 
     public static final String[] PREF_SETTINGS = {
             PREF_LANDSCAPE,
@@ -65,14 +67,17 @@ public class Constants {
             PREF_MOD_FPS,
             PREF_MOD_CRIT,
             PREF_DEVTOOLS_DEBUG,
-            PREF_CURSOR_MODE
+            PREF_CURSOR_MODE,
+            PREF_DISABLE_REFRESH_DIALOG,
+            PREF_SUBTITLE_FONTSIZE
     };
 
     public static final String[] PREF_CLICK_SETTINGS = {
             PREF_CHECK_UPDATE,
             PREF_SUBTITLE_UPDATE,
             PREF_MOD_KANTAIEN_UPDATE,
-            PREF_MOD_KANTAIEN_DELETE
+            PREF_MOD_KANTAIEN_DELETE,
+            PREF_SUBTITLE_FONTSIZE
     };
 
     public static final String PREF_ALTER_METHOD_URL = "1";
@@ -102,8 +107,8 @@ public class Constants {
 
     public static final String ADD_VIEWPORT_META = "var metaTag=document.createElement('meta');metaTag.name='viewport',metaTag.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',document.getElementsByTagName('head')[0].appendChild(metaTag);";
 
-    public static final String MUTE_SEND_DMM = "(function(){var msg={sound:%d};var origin=\"*\";document.getElementById(\"game_frame\").contentWindow.postMessage(msg,origin);return \"done\"})()";
-    public static final String MUTE_SEND_OOI = "(function(){var msg={sound:%d};var origin=\"*\";document.getElementById(\"externalswf\").contentWindow.postMessage(msg,origin);return \"done\"})()";
+    public static final String MUTE_SEND_DMM = "(function(){var msg={sound:%d};var origin=\"*\";var game_frame=document.getElementById(\"game_frame\");if(game_frame!=null){game_frame.contentWindow.postMessage(msg,origin)};return \"done\"})()";
+    public static final String MUTE_SEND_OOI = "(function(){var msg={sound:%d};var origin=\"*\";var game_frame=document.getElementById(\"externalswf\");if(game_frame!=null){game_frame.contentWindow.postMessage(msg,origin)};return \"done\"})()";
     public static final String MUTE_LISTEN = "\nwindow.addEventListener(\"message\",function(e){(e.data.sound!=null)&&(global_mute=e.data.sound,Howler.mute(global_mute),(!global_mute&&gb_h&&gb_h&&!gb_h.playing())&&gb_h.play())});";
     public static final String DMM_COOKIE = "document.cookie='ckcy=1;expires={date};path=/netgame;domain=.dmm.com';";
     public static final String CAPTURE_SEND_DMM = "(function(){var msg={capture:true};var origin=\"*\";var doc=document.getElementById(\"game_frame\");if(doc){doc.contentWindow.postMessage(msg,origin)}else{document.getElementsByTagName(\"iframe\")[0].contentWindow.postMessage(msg,origin)};return\"done\"})()";
@@ -132,6 +137,8 @@ public class Constants {
 
     public static final String GADGET_URL = "http://w00g.kancolle-server.com/";
     public static final String DEFAULT_ALTER_GADGET_URL = "https://kcwiki.github.io/cache/";
+
+    public static final int DEFAULT_SUBTITLE_FONT_SIZE = 18;
 
     public static final String PREF_CURSOR_MODE_TOUCH = "1";
     public static final String PREF_CURSOR_MODE_MOUSE = "2";

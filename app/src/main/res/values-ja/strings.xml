@@ -28,6 +28,8 @@
     <string name="settings_version_check">更新の確認</string>
     <string name="settings_recommended_summary">おすすめ</string>
     <string name="settings_subtitle_label">字幕設定</string>
+    <string name="settings_subtitle_fontsize" >フォントサイズ</string>
+    <string name="settings_subtitle_example" formatted="false">字幕テキスト：%d</string>
     <string name="settings_subtitle_download">字幕データのダウンロード</string>
     <string name="settings_subtitle_language">字幕ロケール</string>
     <string name="settings_appinfo_label">アプリケーション情報</string>
@@ -38,6 +40,7 @@
     <string name="settings_appinfo_browsersettings">ブラウザ設定</string>
     <string name="browser_fontprefetch">フォントをプリロード</string>
     <string name="browser_enablepipmode">PIPモードを有効にする</string>
+    <string name="browser_disable_refresh_dialog">再読み込み確認を無効にする</string>
     <string name="logout_msg">本当にログアウトしますか？</string>
     <string name="noti_screenshot_name">GotoBrowserスクリーンショット</string>
     <string name="noti_screenshot_title">スクリーンショットを保存しました</string>

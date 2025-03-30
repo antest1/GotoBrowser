@@ -42,6 +42,11 @@
 
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
+            app:key="pref_disable_refresh_dialog"
+            app:title="@string/browser_disable_refresh_dialog" />
+
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
             app:key="pref_pip_mode"
             app:title="@string/browser_enablepipmode" />
 
@@ -69,6 +74,12 @@
             app:useSimpleSummaryProvider="true"
             app:entries="@array/subtitle_list"
             app:entryValues="@array/subtitle_list_values" />
+
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_subtitle_size"
+            app:title="@string/settings_subtitle_fontsize"
+            app:summary="" />
 
         <Preference
             app:iconSpaceReserved="false"

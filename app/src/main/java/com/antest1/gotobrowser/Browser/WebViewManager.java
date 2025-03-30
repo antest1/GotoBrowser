@@ -52,6 +52,7 @@ public class WebViewManager {
     public static final String USER_AGENT_IOS = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
 
     private boolean logoutFlag;
+    private boolean refreshFlag;
     private BrowserActivity activity;
     private ResourceProcess resourceProcess;
     private SharedPreferences sharedPref;
@@ -126,6 +127,11 @@ public class WebViewManager {
                         if (sharedPref.getBoolean(PREF_ADJUSTMENT, false)) {
                             webview.evaluateJavascript(ADJUST_JS, null);
                         }
+                    }
+                    if (url.contains("about:blank") && refreshFlag) {
+                        refreshFlag = false;
+                        if (webview.canGoBack()) webview.goBack();
+                        webview.resumeTimers();
                     }
                 }
             }
@@ -270,6 +276,11 @@ public class WebViewManager {
             case CONN_OOI -> webview.loadUrl(URL_OOI_LOGOUT);
             case CONN_KANSU -> webview.loadUrl(URL_KANSU_LOGOUT);
         }
+    }
+
+    public void refreshPage(WebViewL webview) {
+        refreshFlag = true;
+        webview.loadUrl("about:blank");
     }
 
     public void openPage(WebViewL webview, List<String> connector_info, boolean isKcBrowser) {

@@ -61,6 +61,7 @@ import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.APP_UI_HELP_VER;
+import static com.antest1.gotobrowser.Constants.DEFAULT_SUBTITLE_FONT_SIZE;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CAPTURE;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
@@ -69,8 +70,10 @@ import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
+import static com.antest1.gotobrowser.Constants.PREF_DISABLE_REFRESH_DIALOG;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
+import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_UI_HELP_CHECKED;
 import static com.antest1.gotobrowser.Constants.REQUEST_NOTIFICATION_PERMISSION;
@@ -93,7 +96,7 @@ public class BrowserActivity extends AppCompatActivity {
     private boolean isStartedFlag = false;
     private boolean isAdjustChangedByUser = false;
     private List<String> connector_info;
-    private boolean isMuteMode, isCaptureMode, isLockMode, isKeepMode, isCaptionMode;
+    private boolean isMuteMode, isCaptureMode, isLockMode, isKeepMode, isCaptionMode, isNoRefreshPopupMode;
     private boolean isSubtitleLoaded = false;
     private TextView subtitleText;
     private ImageView kcCameraButton;
@@ -150,6 +153,7 @@ public class BrowserActivity extends AppCompatActivity {
             isKeepMode = sharedPref.getBoolean(PREF_KEEPMODE, false);
             isCaptionMode = sharedPref.getBoolean(PREF_SHOWCC, false);
             isCaptureMode = checkStoragePermissionGrated() && sharedPref.getBoolean(PREF_CAPTURE, false);
+            isNoRefreshPopupMode = sharedPref.getBoolean(PREF_DISABLE_REFRESH_DIALOG, false);
 
             executor = Executors.newScheduledThreadPool(1);
 
@@ -206,6 +210,8 @@ public class BrowserActivity extends AppCompatActivity {
             uiHintClose.setOnClickListener(this::setUiHintInvisible);
 
             subtitleText = findViewById(R.id.subtitle_view);
+            int subtitleSize = sharedPref.getInt(PREF_SUBTITLE_FONTSIZE, DEFAULT_SUBTITLE_FONT_SIZE);
+            setSubtitleTextView(this, subtitleText, subtitleSize);
             subtitleText.setVisibility(isKcBrowserMode && isCaptionMode ? View.VISIBLE : View.GONE);
             subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
 
@@ -214,7 +220,6 @@ public class BrowserActivity extends AppCompatActivity {
                 isSubtitleLoaded = SubtitleProviderUtils.getSubtitleProvider(subtitle_local)
                         .loadQuoteData(getApplicationContext(), subtitle_local);
             }
-
 
             connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
 
@@ -611,29 +616,33 @@ public class BrowserActivity extends AppCompatActivity {
         connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
         if (manager != null && connector_info != null && connector_info.size() == 2) {
             ((TextView) findViewById(R.id.kc_error_text)).setText("");
-            manager.openPage(mContentView, connector_info, isKcBrowserMode);
+            manager.refreshPage(mContentView);
         } else {
             finish();
         }
     }
 
     public void showRefreshDialog() {
-        mContentView.pauseTimers();
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                BrowserActivity.this);
-        alertDialogBuilder.setTitle(getString(R.string.app_name));
-        alertDialogBuilder
-                .setCancelable(false)
-                .setMessage(getString(R.string.refresh_msg))
-                .setPositiveButton(R.string.action_ok,
-                        (dialog, id) -> refreshPageOrFinish())
-                .setNegativeButton(R.string.action_cancel,
-                        (dialog, id) -> {
-                            dialog.cancel();
-                            mContentView.resumeTimers();
-                        });
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        if (isNoRefreshPopupMode) {
+            refreshPageOrFinish();
+        } else {
+            mContentView.pauseTimers();
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                    BrowserActivity.this);
+            alertDialogBuilder.setTitle(getString(R.string.app_name));
+            alertDialogBuilder
+                    .setCancelable(false)
+                    .setMessage(getString(R.string.refresh_msg))
+                    .setPositiveButton(R.string.action_ok,
+                            (dialog, id) -> refreshPageOrFinish())
+                    .setNegativeButton(R.string.action_cancel,
+                            (dialog, id) -> {
+                                dialog.cancel();
+                                mContentView.resumeTimers();
+                            });
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+        }
     }
 
     public void showLogoutDialog() {
@@ -737,6 +746,16 @@ public class BrowserActivity extends AppCompatActivity {
 
     private boolean supportsPiPMode() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+    }
+
+    public static void setSubtitleTextView(Context context, TextView tv, int size) {
+        int colorBlack = ContextCompat.getColor(context, R.color.black);
+        tv.setTextSize(size);
+        if (size >= 24) {
+            tv.setShadowLayer(3, 3, 3, colorBlack);
+        } else {
+            tv.setShadowLayer(2, 2, 2, colorBlack);
+        }
     }
 
     public void sendIsFrontChanged (boolean is_front) {
