@@ -45,6 +45,7 @@ public class Constants {
     public static final String PREF_UI_HELP_CHECKED = "pref_ui_help_checked";
     public static final String PREF_DOWNLOAD_RETRY = "pref_retry";
     public static final String PREF_CURSOR_MODE = "pref_cursor_mode";
+    public static final String PREF_SUBTITLE_FONTSIZE = "pref_subtitle_size";
 
     public static final String[] PREF_SETTINGS = {
             PREF_LANDSCAPE,
@@ -67,14 +68,16 @@ public class Constants {
             PREF_MOD_CRIT,
             PREF_DEVTOOLS_DEBUG,
             PREF_CURSOR_MODE,
-            PREF_DISABLE_REFRESH_DIALOG
+            PREF_DISABLE_REFRESH_DIALOG,
+            PREF_SUBTITLE_FONTSIZE
     };
 
     public static final String[] PREF_CLICK_SETTINGS = {
             PREF_CHECK_UPDATE,
             PREF_SUBTITLE_UPDATE,
             PREF_MOD_KANTAIEN_UPDATE,
-            PREF_MOD_KANTAIEN_DELETE
+            PREF_MOD_KANTAIEN_DELETE,
+            PREF_SUBTITLE_FONTSIZE
     };
 
     public static final String PREF_ALTER_METHOD_URL = "1";
@@ -134,6 +137,8 @@ public class Constants {
 
     public static final String GADGET_URL = "http://w00g.kancolle-server.com/";
     public static final String DEFAULT_ALTER_GADGET_URL = "https://kcwiki.github.io/cache/";
+
+    public static final int DEFAULT_SUBTITLE_FONT_SIZE = 18;
 
     public static final String PREF_CURSOR_MODE_TOUCH = "1";
     public static final String PREF_CURSOR_MODE_MOUSE = "2";

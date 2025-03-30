@@ -61,6 +61,7 @@ import static com.antest1.gotobrowser.Browser.WebViewManager.OPEN_KANCOLLE;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
 import static com.antest1.gotobrowser.Constants.APP_UI_HELP_VER;
+import static com.antest1.gotobrowser.Constants.DEFAULT_SUBTITLE_FONT_SIZE;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_CAPTURE;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
@@ -72,6 +73,7 @@ import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
 import static com.antest1.gotobrowser.Constants.PREF_DISABLE_REFRESH_DIALOG;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
+import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_UI_HELP_CHECKED;
 import static com.antest1.gotobrowser.Constants.REQUEST_NOTIFICATION_PERMISSION;
@@ -208,6 +210,8 @@ public class BrowserActivity extends AppCompatActivity {
             uiHintClose.setOnClickListener(this::setUiHintInvisible);
 
             subtitleText = findViewById(R.id.subtitle_view);
+            int subtitleSize = sharedPref.getInt(PREF_SUBTITLE_FONTSIZE, DEFAULT_SUBTITLE_FONT_SIZE);
+            setSubtitleTextView(this, subtitleText, subtitleSize);
             subtitleText.setVisibility(isKcBrowserMode && isCaptionMode ? View.VISIBLE : View.GONE);
             subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
 
@@ -216,7 +220,6 @@ public class BrowserActivity extends AppCompatActivity {
                 isSubtitleLoaded = SubtitleProviderUtils.getSubtitleProvider(subtitle_local)
                         .loadQuoteData(getApplicationContext(), subtitle_local);
             }
-
 
             connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
 
@@ -743,6 +746,16 @@ public class BrowserActivity extends AppCompatActivity {
 
     private boolean supportsPiPMode() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+    }
+
+    public static void setSubtitleTextView(Context context, TextView tv, int size) {
+        int colorBlack = ContextCompat.getColor(context, R.color.black);
+        tv.setTextSize(size);
+        if (size >= 24) {
+            tv.setShadowLayer(3, 3, 3, colorBlack);
+        } else {
+            tv.setShadowLayer(2, 2, 2, colorBlack);
+        }
     }
 
     public void sendIsFrontChanged (boolean is_front) {

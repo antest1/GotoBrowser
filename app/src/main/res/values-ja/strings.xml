@@ -28,6 +28,8 @@
     <string name="settings_version_check">更新の確認</string>
     <string name="settings_recommended_summary">おすすめ</string>
     <string name="settings_subtitle_label">字幕設定</string>
+    <string name="settings_subtitle_fontsize" >フォントサイズ</string>
+    <string name="settings_subtitle_example" formatted="false">字幕テキスト：%d</string>
     <string name="settings_subtitle_download">字幕データのダウンロード</string>
     <string name="settings_subtitle_language">字幕ロケール</string>
     <string name="settings_appinfo_label">アプリケーション情報</string>

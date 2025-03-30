@@ -8,11 +8,15 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentActivity;
 import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
@@ -29,9 +33,11 @@ import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.Locale;
 import java.util.Map;
 
 import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
+import static com.antest1.gotobrowser.Constants.DEFAULT_SUBTITLE_FONT_SIZE;
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
@@ -60,6 +66,7 @@ import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_DISABLE_REFRESH_DIALOG;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SETTINGS;
+import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_TP_DISCLAIMED;
@@ -119,6 +126,9 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_CURSOR_MODE:
                     editor.putString(key, PREF_CURSOR_MODE_TOUCH);
                     break;
+                case PREF_SUBTITLE_FONTSIZE:
+                    editor.putInt(key, DEFAULT_SUBTITLE_FONT_SIZE);
+                    break;
                 default:
                     editor.putString(key, "");
                     break;
@@ -129,8 +139,9 @@ public class SettingsActivity extends AppCompatActivity {
 
     public static class SettingsFragment extends PreferenceFragmentCompat
             implements Preference.OnPreferenceChangeListener,
-            SharedPreferences.OnSharedPreferenceChangeListener,
             Preference.OnPreferenceClickListener {
+        public static final int SEEKBAR_MIN_FONT_SIZE = 12;
+
         private VersionDatabase versionTable;
         private SharedPreferences sharedPref;
         private GotoVersionCheck appCheck;
@@ -143,7 +154,6 @@ public class SettingsActivity extends AppCompatActivity {
             if (context != null) {
                 sharedPref = context.getSharedPreferences(
                         getString(R.string.preference_key), Context.MODE_PRIVATE);
-                sharedPref.registerOnSharedPreferenceChangeListener(this);
                 versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
                 appCheck = getRetrofitAdapter(context, GITHUBAPI_ROOT).create(GotoVersionCheck.class);
 
@@ -162,6 +172,8 @@ public class SettingsActivity extends AppCompatActivity {
                         Log.e("GOTO", key + ": " + sharedPref.getBoolean(key, false));
                         SwitchPreferenceCompat sp = (SwitchPreferenceCompat) preference;
                         sp.setChecked(sharedPref.getBoolean(key, false));
+                    } else if (key.equals(PREF_SUBTITLE_FONTSIZE)) {
+                        preference.setSummary(Integer.toString(sharedPref.getInt(key, DEFAULT_SUBTITLE_FONT_SIZE)));
                     }
                     preference.setOnPreferenceChangeListener(this);
                 }
@@ -208,6 +220,11 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_MOD_KANTAIEN_DELETE:
                     enUtils.requestPatchDelete(this);
                     break;
+                case PREF_SUBTITLE_FONTSIZE:
+                    if (getActivity() != null) {
+                        showSubtitleFontSizeDialog(getActivity());
+                    }
+                    break;
             }
             return super.onPreferenceTreeClick(preference);
         }
@@ -215,6 +232,7 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
             String key = preference.getKey();
+            Log.e("GOTO", "onPreferenceChange " + key);
             if (preference instanceof ListPreference) {
                 String stringValue = (String) newValue;
                 if (key.equals(PREF_ALTER_METHOD)) {
@@ -233,13 +251,13 @@ public class SettingsActivity extends AppCompatActivity {
                     setSubtitlePreference(stringValue);
                 }
             }
-            if (preference instanceof EditTextPreference) {
+            else if (preference instanceof EditTextPreference) {
                 String stringValue = (String) newValue;
                 if (stringValue.isEmpty()) stringValue = DEFAULT_ALTER_GADGET_URL;
                 sharedPref.edit().putString(key, stringValue).apply();
                 preference.setSummary(stringValue);
             }
-            if (preference instanceof SwitchPreferenceCompat) {
+            else if (preference instanceof SwitchPreferenceCompat) {
                 sharedPref.edit().putBoolean(key, (boolean) newValue).apply();
                 if (key.equals(PREF_USE_EXTCACHE)) {
                     updateSubtitleDescriptionText();
@@ -263,7 +281,6 @@ public class SettingsActivity extends AppCompatActivity {
                 findPreference(PREF_SUBTITLE_UPDATE).setSummary(getString(R.string.subtitle_select_language));
             }
         }
-
 
         private void updateKantai3dDisable() {
             // Kantai3D only works with WebGL renderer
@@ -290,9 +307,50 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
 
-        @Override
-        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        private void showSubtitleFontSizeDialog(FragmentActivity activity) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            View dialogView = getLayoutInflater().inflate(R.layout.dialog_subtitle_size, null);
 
+            final int[] currentValue = {DEFAULT_SUBTITLE_FONT_SIZE};
+            try {
+                currentValue[0] = sharedPref.getInt(PREF_SUBTITLE_FONTSIZE, DEFAULT_SUBTITLE_FONT_SIZE);
+            } catch (Exception e) {
+                sharedPref.edit().putInt(PREF_SUBTITLE_FONTSIZE, currentValue[0]).apply();
+            }
+
+            TextView subtitleText = dialogView.findViewById(R.id.subtitle_example);
+            BrowserActivity.setSubtitleTextView(activity, subtitleText, currentValue[0]);
+            subtitleText.setText(String.format(Locale.US, getString(R.string.settings_subtitle_example), currentValue[0]));
+
+            SeekBar sbFontSize = dialogView.findViewById(R.id.subtitle_fontsize);
+            sbFontSize.setProgress(currentValue[0] - SEEKBAR_MIN_FONT_SIZE);
+            sbFontSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (fromUser) {
+                        currentValue[0] = progress + SEEKBAR_MIN_FONT_SIZE;
+                        BrowserActivity.setSubtitleTextView(activity, subtitleText, currentValue[0]);
+                        subtitleText.setText(String.format(Locale.US, getString(R.string.settings_subtitle_example), currentValue[0]));
+                    }
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {}
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+
+            builder.setTitle(R.string.settings_subtitle_fontsize);
+            builder.setView(dialogView);
+            builder.setPositiveButton(R.string.text_save, (dialog, which) -> {
+                sharedPref.edit().putInt(PREF_SUBTITLE_FONTSIZE, currentValue[0]).apply();
+                Preference pref = findPreference(PREF_SUBTITLE_FONTSIZE);
+                if (pref != null) pref.setSummary(Integer.toString(currentValue[0]));
+            });
+            builder.setNegativeButton(R.string.text_cancel, (dialog, which) -> dialog.cancel());
+            AlertDialog dialog = builder.create();
+            dialog.show();
         }
     }
 

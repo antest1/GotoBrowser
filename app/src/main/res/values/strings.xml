@@ -32,6 +32,8 @@
     <string name="settings_version_check">Check Update</string>
     <string name="settings_recommended_summary">Recommended</string>
     <string name="settings_subtitle_label">Subtitle Settings</string>
+    <string name="settings_subtitle_fontsize">Font Size</string>
+    <string name="settings_subtitle_example" formatted="false">TEXT SIZE: %d</string>
     <string name="settings_subtitle_download">Download Subtitle Data</string>
     <string name="settings_subtitle_language">Current Language</string>
     <string name="settings_source_code">Source Code</string>

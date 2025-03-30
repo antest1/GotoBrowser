@@ -28,6 +28,8 @@
     <string name="settings_version_check">업데이트 확인</string>
     <string name="settings_recommended_summary">권장</string>
     <string name="settings_subtitle_label">자막 설정</string>
+    <string name="settings_subtitle_fontsize" >폰트 크기</string>
+    <string name="settings_subtitle_example" formatted="false">텍스트 사이즈: %d</string>
     <string name="settings_subtitle_download">자막 데이터 다운로드</string>
     <string name="settings_subtitle_language">자막 언어</string>
     <string name="settings_appinfo_label">어플리케이션 정보</string>

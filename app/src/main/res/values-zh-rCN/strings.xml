@@ -27,6 +27,8 @@
     <string name="settings_version_check">检查更新</string>
     <string name="settings_recommended_summary">推荐</string>
     <string name="settings_subtitle_label">字幕设定</string>
+    <string name="settings_subtitle_fontsize" >字体大小</string>
+    <string name="settings_subtitle_example" formatted="false">文字大小：%d</string>
     <string name="settings_subtitle_download">下载字幕资料</string>
     <string name="settings_subtitle_language">字幕语言</string>
     <string name="settings_appinfo_label">应用程式资讯</string>
