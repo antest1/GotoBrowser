@@ -12,6 +12,7 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 | Prefetch Font Assets | Use built-in font files instead of loading file from the game server (slightly speeds up startup) |
 | External Storage for Resource Caching | Use external storage instead of internal storage when caching game resources<br/>(allows access of image/voice resources via PC) |
 | Input Mode | Choose input method when playing the game (Screen Touch or Using Mouse) |
+| Disable Refresh Warning Dialog | Game screen will be refreshed immediately without a confirmation dialog |
 | Picture-in-picture mode | Display game on small screen when switching to other app or home screen (Android 8.0+)|
 | [Multi-Window] Add Margin from Divider | Added margins to prevent the screen from sticking to the bar when using the multi-window function (Samsung Galaxy/Android 7.0 only) |
 | Legacy Renderer< | Force PixiJS game engine to use Canvas renderer instead of WebGL renderer. (recommended to disable if no graphic related issues occur) | 
@@ -21,6 +22,7 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 | Name | Description |
 | --- | --- |
 | Subtitle language | Select the language to use for subtitles. |
+| Font Size | Adjust the font size of voice subtitle on screen (default: 18) |
 | Download subtitle data | You can download the subtitle data when update available. |
 
 For information about the function, refer to the <span class="link" data-move="voiceline">Game Voiceline Subtitle</span> page.
@@ -37,11 +39,11 @@ For related information, refer to the <span class="link" data-move="gadgetbypass
 
 ##### Third Party Mods
 
-| Name                   | Description | Author |
-|------------------------| --- | --- |
-| Remove 60 FPS limit    | Enables smooth animations on devices supporting high screen refresh rates (120hz). | [@laplamgor](https://x.com/laplamgor) |
-| Kantai3D v4.0          | Add 3D-like visual effects and jiggle physics to some of your secretaries. | [@laplamgor](https://x.com/laplamgor) | 
-| True Critical Hits     | Removes some hard-coded obfuscation for hits. Only a critical hit (CL2) will be displayed as such, etc. | [@Oradimi](https://x.com/oradimi) |
+| Name | Description | Author |
+| --- | --- | --- |
+| Remove 60 FPS limit | Enables smooth animations on devices supporting high screen refresh rates (120hz). | [@laplamgor](https://x.com/laplamgor) |
+| Kantai3D v4.0 | Add 3D-like visual effects and jiggle physics to some of your secretaries. | [@laplamgor](https://x.com/laplamgor) | 
+| True Critical Hits | Removes some hard-coded obfuscation for hits. Only a critical hit (CL2) will be displayed as such, etc. | [@Oradimi](https://x.com/oradimi) |
 | KanColle English Patch | Apply [English patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP) to in-game resources (beta) | [@Oradimi](https://x.com/oradimi) |
 
 ##### App Information
