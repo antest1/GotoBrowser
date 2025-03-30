@@ -345,7 +345,22 @@ public class ResourceProcess {
         String log_path = out_file_path;
         File file = getImageFile(out_file_path);
 
-        if (!file.exists()) {
+        if (file.exists()) {
+            String current_version_tb = versionTable.getValue(path);
+            // handle not tracked cache file (assume latest)
+            if (VersionDatabase.isDefaultValue(current_version_tb)) {
+                if (!version.isEmpty()) {
+                    versionTable.putValue(path, version);
+                    Log.e("GOTO-D", path + " File Found, set v: " + version);
+                } else {
+                    String cache_control = "max-age=2592000, public";
+                    String expire_info = getExpireInfoFromCacheControl(cache_control);
+                    versionTable.putValue(path, expire_info);
+                    Log.e("GOTO-D", path + " File Found, set expires: " + expire_info);
+                }
+                update_flag = false;
+            }
+        } else {
             versionTable.putDefaultValue(path);
             update_flag = true;
         }
@@ -565,7 +580,22 @@ public class ResourceProcess {
         String out_file_path = file_info.get("out_file_path").getAsString();
 
         File file = new File(out_file_path);
-        if (!file.exists()) {
+        if (file.exists()) {
+            String current_version_tb = versionTable.getValue(path);
+            // handle not tracked cache file (assume latest)
+            if (VersionDatabase.isDefaultValue(current_version_tb)) {
+                if (!version.isEmpty()) {
+                    versionTable.putValue(path, version);
+                    Log.e("GOTO-D", path + " File Found, set v: " + version);
+                } else {
+                    String cache_control = "max-age=2592000, public";
+                    String expire_info = getExpireInfoFromCacheControl(cache_control);
+                    versionTable.putValue(path, expire_info);
+                    Log.e("GOTO-D", path + " File Found, set expires: " + expire_info);
+                }
+                update_flag = false;
+            }
+        } else {
             versionTable.putDefaultValue(path);
             update_flag = true;
         }
@@ -623,7 +653,22 @@ public class ResourceProcess {
         String out_file_path = file_info.get("out_file_path").getAsString();
 
         File file = new File(out_file_path);
-        if (!file.exists()) {
+        if (file.exists()) {
+            String current_version_tb = versionTable.getValue(path);
+            // handle not tracked cache file (assume latest)
+            if (VersionDatabase.isDefaultValue(current_version_tb)) {
+                if (!version.isEmpty()) {
+                    versionTable.putValue(path, version);
+                    Log.e("GOTO-D", path + " File Found, set v: " + version);
+                } else {
+                    String cache_control = "max-age=2592000, public";
+                    String expire_info = getExpireInfoFromCacheControl(cache_control);
+                    versionTable.putValue(path, expire_info);
+                    Log.e("GOTO-D", path + " File Found, set expires: " + expire_info);
+                }
+                update_flag = false;
+            }
+        } else {
             versionTable.putDefaultValue(path);
             update_flag = true;
         }
