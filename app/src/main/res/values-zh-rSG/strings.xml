@@ -37,6 +37,7 @@
     <string name="settings_appinfo_browsersettings">浏览器设定</string>
     <string name="browser_fontprefetch">预先载入字体</string>
     <string name="browser_enablepipmode">启用画中画模式</string>
+    <string name="browser_disable_refresh_dialog">禁用重新加载确认</string>
     <string name="logout_msg">您确定要登出吗？</string>
     <string name="noti_screenshot_name">GotoBrowser截图</string>
     <string name="noti_screenshot_title">已储存萤幕截图</string>

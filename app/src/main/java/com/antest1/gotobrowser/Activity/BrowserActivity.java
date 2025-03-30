@@ -69,6 +69,7 @@ import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
+import static com.antest1.gotobrowser.Constants.PREF_DISABLE_REFRESH_DIALOG;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
@@ -93,7 +94,7 @@ public class BrowserActivity extends AppCompatActivity {
     private boolean isStartedFlag = false;
     private boolean isAdjustChangedByUser = false;
     private List<String> connector_info;
-    private boolean isMuteMode, isCaptureMode, isLockMode, isKeepMode, isCaptionMode;
+    private boolean isMuteMode, isCaptureMode, isLockMode, isKeepMode, isCaptionMode, isNoRefreshPopupMode;
     private boolean isSubtitleLoaded = false;
     private TextView subtitleText;
     private ImageView kcCameraButton;
@@ -150,6 +151,7 @@ public class BrowserActivity extends AppCompatActivity {
             isKeepMode = sharedPref.getBoolean(PREF_KEEPMODE, false);
             isCaptionMode = sharedPref.getBoolean(PREF_SHOWCC, false);
             isCaptureMode = checkStoragePermissionGrated() && sharedPref.getBoolean(PREF_CAPTURE, false);
+            isNoRefreshPopupMode = sharedPref.getBoolean(PREF_DISABLE_REFRESH_DIALOG, false);
 
             executor = Executors.newScheduledThreadPool(1);
 
@@ -611,29 +613,33 @@ public class BrowserActivity extends AppCompatActivity {
         connector_info = WebViewManager.getDefaultPage(BrowserActivity.this, isKcBrowserMode);
         if (manager != null && connector_info != null && connector_info.size() == 2) {
             ((TextView) findViewById(R.id.kc_error_text)).setText("");
-            manager.openPage(mContentView, connector_info, isKcBrowserMode);
+            manager.refreshPage(mContentView);
         } else {
             finish();
         }
     }
 
     public void showRefreshDialog() {
-        mContentView.pauseTimers();
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                BrowserActivity.this);
-        alertDialogBuilder.setTitle(getString(R.string.app_name));
-        alertDialogBuilder
-                .setCancelable(false)
-                .setMessage(getString(R.string.refresh_msg))
-                .setPositiveButton(R.string.action_ok,
-                        (dialog, id) -> refreshPageOrFinish())
-                .setNegativeButton(R.string.action_cancel,
-                        (dialog, id) -> {
-                            dialog.cancel();
-                            mContentView.resumeTimers();
-                        });
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        if (isNoRefreshPopupMode) {
+            refreshPageOrFinish();
+        } else {
+            mContentView.pauseTimers();
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                    BrowserActivity.this);
+            alertDialogBuilder.setTitle(getString(R.string.app_name));
+            alertDialogBuilder
+                    .setCancelable(false)
+                    .setMessage(getString(R.string.refresh_msg))
+                    .setPositiveButton(R.string.action_ok,
+                            (dialog, id) -> refreshPageOrFinish())
+                    .setNegativeButton(R.string.action_cancel,
+                            (dialog, id) -> {
+                                dialog.cancel();
+                                mContentView.resumeTimers();
+                            });
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+        }
     }
 
     public void showLogoutDialog() {

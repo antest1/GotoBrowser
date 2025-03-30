@@ -18,6 +18,7 @@ public class Constants {
     public static final String PREF_LOCKMODE = "pref_lockmode";
     public static final String PREF_KEEPMODE = "pref_keepmode";
     public static final String PREF_SHOWCC = "pref_showcc";
+    public static final String PREF_DISABLE_REFRESH_DIALOG = "pref_disable_refresh_dialog";
     public static final String PREF_LATEST_URL = "pref_latest_url";
     public static final String PREF_DMM_ID = "pref_autocomplete_id";
     public static final String PREF_DMM_PASS = "pref_autocomplete_pass";
@@ -65,7 +66,8 @@ public class Constants {
             PREF_MOD_FPS,
             PREF_MOD_CRIT,
             PREF_DEVTOOLS_DEBUG,
-            PREF_CURSOR_MODE
+            PREF_CURSOR_MODE,
+            PREF_DISABLE_REFRESH_DIALOG
     };
 
     public static final String[] PREF_CLICK_SETTINGS = {
@@ -102,8 +104,8 @@ public class Constants {
 
     public static final String ADD_VIEWPORT_META = "var metaTag=document.createElement('meta');metaTag.name='viewport',metaTag.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',document.getElementsByTagName('head')[0].appendChild(metaTag);";
 
-    public static final String MUTE_SEND_DMM = "(function(){var msg={sound:%d};var origin=\"*\";document.getElementById(\"game_frame\").contentWindow.postMessage(msg,origin);return \"done\"})()";
-    public static final String MUTE_SEND_OOI = "(function(){var msg={sound:%d};var origin=\"*\";document.getElementById(\"externalswf\").contentWindow.postMessage(msg,origin);return \"done\"})()";
+    public static final String MUTE_SEND_DMM = "(function(){var msg={sound:%d};var origin=\"*\";var game_frame=document.getElementById(\"game_frame\");if(game_frame!=null){game_frame.contentWindow.postMessage(msg,origin)};return \"done\"})()";
+    public static final String MUTE_SEND_OOI = "(function(){var msg={sound:%d};var origin=\"*\";var game_frame=document.getElementById(\"externalswf\");if(game_frame!=null){game_frame.contentWindow.postMessage(msg,origin)};return \"done\"})()";
     public static final String MUTE_LISTEN = "\nwindow.addEventListener(\"message\",function(e){(e.data.sound!=null)&&(global_mute=e.data.sound,Howler.mute(global_mute),(!global_mute&&gb_h&&gb_h&&!gb_h.playing())&&gb_h.play())});";
     public static final String DMM_COOKIE = "document.cookie='ckcy=1;expires={date};path=/netgame;domain=.dmm.com';";
     public static final String CAPTURE_SEND_DMM = "(function(){var msg={capture:true};var origin=\"*\";var doc=document.getElementById(\"game_frame\");if(doc){doc.contentWindow.postMessage(msg,origin)}else{document.getElementsByTagName(\"iframe\")[0].contentWindow.postMessage(msg,origin)};return\"done\"})()";

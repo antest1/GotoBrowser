@@ -38,6 +38,7 @@
     <string name="settings_appinfo_browsersettings">ブラウザ設定</string>
     <string name="browser_fontprefetch">フォントをプリロード</string>
     <string name="browser_enablepipmode">PIPモードを有効にする</string>
+    <string name="browser_disable_refresh_dialog">再読み込み確認を無効にする</string>
     <string name="logout_msg">本当にログアウトしますか？</string>
     <string name="noti_screenshot_name">GotoBrowserスクリーンショット</string>
     <string name="noti_screenshot_title">スクリーンショットを保存しました</string>

@@ -29,7 +29,6 @@ import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.android.material.snackbar.Snackbar;
 
-import java.util.Locale;
 import java.util.Map;
 
 import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
@@ -58,6 +57,7 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_CRIT;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
+import static com.antest1.gotobrowser.Constants.PREF_DISABLE_REFRESH_DIALOG;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SETTINGS;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
@@ -107,6 +107,7 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_MOD_CRIT:
                 case PREF_LEGACY_RENDERER:
                 case PREF_ALTER_GADGET:
+                case PREF_DISABLE_REFRESH_DIALOG:
                     editor.putBoolean(key, false);
                     break;
                 case PREF_ALTER_METHOD:

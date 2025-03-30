@@ -47,6 +47,7 @@
     <string name="settings_appinfo_browsersettings">Browser Settings</string>
     <string name="browser_fontprefetch">Prefetch Font Assets</string>
     <string name="browser_enablepipmode">Picture-in-picture mode</string>
+    <string name="browser_disable_refresh_dialog">Disable Refresh Warning Dialog</string>
     <string name="logout_msg">Are you sure you want to Logout?</string>
     <string name="noti_screenshot_name">GotoBrowser Screenshot</string>
     <string name="noti_screenshot_title">Screenshot Captured</string>

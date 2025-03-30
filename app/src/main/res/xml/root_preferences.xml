@@ -52,6 +52,11 @@
 
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
+            app:key="pref_disable_refresh_dialog"
+            app:title="@string/browser_disable_refresh_dialog" />
+
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
             app:key="pref_legacy_renderer"
             app:title="@string/settings_legacy_renderer_enable"
             app:summary="@string/settings_legacy_renderer_summary"/>
