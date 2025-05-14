@@ -12,6 +12,7 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +27,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.webkit.SslErrorHandler;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -77,6 +79,8 @@ import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.PREF_UI_HELP_CHECKED;
 import static com.antest1.gotobrowser.Constants.REQUEST_NOTIFICATION_PERMISSION;
+import static com.antest1.gotobrowser.Helpers.KcUtils.getSslErrorCodeDescription;
+import static com.antest1.gotobrowser.Helpers.KcUtils.getSslErrorCodeTitle;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getWebkitErrorCodeText;
 
 public class BrowserActivity extends AppCompatActivity {
@@ -474,6 +478,21 @@ public class BrowserActivity extends AppCompatActivity {
                         (dialog, id) -> refreshPageOrFinish())
                 .setNegativeButton("Close",
                         (dialog, id) -> dialog.cancel());
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+    }
+
+    public void showSslErrorDialog(SslErrorHandler handler, SslError error) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle(getSslErrorCodeTitle(error.getPrimaryError()));
+        alertDialogBuilder
+                .setCancelable(false)
+                .setMessage((getSslErrorCodeDescription(error.getPrimaryError())
+                        + "\n\nurl: " + error.getUrl()).trim())
+                .setPositiveButton("Close",
+                        (dialog, id) -> handler.cancel())
+                .setNegativeButton("Proceed",
+                        (dialog, id) -> handler.proceed());
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.show();
     }

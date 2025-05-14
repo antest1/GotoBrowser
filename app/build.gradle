@@ -8,8 +8,8 @@ android {
         minSdkVersion 21
         compileSdk 34
         targetSdkVersion 34
-        versionCode 80
-        versionName "2.13-rev8"
+        versionCode 81
+        versionName "2.13-rev9"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
         multiDexEnabled true
 
@@ -34,7 +34,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.10.0'
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
-    implementation 'com.google.firebase:firebase-crashlytics:19.4.2'
+    implementation 'com.google.firebase:firebase-crashlytics:19.4.3'
     implementation 'com.google.firebase:firebase-analytics:22.4.0'
     implementation 'net.lingala.zip4j:zip4j:2.11.1'
 

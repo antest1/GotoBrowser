@@ -38,7 +38,7 @@
 
     <string-array name="connector_list">
         <item>DMM direct</item>
-        <item>kancolle.su</item>
+        <item>kancolle.moe</item>
         <item>ooi.moe</item>
     </string-array>
 </resources>

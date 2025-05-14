@@ -87,23 +87,23 @@ public class Constants {
     public static final String ACTION_SHOWKEYBOARD = "with_keyboard_";
 
     public static final String CONN_DMM = "DMM direct";
-    public static final String CONN_KANSU = "kancolle.su";
+    public static final String CONN_KANMOE = "kancolle.moe";
     public static final String CONN_OOI = "ooi.moe";
 
     public static final String URL_DMM = "http://www.dmm.com/netgame/social/-/gadgets/=/app_id=854854/";
     public static final String URL_OOI = "https://ooi.moe/";
-    public static final String URL_KANSU = "http://kancolle.su/";
-    public static final String[] URL_LIST = {URL_DMM, URL_KANSU, URL_OOI};
+    public static final String URL_KANMOE = "https://kancolle.moe/";
+    public static final String[] URL_LIST = {URL_DMM, URL_KANMOE, URL_OOI};
 
     public static final String URL_DMM_LOGIN = "www.dmm.com/my/-/login/";
     public static final String URL_DMM_LOGIN_2 = "accounts.dmm.com/service/login/password";
     public static final String URL_DMM_FOREIGN = "www.dmm.com/netgame/foreign";
     public static final String URL_DMM_FOREIGN_2 = "special.dmm.com/not-available-in-your-region";
     public static final String URL_OOI_1 = "ooi.moe/kancolle";
-    public static final String URL_KANSU_1 = "kancolle.su/kancolle";
+    public static final String URL_KANMOE_1 = "kancolle.moe/kancolle";
     public static final String URL_DMM_LOGOUT = "https://www.dmm.com/my/-/login/logout/=/path=Sg9VTQFXDFcXFl5bWlcKGExKUVdUXgFNEU0KSVMVR28MBQ0BUwJZBwxK";
-    public static final String URL_OOI_LOGOUT = "http://ooi.moe/logout";
-    public static final String URL_KANSU_LOGOUT = "http://kancolle.su/logout";
+    public static final String URL_OOI_LOGOUT = "https://ooi.moe/logout";
+    public static final String URL_KANMOE_LOGOUT = "https://kancolle.moe/logout";
 
     public static final String ADD_VIEWPORT_META = "var metaTag=document.createElement('meta');metaTag.name='viewport',metaTag.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',document.getElementsByTagName('head')[0].appendChild(metaTag);";
 

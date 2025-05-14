@@ -19,7 +19,6 @@ import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Display;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -32,7 +31,6 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
@@ -50,10 +48,6 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
-import java.net.URLConnection;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -63,7 +57,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -84,6 +77,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import static com.antest1.gotobrowser.Constants.CACHE_SIZE_BYTES;
 import static com.antest1.gotobrowser.Constants.KCANOTIFY_PACKAGE_NAME;
 import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
+import static android.net.http.SslError.SSL_DATE_INVALID;
+import static android.net.http.SslError.SSL_EXPIRED;
+import static android.net.http.SslError.SSL_IDMISMATCH;
+import static android.net.http.SslError.SSL_INVALID;
+import static android.net.http.SslError.SSL_NOTYETVALID;
+import static android.net.http.SslError.SSL_UNTRUSTED;
 import static android.webkit.WebViewClient.*;
 
 public class KcUtils {
@@ -597,39 +596,47 @@ public class KcUtils {
     }
 
     public static String getWebkitErrorCodeText(int errorCode) {
-        switch (errorCode) {
-            case ERROR_AUTHENTICATION:
-                return "ERROR_AUTHENTICATION";
-            case ERROR_BAD_URL:
-                return "ERROR_BAD_URL";
-            case ERROR_CONNECT:
-                return "ERROR_CONNECT";
-            case ERROR_FAILED_SSL_HANDSHAKE:
-                return "ERROR_FAILED_SSL_HANDSHAKE";
-            case ERROR_FILE:
-                return "ERROR_FILE";
-            case ERROR_FILE_NOT_FOUND:
-                return "ERROR_FILE_NOT_FOUND";
-            case ERROR_HOST_LOOKUP:
-                return "ERROR_HOST_LOOKUP";
-            case ERROR_IO:
-                return "ERROR_IO";
-            case ERROR_PROXY_AUTHENTICATION:
-                return "ERROR_PROXY_AUTHENTICATION";
-            case ERROR_REDIRECT_LOOP:
-                return "ERROR_REDIRECT_LOOP";
-            case ERROR_TIMEOUT:
-                return "ERROR_TIMEOUT";
-            case ERROR_TOO_MANY_REQUESTS:
-                return "ERROR_TOO_MANY_REQUESTS";
-            case ERROR_UNSUPPORTED_AUTH_SCHEME:
-                return "ERROR_UNSUPPORTED_AUTH_SCHEME";
-            case ERROR_UNSUPPORTED_SCHEME:
-                return "ERROR_UNSUPPORTED_SCHEME";
-            case ERROR_UNSAFE_RESOURCE:
-                return "ERROR_UNSAFE_RESOURCE";
-            default:
-                return String.format(Locale.US, "ERROR_UNKNOWN (%d)", errorCode);
-        }
+        return switch (errorCode) {
+            case ERROR_AUTHENTICATION -> "ERROR_AUTHENTICATION";
+            case ERROR_BAD_URL -> "ERROR_BAD_URL";
+            case ERROR_CONNECT -> "ERROR_CONNECT";
+            case ERROR_FAILED_SSL_HANDSHAKE -> "ERROR_FAILED_SSL_HANDSHAKE";
+            case ERROR_FILE -> "ERROR_FILE";
+            case ERROR_FILE_NOT_FOUND -> "ERROR_FILE_NOT_FOUND";
+            case ERROR_HOST_LOOKUP -> "ERROR_HOST_LOOKUP";
+            case ERROR_IO -> "ERROR_IO";
+            case ERROR_PROXY_AUTHENTICATION -> "ERROR_PROXY_AUTHENTICATION";
+            case ERROR_REDIRECT_LOOP -> "ERROR_REDIRECT_LOOP";
+            case ERROR_TIMEOUT -> "ERROR_TIMEOUT";
+            case ERROR_TOO_MANY_REQUESTS -> "ERROR_TOO_MANY_REQUESTS";
+            case ERROR_UNSUPPORTED_AUTH_SCHEME -> "ERROR_UNSUPPORTED_AUTH_SCHEME";
+            case ERROR_UNSUPPORTED_SCHEME -> "ERROR_UNSUPPORTED_SCHEME";
+            case ERROR_UNSAFE_RESOURCE -> "ERROR_UNSAFE_RESOURCE";
+            default -> String.format(Locale.US, "ERROR_UNKNOWN (%d)", errorCode);
+        };
+    }
+
+    public static String getSslErrorCodeTitle(int errorCode) {
+        return switch (errorCode) {
+            case SSL_DATE_INVALID -> "SSL_DATE_INVALID";
+            case SSL_EXPIRED -> "SSL_EXPIRED";
+            case SSL_IDMISMATCH -> "SSL_IDMISMATCH";
+            case SSL_INVALID -> "SSL_INVALID";
+            case SSL_NOTYETVALID -> "SSL_NOTYETVALID";
+            case SSL_UNTRUSTED -> "SSL_UNTRUSTED";
+            default -> String.format(Locale.US, "ERROR_UNKNOWN (%d)", errorCode);
+        };
+    }
+
+    public static String getSslErrorCodeDescription(int errorCode) {
+        return switch (errorCode) {
+            case SSL_DATE_INVALID -> "The date of the certificate is invalid";
+            case SSL_EXPIRED -> "The certificate has expired";
+            case SSL_IDMISMATCH -> "Hostname mismatch";
+            case SSL_INVALID -> "A generic error occurred";
+            case SSL_NOTYETVALID -> "The certificate is not yet valid";
+            case SSL_UNTRUSTED -> "The certificate authority is not trusted";
+            default -> String.format(Locale.US, "unknown ssl error [%d]", errorCode);
+        };
     }
 }
