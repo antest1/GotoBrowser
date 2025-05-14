@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.net.http.SslError;
 import android.os.Build;
 import android.os.Message;
 import android.util.Log;
@@ -17,6 +18,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.JsResult;
+import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -119,7 +121,7 @@ public class WebViewManager {
                 runLoginLogoutScript(webview, url);
                 if (is_kcbrowser_mode) {
                     sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
-                    if (url.contains(Constants.URL_KANSU_1) || url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
+                    if (url.contains(Constants.URL_KANMOE_1) || url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
                         activity.setStartedFlag();
                         webview.evaluateJavascript(ADD_VIEWPORT_META, null);
                         webview.getSettings().setBuiltInZoomControls(true);
@@ -130,7 +132,12 @@ public class WebViewManager {
                     }
                     if (url.contains("about:blank") && refreshFlag) {
                         refreshFlag = false;
-                        if (webview.canGoBack()) webview.goBack();
+                        String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
+                        if (CONN_DMM.equals(pref_connector)) {
+                            openPage(webview, getDefaultPage(activity, true), true);
+                        } else {
+                            if (webview.canGoBack()) webview.goBack();
+                        }
                         webview.resumeTimers();
                     }
                 }
@@ -153,6 +160,11 @@ public class WebViewManager {
                     if (response != null) return response;
                 }
                 return super.shouldInterceptRequest(view, request);
+            }
+
+            @Override
+            public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+                activity.showSslErrorDialog(handler, error);
             }
         });
     }
@@ -239,7 +251,7 @@ public class WebViewManager {
 
         if (url.contains(URL_DMM_LOGIN) || url.contains(URL_DMM_LOGIN_2)) {
             webview.evaluateJavascript(cookie + String.format(Locale.US, AUTOCOMPLETE_DMM, login_id, login_password), null);
-        } else if (url.contains(URL_KANSU) || url.contains(URL_OOI)) {
+        } else if (url.contains(URL_KANMOE) || url.contains(URL_OOI)) {
             webview.evaluateJavascript(
                     String.format(Locale.US, AUTOCOMPLETE_OOI, login_id, login_password), null);
         }
@@ -263,7 +275,7 @@ public class WebViewManager {
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         if (CONN_DMM.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_DMM, is_mute ? 1 : 0), callback);
-        } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
+        } else if (CONN_KANMOE.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_OOI, is_mute ? 1 : 0), callback);
         }
     }
@@ -274,7 +286,7 @@ public class WebViewManager {
         switch (pref_connector) {
             case CONN_DMM -> webview.loadUrl(URL_DMM_LOGOUT);
             case CONN_OOI -> webview.loadUrl(URL_OOI_LOGOUT);
-            case CONN_KANSU -> webview.loadUrl(URL_KANSU_LOGOUT);
+            case CONN_KANMOE -> webview.loadUrl(URL_KANMOE_LOGOUT);
         }
     }
 
@@ -294,14 +306,14 @@ public class WebViewManager {
         webview.resumeTimers();
         webview.getSettings().setTextZoom(100);
         if (!isKcBrowser) {
-            webview.loadUrl(connector_url);
+            webview.loadUrl(connector_url_default);
         } else {
             String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
-            if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
+            if (CONN_KANMOE.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
                 int connect_mode = 1;
                 String post_data = String.format(Locale.US, "login_id=%s&password=%s&mode=%d",
                         encodeText(login_id), encodeText(login_password), connect_mode);
-                webview.postUrl(connector_url, post_data.getBytes());
+                webview.postUrl(connector_url_default, post_data.getBytes());
             } else {
                 webview.loadUrl(connector_url_default);
             }
@@ -345,18 +357,12 @@ public class WebViewManager {
             if (CONN_DMM.equals(pref_connector)) {
                 url_list.add(URL_DMM);
                 url_list.add(URL_DMM);
-            } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
-                String connector_url = "";
-                String connector_url_default = "";
-                if (CONN_KANSU.equals(pref_connector)) {
-                    connector_url_default = URL_KANSU;
-                    connector_url = URL_KANSU;
-                } else {
-                    connector_url_default = URL_OOI;
-                    connector_url = URL_OOI;
-                }
-                url_list.add(connector_url_default);
-                url_list.add(connector_url);
+            } else if (CONN_OOI.equals(pref_connector)) {
+                url_list.add(URL_OOI);
+                url_list.add(URL_OOI);
+            } else if (CONN_KANMOE.equals(pref_connector)) {
+                url_list.add(URL_KANMOE);
+                url_list.add(URL_KANMOE);
             }
             return url_list;
         } else {
@@ -378,7 +384,7 @@ public class WebViewManager {
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         if (CONN_DMM.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, CAPTURE_SEND_DMM), callback);
-        } else if (CONN_KANSU.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
+        } else if (CONN_KANMOE.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, CAPTURE_SEND_OOI), callback);
         }
     }

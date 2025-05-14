@@ -7,7 +7,7 @@
 
 ##### 접속 사이트 선택
 - 일반적인 경우 DMM DIRECT로 설정된 값을 바꾸지 않아도 됩니다.
-- OOI 기반 접속기를 사용하고자 하는 경우 해당 영역을 눌러 변경할 수 있습니다. ([ooi.moe](https://ooi.moe/) 혹은 [kancolle.su](http://kancolle.su/))
+- OOI 기반 접속기를 사용하고자 하는 경우 해당 영역을 눌러 변경할 수 있습니다. ([ooi.moe](https://ooi.moe/) 혹은 [kancolle.moe](https://kancolle.moe/))
 
 ##### 로그인 자동완성
 - 브라우저 기동 시 입력할 아이디 및 비밀번호를 설정할 수 있습니다.

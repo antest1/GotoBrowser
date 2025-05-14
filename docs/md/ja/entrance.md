@@ -7,7 +7,7 @@
 
 ##### 接続サイトの選択
 - ほとんどの場合、「DMM DIRECT」の設定を変更する必要はありません。
-- OOIベースのコネクタを使用したい場合は、この領域をタップして変更できます。([ooi.moe](https://ooi.moe/)または[kancolle.su](http://kancolle.su/))
+- OOIベースのコネクタを使用したい場合は、この領域をタップして変更できます。([ooi.moe](https://ooi.moe/)または[kancolle.moe](https://kancolle.moe/))
 
 ##### ログインオートコンプリート（自動入力）
 - ブラウザ起動時に入力するIDとパスワードを設定できます。

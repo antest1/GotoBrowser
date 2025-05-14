@@ -7,7 +7,7 @@
 
 ##### Select Connector Site
 - In general, you do not need to change the value set to DMM DIRECT.
-- If you want to use an OOI-based connector, you can change it by clicking on the corresponding area. ([ooi.moe](https://ooi.moe/) or [kancolle.su](http://kancolle.su/))
+- If you want to use an OOI-based connector, you can change it by clicking on the corresponding area. ([ooi.moe](https://ooi.moe/) or [kancolle.moe](https://kancolle.moe/))
 
 ##### Login Autocompletion
 - You can set the ID and password to be entered when starting the browser.
