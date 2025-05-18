@@ -246,8 +246,8 @@
             android:layout_gravity="end"
             android:background="?android:selectableItemBackground"
             android:padding="8dp"
-            android:src="@drawable/twotone_help_24"
-            app:srcCompat="@drawable/twotone_help_24" />
+            android:src="@drawable/help_icon"
+            app:srcCompat="@drawable/help_icon" />
 
         <ImageView
             android:id="@+id/icon_setting"
@@ -256,8 +256,8 @@
             android:layout_gravity="end"
             android:background="?android:selectableItemBackground"
             android:padding="8dp"
-            android:src="@mipmap/settings"
-            app:srcCompat="@mipmap/settings" />
+            android:src="@drawable/settings"
+            app:srcCompat="@drawable/settings" />
     </LinearLayout>
 
     <LinearLayout

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="entrance_menu_button">36dp</dimen>
+    <dimen name="browser_panel_button">36dp</dimen>
+
+</resources>
