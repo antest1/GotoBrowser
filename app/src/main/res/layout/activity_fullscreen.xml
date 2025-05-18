@@ -170,15 +170,15 @@
         android:id="@+id/kc_camera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="24dp"
+        android:layout_margin="@dimen/browser_camera_margin"
         android:alpha="0.75"
         android:background="@drawable/capture_button"
-        android:padding="16dp"
-        android:src="@mipmap/capture_area"
+        android:padding="@dimen/browser_camera_padding"
+        android:src="@drawable/capture_icon"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@mipmap/capture_area" />
+        app:srcCompat="@drawable/capture_icon" />
 
         <ImageView
         android:id="@+id/dmm_browser_close"
@@ -198,7 +198,7 @@
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigation"
-        android:layout_width="48dp"
+        android:layout_width="@dimen/browser_panel_width"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         app:elevation="0dp"
@@ -224,9 +224,9 @@
                     android:id="@+id/menu_refresh"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="6dp"
-                    android:src="@mipmap/refresh"
-                    app:srcCompat="@mipmap/refresh"
+                    android:padding="@dimen/browser_panel_button_padding"
+                    android:src="@drawable/refresh_icon"
+                    app:srcCompat="@drawable/refresh_icon"
                     android:tooltipText="@string/menu_tooltip_refresh"/>
 
                 <ScrollView
@@ -245,81 +245,81 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
-                            android:src="@mipmap/aspect_ratio"
+                            android:padding="@dimen/browser_panel_button_padding"
+                            android:src="@drawable/aspect_ratio"
                             android:visibility="gone"
-                            app:srcCompat="@mipmap/aspect_ratio" />
+                            app:srcCompat="@drawable/aspect_ratio" />
 
                         <ImageView
                             android:id="@+id/menu_mute"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
-                            android:src="@mipmap/mute"
+                            android:padding="@dimen/browser_panel_button_padding"
+                            android:src="@drawable/volume_off"
                             android:tooltipText="@string/menu_tooltip_mute"
-                            app:srcCompat="@mipmap/mute" />
+                            app:srcCompat="@drawable/volume_off" />
 
                         <ImageView
                             android:id="@+id/menu_camera"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
-                            android:src="@mipmap/camera"
+                            android:padding="@dimen/browser_panel_button_padding"
+                            android:src="@drawable/camera_icon"
                             android:tooltipText="@string/menu_tooltip_camera"
-                            app:srcCompat="@mipmap/camera" />
+                            app:srcCompat="@drawable/camera_icon" />
 
                         <ImageView
                             android:id="@+id/menu_lock"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
-                            android:src="@mipmap/lock"
+                            android:padding="@dimen/browser_panel_button_padding"
+                            android:src="@drawable/screen_lock"
                             android:tooltipText="@string/menu_tooltip_lock"
-                            app:srcCompat="@mipmap/lock" />
+                            app:srcCompat="@drawable/screen_lock" />
 
                         <ImageView
                             android:id="@+id/menu_brighton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
-                            android:src="@mipmap/brighton"
+                            android:padding="@dimen/browser_panel_button_padding"
+                            android:src="@drawable/light_mode"
                             android:tooltipText="@string/menu_tooltip_brighton"
-                            app:srcCompat="@mipmap/brighton" />
+                            app:srcCompat="@drawable/light_mode" />
 
                         <ImageView
                             android:id="@+id/menu_cc"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
-                            android:src="@mipmap/caption"
+                            android:padding="@dimen/browser_panel_button_padding"
+                            android:src="@drawable/caption_icon"
                             android:tooltipText="@string/menu_tooltip_cc"
-                            app:srcCompat="@mipmap/caption" />
+                            app:srcCompat="@drawable/caption_icon" />
 
                         <ImageView
                             android:id="@+id/menu_kantai3d"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
-                            android:src="@mipmap/kantai3d"
+                            android:padding="@dimen/browser_panel_button_padding"
+                            android:src="@drawable/kantai3d_icon"
                             android:tooltipText="@string/menu_tooltip_kantai3d"
-                            app:srcCompat="@mipmap/kantai3d" />
+                            app:srcCompat="@drawable/kantai3d_icon" />
 
                         <ImageView
                             android:id="@+id/menu_logout"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
-                            android:src="@mipmap/logout"
+                            android:padding="@dimen/browser_panel_button_padding"
+                            android:src="@drawable/exit_to_app"
                             android:tooltipText="@string/menu_tooltip_logout"
                             android:visibility="visible"
-                            app:srcCompat="@mipmap/logout" />
+                            app:srcCompat="@drawable/exit_to_app" />
                     </LinearLayout>
                 </ScrollView>
 
@@ -333,7 +333,7 @@
                 android:layout_alignParentBottom="true"
                 android:background="?android:selectableItemBackground"
                 android:padding="6dp"
-                android:src="@mipmap/close" />
+                android:src="@drawable/close_icon" />
 
         </RelativeLayout>
     </com.google.android.material.navigation.NavigationView>

@@ -75,7 +75,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="3dp"
+                            android:padding="3sp"
                             android:text="OOI.MOE"
                             android:textAlignment="center"
                             android:textAllCaps="true"
@@ -88,19 +88,17 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="5dp"
+                        android:layout_marginTop="5sp"
                         android:background="@color/colorSiteSelection">
                         <TextView
                             android:id="@+id/webview_autocomplete"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:paddingStart="12dp"
-                            android:paddingLeft="12dp"
-                            android:paddingTop="4dp"
-                            android:paddingEnd="12dp"
-                            android:paddingRight="12dp"
-                            android:paddingBottom="4dp"
+                            android:paddingStart="12sp"
+                            android:paddingTop="4sp"
+                            android:paddingEnd="12sp"
+                            android:paddingBottom="4sp"
                             android:text="@string/autocomplete_title"
                             android:textAlignment="center"
                             android:textColor="@color/colorAccent"
@@ -126,45 +124,43 @@
                     android:layout_marginTop="15dp"
                     android:background="#40000000"
                     android:orientation="vertical"
-                    android:paddingStart="15dp"
-                    android:paddingLeft="15dp"
-                    android:paddingTop="10dp"
-                    android:paddingEnd="15dp"
-                    android:paddingRight="15dp"
-                    android:paddingBottom="10dp">
+                    android:paddingStart="15sp"
+                    android:paddingTop="10sp"
+                    android:paddingEnd="15sp"
+                    android:paddingBottom="10sp">
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/switch_silent"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="4dp"
-                        android:switchPadding="12dp"
-                        app:switchPadding="12dp"
+                        android:switchPadding="12sp"
+                        app:switchPadding="12sp"
                         android:text="@string/mode_silent"
                         android:textColor="@color/white"
-                        android:textSize="16dp" />
+                        android:textSize="16sp" />
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/switch_broadcast"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="4dp"
-                        android:switchPadding="12dp"
-                        app:switchPadding="12dp"
+                        android:layout_marginBottom="4sp"
+                        android:switchPadding="12sp"
+                        app:switchPadding="12sp"
                         android:text="@string/mode_broadcast"
                         android:textColor="@color/white"
-                        android:textSize="16dp" />
+                        android:textSize="16sp" />
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/switch_gadget"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="4dp"
-                        android:switchPadding="12dp"
-                        app:switchPadding="12dp"
+                        android:layout_marginBottom="4sp"
+                        android:switchPadding="12sp"
+                        app:switchPadding="12sp"
                         android:text="@string/connection_use_alter"
                         android:textColor="@color/white"
-                        android:textSize="16dp" />
+                        android:textSize="16sp" />
 
                     <CheckBox
                         android:id="@+id/layout_control"
@@ -204,12 +200,10 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:paddingStart="20dp"
-                            android:paddingLeft="20dp"
-                            android:paddingTop="5dp"
-                            android:paddingEnd="20dp"
-                            android:paddingRight="20dp"
-                            android:paddingBottom="5dp"
+                            android:paddingStart="20sp"
+                            android:paddingTop="5sp"
+                            android:paddingEnd="20sp"
+                            android:paddingBottom="5sp"
                             android:text="START"
                             android:textAlignment="center"
                             android:textColor="@color/white"
@@ -246,8 +240,8 @@
             android:layout_gravity="end"
             android:background="?android:selectableItemBackground"
             android:padding="8dp"
-            android:src="@drawable/twotone_help_24"
-            app:srcCompat="@drawable/twotone_help_24" />
+            android:src="@drawable/help_icon"
+            app:srcCompat="@drawable/help_icon" />
 
         <ImageView
             android:id="@+id/icon_setting"
@@ -256,8 +250,8 @@
             android:layout_gravity="end"
             android:background="?android:selectableItemBackground"
             android:padding="8dp"
-            android:src="@mipmap/settings"
-            app:srcCompat="@mipmap/settings" />
+            android:src="@drawable/settings"
+            app:srcCompat="@drawable/settings" />
     </LinearLayout>
 
     <LinearLayout
@@ -271,20 +265,20 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:padding="2dp"
+            android:padding="2sp"
             android:text="version_info"
             android:textColor="@color/white"
-            android:textSize="12dp" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/copyright"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
-            android:padding="2dp"
+            android:padding="2sp"
             android:textAlignment="textEnd"
             android:textColor="@color/white"
-            android:textSize="12dp" />
+            android:textSize="12sp" />
     </LinearLayout>
 
 </FrameLayout>

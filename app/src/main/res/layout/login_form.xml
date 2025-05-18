@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="12sp">
 
     <TextView
         android:id="@+id/loginform_title"
@@ -20,50 +20,63 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/autocomplete_msg"
-        android:textAlignment="center" />
+        android:textAlignment="center"
+        android:textSize="14sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/label_id"
-            android:layout_width="72dp"
-            android:layout_height="wrap_content"
-            android:text="DMM ID"
-            android:textColor="@color/colorBackground"
-            android:textStyle="bold" />
-
-        <EditText
-            android:id="@+id/input_id"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textEmailAddress" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/label_pw"
-            android:layout_width="72dp"
-            android:layout_height="wrap_content"
-            android:text="Password"
-            android:textColor="@color/colorBackground"
-            android:textStyle="bold" />
-
-        <EditText
-            android:id="@+id/input_pw"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:inputType="textPassword" />
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_marginEnd="8sp">
 
+            <TextView
+                android:id="@+id/label_id"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:text="DMM ID"
+                android:textColor="@color/colorBackground"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/label_pw"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:text="Password"
+                android:textColor="@color/colorBackground"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/input_id"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="textEmailAddress" />
+
+            <EditText
+                android:id="@+id/input_pw"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="textPassword" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

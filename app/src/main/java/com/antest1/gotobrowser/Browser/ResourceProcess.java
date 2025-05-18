@@ -253,15 +253,17 @@ public class ResourceProcess {
         JsonObject file_info = new JsonObject();
 
         String url = source.toString();
-        String host = source.getHost();
+        String host = "";
         String path = "";
         String filename = "";
         String fullpath = "";
         String outputpath = "";
         if (source.getPath() != null) {
+            String scheme = source.getScheme();
+            host = source.getHost();
             path = source.getPath();
             filename = source.getLastPathSegment();
-            fullpath = String.format(Locale.US, "http://%s%s", host, path);
+            fullpath = String.format(Locale.US, "%s://%s%s", scheme, host, path);
             outputpath = KcUtils.getAppCacheFileDir(context, "/cache/");
             if (filename != null) {
                 outputpath = outputpath.concat(path.replace(filename, "").substring(1));

@@ -59,11 +59,9 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.clearApplicationCache;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
 
 public class EntranceActivity extends AppCompatActivity {
-    private BackPressCloseHandler backPressCloseHandler;
     private SharedPreferences sharedPref;
     private TextView selectButton;
     private VersionDatabase versionTable;
-    private GotoVersionCheck appCheck;
     private boolean kcanotifyInstalledFlag;
 
     @Override
@@ -75,15 +73,18 @@ public class EntranceActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) actionBar.hide();
 
-        appCheck = getRetrofitAdapter(getApplicationContext(), GITHUBAPI_ROOT).create(GotoVersionCheck.class);
+        GotoVersionCheck appCheck = getRetrofitAdapter(getApplicationContext(), GITHUBAPI_ROOT)
+                .create(GotoVersionCheck.class);
         KcUtils.requestLatestAppVersion(this, appCheck, true);
 
         kcanotifyInstalledFlag = KcUtils.isKcanotifyInstalled(getApplicationContext());
 
         versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
-        backPressCloseHandler = new BackPressCloseHandler(this);
+        BackPressCloseHandler backPressCloseHandler = new BackPressCloseHandler(this, true);
         sharedPref = getSharedPreferences(getString(R.string.preference_key), Context.MODE_PRIVATE);
         SettingsActivity.setInitialSettings(sharedPref);
+
+        getOnBackPressedDispatcher().addCallback(this, backPressCloseHandler);
 
         SharedPreferences.Editor editor = sharedPref.edit();
 
@@ -208,11 +209,6 @@ public class EntranceActivity extends AppCompatActivity {
         super.onResume();
         SwitchCompat gadgetSwitch = findViewById(R.id.switch_gadget);
         gadgetSwitch.setChecked(sharedPref.getBoolean(PREF_ALTER_GADGET, false));
-    }
-
-    @Override
-    public void onBackPressed() {
-        backPressCloseHandler.onBackPressed();
     }
 
     @Override
@@ -345,9 +341,8 @@ public class EntranceActivity extends AppCompatActivity {
                         startActivity(intent);
                         finish();
                     },
-                    () -> {
-                        KcUtils.showToast(getApplicationContext(), R.string.setting_alter_method_proxy_error_toast);
-                    });
+                    () -> KcUtils.showToast(getApplicationContext(),
+                            R.string.setting_alter_method_proxy_error_toast));
         } else {
             startActivity(intent);
             finish();

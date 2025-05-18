@@ -21,6 +21,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
@@ -86,7 +87,7 @@ import static android.net.http.SslError.SSL_UNTRUSTED;
 import static android.webkit.WebViewClient.*;
 
 public class KcUtils {
-    private static FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
+    private static final FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
 
     public static void showToast(Context context, String message) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show();
@@ -194,11 +195,11 @@ public class KcUtils {
                     Log.e("GOTO", content);
                     String[] content_list = content.split("\\n", -1);
                     for (String item : content_list) {
-                        if (item.trim().length() > 0) {
+                        if (!item.trim().isEmpty()) {
                             String[] item_v = item.split("\\t");
                             String key = item_v[0];
                             String value = item_v[1].trim().replace("_", "");
-                            if (value.length() > 0) prefixInfo.addProperty(key, value);
+                            if (!value.isEmpty()) prefixInfo.addProperty(key, value);
                         }
                     }
                     baos.close();
@@ -273,11 +274,13 @@ public class KcUtils {
         Matcher m = p.matcher(cache_control);
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
 
-        long current_time = System.currentTimeMillis();
-        long target_time = current_time;
-        if (m.lookingAt() && m.group(1) != null) {
-            long value = Integer.parseInt(m.group(1));
-            target_time += value * 1000;
+        long target_time = System.currentTimeMillis();
+        if (m.lookingAt()) {
+            String match = m.group(1);
+            if (match != null) {
+                long value = Integer.parseInt(match);
+                target_time += value * 1000;
+            }
         }
         return formatter.format(new Date(target_time));
     }
@@ -292,8 +295,7 @@ public class KcUtils {
         }
         buffer.flush();
         in.close();
-        byte[] byteArray = buffer.toByteArray();
-        return byteArray;
+        return buffer.toByteArray();
     }
 
     public static String downloadResource(OkHttpClient client, String fullpath, File file) {
@@ -352,7 +354,7 @@ public class KcUtils {
 
     public static String joinStr(List<String> list, String delim) {
         String resultStr = "";
-        if (list.size() > 0) {
+        if (!list.isEmpty()) {
             int i;
             for (i = 0; i < list.size() - 1; i++) {
                 resultStr = resultStr.concat(list.get(i));
@@ -418,33 +420,40 @@ public class KcUtils {
         Call<JsonObject> call = appCheck.version();
         call.enqueue(new Callback<JsonObject>() {
             @Override
-            public void onResponse(Call<JsonObject> call, retrofit2.Response<JsonObject> response) {
+            public void onResponse(@NonNull Call<JsonObject> call,
+                                   @NonNull retrofit2.Response<JsonObject> response) {
                 Log.e("GOTO", response.headers().toString());
                 if (response.code() == 200) {
                     checkAppUpdate(ac, response, show_toast);
                 } else {
                     String message = "HTTP: " + response.code();
                     if (response.code() == 404) message = "No update found.";
-                    Snackbar.make(ac.findViewById(R.id.main_container), message, Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(ac.findViewById(R.id.main_container),
+                            message, Snackbar.LENGTH_LONG).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                Snackbar.make(ac.findViewById(R.id.main_container), String.valueOf(t.getLocalizedMessage()), Snackbar.LENGTH_LONG).show();
+            public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
+                Snackbar.make(ac.findViewById(R.id.main_container),
+                        String.valueOf(t.getLocalizedMessage()), Snackbar.LENGTH_LONG).show();
             }
         });
     }
 
-    private static void checkAppUpdate(Activity ac, retrofit2.Response<JsonObject> response, boolean show_toast) {
+    private static void checkAppUpdate(Activity ac,
+                                       retrofit2.Response<JsonObject> response,
+                                       boolean show_toast) {
         JsonObject version_info = response.body();
         if (version_info != null && version_info.has("tag_name")) {
             Log.e("GOTO", version_info.toString());
             String tag = version_info.get("tag_name").getAsString().substring(1);
-            String latest_file = String.format(Locale.US, "http://luckyjervis.com/GotoBrowser/apk_download.php?q=%s", tag);
+            String latest_file = String.format(Locale.US,
+                    "https://luckyjervis.com/GotoBrowser/apk_download.php?q=%s", tag);
             if (BuildConfig.VERSION_NAME.equals(tag)) {
                 if (show_toast)
-                    Snackbar.make(ac.findViewById(R.id.main_container), R.string.setting_latest_version, Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(ac.findViewById(R.id.main_container),
+                            R.string.setting_latest_version, Snackbar.LENGTH_LONG).show();
             } else {
                 showAppUpdateDownloadDialog(ac, tag, latest_file);
             }
@@ -472,16 +481,19 @@ public class KcUtils {
         }
     }
 
-    public static void processDataUriImage(ExecutorService executor, BrowserActivity activity, String data) {
+    public static void processDataUriImage(ExecutorService executor,
+                                           BrowserActivity activity, String data) {
         executor.submit(() -> {
             Context context = activity.getApplicationContext();
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
+            SimpleDateFormat dateFormat = new SimpleDateFormat(
+                    "yyyy-MM-dd HH-mm-ss", Locale.US);
             String date = dateFormat.format(System.currentTimeMillis());
             String filename = "gtb-".concat(date);
 
             String image = data.substring(data.indexOf(",") + 1);
             byte[] decodedString = Base64.decode(image, Base64.DEFAULT);
-            Bitmap decodedImage = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            Bitmap decodedImage = BitmapFactory.decodeByteArray(
+                    decodedString, 0, decodedString.length);
             Uri fileUri;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 fileUri = writeImageFile(context, filename, decodedImage);
@@ -489,8 +501,11 @@ public class KcUtils {
                 fileUri = writeImageFileOld(context, filename, decodedImage);
             }
 
-            Log.e("GOTO-DURL-P", "Path: " + fileUri.toString());
-            Log.e("GOTO-DURL-P", "Image Size: " + decodedImage.getWidth() + "x" + decodedImage.getHeight());
+            if (fileUri != null) {
+                Log.e("GOTO-DURL-P", "Path: " + fileUri);
+                Log.e("GOTO-DURL-P", "Image Size: " +
+                        decodedImage.getWidth() + "x" + decodedImage.getHeight());
+            }
             activity.runOnUiThread(() -> activity.showScreenshotNotification(decodedImage, fileUri));
         });
     }
@@ -507,24 +522,30 @@ public class KcUtils {
         ContentResolver contentResolver = context.getContentResolver();
         Uri item = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
         try {
-            ParcelFileDescriptor pd = contentResolver.openFileDescriptor(item, "w", null);
-            if (pd != null) {
-                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes);
-                FileOutputStream fos = new FileOutputStream(pd.getFileDescriptor());
-                fos.write(bytes.toByteArray());
-                fos.close();
+            if (item != null) {
+                ParcelFileDescriptor pd = contentResolver.openFileDescriptor(item, "w", null);
+                if (pd != null) {
+                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes);
+                    FileOutputStream fos = new FileOutputStream(pd.getFileDescriptor());
+                    fos.write(bytes.toByteArray());
+                    fos.close();
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    values.clear();
-                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
-                    contentResolver.update(item, values, null, null);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        values.clear();
+                        values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                        contentResolver.update(item, values, null, null);
+                    }
+                    return item;
+                } else {
+                    Log.e("GOTO", "writeImageFile pdf null");
+                    return null;
                 }
-                return item;
             } else {
-                Log.e("GOTO", "writeImageFile pdf null");
+                Log.e("GOTO", "writeImageFile resolve result null");
                 return null;
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }

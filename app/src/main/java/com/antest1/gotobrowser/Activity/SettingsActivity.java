@@ -145,7 +145,7 @@ public class SettingsActivity extends AppCompatActivity {
         private VersionDatabase versionTable;
         private SharedPreferences sharedPref;
         private GotoVersionCheck appCheck;
-        private KcEnUtils enUtils = new KcEnUtils();
+        private final KcEnUtils enUtils = new KcEnUtils();
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -164,13 +164,11 @@ public class SettingsActivity extends AppCompatActivity {
                     if (preference == null) continue;
                     if (preference instanceof ListPreference) {
                         Log.e("GOTO", key + ": " + sharedPref.getString(key, ""));
-                    } else if (preference instanceof EditTextPreference) {
+                    } else if (preference instanceof EditTextPreference ep) {
                         Log.e("GOTO", key + ": " + sharedPref.getString(key, ""));
-                        EditTextPreference ep = (EditTextPreference) preference;
                         ep.setSummary(sharedPref.getString(key, ""));
-                    } else if (preference instanceof SwitchPreferenceCompat) {
+                    } else if (preference instanceof SwitchPreferenceCompat sp) {
                         Log.e("GOTO", key + ": " + sharedPref.getBoolean(key, false));
-                        SwitchPreferenceCompat sp = (SwitchPreferenceCompat) preference;
                         sp.setChecked(sharedPref.getBoolean(key, false));
                     } else if (key.equals(PREF_SUBTITLE_FONTSIZE)) {
                         preference.setSummary(Integer.toString(sharedPref.getInt(key, DEFAULT_SUBTITLE_FONT_SIZE)));
@@ -277,8 +275,11 @@ public class SettingsActivity extends AppCompatActivity {
             if (!subtitleLocale.isEmpty()) {
                 setSubtitlePreference(subtitleLocale);
             } else {
-                findPreference(PREF_SUBTITLE_UPDATE).setEnabled(false);
-                findPreference(PREF_SUBTITLE_UPDATE).setSummary(getString(R.string.subtitle_select_language));
+                Preference subtitleUpdate = findPreference(PREF_SUBTITLE_UPDATE);
+                if (subtitleUpdate != null) {
+                    subtitleUpdate.setEnabled(false);
+                    subtitleUpdate.setSummary(getString(R.string.subtitle_select_language));
+                }
             }
         }
 
@@ -286,7 +287,8 @@ public class SettingsActivity extends AppCompatActivity {
             // Kantai3D only works with WebGL renderer
             // Gray out the option when legacy renderer is chosen
             boolean isWebglEnabled = !sharedPref.getBoolean(PREF_LEGACY_RENDERER, false);
-            findPreference(PREF_MOD_KANTAI3D).setEnabled(isWebglEnabled);
+            Preference modKantai3d = findPreference(PREF_MOD_KANTAI3D);
+            if (modKantai3d != null) modKantai3d.setEnabled(isWebglEnabled);
         }
 
         private void setSubtitlePreference(String subtitleLocaleCode) {
@@ -296,14 +298,15 @@ public class SettingsActivity extends AppCompatActivity {
 
         private void updateKantaiEnDescriptionText() {
             Preference kantaiEnUpdate = findPreference(PREF_MOD_KANTAIEN_UPDATE);
-
-            if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
-                kantaiEnUpdate.setSummary("Checking updates...");
-                kantaiEnUpdate.setEnabled(false);
-                enUtils.checkKantaiEnUpdate(this, kantaiEnUpdate);
-            } else {
-                kantaiEnUpdate.setEnabled(false);
-                kantaiEnUpdate.setSummary("Mod disabled.");
+            if (kantaiEnUpdate != null) {
+                if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
+                    kantaiEnUpdate.setSummary("Checking updates...");
+                    kantaiEnUpdate.setEnabled(false);
+                    enUtils.checkKantaiEnUpdate(this, kantaiEnUpdate);
+                } else {
+                    kantaiEnUpdate.setEnabled(false);
+                    kantaiEnUpdate.setSummary("Mod disabled.");
+                }
             }
         }
 

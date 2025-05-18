@@ -49,7 +49,7 @@ public class ScreenshotNotification {
             PendingIntent contentIntent = PendingIntent.getActivity(activity, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
             Notification notification = new NotificationCompat.Builder(activity, NOTI_CHANNEL_SCREENSHOT)
-                    .setSmallIcon(R.drawable.ic_noti_screenshot)
+                    .setSmallIcon(R.drawable.screenshot_icon)
                     .setContentTitle(activity.getString(R.string.noti_screenshot_title))
                     .setContentText(activity.getString(R.string.noti_screenshot_description))
                     .setContentIntent(contentIntent)
