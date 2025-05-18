@@ -170,10 +170,10 @@
         android:id="@+id/kc_camera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="24dp"
+        android:layout_margin="@dimen/browser_camera_margin"
         android:alpha="0.75"
         android:background="@drawable/capture_button"
-        android:padding="16dp"
+        android:padding="@dimen/browser_camera_padding"
         android:src="@drawable/capture_icon"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
@@ -198,7 +198,7 @@
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigation"
-        android:layout_width="48dp"
+        android:layout_width="@dimen/browser_panel_width"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         app:elevation="0dp"
@@ -224,7 +224,7 @@
                     android:id="@+id/menu_refresh"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="6dp"
+                    android:padding="@dimen/browser_panel_button_padding"
                     android:src="@drawable/refresh_icon"
                     app:srcCompat="@drawable/refresh_icon"
                     android:tooltipText="@string/menu_tooltip_refresh"/>
@@ -245,7 +245,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
+                            android:padding="@dimen/browser_panel_button_padding"
                             android:src="@drawable/aspect_ratio"
                             android:visibility="gone"
                             app:srcCompat="@drawable/aspect_ratio" />
@@ -255,7 +255,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
+                            android:padding="@dimen/browser_panel_button_padding"
                             android:src="@drawable/volume_off"
                             android:tooltipText="@string/menu_tooltip_mute"
                             app:srcCompat="@drawable/volume_off" />
@@ -265,7 +265,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
+                            android:padding="@dimen/browser_panel_button_padding"
                             android:src="@drawable/camera_icon"
                             android:tooltipText="@string/menu_tooltip_camera"
                             app:srcCompat="@drawable/camera_icon" />
@@ -275,7 +275,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
+                            android:padding="@dimen/browser_panel_button_padding"
                             android:src="@drawable/screen_lock"
                             android:tooltipText="@string/menu_tooltip_lock"
                             app:srcCompat="@drawable/screen_lock" />
@@ -285,7 +285,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
+                            android:padding="@dimen/browser_panel_button_padding"
                             android:src="@drawable/light_mode"
                             android:tooltipText="@string/menu_tooltip_brighton"
                             app:srcCompat="@drawable/light_mode" />
@@ -295,7 +295,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
+                            android:padding="@dimen/browser_panel_button_padding"
                             android:src="@drawable/caption_icon"
                             android:tooltipText="@string/menu_tooltip_cc"
                             app:srcCompat="@drawable/caption_icon" />
@@ -305,7 +305,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
+                            android:padding="@dimen/browser_panel_button_padding"
                             android:src="@drawable/kantai3d_icon"
                             android:tooltipText="@string/menu_tooltip_kantai3d"
                             app:srcCompat="@drawable/kantai3d_icon" />
@@ -315,7 +315,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?android:selectableItemBackground"
-                            android:padding="6dp"
+                            android:padding="@dimen/browser_panel_button_padding"
                             android:src="@drawable/exit_to_app"
                             android:tooltipText="@string/menu_tooltip_logout"
                             android:visibility="visible"

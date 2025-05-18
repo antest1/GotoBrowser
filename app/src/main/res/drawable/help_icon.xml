@@ -1,6 +1,6 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="@dimen/entrance_menu_button"
-    android:height="@dimen/entrance_menu_button"
+    android:width="@dimen/entrance_menu_button_size"
+    android:height="@dimen/entrance_menu_button_size"
     android:viewportHeight="24"
     android:viewportWidth="24">
   <path
