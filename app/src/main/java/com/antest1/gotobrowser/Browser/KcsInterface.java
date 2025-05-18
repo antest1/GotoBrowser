@@ -33,7 +33,7 @@ public class KcsInterface {
     private final KcaPacketStore packetTable;
     private final Handler handler = new Handler();
     ExecutorService executorService = Executors.newFixedThreadPool(30);
-    private boolean broadcast_mode = false;
+    private final boolean broadcast_mode;
 
     public KcsInterface(BrowserActivity ac) {
         activity = ac;
@@ -48,7 +48,7 @@ public class KcsInterface {
         if (url.contains("kcsapi") && responseRaw.contains("svdata=")) {
             Log.e("GOTO-XHR", url);
             handler.post(() -> processXHR(url, requestHeader, responseRaw));
-        };
+        }
     }
 
     @JavascriptInterface
@@ -81,10 +81,12 @@ public class KcsInterface {
 
             String finalResponse = response;
             activity.runOnUiThread(() -> {
-                int result = response_obj.get("api_result").getAsInt();
-                String message = response_obj.get("api_result_msg").getAsString();
-                String text = (result == 1) ? "" : String.format(Locale.US, "[%d] %s\n%s (%d)", result, message, url, finalResponse.length());
-                ((TextView) activity.findViewById(R.id.kc_error_text)).setText(text);
+                if (response_obj != null) {
+                    int result = response_obj.get("api_result").getAsInt();
+                    String message = response_obj.get("api_result_msg").getAsString();
+                    String text = (result == 1) ? "" : String.format(Locale.US, "[%d] %s\n%s (%d)", result, message, url, finalResponse.length());
+                    ((TextView) activity.findViewById(R.id.kc_error_text)).setText(text);
+                }
             });
         } catch (Exception e) {
             e.printStackTrace();

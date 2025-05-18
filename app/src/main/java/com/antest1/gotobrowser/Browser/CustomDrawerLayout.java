@@ -3,12 +3,12 @@ package com.antest1.gotobrowser.Browser;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.AttributeSet;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.antest1.gotobrowser.R;
@@ -37,7 +37,7 @@ public class CustomDrawerLayout extends DrawerLayout
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-        if (!this.isDrawerOpen(Gravity.LEFT)) {
+        if (!this.isDrawerOpen(GravityCompat.START)) {
             isClosing = false;
             return super.dispatchTouchEvent(event);
         }

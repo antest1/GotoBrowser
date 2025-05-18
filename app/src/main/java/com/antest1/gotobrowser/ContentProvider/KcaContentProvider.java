@@ -34,12 +34,8 @@ public class KcaContentProvider extends ContentProvider {
     @Override
     public Cursor query(@NonNull Uri uri, String[] projections, String selection, String[] selectionArgs, String sortOrder) {
         Cursor cursor = null;
-        switch (sUriMatcher.match(uri)){
-            case 1:
-                cursor = packetTable.getRecentDataCursor();
-                break;
-            default:
-                break;
+        if (sUriMatcher.match(uri) == 1) {
+            cursor = packetTable.getRecentDataCursor();
         }
         if (cursor != null && getContext() != null) {
             cursor.setNotificationUri(getContext().getContentResolver(), uri);

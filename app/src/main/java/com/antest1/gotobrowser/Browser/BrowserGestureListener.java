@@ -4,6 +4,8 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+
 import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.R;
 
@@ -18,7 +20,7 @@ public class BrowserGestureListener extends GestureDetector.SimpleOnGestureListe
     View.OnClickListener onClickListener;
 
     @Override
-    public boolean onSingleTapUp(MotionEvent e) {
+    public boolean onSingleTapUp(@NonNull MotionEvent e) {
         onClickListener.onClick(browserPanel);
         return super.onSingleTapUp(e);
     }

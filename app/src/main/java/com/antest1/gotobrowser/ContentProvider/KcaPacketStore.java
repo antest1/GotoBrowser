@@ -12,13 +12,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class KcaPacketStore extends SQLiteOpenHelper {
     public static final int PACKETSTORE_VERSION = 1;
     private static final String db_name = "goto_packet_db";
     private static final String table_name = "packet_store";
-    private static int limit = 10;
 
     public static String getTableName() {
         return table_name;
@@ -73,6 +71,7 @@ public class KcaPacketStore extends SQLiteOpenHelper {
         db.insert(table_name, null, values);
 
         // remove older rows
+        int limit = 10;
         db.delete(table_name, "ROWID NOT IN (SELECT ROWID FROM " + table_name +
                 " ORDER BY DKEY DESC LIMIT " + limit + ")", null);
     }

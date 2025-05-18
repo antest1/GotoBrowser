@@ -55,9 +55,9 @@ public class WebViewManager {
 
     private boolean logoutFlag;
     private boolean refreshFlag;
-    private BrowserActivity activity;
-    private ResourceProcess resourceProcess;
-    private SharedPreferences sharedPref;
+    private final BrowserActivity activity;
+    private final ResourceProcess resourceProcess;
+    private final SharedPreferences sharedPref;
 
     public WebViewManager (BrowserActivity ac) {
         activity = ac;
@@ -301,7 +301,7 @@ public class WebViewManager {
         if (connector_info == null || connector_info.size() != 2) return;
 
         String connector_url_default = connector_info.get(0);
-        String connector_url = connector_info.get(1);
+        // String connector_url = connector_info.get(1);
 
         webview.resumeTimers();
         webview.getSettings().setTextZoom(100);
@@ -354,15 +354,19 @@ public class WebViewManager {
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         if (isKcBrowser) {
             String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
-            if (CONN_DMM.equals(pref_connector)) {
-                url_list.add(URL_DMM);
-                url_list.add(URL_DMM);
-            } else if (CONN_OOI.equals(pref_connector)) {
-                url_list.add(URL_OOI);
-                url_list.add(URL_OOI);
-            } else if (CONN_KANMOE.equals(pref_connector)) {
-                url_list.add(URL_KANMOE);
-                url_list.add(URL_KANMOE);
+            switch (pref_connector) {
+                case CONN_DMM -> {
+                    url_list.add(URL_DMM);
+                    url_list.add(URL_DMM);
+                }
+                case CONN_OOI -> {
+                    url_list.add(URL_OOI);
+                    url_list.add(URL_OOI);
+                }
+                case CONN_KANMOE -> {
+                    url_list.add(URL_KANMOE);
+                    url_list.add(URL_KANMOE);
+                }
             }
             return url_list;
         } else {
@@ -377,9 +381,7 @@ public class WebViewManager {
 
     public void captureGameScreen(WebViewL webview) {
         Log.e("GOTO", "captureGameScreen");
-        ValueCallback<String> callback = s -> {
-            Log.e("GOTO", "capture " + s);
-        };
+        ValueCallback<String> callback = s -> Log.e("GOTO", "capture " + s);
 
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         if (CONN_DMM.equals(pref_connector)) {

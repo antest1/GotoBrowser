@@ -31,6 +31,8 @@ import android.webkit.SslErrorHandler;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -112,7 +114,8 @@ public class BrowserActivity extends AppCompatActivity {
     private BackPressCloseHandler backPressCloseHandler;
 
 
-    @SuppressLint({"SetJavaScriptEnabled", "ApplySharedPref", "ClickableViewAccessibility", "SourceLockedOrientationActivity"})
+    @SuppressLint({"SetJavaScriptEnabled", "ApplySharedPref",
+            "ClickableViewAccessibility", "SourceLockedOrientationActivity"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         k3dPatcher.prepare(this);
@@ -129,7 +132,13 @@ public class BrowserActivity extends AppCompatActivity {
         manager.setDataDirectorySuffix();
         Log.e("GOTO", "manager init");
 
-        backPressCloseHandler = new BackPressCloseHandler(this);
+        backPressCloseHandler = new BackPressCloseHandler(this, true);
+        OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() { handleBackPress(); }
+        };
+        getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
+
         sharedPref = getSharedPreferences(
                 getString(R.string.preference_key), Context.MODE_PRIVATE);
 
@@ -174,24 +183,29 @@ public class BrowserActivity extends AppCompatActivity {
             menuLogout.setOnClickListener(v -> showLogoutDialog());
 
             ImageView menuMute = findViewById(R.id.menu_mute);
-            menuMute.setColorFilter(ContextCompat.getColor(getApplicationContext(), isMuteMode ? R.color.colorAccent : R.color.lightGray));
+            menuMute.setColorFilter(ContextCompat.getColor(getApplicationContext(),
+                    isMuteMode ? R.color.colorAccent : R.color.lightGray));
             menuMute.setOnClickListener(this::setMuteMode);
 
             ImageView menuCamera = findViewById(R.id.menu_camera);
-            menuCamera.setColorFilter(ContextCompat.getColor(getApplicationContext(), isCaptureMode ? R.color.colorAccent : R.color.lightGray));
+            menuCamera.setColorFilter(ContextCompat.getColor(getApplicationContext(),
+                    isCaptureMode ? R.color.colorAccent : R.color.lightGray));
             menuCamera.setOnClickListener(this::setCaptureMode);
             setCaptureButton();
 
             ImageView menuLock = findViewById(R.id.menu_lock);
-            menuLock.setColorFilter(ContextCompat.getColor(getApplicationContext(), isLockMode ? R.color.colorAccent : R.color.lightGray));
+            menuLock.setColorFilter(ContextCompat.getColor(getApplicationContext(),
+                    isLockMode ? R.color.colorAccent : R.color.lightGray));
             menuLock.setOnClickListener(this::setOrientationLockMode);
 
             ImageView menuBrightOn = findViewById(R.id.menu_brighton);
-            menuBrightOn.setColorFilter(ContextCompat.getColor(getApplicationContext(), isKeepMode ? R.color.colorAccent : R.color.lightGray));
+            menuBrightOn.setColorFilter(ContextCompat.getColor(getApplicationContext(),
+                    isKeepMode ? R.color.colorAccent : R.color.lightGray));
             menuBrightOn.setOnClickListener(this::setBrightOnMode);
 
             ImageView menuCaption = findViewById(R.id.menu_cc);
-            menuCaption.setColorFilter(ContextCompat.getColor(getApplicationContext(), isCaptionMode ? R.color.colorAccent : R.color.lightGray));
+            menuCaption.setColorFilter(ContextCompat.getColor(getApplicationContext(),
+                    isCaptionMode ? R.color.colorAccent : R.color.lightGray));
             menuCaption.setOnClickListener(this::setCaptionMode);
 
             ImageView menuKantai3d = findViewById(R.id.menu_kantai3d);
@@ -280,15 +294,13 @@ public class BrowserActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onBackPressed() {
+    public void handleBackPress() {
         if (isKcBrowserMode) {
             // On back pressed, always show the button panel
             // It is in case new users don't know tapping background shows the panel
             // Or if the screen is exactly 15:9 so there is no background to tap on
             ((CustomDrawerLayout)findViewById(R.id.main_container)).openDrawer(GravityCompat.START);
-
-            backPressCloseHandler.onBackPressed();
+            backPressCloseHandler.handleOnBackPressed();
         } else {
             Intent intent = new Intent(BrowserActivity.this, EntranceActivity.class);
             startActivity(intent);
@@ -333,7 +345,8 @@ public class BrowserActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.e("GOTO", "onResume");
-        Log.e("GOTO", isAdjustChangedByUser + " " + isInPictureInPictureMode + " " + isMultiWindowMode());
+        Log.e("GOTO", isAdjustChangedByUser + " " +
+                isInPictureInPictureMode + " " + isMultiWindowMode());
         mContentView.resumeTimers();
         sendIsFrontChanged(true);
         if (isAdjustChangedByUser || isInPictureInPictureMode || isMultiWindowMode()) {
@@ -357,25 +370,27 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         mContentView.saveState(outState);
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         mContentView.restoreState(savedInstanceState);
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        Log.e("GOTO", isAdjustChangedByUser + " " + isInPictureInPictureMode + " " + isMultiWindowMode());
+        Log.e("GOTO", isAdjustChangedByUser + " "
+                + isInPictureInPictureMode + " " + isMultiWindowMode());
 
         if (isMultiWindowMode()) {
             // Close drawer
-            ((CustomDrawerLayout)findViewById(R.id.main_container)).closeDrawer(GravityCompat.START);
+            ((CustomDrawerLayout) findViewById(R.id.main_container))
+                    .closeDrawer(GravityCompat.START);
         }
 
         if (sharedPref.getBoolean(PREF_MULTIWIN_MARGIN, false)) {
@@ -388,22 +403,23 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case REQUEST_NOTIFICATION_PERMISSION: {
-                boolean result = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                String message;
-                if (result) {
-                    message = getString(R.string.granted_true_notification_permission);
-                } else {
-                    message = getString(R.string.granted_false_notification_permission);
-                }
-                Snackbar.make(this.findViewById(R.id.main_container), message, Snackbar.LENGTH_SHORT).show();
+        if (requestCode == REQUEST_NOTIFICATION_PERMISSION) {
+            boolean result = grantResults.length > 0 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            String message;
+            if (result) {
+                message = getString(R.string.granted_true_notification_permission);
+            } else {
+                message = getString(R.string.granted_false_notification_permission);
             }
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            Snackbar.make(this.findViewById(R.id.main_container),
+                    message, Snackbar.LENGTH_SHORT).show();
         }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     public boolean isKcMode() { return isKcBrowserMode; }
@@ -418,10 +434,12 @@ public class BrowserActivity extends AppCompatActivity {
             manager.runMuteScript(mContentView, isMuteMode);
         }
         if (isMuteMode) {
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((ImageView) v).setColorFilter(
+                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
             sharedPref.edit().putBoolean(PREF_MUTEMODE, true).apply();
         } else {
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((ImageView) v).setColorFilter(
+                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
             sharedPref.edit().putBoolean(PREF_MUTEMODE, false).apply();
         }
     }
@@ -431,18 +449,21 @@ public class BrowserActivity extends AppCompatActivity {
         isCaptureMode = !isCaptureMode;
         if (isCaptureMode) {
             findViewById(R.id.kc_camera).setVisibility(View.VISIBLE);
-            ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(
+                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
             sharedPref.edit().putBoolean(PREF_CAPTURE, true).apply();
         } else {
             findViewById(R.id.kc_camera).setVisibility(View.GONE);
-            ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(
+                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
             sharedPref.edit().putBoolean(PREF_CAPTURE, false).apply();
         }
     }
 
     private boolean checkStoragePermissionGrated() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            return ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+            return ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
         } else {
             return true;
         }
@@ -501,10 +522,12 @@ public class BrowserActivity extends AppCompatActivity {
     private void setOrientationLockMode(View v) {
         isLockMode = !isLockMode;
         if (isLockMode) {
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((ImageView) v).setColorFilter(
+                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
             sharedPref.edit().putBoolean(PREF_LOCKMODE, true).apply();
         } else {
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((ImageView) v).setColorFilter(
+                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
             sharedPref.edit().putBoolean(PREF_LOCKMODE, false).apply();
         }
 
@@ -528,11 +551,13 @@ public class BrowserActivity extends AppCompatActivity {
         isKeepMode = !isKeepMode;
         if (isKeepMode) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((ImageView) v).setColorFilter(
+                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
             sharedPref.edit().putBoolean(PREF_KEEPMODE, true).apply();
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((ImageView) v).setColorFilter(
+                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
             sharedPref.edit().putBoolean(PREF_KEEPMODE, false).apply();
         }
     }
@@ -541,11 +566,13 @@ public class BrowserActivity extends AppCompatActivity {
         isCaptionMode = !isCaptionMode;
         if (isCaptionMode) {
             subtitleText.setVisibility(View.VISIBLE);
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((ImageView) v).setColorFilter(
+                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
             sharedPref.edit().putBoolean(PREF_SHOWCC, true).apply();
         } else {
             subtitleText.setVisibility(View.GONE);
-            ((ImageView) v).setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((ImageView) v).setColorFilter(
+                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
             sharedPref.edit().putBoolean(PREF_SHOWCC, false).apply();
         }
     }
@@ -601,20 +628,7 @@ public class BrowserActivity extends AppCompatActivity {
                     manager.captureGameScreen(mContentView);
                     View screenshotLight = findViewById(R.id.screenshot_light);
                     screenshotLight.setVisibility(View.VISIBLE);
-                    Animation fadeout = new AlphaAnimation(0.75f, 0.f);
-                    fadeout.setDuration(250);
-                    fadeout.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) { }
-
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            screenshotLight.setVisibility(View.GONE);
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animation animation) { }
-                    });
+                    Animation fadeout = getFadeoutAnimation(screenshotLight);
                     screenshotLight.startAnimation(fadeout);
                     break;
                 case MotionEvent.ACTION_UP:
@@ -625,6 +639,25 @@ public class BrowserActivity extends AppCompatActivity {
             }
             return true;
         });
+    }
+
+    @NonNull
+    private static Animation getFadeoutAnimation(View screenshotLight) {
+        Animation fadeout = new AlphaAnimation(0.75f, 0.f);
+        fadeout.setDuration(250);
+        fadeout.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) { }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                screenshotLight.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) { }
+        });
+        return fadeout;
     }
 
     private void setKantai3dMode(View v) {
@@ -691,7 +724,8 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     public void setMultiwindowMargin() {
-        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) mContentView.getLayoutParams();
+        ViewGroup.MarginLayoutParams params =
+                (ViewGroup.MarginLayoutParams) mContentView.getLayoutParams();
         if (isMultiWindowMode() && !isInPictureInPictureMode) {
             Rect windowRect = new Rect();
             Rect screenRect = new Rect();
@@ -742,7 +776,7 @@ public class BrowserActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onPictureInPictureModeChanged(boolean newMode, Configuration newConfig) {
+    public void onPictureInPictureModeChanged(boolean newMode, @NonNull Configuration newConfig) {
         super.onPictureInPictureModeChanged(newMode, newConfig);
         isInPictureInPictureMode = newMode;
         if (!isStartedFlag) {
@@ -785,7 +819,8 @@ public class BrowserActivity extends AppCompatActivity {
 
     @SuppressLint("ClickableViewAccessibility")
     public void setGestureDetector(View view) {
-        GestureDetector mDetector = new GestureDetector(this, new BrowserGestureListener(this, this::togglePanelVisibility));
+        GestureDetector mDetector = new GestureDetector(this,
+                new BrowserGestureListener(this, this::togglePanelVisibility));
         view.setOnTouchListener((v, event) -> {
             mDetector.onTouchEvent(event);
             return event.getAction() != MotionEvent.ACTION_UP;
@@ -794,7 +829,8 @@ public class BrowserActivity extends AppCompatActivity {
 
     @SuppressLint("ClickableViewAccessibility")
     private void setScaleGestureDetector(View view) {
-        ScaleGestureDetector mDetector = new ScaleGestureDetector(this, new BrowserScaleGestureListener(this, this::onUserPinchIn));
+        ScaleGestureDetector mDetector = new ScaleGestureDetector(this,
+                new BrowserScaleGestureListener(this, this::onUserPinchIn));
         view.setOnTouchListener((v, event) -> {
             mDetector.onTouchEvent(event);
             return false;
