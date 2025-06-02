@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="entrance_menu_button_size">36dp</dimen>
-    <dimen name="browser_panel_button_size">36dp</dimen>
-    <dimen name="browser_panel_button_padding">6dp</dimen>
-    <dimen name="browser_panel_width">48dp</dimen>
+    <dimen name="browser_panel_button_size">48dp</dimen>
+    <dimen name="browser_panel_button_icon_size">20dp</dimen>
+    <dimen name="browser_panel_button_padding">12dp</dimen>
+    <dimen name="browser_panel_width">72dp</dimen>
+    <dimen name="browser_panel_padding">24dp</dimen>
     <dimen name="browser_camera_margin">24dp</dimen>
     <dimen name="browser_camera_padding">16dp</dimen>
 

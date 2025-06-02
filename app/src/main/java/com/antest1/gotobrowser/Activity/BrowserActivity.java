@@ -55,6 +55,7 @@ import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Notification.ScreenshotNotification;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
@@ -182,33 +183,28 @@ public class BrowserActivity extends AppCompatActivity {
             View menuLogout = findViewById(R.id.menu_logout);
             menuLogout.setOnClickListener(v -> showLogoutDialog());
 
-            ImageView menuMute = findViewById(R.id.menu_mute);
-            menuMute.setColorFilter(ContextCompat.getColor(getApplicationContext(),
-                    isMuteMode ? R.color.colorAccent : R.color.lightGray));
+            MaterialButton menuMute = findViewById(R.id.menu_mute);
+            menuMute.setIconTintResource(isMuteMode ? R.color.colorAccent : R.color.lightGray);
             menuMute.setOnClickListener(this::setMuteMode);
 
-            ImageView menuCamera = findViewById(R.id.menu_camera);
-            menuCamera.setColorFilter(ContextCompat.getColor(getApplicationContext(),
-                    isCaptureMode ? R.color.colorAccent : R.color.lightGray));
+            MaterialButton menuCamera = findViewById(R.id.menu_camera);
+            menuCamera.setIconTintResource(isCaptureMode ? R.color.colorAccent : R.color.lightGray);
             menuCamera.setOnClickListener(this::setCaptureMode);
             setCaptureButton();
 
-            ImageView menuLock = findViewById(R.id.menu_lock);
-            menuLock.setColorFilter(ContextCompat.getColor(getApplicationContext(),
-                    isLockMode ? R.color.colorAccent : R.color.lightGray));
+            MaterialButton menuLock = findViewById(R.id.menu_lock);
+            menuLock.setIconTintResource(isLockMode ? R.color.colorAccent : R.color.lightGray);
             menuLock.setOnClickListener(this::setOrientationLockMode);
 
-            ImageView menuBrightOn = findViewById(R.id.menu_brighton);
-            menuBrightOn.setColorFilter(ContextCompat.getColor(getApplicationContext(),
-                    isKeepMode ? R.color.colorAccent : R.color.lightGray));
+            MaterialButton menuBrightOn = findViewById(R.id.menu_brighton);
+            menuBrightOn.setIconTintResource(isKeepMode ? R.color.colorAccent : R.color.lightGray);
             menuBrightOn.setOnClickListener(this::setBrightOnMode);
 
-            ImageView menuCaption = findViewById(R.id.menu_cc);
-            menuCaption.setColorFilter(ContextCompat.getColor(getApplicationContext(),
-                    isCaptionMode ? R.color.colorAccent : R.color.lightGray));
+            MaterialButton menuCaption = findViewById(R.id.menu_cc);
+            menuCaption.setIconTintResource(isCaptionMode ? R.color.colorAccent : R.color.lightGray);
             menuCaption.setOnClickListener(this::setCaptionMode);
 
-            ImageView menuKantai3d = findViewById(R.id.menu_kantai3d);
+            MaterialButton menuKantai3d = findViewById(R.id.menu_kantai3d);
             if (k3dPatcher.isPatcherEnabled()) {
                 menuKantai3d.setOnClickListener(this::setKantai3dMode);
             } else {
