@@ -38,7 +38,10 @@ function patchInteractionManager() {
         if (!interactionEvent.data) return;
         if (hit) {
             if (!displayObject.___over && displayObject._events.touchover) {
+                // supply all button
                 if (displayObject.parent._onClickAll2) return;
+                // left side buttons (item store page)
+                if (displayObject.parent._btns && displayObject.parent.parent._onPurchased) return;
                 this._hoverObject = displayObject;
                 displayObject.___over = true;
                 proto.dispatchEvent(displayObject, 'touchover', interactionEvent);
