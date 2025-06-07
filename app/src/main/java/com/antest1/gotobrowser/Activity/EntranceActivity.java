@@ -21,6 +21,8 @@ import com.antest1.gotobrowser.Helpers.KcEnUtils;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 import java.io.File;
 import java.util.Calendar;
@@ -30,7 +32,6 @@ import java.util.Locale;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.browser.customtabs.CustomTabColorSchemeParams;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.content.ContextCompat;
@@ -116,12 +117,12 @@ public class EntranceActivity extends AppCompatActivity {
             }
         });
 
-        SwitchCompat silentSwitch = findViewById(R.id.switch_silent);
+        MaterialSwitch silentSwitch = findViewById(R.id.switch_silent);
         silentSwitch.setChecked(sharedPref.getBoolean(PREF_SILENT, false));
         silentSwitch.setOnCheckedChangeListener((buttonView, isChecked)
                 -> editor.putBoolean(PREF_SILENT, isChecked).apply());
 
-        SwitchCompat broadcastSwitch = findViewById(R.id.switch_broadcast);
+        MaterialSwitch broadcastSwitch = findViewById(R.id.switch_broadcast);
         broadcastSwitch.setChecked(sharedPref.getBoolean(PREF_BROADCAST, false));
         broadcastSwitch.setOnCheckedChangeListener((buttonView, isChecked)
                 -> {
@@ -130,7 +131,7 @@ public class EntranceActivity extends AppCompatActivity {
                 }
         );
 
-        SwitchCompat gadgetSwitch = findViewById(R.id.switch_gadget);
+        MaterialSwitch gadgetSwitch = findViewById(R.id.switch_gadget);
         gadgetSwitch.setChecked(sharedPref.getBoolean(PREF_ALTER_GADGET, false));
         gadgetSwitch.setOnCheckedChangeListener((buttonView, isChecked)
                 -> editor.putBoolean(PREF_ALTER_GADGET, isChecked).apply()
@@ -158,7 +159,7 @@ public class EntranceActivity extends AppCompatActivity {
         TextView clearButton = findViewById(R.id.webview_clear);
         clearButton.setOnClickListener(v -> showCacheClearDialog());
 
-        TextView startButton = findViewById(R.id.webview_start);
+        MaterialButton startButton = findViewById(R.id.webview_start);
         startButton.setOnClickListener(v -> {
             String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
             if (!pref_connector.equals(CONN_DMM)) {
@@ -207,7 +208,7 @@ public class EntranceActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        SwitchCompat gadgetSwitch = findViewById(R.id.switch_gadget);
+        MaterialSwitch gadgetSwitch = findViewById(R.id.switch_gadget);
         gadgetSwitch.setChecked(sharedPref.getBoolean(PREF_ALTER_GADGET, false));
     }
 
@@ -217,7 +218,7 @@ public class EntranceActivity extends AppCompatActivity {
     }
 
     private void showConnectorSelectionDialog() {
-        SwitchCompat silentSwitch = findViewById(R.id.switch_silent);
+        MaterialSwitch silentSwitch = findViewById(R.id.switch_silent);
         final String[] listItems = getResources().getStringArray(R.array.connector_list);
         int connector_idx = -1;
         String connector1 = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
@@ -282,7 +283,7 @@ public class EntranceActivity extends AppCompatActivity {
     }
 
     private void showKcanotifyBroadcastSetDialog() {
-        SwitchCompat broadcastSwitch = findViewById(R.id.switch_broadcast);
+        MaterialSwitch broadcastSwitch = findViewById(R.id.switch_broadcast);
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(EntranceActivity.this);
         alertDialogBuilder.setTitle(getString(R.string.kcanotify_broadcast_dialog_title));
         alertDialogBuilder

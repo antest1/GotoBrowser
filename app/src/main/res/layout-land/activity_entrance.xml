@@ -40,8 +40,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
-        android:paddingTop="36dp"
-        android:paddingBottom="36dp">
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -117,72 +117,69 @@
                 android:gravity="center_vertical"
                 android:orientation="vertical">
 
-                <LinearLayout
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="15dp"
-                    android:background="#40000000"
-                    android:orientation="vertical"
-                    android:paddingStart="15sp"
-                    android:paddingTop="10sp"
-                    android:paddingEnd="15sp"
-                    android:paddingBottom="10sp">
+                    app:cardBackgroundColor="#40000000"
+                    android:layout_marginTop="15dp">
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/switch_silent"
-                        android:layout_width="match_parent"
+                    <LinearLayout
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="4dp"
-                        android:switchPadding="12sp"
-                        app:switchPadding="12sp"
-                        android:text="@string/mode_silent"
-                        android:textColor="@color/white"
-                        android:textSize="16sp" />
+                        android:layout_gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:paddingStart="15sp"
+                        android:paddingTop="10sp"
+                        android:paddingEnd="15sp"
+                        android:paddingBottom="10sp">
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/switch_broadcast"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="4sp"
-                        android:switchPadding="12sp"
-                        app:switchPadding="12sp"
-                        android:text="@string/mode_broadcast"
-                        android:textColor="@color/white"
-                        android:textSize="16sp" />
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switch_silent"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/mode_silent"
+                            android:textColor="@color/white"
+                            android:textSize="16sp" />
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/switch_gadget"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="4sp"
-                        android:switchPadding="12sp"
-                        app:switchPadding="12sp"
-                        android:text="@string/connection_use_alter"
-                        android:textColor="@color/white"
-                        android:textSize="16sp" />
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switch_broadcast"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/mode_broadcast"
+                            android:textColor="@color/white"
+                            android:textSize="16sp" />
 
-                    <CheckBox
-                        android:id="@+id/layout_control"
-                        android:layout_width="match_parent"
-                        android:layout_height="24sp"
-                        android:scaleX="0.7"
-                        android:scaleY="0.7"
-                        android:text="@string/mode_show_panel"
-                        android:textColor="@color/colorAccent"
-                        android:textSize="18sp" />
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switch_gadget"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/connection_use_alter"
+                            android:textColor="@color/white"
+                            android:textSize="16sp" />
 
-                    <CheckBox
-                        android:id="@+id/layout_keyboard"
-                        android:layout_width="match_parent"
-                        android:layout_height="24sp"
-                        android:scaleX="0.7"
-                        android:scaleY="0.7"
-                        android:text="@string/mode_enable_keyboard"
-                        android:textColor="@color/colorAccent"
-                        android:textSize="18sp" />
+                        <CheckBox
+                            android:id="@+id/layout_control"
+                            android:layout_width="match_parent"
+                            android:layout_height="24sp"
+                            android:scaleX="0.7"
+                            android:scaleY="0.7"
+                            android:text="@string/mode_show_panel"
+                            android:textColor="@color/colorAccent"
+                            android:textSize="18sp" />
 
-                </LinearLayout>
+                        <CheckBox
+                            android:id="@+id/layout_keyboard"
+                            android:layout_width="match_parent"
+                            android:layout_height="24sp"
+                            android:scaleX="0.7"
+                            android:scaleY="0.7"
+                            android:text="@string/mode_enable_keyboard"
+                            android:textColor="@color/colorAccent"
+                            android:textSize="18sp" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -190,25 +187,20 @@
                     android:layout_marginTop="15dp"
                     android:orientation="vertical">
 
-                    <LinearLayout
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/webview_start"
+                        style="@style/Widget.Material3.Button.ElevatedButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
-                        android:background="@drawable/start_button">
-                        <TextView
-                            android:id="@+id/webview_start"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="?android:selectableItemBackground"
-                            android:paddingStart="20sp"
-                            android:paddingTop="5sp"
-                            android:paddingEnd="20sp"
-                            android:paddingBottom="5sp"
-                            android:text="START"
-                            android:textAlignment="center"
-                            android:textColor="@color/white"
-                            android:textSize="24sp" />
-                    </LinearLayout>
+                        android:text="START"
+                        android:textAlignment="center"
+                        android:textColor="@color/white"
+                        app:backgroundTint="@color/colorPrimaryDark"
+                        app:icon="@android:drawable/ic_media_play"
+                        app:iconTint="@color/white"
+                        app:strokeColor="@color/colorAccent"
+                        app:strokeWidth="2dp" />
 
                     <TextView
                         android:id="@+id/webview_clear"

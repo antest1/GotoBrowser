@@ -430,12 +430,10 @@ public class BrowserActivity extends AppCompatActivity {
             manager.runMuteScript(mContentView, isMuteMode);
         }
         if (isMuteMode) {
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((MaterialButton) v).setIconTintResource(R.color.colorAccent);
             sharedPref.edit().putBoolean(PREF_MUTEMODE, true).apply();
         } else {
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((MaterialButton) v).setIconTintResource(R.color.lightGray);
             sharedPref.edit().putBoolean(PREF_MUTEMODE, false).apply();
         }
     }
@@ -445,13 +443,11 @@ public class BrowserActivity extends AppCompatActivity {
         isCaptureMode = !isCaptureMode;
         if (isCaptureMode) {
             findViewById(R.id.kc_camera).setVisibility(View.VISIBLE);
-            ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((MaterialButton) findViewById(R.id.menu_camera)).setIconTintResource(R.color.colorAccent);
             sharedPref.edit().putBoolean(PREF_CAPTURE, true).apply();
         } else {
             findViewById(R.id.kc_camera).setVisibility(View.GONE);
-            ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((MaterialButton) findViewById(R.id.menu_camera)).setIconTintResource(R.color.lightGray);
             sharedPref.edit().putBoolean(PREF_CAPTURE, false).apply();
         }
     }
@@ -518,12 +514,10 @@ public class BrowserActivity extends AppCompatActivity {
     private void setOrientationLockMode(View v) {
         isLockMode = !isLockMode;
         if (isLockMode) {
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((MaterialButton) v).setIconTintResource(R.color.colorAccent);
             sharedPref.edit().putBoolean(PREF_LOCKMODE, true).apply();
         } else {
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((MaterialButton) v).setIconTintResource(R.color.lightGray);
             sharedPref.edit().putBoolean(PREF_LOCKMODE, false).apply();
         }
 
@@ -547,13 +541,11 @@ public class BrowserActivity extends AppCompatActivity {
         isKeepMode = !isKeepMode;
         if (isKeepMode) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((MaterialButton) v).setIconTintResource(R.color.colorAccent);
             sharedPref.edit().putBoolean(PREF_KEEPMODE, true).apply();
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((MaterialButton) v).setIconTintResource(R.color.lightGray);
             sharedPref.edit().putBoolean(PREF_KEEPMODE, false).apply();
         }
     }
@@ -562,13 +554,11 @@ public class BrowserActivity extends AppCompatActivity {
         isCaptionMode = !isCaptionMode;
         if (isCaptionMode) {
             subtitleText.setVisibility(View.VISIBLE);
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((MaterialButton) v).setIconTintResource(R.color.colorAccent);
             sharedPref.edit().putBoolean(PREF_SHOWCC, true).apply();
         } else {
             subtitleText.setVisibility(View.GONE);
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((MaterialButton) v).setIconTintResource(R.color.lightGray);
             sharedPref.edit().putBoolean(PREF_SHOWCC, false).apply();
         }
     }
