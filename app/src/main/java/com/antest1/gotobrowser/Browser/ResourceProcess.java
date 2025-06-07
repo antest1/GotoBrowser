@@ -34,13 +34,16 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -776,6 +779,22 @@ public class ResourceProcess {
         }
     }
 
+    private String getTouchEventPatchJs() {
+        try {
+            AssetManager as = context.getAssets();
+            InputStream inputStream = as.open("touch_event_patch.js");
+
+            ByteArrayOutputStream result = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            for (int length; (length = inputStream.read(buffer)) != -1;) {
+                result.write(buffer, 0, length);
+            }
+            return result.toString("utf-8");
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     private WebResourceResponse getMaintenanceFiles(boolean is_image) {
         try {
             AssetManager as = context.getAssets();
@@ -853,64 +872,8 @@ public class ResourceProcess {
                 + (activity.isMuteMode() ? "var global_mute=1;Howler.mute(true);\n" : "var global_mute=0;Howler.mute(false);\n")
                 + main_js;
 
-        if (isCursorTouchMode) {
-            main_js = main_js +
-                    // Simulate mouse hover effects by dispatching new custom events "touchover" and "touchout"
-                    "function patchInteractionManager() {\n" +
-                    "    var proto = PIXI.interaction.InteractionManager.prototype;\n" +
-                    "    proto.update = mobileUpdate;\n" +
-                    "\n" +
-                    "    function extendMethod(method, extFn) {\n" +
-                    "        var old = proto[method];\n" +
-                    "        proto[method] = function () {\n" +
-                    "            old.call(this, ...arguments);\n" +
-                    "            extFn.call(this, ...arguments);\n" +
-                    "        };\n" +
-                    "    }\n" +
-                    "\n" +
-                    "    extendMethod('onPointerDown', function (displayObject, hit) {\n" +
-                    "        if (this.eventData.data)\n" +
-                    "            this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
-                    "    });\n" +
-                    "\n" +
-                    "    extendMethod('onPointerUp', function (displayObject, hit) {\n" +
-                    "        if (this.eventData.data)\n" +
-                    "            this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
-                    "    });\n" +
-                    "\n" +
-                    "    function mobileUpdate(deltaTime) {\n" +
-                    // Fixed interactionFrequency = 4ms
-                    "        this._deltaTime += deltaTime;\n" +
-                    "        if (this._deltaTime < 4)\n" +
-                    "            return;\n" +
-                    "        this._deltaTime = 0;\n" +
-                    "        if (!this.interactionDOMElement)\n" +
-                    "            return;\n" +
-                    "        if (!this.eventData || !this.eventData.data)  return;\n" +
-                    "        if (this.eventData.data && (this.eventData.type == 'touchmove' || this.eventData.type == 'touchend' || this.eventData.type == 'tap'))\n" +
-                    "            this.processInteractive(this.eventData, this.renderer._lastObjectRendered, this.processTouchOverOut, true);\n" +
-                    "    }\n" +
-                    "\n" +
-                    "    proto.processTouchOverOut = function (interactionEvent, displayObject, hit) {\n" +
-                    "        if (!interactionEvent.data)  return;\n" +
-                    "        if (hit) {\n" +
-                    "            if (!displayObject.___over && displayObject._events.touchover) {\n" +
-                    "                if (displayObject.parent._onClickAll2) return;\n" +
-                    "                this._hoverObject = displayObject;\n" +
-                    "                displayObject.___over = true;\n" +
-                    "                proto.dispatchEvent(displayObject, 'touchover', interactionEvent);\n" +
-                    "            }\n" +
-                    "        } else if (displayObject.___over && displayObject._events.touchover && \n" +
-                    // Only trigger "touchout" when user starts touching another object or empty space
-                    // So that alert bubbles persist after a simple tap, do not disappear when the finger leaves
-                    "            ((this._hoverObject && this._hoverObject != displayObject) || !interactionEvent.target)) {\n" +
-                    "            displayObject.___over = false;\n" +
-                    "            proto.dispatchEvent(displayObject, 'touchout', interactionEvent);\n" +
-                    "        }\n" +
-                    "    };\n" +
-                    "}" +
-                    "patchInteractionManager();";
-        }
+        // Simulate mouse hover effects by dispatching new custom events "touchover" and "touchout"
+        if (isCursorTouchMode) main_js += getTouchEventPatchJs();
 
         // add other script patches
         main_js = main_js + MUTE_LISTEN + CAPTURE_LISTEN + "\n"
