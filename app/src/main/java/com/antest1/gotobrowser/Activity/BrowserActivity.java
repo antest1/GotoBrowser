@@ -10,6 +10,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Insets;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.net.http.SslError;
@@ -24,7 +25,9 @@ import android.view.ScaleGestureDetector;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.view.WindowMetrics;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.webkit.SslErrorHandler;
@@ -281,6 +284,14 @@ public class BrowserActivity extends AppCompatActivity {
                         || bottom != oldBottom) {
                     final Rect sourceRectHint = new Rect();
                     mContentView.getGlobalVisibleRect(sourceRectHint);
+                    // Offset for the cutout or navigation bar or status bar
+                    WindowMetrics windowMetrics = ((WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE)).getCurrentWindowMetrics();
+                    WindowInsets insets = windowMetrics.getWindowInsets();
+                    Insets safeInsets = insets.getInsets(WindowInsets.Type.displayCutout() | WindowInsets.Type.navigationBars() | WindowInsets.Type.statusBars());
+                    sourceRectHint.left += safeInsets.left;
+                    sourceRectHint.right += safeInsets.left;
+                    sourceRectHint.top += safeInsets.top;
+                    sourceRectHint.bottom += safeInsets.top;
                     setPictureInPictureParams(
                             new PictureInPictureParams.Builder()
                                     .setSeamlessResizeEnabled(false)
