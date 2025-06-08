@@ -21,6 +21,7 @@ import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
 import java.io.File;
@@ -29,7 +30,6 @@ import java.util.List;
 import java.util.Locale;
 
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.browser.customtabs.CustomTabColorSchemeParams;
@@ -161,7 +161,7 @@ public class EntranceActivity extends AppCompatActivity {
         if (sharedPref.getBoolean(PREF_MOD_KANTAIEN, false)) {
             String availableVersion = enUtils.checkKantaiEnUpdateEntrance(this);
             if (availableVersion != null) {
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(this);
                 alertDialogBuilder.setTitle(R.string.settings_mod_kantaien_enable);
                 alertDialogBuilder
                         .setCancelable(false)
@@ -173,8 +173,7 @@ public class EntranceActivity extends AppCompatActivity {
                                 })
                         .setNegativeButton(R.string.action_cancel,
                                 (dialog, id) -> dialog.cancel());
-                AlertDialog alertDialog = alertDialogBuilder.create();
-                alertDialog.show();
+                alertDialogBuilder.show();
             }
         }
     }
@@ -232,10 +231,10 @@ public class EntranceActivity extends AppCompatActivity {
                 break;
             }
         }
-        AlertDialog.Builder mBuilder = new AlertDialog.Builder(EntranceActivity.this);
+        MaterialAlertDialogBuilder mBuilder = new MaterialAlertDialogBuilder(EntranceActivity.this);
         mBuilder.setTitle(getString(R.string.select_server));
         mBuilder.setSingleChoiceItems(listItems, connector_idx, (dialogInterface, i) -> {
-            silentSwitch.setEnabled(i==0);
+            silentSwitch.setEnabled(i == 0);
             SharedPreferences.Editor editor = sharedPref.edit();
             editor.putString(PREF_CONNECTOR, listItems[i]);
             editor.putString(PREF_LATEST_URL, URL_LIST[i]);
@@ -244,12 +243,11 @@ public class EntranceActivity extends AppCompatActivity {
             KcUtils.showToast(getApplicationContext(), URL_LIST[i]);
             dialogInterface.dismiss();
         });
-        AlertDialog mDialog = mBuilder.create();
-        mDialog.show();
+        mBuilder.show();
     }
 
     private void showAutoCompleteDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(EntranceActivity.this);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(EntranceActivity.this);
         View dialogView = getLayoutInflater().inflate(R.layout.login_form, null);
         final EditText formEmail = dialogView.findViewById(R.id.input_id);
         final EditText formPassword = dialogView.findViewById(R.id.input_pw);
@@ -264,31 +262,26 @@ public class EntranceActivity extends AppCompatActivity {
             dialog.dismiss();
         });
         builder.setNegativeButton(R.string.text_cancel, (dialog, which) -> dialog.cancel());
-        AlertDialog dialog = builder.create();
-        dialog.show();
+        builder.show();
     }
 
     private void showCacheClearDialog() {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(EntranceActivity.this);
+        MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(EntranceActivity.this);
         alertDialogBuilder.setTitle(R.string.cache_clear_text);
         alertDialogBuilder
                 .setCancelable(false)
                 .setMessage(getString(R.string.clearcache_msg))
-                .setPositiveButton(R.string.action_ok,
-                        (dialog, id) -> {
-                            clearBrowserCache();
-                            KcUtils.showToast(getApplicationContext(), R.string.cache_cleared_toast);
-                            dialog.dismiss();
-                        })
-                .setNegativeButton(R.string.action_cancel,
-                        (dialog, id) -> dialog.cancel());
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+                .setPositiveButton(R.string.action_ok, (dialog, id) -> {
+                    clearBrowserCache();
+                    KcUtils.showToast(getApplicationContext(), R.string.cache_cleared_toast);
+                    dialog.dismiss();
+                }).setNegativeButton(R.string.action_cancel, (dialog, id) -> dialog.cancel());
+        alertDialogBuilder.show();
     }
 
     private void showKcanotifyBroadcastSetDialog() {
         MaterialSwitch broadcastSwitch = findViewById(R.id.switch_broadcast);
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(EntranceActivity.this);
+        MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(EntranceActivity.this);
         alertDialogBuilder.setTitle(getString(R.string.kcanotify_broadcast_dialog_title));
         alertDialogBuilder
                 .setCancelable(false)
@@ -301,8 +294,7 @@ public class EntranceActivity extends AppCompatActivity {
                         })
                 .setNegativeButton(R.string.action_cancel,
                         (dialog, id) -> dialog.cancel());
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        alertDialogBuilder.show();
     }
 
 
@@ -361,7 +353,7 @@ public class EntranceActivity extends AppCompatActivity {
             return;
         }
 
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(EntranceActivity.this);
+        MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(EntranceActivity.this);
         alertDialogBuilder.setTitle("Disclaimer");
         alertDialogBuilder
                 .setCancelable(false)
@@ -374,7 +366,6 @@ public class EntranceActivity extends AppCompatActivity {
                         })
                 .setNegativeButton(R.string.action_cancel,
                         (dialog, id) -> dialog.cancel());
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        alertDialogBuilder.show();
     }
 }

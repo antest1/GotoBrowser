@@ -34,7 +34,6 @@ import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -56,6 +55,7 @@ import com.antest1.gotobrowser.Notification.ScreenshotNotification;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
@@ -463,7 +463,7 @@ public class BrowserActivity extends AppCompatActivity {
 
     private void showStoragePermissionDialog() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+            MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(this);
             alertDialogBuilder.setTitle(getString(R.string.app_name));
             alertDialogBuilder
                     .setCancelable(false)
@@ -476,13 +476,12 @@ public class BrowserActivity extends AppCompatActivity {
                             })
                     .setNegativeButton(R.string.action_cancel,
                             (dialog, id) -> dialog.cancel());
-            AlertDialog alertDialog = alertDialogBuilder.create();
-            alertDialog.show();
+            alertDialogBuilder.show();
         }
     }
 
     public void showWebkitErrorDialog(int errorCode, String description, String failingUrl) {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(this);
         alertDialogBuilder.setTitle(getWebkitErrorCodeText(errorCode));
         alertDialogBuilder
                 .setCancelable(false)
@@ -491,12 +490,11 @@ public class BrowserActivity extends AppCompatActivity {
                         (dialog, id) -> refreshPageOrFinish())
                 .setNegativeButton("Close",
                         (dialog, id) -> dialog.cancel());
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        alertDialogBuilder.show();
     }
 
     public void showSslErrorDialog(SslErrorHandler handler, SslError error) {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(this);
         alertDialogBuilder.setTitle(getSslErrorCodeTitle(error.getPrimaryError()));
         alertDialogBuilder
                 .setCancelable(false)
@@ -506,8 +504,7 @@ public class BrowserActivity extends AppCompatActivity {
                         (dialog, id) -> handler.cancel())
                 .setNegativeButton("Proceed",
                         (dialog, id) -> handler.proceed());
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        alertDialogBuilder.show();
     }
 
     @SuppressLint("SourceLockedOrientationActivity")
@@ -665,8 +662,7 @@ public class BrowserActivity extends AppCompatActivity {
             refreshPageOrFinish();
         } else {
             mContentView.pauseTimers();
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                    BrowserActivity.this);
+            MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(BrowserActivity.this);
             alertDialogBuilder.setTitle(getString(R.string.app_name));
             alertDialogBuilder
                     .setCancelable(false)
@@ -678,15 +674,13 @@ public class BrowserActivity extends AppCompatActivity {
                                 dialog.cancel();
                                 mContentView.resumeTimers();
                             });
-            AlertDialog alertDialog = alertDialogBuilder.create();
-            alertDialog.show();
+            alertDialogBuilder.show();
         }
     }
 
     public void showLogoutDialog() {
         mContentView.pauseTimers();
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                BrowserActivity.this);
+        MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(BrowserActivity.this);
         alertDialogBuilder.setTitle(getString(R.string.app_name));
         alertDialogBuilder
                 .setCancelable(false)
@@ -705,8 +699,7 @@ public class BrowserActivity extends AppCompatActivity {
                             dialog.cancel();
                             mContentView.resumeTimers();
                         });
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        alertDialogBuilder.show();
     }
 
     public void setMultiwindowMargin() {

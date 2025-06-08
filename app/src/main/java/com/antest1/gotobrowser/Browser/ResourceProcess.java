@@ -1,7 +1,6 @@
 package com.antest1.gotobrowser.Browser;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -30,11 +29,11 @@ import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleData;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -43,7 +42,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -453,7 +451,7 @@ public class ResourceProcess {
                 dialog.dismiss();
             };
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity);
             builder.setTitle(activity.getString(R.string.dialog_ipblock_title))
                     .setMessage(String.format(activity.getString(R.string.dialog_ipblock_message),
                             activity.getString(R.string.connection_use_alter)))
@@ -493,7 +491,7 @@ public class ResourceProcess {
 
             if (!activity.isFinishing()) {
                 try {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                    MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity);
                     String path = file_info.get("path").getAsString();
                     builder.setTitle(activity.getString(R.string.dialog_retry_title))
                             .setMessage(String.format(activity.getString(R.string.dialog_retry_message), path))

@@ -14,7 +14,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentActivity;
 import androidx.preference.EditTextPreference;
@@ -31,6 +30,7 @@ import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Locale;
@@ -311,7 +311,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         private void showSubtitleFontSizeDialog(FragmentActivity activity) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity);
             View dialogView = getLayoutInflater().inflate(R.layout.dialog_subtitle_size, null);
 
             final int[] currentValue = {DEFAULT_SUBTITLE_FONT_SIZE};
@@ -352,8 +352,7 @@ public class SettingsActivity extends AppCompatActivity {
                 if (pref != null) pref.setSummary(Integer.toString(currentValue[0]));
             });
             builder.setNegativeButton(R.string.text_cancel, (dialog, which) -> dialog.cancel());
-            AlertDialog dialog = builder.create();
-            dialog.show();
+            builder.show();
         }
     }
 
