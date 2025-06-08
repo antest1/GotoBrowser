@@ -45,54 +45,39 @@
                 android:layout_marginBottom="20dp"
                 android:visibility="invisible" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/connector_select_card"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:layout_gravity="center_horizontal"
+                app:cardBackgroundColor="@color/colorSiteSelection">
+                <TextView
+                    android:id="@+id/connector_select"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="60dp"
+                    android:layout_marginLeft="60dp"
+                    android:layout_marginEnd="60dp"
+                    android:layout_marginRight="60dp"
+                    android:gravity="center"
+                    android:padding="3sp"
+                    android:text="OOI.MOE"
+                    android:textAllCaps="true"
+                    android:textColor="@color/white"
+                    android:textSize="24sp" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="40dp"
-                    android:layout_marginLeft="40dp"
-                    android:layout_marginEnd="40dp"
-                    android:layout_marginRight="40dp"
-                    android:background="@color/colorSiteSelection">
-                    <TextView
-                        android:id="@+id/connector_select"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="?android:selectableItemBackground"
-                        android:padding="3sp"
-                        android:text="OOI.MOE"
-                        android:textAlignment="center"
-                        android:textAllCaps="true"
-                        android:textColor="@color/white"
-                        android:textSize="24sp" />
-                </LinearLayout>
-
-
-                <LinearLayout
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/webview_autocomplete"
+                    style="@style/Widget.Material3.Button.IconButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="5sp"
-                    android:background="@color/colorSiteSelection">
-                    <TextView
-                        android:id="@+id/webview_autocomplete"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="?android:selectableItemBackground"
-                        android:paddingStart="12sp"
-                        android:paddingTop="4sp"
-                        android:paddingEnd="12sp"
-                        android:paddingBottom="4sp"
-                        android:text="@string/autocomplete_title"
-                        android:textAlignment="center"
-                        android:textColor="@color/colorAccent"
-                        android:textSize="14sp" />
-                </LinearLayout>
-            </LinearLayout>
+                    android:layout_gravity="end"
+                    android:tooltipText="@string/autocomplete_title"
+                    app:icon="@drawable/passkey_icon"
+                    app:iconTint="@color/colorAccent" />
+
+            </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
