@@ -21,6 +21,7 @@ import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
@@ -61,7 +62,8 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
 
 public class EntranceActivity extends AppCompatActivity {
     private SharedPreferences sharedPref;
-    private TextView selectButton;
+    private MaterialCardView selectCard;
+    private TextView selectText;
     private VersionDatabase versionTable;
     private boolean kcanotifyInstalledFlag;
 
@@ -121,11 +123,12 @@ public class EntranceActivity extends AppCompatActivity {
         showKeyboardCheckbox.setOnCheckedChangeListener((buttonView, isChecked)
                 -> editor.putBoolean(PREF_KEYBOARD, isChecked).apply());
 
-        selectButton = findViewById(R.id.connector_select);
-        selectButton.setOnClickListener(v -> showConnectorSelectionDialog());
+        selectCard = findViewById(R.id.connector_select_card);
+        selectText = findViewById(R.id.connector_select);
+        selectCard.setOnClickListener(v -> showConnectorSelectionDialog());
         String connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         silentSwitch.setEnabled(CONN_DMM.equals(connector));
-        selectButton.setText(connector);
+        selectText.setText(connector);
 
         TextView autoCompleteButton = findViewById(R.id.webview_autocomplete);
         autoCompleteButton.setOnClickListener(v -> showAutoCompleteDialog());
@@ -239,7 +242,7 @@ public class EntranceActivity extends AppCompatActivity {
             editor.putString(PREF_CONNECTOR, listItems[i]);
             editor.putString(PREF_LATEST_URL, URL_LIST[i]);
             editor.apply();
-            selectButton.setText(listItems[i]);
+            selectText.setText(listItems[i]);
             KcUtils.showToast(getApplicationContext(), URL_LIST[i]);
             dialogInterface.dismiss();
         });
