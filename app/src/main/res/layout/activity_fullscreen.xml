@@ -204,14 +204,14 @@
         app:elevation="0dp"
         android:background="#00000000"
         android:paddingStart="@dimen/browser_panel_button_padding"
-        android:paddingEnd="@dimen/browser_panel_button_padding"
-        android:clickable="true"
-        tools:ignore="KeyboardInaccessibleWidget">
+        android:paddingEnd="@dimen/browser_panel_button_padding">
+
         <View
             android:id="@+id/menu_background"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clickable="true" />
+            android:clickable="true"
+            tools:ignore="KeyboardInaccessibleWidget" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/browser_panel"
