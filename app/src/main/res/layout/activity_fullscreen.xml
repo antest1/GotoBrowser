@@ -197,20 +197,27 @@
 </LinearLayout>
 
     <com.google.android.material.navigation.NavigationView
-        android:id="@+id/navigation"
+        android:id="@+id/navigation_view"
         android:layout_width="@dimen/browser_panel_width"
-        android:layout_height="wrap_content"
-        android:layout_gravity="start|center_vertical"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
         app:elevation="0dp"
         android:background="#00000000"
         android:paddingStart="@dimen/browser_panel_button_padding"
         android:paddingEnd="@dimen/browser_panel_button_padding"
-        android:focusable="false">
+        android:clickable="true"
+        tools:ignore="KeyboardInaccessibleWidget">
+        <View
+            android:id="@+id/menu_background"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="true" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/browser_panel"
             android:layout_width="@dimen/browser_panel_button_size"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
             android:background="@drawable/overlay_background">
 
             <ScrollView

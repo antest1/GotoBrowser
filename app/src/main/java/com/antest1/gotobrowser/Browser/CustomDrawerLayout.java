@@ -51,7 +51,7 @@ public class CustomDrawerLayout extends DrawerLayout
 
         boolean clickedOutside = false;
         if (event.getAction() == MotionEvent.ACTION_UP) {
-            View content = findViewById(R.id.navigation);
+            View content = findViewById(R.id.navigation_view);
             int[] contentLocation = new int[2];
             content.getLocationInWindow(contentLocation);
             clickedOutside = contentLocation[0] + content.getWidth() < (int) event.getX();

@@ -211,6 +211,9 @@ public class BrowserActivity extends AppCompatActivity {
                 menuKantai3d.setVisibility(View.GONE);
             }
 
+            View menuBg = findViewById(R.id.menu_background);
+            menuBg.setOnClickListener(this::togglePanelVisibility);
+
             View menuClose = findViewById(R.id.menu_close);
             menuClose.setOnClickListener(this::togglePanelVisibility);
 
