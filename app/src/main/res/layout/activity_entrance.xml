@@ -198,35 +198,13 @@
         </LinearLayout>
     </ScrollView>
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right|top|end"
-        android:background="@color/black_overlay"
-        android:orientation="horizontal">
 
-        <ImageView
-            android:id="@+id/icon_manual"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_weight="1"
-            android:background="?android:selectableItemBackground"
-            android:padding="8dp"
-            android:src="@drawable/help_icon"
-            app:srcCompat="@drawable/help_icon" />
-
-        <ImageView
-            android:id="@+id/icon_setting"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:background="?android:selectableItemBackground"
-            android:padding="8dp"
-            android:src="@drawable/settings"
-            app:srcCompat="@drawable/settings" />
-
-    </LinearLayout>
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/transparent"
+        app:menu="@menu/main"/>
 
     <TextView
         android:id="@+id/copyright"

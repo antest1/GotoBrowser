@@ -10,7 +10,6 @@ import android.view.View;
 import android.webkit.WebView;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.antest1.gotobrowser.Browser.WebViewManager;
@@ -32,6 +31,7 @@ import java.util.Locale;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.browser.customtabs.CustomTabColorSchemeParams;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.content.ContextCompat;
@@ -89,33 +89,7 @@ public class EntranceActivity extends AppCompatActivity {
 
         SharedPreferences.Editor editor = sharedPref.edit();
 
-        ImageView settingsButton = findViewById(R.id.icon_setting);
-        settingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(EntranceActivity.this, SettingsActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-        });
-
-        ImageView msgButton = findViewById(R.id.icon_manual);
-        msgButton.setOnClickListener(v -> {
-            String url = getString(R.string.manual_link);
-            CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder();
-            intentBuilder.setShowTitle(true);
-            CustomTabColorSchemeParams params = new CustomTabColorSchemeParams.Builder()
-                    .setToolbarColor(ContextCompat.getColor(getApplicationContext(), R.color.colorSettingsBackground))
-                    .build();
-            intentBuilder.setDefaultColorSchemeParams(params);
-            intentBuilder.setUrlBarHidingEnabled(true);
-
-            final CustomTabsIntent customTabsIntent = intentBuilder.build();
-            final List<ResolveInfo> customTabsApps = getPackageManager().queryIntentActivities(customTabsIntent.intent, 0);
-            if (!customTabsApps.isEmpty()) {
-                customTabsIntent.launchUrl(EntranceActivity.this, Uri.parse(url));
-            } else {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                startActivity(browserIntent);
-            }
-        });
+        ((Toolbar)findViewById(R.id.toolbar)).setOnMenuItemClickListener(onMenuItemClickListener);
 
         MaterialSwitch silentSwitch = findViewById(R.id.switch_silent);
         silentSwitch.setChecked(sharedPref.getBoolean(PREF_SILENT, false));
@@ -216,6 +190,36 @@ public class EntranceActivity extends AppCompatActivity {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
     }
+
+    final private Toolbar.OnMenuItemClickListener onMenuItemClickListener = (item) -> {
+        int id = item.getItemId();
+        if (id == R.id.action_settings) {
+            Intent intent = new Intent(EntranceActivity.this, SettingsActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.action_manual) {
+            String url = getString(R.string.manual_link);
+            CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder();
+            intentBuilder.setShowTitle(true);
+            CustomTabColorSchemeParams params = new CustomTabColorSchemeParams.Builder()
+                    .setToolbarColor(ContextCompat.getColor(getApplicationContext(), R.color.colorSettingsBackground))
+                    .build();
+            intentBuilder.setDefaultColorSchemeParams(params);
+            intentBuilder.setUrlBarHidingEnabled(true);
+
+            final CustomTabsIntent customTabsIntent = intentBuilder.build();
+            final List<ResolveInfo> customTabsApps = getPackageManager().queryIntentActivities(customTabsIntent.intent, 0);
+            if (!customTabsApps.isEmpty()) {
+                customTabsIntent.launchUrl(EntranceActivity.this, Uri.parse(url));
+            } else {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(browserIntent);
+            }
+            return true;
+        }
+        return false;
+    };
 
     private void showConnectorSelectionDialog() {
         MaterialSwitch silentSwitch = findViewById(R.id.switch_silent);
