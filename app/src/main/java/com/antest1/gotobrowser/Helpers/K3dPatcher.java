@@ -12,10 +12,9 @@ import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.widget.TextView;
 
-import androidx.appcompat.widget.SwitchCompat;
-
 import com.antest1.gotobrowser.R;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -190,7 +189,7 @@ public class K3dPatcher implements SensorEventListener {
             textView.setText(String.format(Locale.US, activity.getString(depthMapLoaded ? R.string.msg_kantai3d_loaded : R.string.msg_kantai3d_error), imageUrl));
         }
 
-        final SwitchCompat switchCompat = dialogView.findViewById(R.id.switch_3d);
+        MaterialSwitch switchCompat = dialogView.findViewById(R.id.switch_3d);
         switchCompat.setChecked(isEffectEnabled());
 
         builder.setView(dialogView);

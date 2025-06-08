@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
@@ -28,9 +29,11 @@ import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
 import com.antest1.gotobrowser.Helpers.KcEnUtils;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
+import com.antest1.gotobrowser.Preference.MaterialListPreference;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.slider.Slider;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Locale;
@@ -140,7 +143,6 @@ public class SettingsActivity extends AppCompatActivity {
     public static class SettingsFragment extends PreferenceFragmentCompat
             implements Preference.OnPreferenceChangeListener,
             Preference.OnPreferenceClickListener {
-        public static final int SEEKBAR_MIN_FONT_SIZE = 12;
 
         private VersionDatabase versionTable;
         private SharedPreferences sharedPref;
@@ -225,6 +227,25 @@ public class SettingsActivity extends AppCompatActivity {
                     break;
             }
             return super.onPreferenceTreeClick(preference);
+        }
+
+        @Override
+        public void onDisplayPreferenceDialog(@NonNull Preference preference) {
+            if (preference instanceof ListPreference) {
+                showMaterialListPreferenceDialog((ListPreference) preference);
+            } else {
+                super.onDisplayPreferenceDialog(preference);
+            }
+        }
+
+        private void showMaterialListPreferenceDialog(@NonNull ListPreference preference) {
+            DialogFragment dialogFragment = new MaterialListPreference();
+
+            Bundle args = new Bundle(1);
+            args.putString("key", preference.getKey());
+            dialogFragment.setArguments(args);
+            dialogFragment.setTargetFragment(this, 0);
+            dialogFragment.show(getParentFragmentManager(), "androidx.preference.PreferenceFragment.DIALOG");
         }
 
         @Override
@@ -325,23 +346,14 @@ public class SettingsActivity extends AppCompatActivity {
             BrowserActivity.setSubtitleTextView(activity, subtitleText, currentValue[0]);
             subtitleText.setText(String.format(Locale.US, getString(R.string.settings_subtitle_example), currentValue[0]));
 
-            SeekBar sbFontSize = dialogView.findViewById(R.id.subtitle_fontsize);
-            sbFontSize.setProgress(currentValue[0] - SEEKBAR_MIN_FONT_SIZE);
-            sbFontSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    if (fromUser) {
-                        currentValue[0] = progress + SEEKBAR_MIN_FONT_SIZE;
-                        BrowserActivity.setSubtitleTextView(activity, subtitleText, currentValue[0]);
-                        subtitleText.setText(String.format(Locale.US, getString(R.string.settings_subtitle_example), currentValue[0]));
-                    }
+            Slider fontSizeSlider = dialogView.findViewById(R.id.subtitle_fontsize);
+            fontSizeSlider.setValue(currentValue[0]);
+            fontSizeSlider.addOnChangeListener((seekBar, value, fromUser) -> {
+                if (fromUser) {
+                    currentValue[0] = (int) value;
+                    BrowserActivity.setSubtitleTextView(activity, subtitleText, currentValue[0]);
+                    subtitleText.setText(String.format(Locale.US, getString(R.string.settings_subtitle_example), currentValue[0]));
                 }
-
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {}
-
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {}
             });
 
             builder.setTitle(R.string.settings_subtitle_fontsize);
