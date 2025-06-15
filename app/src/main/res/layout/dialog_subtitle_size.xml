@@ -43,12 +43,14 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <SeekBar
+        <com.google.android.material.slider.Slider
             android:id="@+id/subtitle_fontsize"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:max="24"
-            android:progress="6" />
+            android:stepSize="1.0"
+            android:value="18"
+            android:valueFrom="12"
+            android:valueTo="24" />
 
         <LinearLayout
             android:layout_width="match_parent"

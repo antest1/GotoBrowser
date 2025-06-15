@@ -19,6 +19,7 @@ import androidx.preference.Preference;
 
 import com.antest1.gotobrowser.Activity.SettingsActivity;
 import com.antest1.gotobrowser.R;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -274,7 +275,7 @@ public class KcEnUtils {
 
     public void requestPatchDelete(SettingsActivity.SettingsFragment fragment) {
         Context context = fragment.requireContext();
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+        MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(context);
         alertDialogBuilder.setTitle(R.string.settings_mod_kantaien_delete);
         alertDialogBuilder
                 .setCancelable(false)
@@ -288,8 +289,7 @@ public class KcEnUtils {
                         })
                 .setNegativeButton(R.string.action_cancel,
                         (dialog, id) -> dialog.cancel());
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        alertDialogBuilder.show();
     }
 
     private static void deleteEnglishPatch(Context fragment) {
