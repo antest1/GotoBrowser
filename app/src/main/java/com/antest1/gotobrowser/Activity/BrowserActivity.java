@@ -348,7 +348,9 @@ public class BrowserActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Log.e("GOTO", "onPause");
-        k3dPatcher.pause();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N || !isInPictureInPictureMode()) {
+            k3dPatcher.pause();
+        }
     }
 
     @Override
