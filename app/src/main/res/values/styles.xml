@@ -4,6 +4,7 @@
     <style name="AppTheme" parent="Theme.Material3.Dark.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorBackground</item>
+        <item name="colorSurfaceVariant">@color/colorSurfaceVariant</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
 
@@ -25,6 +26,12 @@
 
     <style name="MaterialSwitchPreferenceCompat" parent="@style/Preference.SwitchPreferenceCompat.Material">
         <item name="widgetLayout">@layout/preference_switch</item>
+    </style>
+
+    <style name="CustomMaterialSwitchStyle">
+        <item name="thumbTint">@color/mt3_switch_thumb</item>
+        <item name="trackTint">@color/mt3_switch_track</item>
+        <item name="trackDecorationTint">@color/mt3_switch_track_decoration</item>
     </style>
 
 </resources>

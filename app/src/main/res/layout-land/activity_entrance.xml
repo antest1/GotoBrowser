@@ -138,6 +138,7 @@
 
                             <com.google.android.material.materialswitch.MaterialSwitch
                                 android:id="@+id/switch_silent"
+                                style="@style/CustomMaterialSwitchStyle"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/mode_silent"
@@ -146,6 +147,7 @@
 
                             <com.google.android.material.materialswitch.MaterialSwitch
                                 android:id="@+id/switch_broadcast"
+                                style="@style/CustomMaterialSwitchStyle"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/mode_broadcast"
@@ -154,6 +156,7 @@
 
                             <com.google.android.material.materialswitch.MaterialSwitch
                                 android:id="@+id/switch_control"
+                                style="@style/CustomMaterialSwitchStyle"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/mode_show_panel"
@@ -177,7 +180,7 @@
                             android:text="START"
                             android:textAlignment="center"
                             android:textColor="@color/white"
-                            app:backgroundTint="@color/colorPrimaryDark"
+                            app:backgroundTint="@color/colorButton"
                             app:icon="@drawable/play_arrow_icon"
                             app:iconTint="@color/white"
                             app:strokeColor="@color/colorAccent"
