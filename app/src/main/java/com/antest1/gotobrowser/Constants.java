@@ -51,6 +51,7 @@ public class Constants {
             PREF_LANDSCAPE,
             PREF_ADJUSTMENT,
             PREF_FONT_PREFETCH,
+            PREF_KEYBOARD,
             PREF_BROADCAST,
             PREF_USE_EXTCACHE,
             PREF_PIP_MODE,

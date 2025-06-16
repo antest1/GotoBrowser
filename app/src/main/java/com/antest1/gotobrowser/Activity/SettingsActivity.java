@@ -57,6 +57,7 @@ import static com.antest1.gotobrowser.Constants.PREF_CURSOR_MODE_TOUCH;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
 import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
+import static com.antest1.gotobrowser.Constants.PREF_KEYBOARD;
 import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
 import static com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_FPS;
@@ -104,6 +105,7 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_FONT_PREFETCH:
                 case PREF_USE_EXTCACHE:
                 case PREF_DOWNLOAD_RETRY:
+                case PREF_KEYBOARD:
                 case PREF_BROADCAST:
                     editor.putBoolean(key, true);
                     break;

@@ -31,6 +31,11 @@
             app:title="@string/settings_use_external_dir"
             app:summary="@string/settings_recommended_summary" />
 
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="pref_keyboard"
+            app:title="@string/mode_enable_keyboard" />
+
         <ListPreference
             app:defaultValue="1"
             app:entries="@array/cursor_mode"

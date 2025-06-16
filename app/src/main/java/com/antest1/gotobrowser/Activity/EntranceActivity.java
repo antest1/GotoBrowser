@@ -107,21 +107,11 @@ public class EntranceActivity extends AppCompatActivity {
                 }
         );
 
-        MaterialSwitch gadgetSwitch = findViewById(R.id.switch_gadget);
-        gadgetSwitch.setChecked(sharedPref.getBoolean(PREF_ALTER_GADGET, false));
-        gadgetSwitch.setOnCheckedChangeListener((buttonView, isChecked)
-                -> editor.putBoolean(PREF_ALTER_GADGET, isChecked).apply()
+        MaterialSwitch layoutControlSwitch = findViewById(R.id.switch_control);
+        layoutControlSwitch.setChecked(sharedPref.getBoolean(PREF_PANELSTART, false));
+        layoutControlSwitch.setOnCheckedChangeListener((buttonView, isChecked)
+                -> editor.putBoolean(PREF_PANELSTART, isChecked).apply()
         );
-
-        CheckBox showControlPanelCheckbox = findViewById(R.id.layout_control);
-        showControlPanelCheckbox.setChecked(sharedPref.getBoolean(PREF_PANELSTART, false));
-        showControlPanelCheckbox.setOnCheckedChangeListener((buttonView, isChecked)
-                -> editor.putBoolean(PREF_PANELSTART, isChecked).apply());
-
-        CheckBox showKeyboardCheckbox = findViewById(R.id.layout_keyboard);
-        showKeyboardCheckbox.setChecked(sharedPref.getBoolean(PREF_KEYBOARD, true));
-        showKeyboardCheckbox.setOnCheckedChangeListener((buttonView, isChecked)
-                -> editor.putBoolean(PREF_KEYBOARD, isChecked).apply());
 
         selectCard = findViewById(R.id.connector_select_card);
         selectText = findViewById(R.id.connector_select);
@@ -184,8 +174,6 @@ public class EntranceActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        MaterialSwitch gadgetSwitch = findViewById(R.id.switch_gadget);
-        gadgetSwitch.setChecked(sharedPref.getBoolean(PREF_ALTER_GADGET, false));
     }
 
     @Override
@@ -314,6 +302,8 @@ public class EntranceActivity extends AppCompatActivity {
 
     private void startBrowserActivity() {
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
+        boolean prefKeyboardOn = sharedPref.getBoolean(PREF_KEYBOARD, true);
+        boolean prefPanelStart = sharedPref.getBoolean(PREF_PANELSTART, true);
         Intent intent = new Intent(EntranceActivity.this, BrowserActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
                 | Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -321,10 +311,8 @@ public class EntranceActivity extends AppCompatActivity {
         intent.setAction(WebViewManager.OPEN_KANCOLLE);
 
         String options = "";
-        CheckBox showControlPanelCheckbox = findViewById(R.id.layout_control);
-        CheckBox showKeyboardCheckbox = findViewById(R.id.layout_keyboard);
-        if (showControlPanelCheckbox.isChecked()) options = options.concat(ACTION_SHOWPANEL);
-        if (showKeyboardCheckbox.isChecked()) options = options.concat(ACTION_SHOWKEYBOARD);
+        if (prefPanelStart) options = options.concat(ACTION_SHOWPANEL);
+        if (prefKeyboardOn) options = options.concat(ACTION_SHOWKEYBOARD);
         intent.putExtra("options", options);
 
         String login_id = sharedPref.getString(PREF_DMM_ID, "");
