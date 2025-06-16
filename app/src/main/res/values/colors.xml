@@ -19,6 +19,6 @@
 
     <color name="colorSwitchSelectedThumb">#333C75</color>
     <color name="colorSwitchSelectedTrack">#AAB1BF</color>
-    <color name="colorSwitchUnselectedTrack">#363E53</color>
+    <color name="colorSwitchUnselectedTrack">#30374A</color>
     <color name="colorSwitchUnselectedOutline">#8F9199</color>
 </resources>
