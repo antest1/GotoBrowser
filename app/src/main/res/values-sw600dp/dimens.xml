@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="entrance_menu_button_size">48dp</dimen>
+    <dimen name="entrance_menu_button_size">56dp</dimen>
     <dimen name="browser_panel_button_size">60dp</dimen>
     <dimen name="browser_panel_button_icon_size">32dp</dimen>
     <dimen name="browser_panel_button_padding">12dp</dimen>
