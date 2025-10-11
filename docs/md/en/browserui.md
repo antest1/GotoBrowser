@@ -1,6 +1,5 @@
 ## Browser UI
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@40,400,0,0&icon_names=close,closed_caption,exit_to_app,photo_camera,refresh,screen_lock_rotation,volume_off" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@40,400,1,0&icon_names=wb_sunny" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@40,400,0,0&icon_names=close,closed_caption,logout,photo_camera,refresh,screen_lock_rotation,volume_off,wb_iridescent" />
 
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/game_screen.png"  width="840" style="max-width: 100%;" class="mb-3"/>
@@ -24,7 +23,7 @@ You can use various functions such as refreshing the game or taking a screenshot
 | <span class="material-symbols-outlined">volume_off</span>  | Mute Browser | Mute the whole sound playing in your browser. The audio file will continue to load.<br/>(Use this when you want to see subtitles without sound, etc.) |
 | <span class="material-symbols-outlined">photo_camera</span> | Show Screenshot Button | Show or hide the screenshot button in the top right of the screen. |
 | <span class="material-symbols-outlined">screen_lock_rotation</span> | Fix screen rotation | Prevents the screen from rotating regardless of device settings. |
-| <span class="material-symbols-rounded">wb_sunny</span> | Disable Screen Timeout | Set the screen to not turn off in idle state. |
+| <span class="material-symbols-outlined">wb_iridescent</span> | Disable Screen Timeout | Set the screen to not turn off in idle state. |
 | <span class="material-symbols-outlined">closed_caption</span> | Show Subtitles | Shows or hides in-game subtitles at the bottom of the screen. |
-| <span class="material-symbols-outlined">exit_to_app</span> | Logout | Log out of the game and return to main screen. |
+| <span class="material-symbols-outlined">logout</span> | Logout | Log out of the game and return to main screen. |
 | <span class="material-symbols-outlined">close</span> | Close Panel | Hides the panel from the screen. |

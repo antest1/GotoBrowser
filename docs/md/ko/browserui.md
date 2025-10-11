@@ -1,6 +1,5 @@
 ## 브라우저 UI
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@40,400,0,0&icon_names=close,closed_caption,exit_to_app,photo_camera,refresh,screen_lock_rotation,volume_off" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@40,400,1,0&icon_names=wb_sunny" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@40,400,0,0&icon_names=close,closed_caption,logout,photo_camera,refresh,screen_lock_rotation,volume_off,wb_iridescent" />
 
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/game_screen.png"  width="840" style="max-width: 100%;" class="mb-3"/>
@@ -26,7 +25,7 @@
 | <span class="material-symbols-outlined">volume_off</span>  | 브라우저 음소거 | 브라우저에서 재생되고 있는 소리를 음소거합니다. 음성 파일은 계속 로딩됩니다.<br/>(소리 없이 자막만 보고 싶은 경우 등에 사용) |
 | <span class="material-symbols-outlined">photo_camera</span> | 스크린샷 버튼 표시 | 화면 우측 상단에 스크린샷 버튼을 표시하거나 숨깁니다. |
 | <span class="material-symbols-outlined">screen_lock_rotation</span> | 화면 회전 고정 | 현재 화면 상태에서 기기 설정에 상관없이 회전되지 않도록 설정합니다. |
-| <span class="material-symbols-rounded">wb_sunny</span> | 화면 꺼짐 방지 | 대기 상태에서 화면이 어두워지지 않도록 설정합니다. |
+| <span class="material-symbols-outlined">wb_iridescent</span> | 화면 꺼짐 방지 | 대기 상태에서 화면이 어두워지지 않도록 설정합니다. |
 | <span class="material-symbols-outlined">closed_caption</span> | 자막 표시 | 화면 하단에 인게임 자막을 표시하거나 숨깁니다. |
-| <span class="material-symbols-outlined">exit_to_app</span> | 로그아웃 | 게임에서 로그아웃을 수행하고, 메인 화면으로 돌아갑니다. |
+| <span class="material-symbols-outlined">logout</span> | 로그아웃 | 게임에서 로그아웃을 수행하고, 메인 화면으로 돌아갑니다. |
 | <span class="material-symbols-outlined">close</span> | 패널 닫기 | 패널을 화면에서 숨깁니다. |
