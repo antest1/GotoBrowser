@@ -136,7 +136,8 @@ public class Constants {
             "/uikit"
     };
 
-    public static final String GADGET_URL = "http://w00g.kancolle-server.com/";
+    public static final String GADGET_HTTP_URL = "http://w00g.kancolle-server.com/";
+    public static final String GADGET_HTTPS_URL = "https://w00g.kancolle-server.com/";
     public static final String DEFAULT_ALTER_GADGET_URL = "https://kcwiki.github.io/cache/";
 
     public static final int DEFAULT_SUBTITLE_FONT_SIZE = 18;
