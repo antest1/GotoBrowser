@@ -322,7 +322,11 @@ public class WebViewManager {
 
     public static String replaceEndpoint(String url, String endpoint) {
         if (!endpoint.endsWith("/")) endpoint += "/";
-        return url.replace(GADGET_URL, endpoint);
+        if (url.startsWith(GADGET_HTTPS_URL)) {
+            return url.replace(GADGET_HTTPS_URL, endpoint);
+        } else {
+            return url.replace(GADGET_HTTP_URL, endpoint);
+        }
     }
 
     public static void setKcCacheProxy(String endpoint, Runnable onSuccessListener, Runnable onFailureListener) {

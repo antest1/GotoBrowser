@@ -22,12 +22,12 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.Browser.ResourceProcess;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.R;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.gson.Gson;
@@ -462,8 +462,7 @@ public class KcUtils {
 
     private static void showAppUpdateDownloadDialog(Activity ac, String tag, String latest_file) {
         if (!ac.isFinishing()) {
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                    ac);
+            MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(ac);
             alertDialogBuilder.setTitle(ac.getString(R.string.app_name));
             alertDialogBuilder
                     .setCancelable(false)
@@ -476,8 +475,7 @@ public class KcUtils {
                             })
                     .setNegativeButton(R.string.action_cancel,
                             (dialog, id) -> dialog.cancel());
-            AlertDialog alertDialog = alertDialogBuilder.create();
-            alertDialog.show();
+            alertDialogBuilder.show();
         }
     }
 

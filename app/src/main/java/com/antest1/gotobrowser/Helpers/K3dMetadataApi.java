@@ -6,6 +6,6 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 
 public interface K3dMetadataApi {
-    @GET("gh/laplamgor/kantai3d-depth-maps@latest/metadata.json")
+    @GET("gh/laplamgor/kantai3d-depth-maps@master/metadata.json")
     Call<JsonObject> getMetadata();
 }

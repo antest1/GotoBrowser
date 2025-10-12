@@ -10,9 +10,9 @@
 
 ##### 設定方法
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/gadget_options.png"  width="840" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/gadget_options.png"  width="480" style="max-width: 100%;" class="mb-3"/>
 
-1. メイン画面または設定で「国外ブロックのバイパス」オプションを有効にします。  
+1. 設定で「国外ブロックのバイパス」オプションを有効にします。  
   （初期インストール時に日本語以外の言語に設定されている場合はデフォルトでオンになります）
 2. バイパス方式は「URL置換」を、エンドポイントサーバーは以下の2つのURLのいずれかに設定してください。誤字に注意！
 

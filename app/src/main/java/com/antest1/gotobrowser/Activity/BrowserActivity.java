@@ -10,6 +10,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Insets;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.net.http.SslError;
@@ -24,7 +25,9 @@ import android.view.ScaleGestureDetector;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.view.WindowMetrics;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.webkit.SslErrorHandler;
@@ -34,7 +37,6 @@ import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -55,6 +57,8 @@ import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Notification.ScreenshotNotification;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
@@ -182,38 +186,36 @@ public class BrowserActivity extends AppCompatActivity {
             View menuLogout = findViewById(R.id.menu_logout);
             menuLogout.setOnClickListener(v -> showLogoutDialog());
 
-            ImageView menuMute = findViewById(R.id.menu_mute);
-            menuMute.setColorFilter(ContextCompat.getColor(getApplicationContext(),
-                    isMuteMode ? R.color.colorAccent : R.color.lightGray));
+            MaterialButton menuMute = findViewById(R.id.menu_mute);
+            menuMute.setIconTintResource(isMuteMode ? R.color.colorAccent : R.color.lightGray);
             menuMute.setOnClickListener(this::setMuteMode);
 
-            ImageView menuCamera = findViewById(R.id.menu_camera);
-            menuCamera.setColorFilter(ContextCompat.getColor(getApplicationContext(),
-                    isCaptureMode ? R.color.colorAccent : R.color.lightGray));
+            MaterialButton menuCamera = findViewById(R.id.menu_camera);
+            menuCamera.setIconTintResource(isCaptureMode ? R.color.colorAccent : R.color.lightGray);
             menuCamera.setOnClickListener(this::setCaptureMode);
             setCaptureButton();
 
-            ImageView menuLock = findViewById(R.id.menu_lock);
-            menuLock.setColorFilter(ContextCompat.getColor(getApplicationContext(),
-                    isLockMode ? R.color.colorAccent : R.color.lightGray));
+            MaterialButton menuLock = findViewById(R.id.menu_lock);
+            menuLock.setIconTintResource(isLockMode ? R.color.colorAccent : R.color.lightGray);
             menuLock.setOnClickListener(this::setOrientationLockMode);
 
-            ImageView menuBrightOn = findViewById(R.id.menu_brighton);
-            menuBrightOn.setColorFilter(ContextCompat.getColor(getApplicationContext(),
-                    isKeepMode ? R.color.colorAccent : R.color.lightGray));
+            MaterialButton menuBrightOn = findViewById(R.id.menu_brighton);
+            menuBrightOn.setIconTintResource(isKeepMode ? R.color.colorAccent : R.color.lightGray);
             menuBrightOn.setOnClickListener(this::setBrightOnMode);
 
-            ImageView menuCaption = findViewById(R.id.menu_cc);
-            menuCaption.setColorFilter(ContextCompat.getColor(getApplicationContext(),
-                    isCaptionMode ? R.color.colorAccent : R.color.lightGray));
+            MaterialButton menuCaption = findViewById(R.id.menu_cc);
+            menuCaption.setIconTintResource(isCaptionMode ? R.color.colorAccent : R.color.lightGray);
             menuCaption.setOnClickListener(this::setCaptionMode);
 
-            ImageView menuKantai3d = findViewById(R.id.menu_kantai3d);
+            MaterialButton menuKantai3d = findViewById(R.id.menu_kantai3d);
             if (k3dPatcher.isPatcherEnabled()) {
                 menuKantai3d.setOnClickListener(this::setKantai3dMode);
             } else {
                 menuKantai3d.setVisibility(View.GONE);
             }
+
+            View menuBg = findViewById(R.id.menu_background);
+            menuBg.setOnClickListener(this::togglePanelVisibility);
 
             View menuClose = findViewById(R.id.menu_close);
             menuClose.setOnClickListener(this::togglePanelVisibility);
@@ -282,6 +284,14 @@ public class BrowserActivity extends AppCompatActivity {
                         || bottom != oldBottom) {
                     final Rect sourceRectHint = new Rect();
                     mContentView.getGlobalVisibleRect(sourceRectHint);
+                    // Offset for the cutout or navigation bar or status bar
+                    WindowMetrics windowMetrics = ((WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE)).getCurrentWindowMetrics();
+                    WindowInsets insets = windowMetrics.getWindowInsets();
+                    Insets safeInsets = insets.getInsets(WindowInsets.Type.displayCutout() | WindowInsets.Type.navigationBars() | WindowInsets.Type.statusBars());
+                    sourceRectHint.left += safeInsets.left;
+                    sourceRectHint.right += safeInsets.left;
+                    sourceRectHint.top += safeInsets.top;
+                    sourceRectHint.bottom += safeInsets.top;
                     setPictureInPictureParams(
                             new PictureInPictureParams.Builder()
                                     .setSeamlessResizeEnabled(false)
@@ -338,7 +348,9 @@ public class BrowserActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Log.e("GOTO", "onPause");
-        k3dPatcher.pause();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N || !isInPictureInPictureMode()) {
+            k3dPatcher.pause();
+        }
     }
 
     @Override
@@ -434,12 +446,10 @@ public class BrowserActivity extends AppCompatActivity {
             manager.runMuteScript(mContentView, isMuteMode);
         }
         if (isMuteMode) {
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((MaterialButton) v).setIconTintResource(R.color.colorAccent);
             sharedPref.edit().putBoolean(PREF_MUTEMODE, true).apply();
         } else {
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((MaterialButton) v).setIconTintResource(R.color.lightGray);
             sharedPref.edit().putBoolean(PREF_MUTEMODE, false).apply();
         }
     }
@@ -449,13 +459,11 @@ public class BrowserActivity extends AppCompatActivity {
         isCaptureMode = !isCaptureMode;
         if (isCaptureMode) {
             findViewById(R.id.kc_camera).setVisibility(View.VISIBLE);
-            ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((MaterialButton) findViewById(R.id.menu_camera)).setIconTintResource(R.color.colorAccent);
             sharedPref.edit().putBoolean(PREF_CAPTURE, true).apply();
         } else {
             findViewById(R.id.kc_camera).setVisibility(View.GONE);
-            ((ImageView) findViewById(R.id.menu_camera)).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((MaterialButton) findViewById(R.id.menu_camera)).setIconTintResource(R.color.lightGray);
             sharedPref.edit().putBoolean(PREF_CAPTURE, false).apply();
         }
     }
@@ -471,7 +479,7 @@ public class BrowserActivity extends AppCompatActivity {
 
     private void showStoragePermissionDialog() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+            MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(this);
             alertDialogBuilder.setTitle(getString(R.string.app_name));
             alertDialogBuilder
                     .setCancelable(false)
@@ -484,13 +492,12 @@ public class BrowserActivity extends AppCompatActivity {
                             })
                     .setNegativeButton(R.string.action_cancel,
                             (dialog, id) -> dialog.cancel());
-            AlertDialog alertDialog = alertDialogBuilder.create();
-            alertDialog.show();
+            alertDialogBuilder.show();
         }
     }
 
     public void showWebkitErrorDialog(int errorCode, String description, String failingUrl) {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(this);
         alertDialogBuilder.setTitle(getWebkitErrorCodeText(errorCode));
         alertDialogBuilder
                 .setCancelable(false)
@@ -499,12 +506,11 @@ public class BrowserActivity extends AppCompatActivity {
                         (dialog, id) -> refreshPageOrFinish())
                 .setNegativeButton("Close",
                         (dialog, id) -> dialog.cancel());
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        alertDialogBuilder.show();
     }
 
     public void showSslErrorDialog(SslErrorHandler handler, SslError error) {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(this);
         alertDialogBuilder.setTitle(getSslErrorCodeTitle(error.getPrimaryError()));
         alertDialogBuilder
                 .setCancelable(false)
@@ -514,20 +520,17 @@ public class BrowserActivity extends AppCompatActivity {
                         (dialog, id) -> handler.cancel())
                 .setNegativeButton("Proceed",
                         (dialog, id) -> handler.proceed());
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        alertDialogBuilder.show();
     }
 
     @SuppressLint("SourceLockedOrientationActivity")
     private void setOrientationLockMode(View v) {
         isLockMode = !isLockMode;
         if (isLockMode) {
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((MaterialButton) v).setIconTintResource(R.color.colorAccent);
             sharedPref.edit().putBoolean(PREF_LOCKMODE, true).apply();
         } else {
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((MaterialButton) v).setIconTintResource(R.color.lightGray);
             sharedPref.edit().putBoolean(PREF_LOCKMODE, false).apply();
         }
 
@@ -551,13 +554,11 @@ public class BrowserActivity extends AppCompatActivity {
         isKeepMode = !isKeepMode;
         if (isKeepMode) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((MaterialButton) v).setIconTintResource(R.color.colorAccent);
             sharedPref.edit().putBoolean(PREF_KEEPMODE, true).apply();
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((MaterialButton) v).setIconTintResource(R.color.lightGray);
             sharedPref.edit().putBoolean(PREF_KEEPMODE, false).apply();
         }
     }
@@ -566,13 +567,11 @@ public class BrowserActivity extends AppCompatActivity {
         isCaptionMode = !isCaptionMode;
         if (isCaptionMode) {
             subtitleText.setVisibility(View.VISIBLE);
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            ((MaterialButton) v).setIconTintResource(R.color.colorAccent);
             sharedPref.edit().putBoolean(PREF_SHOWCC, true).apply();
         } else {
             subtitleText.setVisibility(View.GONE);
-            ((ImageView) v).setColorFilter(
-                    ContextCompat.getColor(getApplicationContext(), R.color.lightGray));
+            ((MaterialButton) v).setIconTintResource(R.color.lightGray);
             sharedPref.edit().putBoolean(PREF_SHOWCC, false).apply();
         }
     }
@@ -679,8 +678,7 @@ public class BrowserActivity extends AppCompatActivity {
             refreshPageOrFinish();
         } else {
             mContentView.pauseTimers();
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                    BrowserActivity.this);
+            MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(BrowserActivity.this);
             alertDialogBuilder.setTitle(getString(R.string.app_name));
             alertDialogBuilder
                     .setCancelable(false)
@@ -692,15 +690,13 @@ public class BrowserActivity extends AppCompatActivity {
                                 dialog.cancel();
                                 mContentView.resumeTimers();
                             });
-            AlertDialog alertDialog = alertDialogBuilder.create();
-            alertDialog.show();
+            alertDialogBuilder.show();
         }
     }
 
     public void showLogoutDialog() {
         mContentView.pauseTimers();
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                BrowserActivity.this);
+        MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(BrowserActivity.this);
         alertDialogBuilder.setTitle(getString(R.string.app_name));
         alertDialogBuilder
                 .setCancelable(false)
@@ -719,8 +715,7 @@ public class BrowserActivity extends AppCompatActivity {
                             dialog.cancel();
                             mContentView.resumeTimers();
                         });
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        alertDialogBuilder.show();
     }
 
     public void setMultiwindowMargin() {
