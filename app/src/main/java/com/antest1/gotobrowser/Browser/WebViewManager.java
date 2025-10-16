@@ -125,6 +125,9 @@ public class WebViewManager {
                         activity.setStartedFlag();
                         webview.getSettings().setBuiltInZoomControls(true);
                         webview.getSettings().setDisplayZoomControls(false);
+                        if (sharedPref.getBoolean(PREF_ADJUSTMENT, false)) {
+                            webview.evaluateJavascript(ADJUST_SCRIPT, null);
+                        }
                     }
                     if (url.contains("about:blank") && refreshFlag) {
                         refreshFlag = false;
@@ -153,6 +156,7 @@ public class WebViewManager {
                 if (is_kcbrowser_mode) {
                     Uri source = request.getUrl();
                     WebResourceResponse response = resourceProcess.processWebRequest(source);
+                    Log.e("GOTO", "shouldInterceptRequest " + source + " " + (response == null));
                     if (response != null) return response;
                 }
                 return super.shouldInterceptRequest(view, request);

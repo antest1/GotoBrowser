@@ -78,7 +78,6 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
-import static com.antest1.gotobrowser.Constants.URL_DMM;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcEnUtils.GetMD5HashOfString;
 import static com.antest1.gotobrowser.Helpers.KcEnUtils.dirMD5;
@@ -195,7 +194,6 @@ public class ResourceProcess {
         boolean is_kcsapi = ResourceProcess.isKcsApi(resource_type);
 
         if (checkBlockedContent(url)) return getEmptyResponse();
-        if (url.contains(URL_DMM)) return getDmmKcIndexPage(url);
         if (url.contains(GADGET_OSAPI_IFR)) return getGadgetIfrPage(url);
         if (url.contains("ooi.css")) return getOoiSheetFromAsset();
         if (url.contains("tweenjs.min.js")) return getTweenJs();
@@ -728,34 +726,6 @@ public class ResourceProcess {
 
     private File getImageFile(String path) {
         return new File(path);
-    }
-
-    private WebResourceResponse getDmmKcIndexPage(String url) {
-
-        if (sharedPref.getBoolean(PREF_ADJUSTMENT, false)) {
-            try {
-                AssetManager as = context.getAssets();
-                InputStream inputStream = as.open("dmm_observer.js");
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                byte[] buffer = new byte[1024];
-                for (int length; (length = inputStream.read(buffer)) != -1;) {
-                    baos.write(buffer, 0, length);
-                }
-                String observer = baos.toString("utf-8");
-
-                byte[] byteArray = KcUtils.downloadDataFromURL(url);
-                String main_page = new String(byteArray, StandardCharsets.UTF_8);
-                main_page = main_page.replace("</script>", observer + "</script>");
-                InputStream is = new ByteArrayInputStream(main_page.getBytes());
-
-                return new WebResourceResponse("text/html", "utf-8", is);
-            } catch (IOException e) {
-                Log.e("GOTO", KcUtils.getStringFromException(e));
-                return null;
-            }
-        } else {
-            return null;
-        }
     }
 
     private WebResourceResponse getOoiSheetFromAsset() {
