@@ -55,3 +55,16 @@ body {
 #main-ntg {
 	margin: 0!important;
 }
+
+/* new game page */
+.gamesResetStyle, gamesResetStyle * {
+    background: none !important;
+}
+
+#game_frame {
+	--game-frame-width: 1200px;
+    --game-frame-height: 720px;
+	position: absolute;
+    top: 0;
+    left: 0;
+}

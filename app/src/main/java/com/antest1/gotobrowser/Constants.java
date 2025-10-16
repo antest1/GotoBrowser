@@ -91,7 +91,7 @@ public class Constants {
     public static final String CONN_KANMOE = "kancolle.moe";
     public static final String CONN_OOI = "ooi.moe";
 
-    public static final String URL_DMM = "http://www.dmm.com/netgame/social/-/gadgets/=/app_id=854854/";
+    public static final String URL_DMM = "https://play.games.dmm.com/game/kancolle";
     public static final String URL_OOI = "https://ooi.moe/";
     public static final String URL_KANMOE = "https://kancolle.moe/";
     public static final String[] URL_LIST = {URL_DMM, URL_KANMOE, URL_OOI};
@@ -111,15 +111,14 @@ public class Constants {
     public static final String MUTE_SEND_DMM = "(function(){var msg={sound:%d};var origin=\"*\";var game_frame=document.getElementById(\"game_frame\");if(game_frame!=null){game_frame.contentWindow.postMessage(msg,origin)};return \"done\"})()";
     public static final String MUTE_SEND_OOI = "(function(){var msg={sound:%d};var origin=\"*\";var game_frame=document.getElementById(\"externalswf\");if(game_frame!=null){game_frame.contentWindow.postMessage(msg,origin)};return \"done\"})()";
     public static final String MUTE_LISTEN = "\nwindow.addEventListener(\"message\",function(e){(e.data.sound!=null)&&(global_mute=e.data.sound,Howler.mute(global_mute),(!global_mute&&gb_h&&gb_h&&!gb_h.playing())&&gb_h.play())});";
-    public static final String DMM_COOKIE = "document.cookie='ckcy=1;expires={date};path=/netgame;domain=.dmm.com';";
+    public static final String DMM_COOKIE = "document.cookie='ckcy_remedied_check=\"ec_mrnhbtk\";expires={date};path=/;domain=.dmm.com';document.cookie='ckcy=1;path=/;domain=.dmm.com;expires={date};path=/;domain=.dmm.com';";
     public static final String CAPTURE_SEND_DMM = "(function(){var msg={capture:true};var origin=\"*\";var doc=document.getElementById(\"game_frame\");if(doc){doc.contentWindow.postMessage(msg,origin)}else{document.getElementsByTagName(\"iframe\")[0].contentWindow.postMessage(msg,origin)};return\"done\"})()";
     public static final String CAPTURE_SEND_OOI = "(function(){var msg={capture:true};var origin=\"*\";var doc=document.getElementById(\"externalswf\");if(doc){doc.contentWindow.postMessage(msg,origin)}else{document.getElementsByTagName(\"iframe\")[0].contentWindow.postMessage(msg,origin)};return\"done\"})()";
     public static final String CAPTURE_LISTEN = "window.addEventListener(\"message\",function(e){if(e.data.capture!=null){(async function(){{let canvas=document.querySelector('canvas');requestAnimationFrame(()=>{{if(canvas!=null){let dataurl=canvas.toDataURL('image/png');GotoBrowser.kcs_process_canvas_dataurl(dataurl);}}});}})();}});";
 
-    public static final String AUTOCOMPLETE_DMM = "function v(e,t){let o=Object.getOwnPropertyDescriptor(e,\"value\").set,s=Object.getPrototypeOf(e),l=Object.getOwnPropertyDescriptor(s,\"value\").set;o&&o!==l?l.call(e,t):o.call(e,t)}v(document.forms.loginForm.elements.login_id,\"%s\"),document.forms.loginForm.elements.login_id.dispatchEvent(new Event(\"input\",{bubbles:!0})),v(document.forms.loginForm.elements.password,\"%s\"),document.forms.loginForm.elements.password.dispatchEvent(new Event(\"input\",{bubbles:!0}));";
+    public static final String ADJUST_SCRIPT = "(()=>{if([...document.scripts].some(s=>s.textContent.includes('MutationObserver(callback)')))return;const BASE=1200,init=()=>{const r=document.querySelector('.gamesResetStyle');if(!r)return!1;const s=document.createElement('style');s.textContent=\".gamesResetStyle>main{margin:0!important;padding:0!important}.gamesResetStyle>:not(main){display:none!important}#game_frame{transform-origin:top left}\",document.head.appendChild(s);const f=document.getElementById('game_frame');if(!f)return!1;const set=()=>{f.style.transform=`scale(${window.innerWidth/BASE})`};let id=0;const res=()=>{cancelAnimationFrame(id),id=requestAnimationFrame(set)};return window.addEventListener('resize',res,{passive:!0}),set(),!0},obs=new MutationObserver(()=>{init()&&obs.disconnect()});obs.observe(document.body,{childList:!0,subtree:!0}),init()})();";
+    public static final String AUTOCOMPLETE_DMM = "function v(e,t){let o=Object.getOwnPropertyDescriptor(e,\"value\").set,s=Object.getPrototypeOf(e),l=Object.getOwnPropertyDescriptor(s,\"value\").set;o&&o!==l?l.call(e,t):o.call(e,t)}if(document.forms.loginForm!=undefined){v(document.forms.loginForm.elements.login_id,\"%s\"),document.forms.loginForm.elements.login_id.dispatchEvent(new Event(\"input\",{bubbles:!0})),v(document.forms.loginForm.elements.password,\"%s\"),document.forms.loginForm.elements.password.dispatchEvent(new Event(\"input\",{bubbles:!0}));}";
     public static final String AUTOCOMPLETE_OOI = "$('input[name=\"login_id\"]').val(\"%s\");$('input[name=\"password\"]').val(\"%s\");";
-
-    public static final String ADJUST_JS = "((e,t)=>{let n=0;function d(){document.getElementById('game_frame').style.transform=`scale(${window.innerWidth/1200})`,document.getElementById('game_frame').style.transformOrigin='top left'}window.addEventListener('load',()=>{clearTimeout(n),n=setTimeout(d,10)}),window.addEventListener('resize',()=>{clearTimeout(n),n=setTimeout(d,10)}),d()})(document,window);";
 
     public static final String GITHUBAPI_ROOT = "https://api.github.com/";
     public static final String SUBTITLE_ROOT = "https://raw.githubusercontent.com/";
@@ -136,6 +135,8 @@ public class Constants {
             "/uikit"
     };
 
+    public static final String GADGET_OSAPI_IFR = "osapi.dmm.com/gadgets/ifr?aid=854854";
+    public static final String INIT_GAME_FRAME = "artemis.games.dmm.com/member/pc/init-game-frame/kancolle";
     public static final String GADGET_HTTP_URL = "http://w00g.kancolle-server.com/";
     public static final String GADGET_HTTPS_URL = "https://w00g.kancolle-server.com/";
     public static final String DEFAULT_ALTER_GADGET_URL = "https://kcwiki.github.io/cache/";

@@ -50,8 +50,8 @@ import java.util.concurrent.Executor;
 public class WebViewManager {
     public static final String OPEN_KANCOLLE = "open_kancolle";
 
-    public static String USER_AGENT = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36";
-    public static final String USER_AGENT_IOS = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
+    public static String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36";
+    public static final String USER_AGENT_IOS = "Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15";
 
     private boolean logoutFlag;
     private boolean refreshFlag;
@@ -123,11 +123,10 @@ public class WebViewManager {
                     sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
                     if (url.contains(Constants.URL_KANMOE_1) || url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
                         activity.setStartedFlag();
-                        webview.evaluateJavascript(ADD_VIEWPORT_META, null);
                         webview.getSettings().setBuiltInZoomControls(true);
                         webview.getSettings().setDisplayZoomControls(false);
                         if (sharedPref.getBoolean(PREF_ADJUSTMENT, false)) {
-                            webview.evaluateJavascript(ADJUST_JS, null);
+                            webview.evaluateJavascript(ADJUST_SCRIPT, null);
                         }
                     }
                     if (url.contains("about:blank") && refreshFlag) {
@@ -157,14 +156,20 @@ public class WebViewManager {
                 if (is_kcbrowser_mode) {
                     Uri source = request.getUrl();
                     WebResourceResponse response = resourceProcess.processWebRequest(source);
+                    Log.e("GOTO", "shouldInterceptRequest " + source + " " + (response == null));
                     if (response != null) return response;
                 }
                 return super.shouldInterceptRequest(view, request);
             }
 
+            @SuppressLint("WebViewClientOnReceivedSslError")
             @Override
             public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-                activity.showSslErrorDialog(handler, error);
+                if (KcUtils.isValidCertError(error)) {
+                    handler.proceed();
+                } else {
+                    activity.showSslErrorDialog(handler, error);
+                }
             }
         });
     }
@@ -242,7 +247,6 @@ public class WebViewManager {
         String login_password = sharedPref.getString(PREF_DMM_PASS, "");
 
         String cookie = getDmmCookie();
-        Log.e("GOTO", "cookie - " + cookie);
         // Login
         if (url.contains(URL_DMM_FOREIGN) || url.contains(URL_DMM_FOREIGN_2)) {
             webview.evaluateJavascript(cookie, null);
