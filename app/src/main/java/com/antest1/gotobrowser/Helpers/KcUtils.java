@@ -12,6 +12,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.net.http.SslCertificate;
+import android.net.http.SslError;
 import android.os.Build;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
@@ -657,5 +659,20 @@ public class KcUtils {
             case SSL_UNTRUSTED -> "The certificate authority is not trusted";
             default -> String.format(Locale.US, "unknown ssl error [%d]", errorCode);
         };
+    }
+
+    public static boolean isKcanotifyCert(SslCertificate cert) {
+        String ca_name = "Kcanotify CA";
+        try {
+            return ca_name.equals(cert.getIssuedBy().getCName());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static boolean isValidCertError(SslError error) {
+        boolean is_untrusted = KcUtils.getSslErrorCodeTitle(error.getPrimaryError()).equals("SSL_UNTRUSTED");
+        boolean is_valid_cert = KcUtils.isKcanotifyCert(error.getCertificate());
+        return is_untrusted && is_valid_cert;
     }
 }

@@ -63,6 +63,7 @@ import okhttp3.OkHttpClient;
 
 import static com.antest1.gotobrowser.Constants.CAPTURE_LISTEN;
 import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
+import static com.antest1.gotobrowser.Constants.GADGET_OSAPI_IFR;
 import static com.antest1.gotobrowser.Constants.MUTE_LISTEN;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
@@ -77,6 +78,7 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
+import static com.antest1.gotobrowser.Constants.URL_DMM;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Helpers.KcEnUtils.GetMD5HashOfString;
 import static com.antest1.gotobrowser.Helpers.KcEnUtils.dirMD5;
@@ -193,11 +195,11 @@ public class ResourceProcess {
         boolean is_kcsapi = ResourceProcess.isKcsApi(resource_type);
 
         if (checkBlockedContent(url)) return getEmptyResponse();
+        if (url.contains(URL_DMM)) return getDmmKcIndexPage(url);
+        if (url.contains(GADGET_OSAPI_IFR)) return getGadgetIfrPage(url);
         if (url.contains("ooi.css")) return getOoiSheetFromAsset();
         if (url.contains("tweenjs.min.js")) return getTweenJs();
         if (url.contains("gadget_html5/script/rollover.js")) return getMuteInjectedRolloverJs();
-        if (url.contains("kcscontents/css/common.css")) return getBlackBackgroundSheet();
-        if (url.contains("html/maintenance.html")) return getMaintenanceFiles(false);
         if (url.contains("html/maintenance.png")) return getMaintenanceFiles(true);
         if (resource_type == 0) return null;
         if (url.contains("ooi_moe_")) return null; // Prevent OOI from caching the server name display
@@ -297,10 +299,17 @@ public class ResourceProcess {
         return new WebResourceResponse("text/css", "utf-8", getEmptyStream());
     }
 
-    private WebResourceResponse getBlackBackgroundSheet() {
-        String replace_css = "#globalNavi, #contentsWrap {display:none;} body {background-color: black;}";
-        InputStream is = new ByteArrayInputStream(replace_css.getBytes());
-        return new WebResourceResponse("text/css", "utf-8", is);
+    private WebResourceResponse getGadgetIfrPage(String url) {
+        try {
+            byte[] byteArray = KcUtils.downloadDataFromURL(url);
+            String gadget_page = new String(byteArray, StandardCharsets.UTF_8);
+            gadget_page = gadget_page.replace("background-color:white;", "background-color:black;");
+            gadget_page = gadget_page.replace("</style>", "#globalNavi, #contentsWrap {display:none;}</style>");
+            InputStream is = new ByteArrayInputStream(gadget_page.getBytes());
+            return new WebResourceResponse("text/html", "utf-8", is);
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     private JsonObject checkResourceUpdate(Uri source) {
@@ -560,7 +569,7 @@ public class ResourceProcess {
             if (url.contains("kcscontents/css/default.css")) return getEmptyResponse();
             if (url.contains("kcscontents/css/style.css")) return getEmptyResponse();
 
-            if (url.contains("www.dmm.com.netgame.css")) {
+            if (url.contains("play.games.dmm.com/assets/index") & url.endsWith(".css")) {
                 byte[] byteArray = KcUtils.downloadDataFromURL(url);
                 String css = new String(byteArray, StandardCharsets.UTF_8);
                 InputStream dmm_in = as.open("dmm_custom.css");
@@ -719,6 +728,34 @@ public class ResourceProcess {
 
     private File getImageFile(String path) {
         return new File(path);
+    }
+
+    private WebResourceResponse getDmmKcIndexPage(String url) {
+
+        if (sharedPref.getBoolean(PREF_ADJUSTMENT, false)) {
+            try {
+                AssetManager as = context.getAssets();
+                InputStream inputStream = as.open("dmm_observer.js");
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                byte[] buffer = new byte[1024];
+                for (int length; (length = inputStream.read(buffer)) != -1;) {
+                    baos.write(buffer, 0, length);
+                }
+                String observer = baos.toString("utf-8");
+
+                byte[] byteArray = KcUtils.downloadDataFromURL(url);
+                String main_page = new String(byteArray, StandardCharsets.UTF_8);
+                main_page = main_page.replace("</script>", observer + "</script>");
+                InputStream is = new ByteArrayInputStream(main_page.getBytes());
+
+                return new WebResourceResponse("text/html", "utf-8", is);
+            } catch (IOException e) {
+                Log.e("GOTO", KcUtils.getStringFromException(e));
+                return null;
+            }
+        } else {
+            return null;
+        }
     }
 
     private WebResourceResponse getOoiSheetFromAsset() {

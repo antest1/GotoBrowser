@@ -119,8 +119,6 @@ public class Constants {
     public static final String AUTOCOMPLETE_DMM = "function v(e,t){let o=Object.getOwnPropertyDescriptor(e,\"value\").set,s=Object.getPrototypeOf(e),l=Object.getOwnPropertyDescriptor(s,\"value\").set;o&&o!==l?l.call(e,t):o.call(e,t)}v(document.forms.loginForm.elements.login_id,\"%s\"),document.forms.loginForm.elements.login_id.dispatchEvent(new Event(\"input\",{bubbles:!0})),v(document.forms.loginForm.elements.password,\"%s\"),document.forms.loginForm.elements.password.dispatchEvent(new Event(\"input\",{bubbles:!0}));";
     public static final String AUTOCOMPLETE_OOI = "$('input[name=\"login_id\"]').val(\"%s\");$('input[name=\"password\"]').val(\"%s\");";
 
-    public static final String ADJUST_JS = "((e,t)=>{let n=0;function d(){document.getElementById('game_frame').style.transform=`scale(${window.innerWidth/1200})`,document.getElementById('game_frame').style.transformOrigin='top left'}window.addEventListener('load',()=>{clearTimeout(n),n=setTimeout(d,10)}),window.addEventListener('resize',()=>{clearTimeout(n),n=setTimeout(d,10)}),d()})(document,window);";
-
     public static final String GITHUBAPI_ROOT = "https://api.github.com/";
     public static final String SUBTITLE_ROOT = "https://raw.githubusercontent.com/";
     public static final String SUBTITLE_SIZE_PATH = "src/data/quotes_size.json";
@@ -136,6 +134,7 @@ public class Constants {
             "/uikit"
     };
 
+    public static final String GADGET_OSAPI_IFR = "osapi.dmm.com/gadgets/ifr?aid=854854";
     public static final String GADGET_HTTP_URL = "http://w00g.kancolle-server.com/";
     public static final String GADGET_HTTPS_URL = "https://w00g.kancolle-server.com/";
     public static final String DEFAULT_ALTER_GADGET_URL = "https://kcwiki.github.io/cache/";

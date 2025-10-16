@@ -123,12 +123,8 @@ public class WebViewManager {
                     sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
                     if (url.contains(Constants.URL_KANMOE_1) || url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
                         activity.setStartedFlag();
-                        webview.evaluateJavascript(ADD_VIEWPORT_META, null);
                         webview.getSettings().setBuiltInZoomControls(true);
                         webview.getSettings().setDisplayZoomControls(false);
-                        if (sharedPref.getBoolean(PREF_ADJUSTMENT, false)) {
-                            webview.evaluateJavascript(ADJUST_JS, null);
-                        }
                     }
                     if (url.contains("about:blank") && refreshFlag) {
                         refreshFlag = false;
@@ -162,9 +158,14 @@ public class WebViewManager {
                 return super.shouldInterceptRequest(view, request);
             }
 
+            @SuppressLint("WebViewClientOnReceivedSslError")
             @Override
             public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-                activity.showSslErrorDialog(handler, error);
+                if (KcUtils.isValidCertError(error)) {
+                    handler.proceed();
+                } else {
+                    activity.showSslErrorDialog(handler, error);
+                }
             }
         });
     }
