@@ -91,7 +91,7 @@ public class Constants {
     public static final String CONN_KANMOE = "kancolle.moe";
     public static final String CONN_OOI = "ooi.moe";
 
-    public static final String URL_DMM = "http://www.dmm.com/netgame/social/-/gadgets/=/app_id=854854/";
+    public static final String URL_DMM = "https://play.games.dmm.com/game/kancolle";
     public static final String URL_OOI = "https://ooi.moe/";
     public static final String URL_KANMOE = "https://kancolle.moe/";
     public static final String[] URL_LIST = {URL_DMM, URL_KANMOE, URL_OOI};
@@ -111,7 +111,7 @@ public class Constants {
     public static final String MUTE_SEND_DMM = "(function(){var msg={sound:%d};var origin=\"*\";var game_frame=document.getElementById(\"game_frame\");if(game_frame!=null){game_frame.contentWindow.postMessage(msg,origin)};return \"done\"})()";
     public static final String MUTE_SEND_OOI = "(function(){var msg={sound:%d};var origin=\"*\";var game_frame=document.getElementById(\"externalswf\");if(game_frame!=null){game_frame.contentWindow.postMessage(msg,origin)};return \"done\"})()";
     public static final String MUTE_LISTEN = "\nwindow.addEventListener(\"message\",function(e){(e.data.sound!=null)&&(global_mute=e.data.sound,Howler.mute(global_mute),(!global_mute&&gb_h&&gb_h&&!gb_h.playing())&&gb_h.play())});";
-    public static final String DMM_COOKIE = "document.cookie='ckcy=1;expires={date};path=/netgame;domain=.dmm.com';";
+    public static final String DMM_COOKIE = "document.cookie='ckcy_remedied_check=\"ec_mrnhbtk\";expires={date};path=/;domain=.dmm.com';document.cookie='ckcy=1;path=/;domain=.dmm.com;expires={date};path=/;domain=.dmm.com';";
     public static final String CAPTURE_SEND_DMM = "(function(){var msg={capture:true};var origin=\"*\";var doc=document.getElementById(\"game_frame\");if(doc){doc.contentWindow.postMessage(msg,origin)}else{document.getElementsByTagName(\"iframe\")[0].contentWindow.postMessage(msg,origin)};return\"done\"})()";
     public static final String CAPTURE_SEND_OOI = "(function(){var msg={capture:true};var origin=\"*\";var doc=document.getElementById(\"externalswf\");if(doc){doc.contentWindow.postMessage(msg,origin)}else{document.getElementsByTagName(\"iframe\")[0].contentWindow.postMessage(msg,origin)};return\"done\"})()";
     public static final String CAPTURE_LISTEN = "window.addEventListener(\"message\",function(e){if(e.data.capture!=null){(async function(){{let canvas=document.querySelector('canvas');requestAnimationFrame(()=>{{if(canvas!=null){let dataurl=canvas.toDataURL('image/png');GotoBrowser.kcs_process_canvas_dataurl(dataurl);}}});}})();}});";
