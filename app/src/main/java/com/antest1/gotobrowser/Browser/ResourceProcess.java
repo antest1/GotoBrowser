@@ -828,10 +828,10 @@ public class ResourceProcess {
         main_js = FpsPatcher.patchFps(main_js);
         main_js = CritPatcher.patchCrit(main_js);
 
-        // 2024.11 update: fix patch logic for silent mode
+        // 2025.10 update: fix patch logic for silent mode (default value added)
         if (silent_mode) {
-            List<String> initVolumePattern1 = Collections.nCopies(3,"this\\[\\w+\\(\\w+\\)\\]=(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\)\\))");
-            List<String> initVolumePattern2 = Collections.nCopies(2,"this\\[\\w+\\(\\w+\\)\\]=0x1===\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\)\\)");
+            List<String> initVolumePattern1 = Collections.nCopies(3,"this\\[\\w+\\(\\w+\\)\\]=(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\),\\w+\\))");
+            List<String> initVolumePattern2 = Collections.nCopies(2,"this\\[\\w+\\(\\w+\\)\\]=0x1===\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\),\\w+\\)");
 
             List<String> initVolumePatternConcat = new ArrayList<>();
             initVolumePatternConcat.addAll(initVolumePattern1);
