@@ -111,10 +111,13 @@ public class KcUtils {
         SharedPreferences sharedPref = context.getSharedPreferences(
                 context.getString(R.string.preference_key), Context.MODE_PRIVATE);
         if (sharedPref.getBoolean(PREF_USE_EXTCACHE, false)) {
-            return context.getExternalFilesDir(null).getAbsolutePath().concat(folder);
-        } else {
-            return context.getFilesDir().getAbsolutePath().concat(folder);
+            File externalFilesDir = context.getExternalFilesDir(null);
+            if (externalFilesDir != null) {
+                return externalFilesDir.getAbsolutePath().concat(folder);
+            }
         }
+        File filesDir = context.getFilesDir();
+        return filesDir.getAbsolutePath().concat(folder);
     }
 
     public static String getStringFromException(Exception ex) {
@@ -227,14 +230,20 @@ public class KcUtils {
     }
 
     public static String getProcessName(Context context) {
-        if (context == null) return null;
-        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningAppProcessInfo processInfo : manager.getRunningAppProcesses()) {
-            if (processInfo.pid == android.os.Process.myPid()) {
-                return processInfo.processName;
+        if (context != null) {
+            ActivityManager manager =
+                    (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            List<ActivityManager.RunningAppProcessInfo>
+                    processList = manager.getRunningAppProcesses();
+            if (processList != null) {
+                for (ActivityManager.RunningAppProcessInfo processInfo : processList) {
+                    if (processInfo.pid == android.os.Process.myPid()) {
+                        return processInfo.processName;
+                    }
+                }
             }
         }
-        return null;
+        return BuildConfig.APPLICATION_ID;
     }
 
     public static void deleteRecursive(File fileOrDirectory) {

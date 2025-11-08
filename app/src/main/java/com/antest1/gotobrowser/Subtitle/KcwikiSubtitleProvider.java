@@ -302,7 +302,9 @@ public class KcwikiSubtitleProvider implements SubtitleProvider  {
                 }
                 @Override
                 public void onFailure(Call<JsonObject> call, Throwable t) {
-                    KcUtils.showToast(fragment.getContext(), t.getLocalizedMessage());
+                    if (fragment.isAdded() && fragment.getActivity() != null) {
+                        KcUtils.showToast(fragment.getContext(), t.getLocalizedMessage());
+                    }
                 }
             });
         } catch (IllegalStateException e) {
