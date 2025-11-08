@@ -50,8 +50,13 @@ import java.util.concurrent.Executor;
 public class WebViewManager {
     public static final String OPEN_KANCOLLE = "open_kancolle";
 
-    public static String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36";
+    public static final int FLAG_UA_DEFAULT = 0;
+    public static final int FLAG_UA_IOS = 1;
+    public static final int FLAG_UA_MOBILE = 1 << 1;
+
+    public static String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36";
     public static final String USER_AGENT_IOS = "Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15";
+    public static final String USER_AGENT_MOBILE = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36";
 
     private boolean logoutFlag;
     private boolean refreshFlag;
@@ -140,6 +145,18 @@ public class WebViewManager {
                         webview.resumeTimers();
                     }
                 }
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                String url = request.getUrl().toString();
+                if (url.startsWith(URL_DMM)) {
+                    setWebViewUserAgent(view, FLAG_UA_DEFAULT);
+                } else {
+                    setWebViewUserAgent(view, FLAG_UA_MOBILE);
+                }
+                view.loadUrl(url);
+                return true;
             }
 
             @Override
@@ -411,12 +428,18 @@ public class WebViewManager {
         }
     }
 
-    private void setWebViewUserAgent(WebViewL view, boolean change_to_ios) {
-        view.getSettings().setUserAgentString(change_to_ios ? USER_AGENT_IOS : USER_AGENT);
+    private void setWebViewUserAgent(WebView view, int flags) {
+        String userAgentString = USER_AGENT;
+        if ((flags & FLAG_UA_IOS) != 0) {
+            userAgentString = USER_AGENT_IOS;
+        } else if ((flags & FLAG_UA_MOBILE) != 0) {
+            userAgentString = USER_AGENT_MOBILE;
+        }
+        view.getSettings().setUserAgentString(userAgentString);
         ResourceProcess.setUserAgent(view.getSettings().getUserAgentString());
     }
 
-    private void setWebViewRendererSetting(WebViewL view) {
+    private void setWebViewRendererSetting(WebView view) {
         // Setting the user agent to change PIXI renderer type:
         // It is the easiest way to improve compatibility,
         // without extra patching to the game client or PixiJS library
@@ -437,6 +460,6 @@ public class WebViewManager {
         // if user agent is iOS device, KC will set forceCanvas:true when init the PIXI Application
 
         boolean useCanvas = sharedPref.getBoolean(PREF_LEGACY_RENDERER, false);
-        setWebViewUserAgent(view, useCanvas);
+        setWebViewUserAgent(view, useCanvas ? FLAG_UA_IOS : FLAG_UA_DEFAULT);
     }
 }
