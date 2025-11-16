@@ -8,8 +8,8 @@ android {
         minSdkVersion 21
         compileSdk 34
         targetSdkVersion 34
-        versionCode 86
-        versionName "3.0-rev3"
+        versionCode 87
+        versionName "3.0-rev4"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
         multiDexEnabled true
 
