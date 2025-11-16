@@ -95,6 +95,7 @@ public class Constants {
     public static final String URL_OOI = "https://ooi.moe/";
     public static final String URL_KANMOE = "https://kancolle.moe/";
     public static final String[] URL_LIST = {URL_DMM, URL_KANMOE, URL_OOI};
+    public static final String URL_GOOGLE_ACCOUNTS = "https://accounts.google.com/";
 
     public static final String URL_DMM_LOGIN = "www.dmm.com/my/-/login/";
     public static final String URL_DMM_LOGIN_2 = "accounts.dmm.com/service/login/password";

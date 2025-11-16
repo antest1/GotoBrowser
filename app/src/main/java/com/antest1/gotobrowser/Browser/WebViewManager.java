@@ -150,13 +150,16 @@ public class WebViewManager {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
-                if (url.startsWith(URL_DMM)) {
-                    setWebViewUserAgent(view, FLAG_UA_DEFAULT);
-                } else {
+                if (url.startsWith(URL_GOOGLE_ACCOUNTS)) {
                     setWebViewUserAgent(view, FLAG_UA_MOBILE);
+                    view.loadUrl(url);
+                    return true;
+                } else if (url.startsWith(URL_DMM)) {
+                    setWebViewUserAgent(view, FLAG_UA_DEFAULT);
+                    view.loadUrl(url);
+                    return true;
                 }
-                view.loadUrl(url);
-                return true;
+                return false;
             }
 
             @Override
