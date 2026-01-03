@@ -23,17 +23,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
+import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
 import static com.antest1.gotobrowser.ContentProvider.KcaContentProvider.BROADCAST_ACTION;
 import static com.antest1.gotobrowser.ContentProvider.KcaPacketStore.PACKETSTORE_VERSION;
 
 public class KcsInterface {
     public static final String GOTO_ANDROID = "GotoBrowser";
-    public static final String AXIOS_INTERCEPT_SCRIPT = "axios.interceptors.response.use(function(response){if(response.config.url.includes(\"kcsapi\")){var url=response.config.url;var request=response.config.data;var data=response.data;GotoBrowser.kcs_xhr_intercept(url,request,data);}return response;},function(error){return Promise.reject(error);});";
+    public static final String AXIOS_INTERCEPT_SCRIPT = "axios.interceptors.response.use(function(response){if(response.config.url.includes(\"kcsapi\")){var url=response.config.url;var request=response.config.data;var host=window.location.hostname;var data=response.data;GotoBrowser.kcs_xhr_intercept(host,url,request,data);}return response;},function(error){return Promise.reject(error);});";
     private final BrowserActivity activity;
     private final KcaPacketStore packetTable;
     private final Handler handler = new Handler();
     ExecutorService executorService = Executors.newFixedThreadPool(30);
     private final boolean broadcast_mode;
+    private final boolean use_devtools;
 
     public KcsInterface(BrowserActivity ac) {
         activity = ac;
@@ -41,13 +43,16 @@ public class KcsInterface {
         SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
         broadcast_mode = sharedPref.getBoolean(PREF_BROADCAST, false);
+        use_devtools = sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
     }
 
     @JavascriptInterface
-    public void kcs_xhr_intercept(String url, String requestHeader, String responseRaw) {
-        if (url.contains("kcsapi") && responseRaw.contains("svdata=")) {
-            Log.e("GOTO-XHR", url);
-            handler.post(() -> processXHR(url, requestHeader, responseRaw));
+    public void kcs_xhr_intercept(String host, String url, String requestHeader, String responseRaw) {
+        if (host != null && (host.endsWith(".kancolle-server.com") || host.equals("ooi.moe"))) {
+            if (url.contains("kcsapi") && responseRaw.contains("svdata=")) {
+                Log.e("GOTO-XHR", host + " " + url + " - " + use_devtools);
+                handler.post(() -> processXHR(url, requestHeader, responseRaw));
+            }
         }
     }
 
@@ -126,6 +131,8 @@ public class KcsInterface {
             bundle.putBoolean("gzipped", false);
         }
         bundle.putByteArray("response", responseBytes);
+        bundle.putBoolean("use_devtools", use_devtools);
+
         intent.putExtras(bundle);
         Log.e("GOTO", "broadcast sent: " + url);
         activity.sendBroadcast(intent);
