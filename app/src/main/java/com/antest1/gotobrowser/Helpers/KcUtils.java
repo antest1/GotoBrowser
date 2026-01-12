@@ -64,8 +64,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
@@ -169,66 +167,6 @@ public class KcUtils {
         return dimension;
     }
 
-    public static boolean unzipResource(Context context, InputStream is, String path, VersionDatabase db, String version) {
-        String cache_path = getAppCacheFileDir(context, "/cache");
-        File dir = new File(cache_path + path);
-        if (!dir.exists()) dir.mkdirs();
-
-        JsonObject prefixInfo = null;
-        ZipInputStream zis;
-        try {
-            String filename;
-            zis = new ZipInputStream(new BufferedInputStream(is));
-            ZipEntry ze;
-            byte[] buffer = new byte[1024];
-            int count;
-            while ((ze = zis.getNextEntry()) != null) {
-                filename = ze.getName();
-                Log.e("GOTO", "zip - " + filename);
-                if (path == null) continue;
-                if (ze.isDirectory()) {
-                    File fmd = new File(cache_path + path + filename);
-                    if (!fmd.exists()) fmd.mkdirs();
-                    continue;
-                } else if (filename.contains("version.txt")) {
-                    prefixInfo = new JsonObject();
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    while ((count = zis.read(buffer)) != -1) {
-                        baos.write(buffer, 0, count);
-                    }
-                    String content = baos.toString();
-                    Log.e("GOTO", content);
-                    String[] content_list = content.split("\\n", -1);
-                    for (String item : content_list) {
-                        if (!item.trim().isEmpty()) {
-                            String[] item_v = item.split("\\t");
-                            String key = item_v[0];
-                            String value = item_v[1].trim().replace("_", "");
-                            if (!value.isEmpty()) prefixInfo.addProperty(key, value);
-                        }
-                    }
-                    baos.close();
-                    Log.e("GOTO", prefixInfo.toString());
-                    db.overrideByPrefix(prefixInfo);
-                } else {
-                    FileOutputStream fout = new FileOutputStream(cache_path + path + filename);
-                    while ((count = zis.read(buffer)) != -1) {
-                        fout.write(buffer, 0, count);
-                    }
-                    if (version != null) db.putValue(path + filename, version);
-                    Log.e("GOTO", "cache resource " + path + filename + ": " + version);
-                    fout.close();
-                }
-                zis.closeEntry();
-            }
-            zis.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
     public static String getProcessName(Context context) {
         if (context != null) {
             ActivityManager manager =
@@ -309,18 +247,27 @@ public class KcUtils {
         return buffer.toByteArray();
     }
 
-    public static String downloadResource(OkHttpClient client, String fullpath, File file) {
+    public static JsonObject downloadResource(OkHttpClient client, String fullpath, File file) {
+        return downloadResource(client, fullpath, file, null);
+    }
+
+    public static JsonObject downloadResource(OkHttpClient client, String fullpath, File file, String if_modified_since) {
         Request.Builder builder = new Request.Builder()
                 .header("User-Agent", ResourceProcess.getUserAgent())
                 .url(fullpath);
+        if (if_modified_since != null) {
+            builder = builder.addHeader("If-Modified-Since", if_modified_since);
+        }
+        JsonObject downloadResult = new JsonObject();
 
-        Log.e("GOTO", "download " + fullpath);
+        Log.e("GOTO", "download " + fullpath + " " + if_modified_since);
         Request request = builder.build();
         try {
             Response response = client.newCall(request).execute();
             if (response.code() == 200) {
                 Log.e("GOTO", "200 OK " + fullpath);
-                String cache_control = response.header("Cache-Control", "none");
+                String last_modified = response.header("Last-Modified", null);
+                String cache_control = response.header("Cache-Control", null);
                 ResponseBody body = response.body();
                 if (body != null) {
                     InputStream in = body.byteStream();
@@ -336,20 +283,20 @@ public class KcUtils {
                     }
                     body.close();
                 }
-                return cache_control;
+                downloadResult.addProperty("last_modified", last_modified);
+                downloadResult.addProperty("cache_control", cache_control);
             } else if (response.code() == 304) {
                 Log.e("GOTO", "304 Not Modified " + fullpath);
-                return "304";
             } else if (response.code() == 403) {
                 Log.e("GOTO", "403 Forbidden" + fullpath);
-                return "403";
             }
+            downloadResult.addProperty("response_code", response.code());
         } catch (Exception e) {
             Log.e("GOTO-E", getStringFromException(e));
             KcUtils.reportException(e);
-            return null;
+            downloadResult.addProperty("error", getStringFromException(e));
         }
-        return null;
+        return downloadResult;
     }
 
     public static Retrofit getRetrofitAdapter(Context context, String baseUrl) {
@@ -590,15 +537,16 @@ public class KcUtils {
     }
 
     public static String getDefaultTimeForCookie() {
-        return getTimeForCookie(5);
-    }
-
-    public static String getTimeForCookie(int years) {
+        int years = 5;
         Date targetTime = new Date();
         targetTime.setTime(targetTime.getTime() + (365L * years * 24 * 60 * 60 * 1000));
+        return getTimeForCookie(targetTime);
+    }
+
+    public static String getTimeForCookie(Date datetime) {
         DateFormat df = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss zzz", Locale.US);
         df.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return df.format(targetTime);
+        return df.format(datetime);
     }
 
     public static boolean isKcanotifyInstalled(Context context) {

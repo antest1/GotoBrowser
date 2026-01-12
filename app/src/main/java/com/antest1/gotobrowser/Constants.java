@@ -149,4 +149,6 @@ public class Constants {
 
     public static final String APP_UI_HELP_VER = "20211002";
     public static final String KCANOTIFY_PACKAGE_NAME = "com.antest1.kcanotify";
+
+    public static final String CACHE_DIR = "/browser_cache/";
 }
