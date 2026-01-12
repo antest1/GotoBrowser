@@ -39,6 +39,7 @@ import androidx.core.content.ContextCompat;
 
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
 import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
+import static com.antest1.gotobrowser.Constants.CACHE_DIR;
 import static com.antest1.gotobrowser.Constants.CONN_DMM;
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
@@ -290,13 +291,29 @@ public class EntranceActivity extends AppCompatActivity {
 
 
     private void clearBrowserCache() {
+        // clear webview cache
         WebView webview = new WebView(getApplicationContext());
         webview.clearCache(true);
+
+        // clear version table
         versionTable.clearVersionDatabase();
-        String cache_dir = KcUtils.getAppCacheFileDir(getApplicationContext(), "/cache/");
-        String patched_cache_dir = KcUtils.getAppCacheFileDir(getApplicationContext(), "/_patched_cache/");
+
+        // clear internal cache dir
         clearApplicationCache(getApplicationContext(), getCacheDir());
-        clearApplicationCache(getApplicationContext(), new File(cache_dir));
+
+        // clear resource cache dir
+        File cache_dir = new File(KcUtils.getAppCacheFileDir(getApplicationContext(), CACHE_DIR));
+        clearApplicationCache(getApplicationContext(), cache_dir);
+
+        // clear legacy cache dir
+        File cache_old = new File(KcUtils.getAppCacheFileDir(getApplicationContext(), "/cache/"));
+        if (cache_old.exists()) {
+            clearApplicationCache(getApplicationContext(), cache_old);
+            cache_old.delete();
+        }
+
+        // clear patched cache cidr
+        String patched_cache_dir = KcUtils.getAppCacheFileDir(getApplicationContext(), "/_patched_cache/");
         clearApplicationCache(getApplicationContext(), new File(patched_cache_dir));
     }
 

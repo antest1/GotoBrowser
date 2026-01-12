@@ -7,8 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.google.gson.JsonObject;
-
 public class VersionDatabase extends SQLiteOpenHelper {
     private static final String db_name = "gotobrowser_db";
     private static final String table_name = "version_table";
@@ -70,33 +68,12 @@ public class VersionDatabase extends SQLiteOpenHelper {
         }
     }
 
+    public String getDefaultValue() {
+        return "_none_";
+    }
+
     public void putDefaultValue(String key) {
         putValue(key, "_none_");
     }
 
-    public void overrideByPrefix(JsonObject prefix) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor c =  db.query(table_name, null, null, null, null, null, null, null);
-        try {
-            Log.e("GOTO", "total: " + c.getCount());
-            if (c.moveToFirst()) {
-                while (!c.isAfterLast()) {
-                    String key = c.getString(c.getColumnIndex("KEY"));
-                    Log.e("GOTO", "key: " + key);
-                    for (String p: prefix.keySet()) {
-                        if (key.startsWith(p)) {
-                            putValue(key, prefix.get(p).getAsString());
-                            Log.e("GOTO", key + " -> " + prefix.get(p).getAsString());
-                            break;
-                        }
-                    }
-                    c.moveToNext();
-                }
-            }
-        } catch (Exception e) {
-            KcUtils.reportException(e);
-        } finally {
-            if (c != null) c.close();
-        }
-    }
 }
