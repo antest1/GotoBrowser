@@ -296,7 +296,6 @@ public class ResourceProcess {
 
             if (!version.isEmpty()) {
                 fullPath = fullPath + "?version=" + version;
-                outputPath = outputPath + ".v" + version.replace(".", "_");
             }
 
             key = String.format(Locale.US, "|%s|%s", path, version);
