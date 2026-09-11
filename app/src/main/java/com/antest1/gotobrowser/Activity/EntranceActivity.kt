@@ -2,6 +2,7 @@ package com.antest1.gotobrowser.Activity
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
@@ -60,185 +62,224 @@ class EntranceActivity : ComponentActivity() {
                 EntranceScreen(viewModel)
             }
         }
-        
+
         WebViewManager.clearKcCacheProxy()
     }
 }
 
-@Preview(showBackground = true, widthDp = 800, heightDp = 480)
-@Composable
-fun EntranceScreenPreview() {
-    Box(modifier = Modifier.fillMaxSize().background(Color.DarkGray)) {
-        Text("Preview requires valid ViewModel state", color = Color.White)
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
+// ViewModel-bound entry point. Observes state and delegates all rendering to the
+// stateless EntranceScreenContent, which is what the IDE previews render.
 @Composable
 fun EntranceScreen(viewModel: EntranceViewModel) {
     val context = LocalContext.current
-    val sharedPref = viewModel.sharedPref
-    
+
     val connector by viewModel.connector.observeAsState(CONN_DMM)
     val silentMode by viewModel.silentMode.observeAsState(false)
     val broadcastMode by viewModel.broadcastMode.observeAsState(false)
     val panelStart by viewModel.panelStart.observeAsState(false)
 
+    EntranceScreenContent(
+        connector = connector,
+        silentMode = silentMode,
+        broadcastMode = broadcastMode,
+        panelStart = panelStart,
+        onConnectorClick = { showConnectorSelectionDialog(context, viewModel) },
+        onAutoCompleteClick = { showAutoCompleteDialog(context, viewModel) },
+        onSilentChange = { viewModel.setSilentMode(it) },
+        onBroadcastChange = { enabled ->
+            viewModel.setBroadcastMode(enabled)
+            if (viewModel.isKcanotifyInstalled && !enabled) {
+                showKcanotifyBroadcastSetDialog(context, viewModel)
+            }
+        },
+        onPanelChange = { viewModel.setPanelStart(it) },
+        onStartClick = {
+            val prefConnector = viewModel.sharedPref.getString(PREF_CONNECTOR, CONN_DMM)
+            if (prefConnector != CONN_DMM) {
+                showThirdPartyConnectorDialog(context, viewModel)
+            } else {
+                startBrowserActivity(context, viewModel)
+            }
+        },
+        onCacheClearClick = { showCacheClearDialog(context, viewModel) },
+        onManualClick = { openManual(context) },
+        onSettingsClick = { openSettings(context) }
+    )
+}
+
+// Stateless, side-effect-free layout. All state is passed in and every action is
+// surfaced as a callback, so it is fully renderable in an IDE preview.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EntranceScreenContent(
+    connector: String,
+    silentMode: Boolean,
+    broadcastMode: Boolean,
+    panelStart: Boolean,
+    onConnectorClick: () -> Unit,
+    onAutoCompleteClick: () -> Unit,
+    onSilentChange: (Boolean) -> Unit,
+    onBroadcastChange: (Boolean) -> Unit,
+    onPanelChange: (Boolean) -> Unit,
+    onStartClick: () -> Unit,
+    onCacheClearClick: () -> Unit,
+    onManualClick: () -> Unit,
+    onSettingsClick: () -> Unit
+) {
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    // Responsive sizing: keep the layout compact enough to fit a short landscape screen.
+    val topSpacerHeight = if (isLandscape) 24.dp else 180.dp
+    val connectorTextSize = if (isLandscape) 20.sp else 24.sp
+    val connectorTextPaddingH = if (isLandscape) 40.dp else 60.dp
+    val cardHorizontalMargin = if (isLandscape) 24.dp else 60.dp
+    val cardMaxWidth = if (isLandscape) 420.dp else 560.dp
+    val cardVerticalPadding = if (isLandscape) 10.dp else 15.dp
+    val startButtonHeight = if (isLandscape) 46.dp else 56.dp
+    val sectionSpacing = if (isLandscape) 8.dp else 15.dp
+
     // Using a Surface as the root to ensure a solid background base
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF262933)) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Background layer - Using alpha parameter directly for stable rendering from frame 1
+            // Background layer - lowering alpha blends with the dark base,
+            // which softens contrast without needing a color transform.
             Image(
                 painter = painterResource(id = R.mipmap.background),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
-                alpha = 0.5f,
+                alpha = 0.4f,
                 contentScale = ContentScale.Crop
             )
 
             Image(
                 painter = painterResource(id = R.mipmap.gotland_full),
                 contentDescription = null,
-                modifier = Modifier.fillMaxSize().offset(y = 120.dp),
-                contentScale = ContentScale.Crop
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset(y = if (isLandscape) 0.dp else 80.dp),
+                contentScale = if (isLandscape) ContentScale.Fit else ContentScale.Crop,
+                alignment = if (isLandscape) Alignment.Center else Alignment.TopCenter
             )
 
-            Scaffold(
-                containerColor = Color.Transparent,
-                topBar = {
-                    TopAppBar(
-                        title = { },
-                        actions = {
-                            IconButton(onClick = { openManual(context) }) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.help_icon),
-                                    contentDescription = "Manual",
-                                    tint = Color.White
-                                )
-                            }
-                            IconButton(onClick = { openSettings(context) }) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.settings),
-                                    contentDescription = "Settings",
-                                    tint = Color.White
-                                )
-                            }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+            // Scrollable content (no Scaffold/topBar: the top buttons are overlaid below,
+            // so nothing reserves layout space and the artwork is not clipped at the top).
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Spacer(modifier = Modifier.height(topSpacerHeight))
+
+                // Connector Selection Card
+                Card(
+                    onClick = onConnectorClick,
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0x80283593) // colorSiteSelection
+                    ),
+                    modifier = Modifier.widthIn(min = 200.dp, max = cardMaxWidth)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = connector.uppercase(),
+                            color = Color.White,
+                            fontSize = connectorTextSize,
+                            modifier = Modifier.padding(horizontal = connectorTextPaddingH, vertical = 8.dp),
+                            textAlign = TextAlign.Center
+                        )
+                        IconButton(
+                            onClick = onAutoCompleteClick,
+                            modifier = Modifier.align(Alignment.CenterEnd)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.passkey_icon),
+                                contentDescription = "Autocomplete",
+                                tint = Color(0xFFFFC400) // colorAccent
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(sectionSpacing))
+
+                // Switches Card
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0x40000000)
+                    ),
+                    modifier = Modifier
+                        .widthIn(max = cardMaxWidth)
+                        .padding(horizontal = cardHorizontalMargin)
+                ) {
+                    Column(modifier = Modifier.padding(cardVerticalPadding)) {
+                        SwitchItem(
+                            text = stringResource(id = R.string.mode_silent),
+                            checked = silentMode,
+                            onCheckedChange = onSilentChange,
+                            enabled = connector == CONN_DMM
+                        )
+                        SwitchItem(
+                            text = stringResource(id = R.string.mode_broadcast),
+                            checked = broadcastMode,
+                            onCheckedChange = onBroadcastChange
+                        )
+                        SwitchItem(
+                            text = stringResource(id = R.string.mode_show_panel),
+                            checked = panelStart,
+                            onCheckedChange = onPanelChange
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(sectionSpacing))
+
+                // Start Button
+                Button(
+                    onClick = onStartClick,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF283593) // colorButton
+                    ),
+                    shape = CircleShape,
+                    modifier = Modifier.height(startButtonHeight).border(2.dp, Color(0xFFFFC400), CircleShape)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Icon(Icons.Default.PlayArrow, null, tint = Color.White)
+                        Spacer(Modifier.width(8.dp))
+                        Text("START", fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                }
+
+                Text(
+                    text = stringResource(id = R.string.cache_clear_text),
+                    color = Color(0xFFFFC400), // colorAccent
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .clickable { onCacheClearClick() }
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            // Top-right buttons (manual / settings) as a lightweight overlay
+            Row(
+                modifier = Modifier.align(Alignment.TopEnd).padding(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onManualClick) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.help_icon),
+                        contentDescription = "Manual",
+                        tint = Color.White
                     )
                 }
-            ) { padding ->
-                Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Spacer(modifier = Modifier.height(180.dp))
-                        
-                        // Connector Selection Card
-                        Card(
-                            onClick = { showConnectorSelectionDialog(context, viewModel) },
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color(0x80283593) // colorSiteSelection
-                            ),
-                            modifier = Modifier.widthIn(min = 200.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = connector.uppercase(),
-                                    color = Color.White,
-                                    fontSize = 24.sp,
-                                    modifier = Modifier.padding(horizontal = 60.dp, vertical = 8.dp),
-                                    textAlign = TextAlign.Center
-                                )
-                                IconButton(
-                                    onClick = { showAutoCompleteDialog(context, viewModel) },
-                                    modifier = Modifier.align(Alignment.CenterEnd)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.passkey_icon),
-                                        contentDescription = "Autocomplete",
-                                        tint = Color(0xFFFFC400) // colorAccent
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(15.dp))
-
-                        // Switches Card
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color(0x40000000)
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 60.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(15.dp)) {
-                                SwitchItem(
-                                    text = stringResource(id = R.string.mode_silent),
-                                    checked = silentMode,
-                                    onCheckedChange = { viewModel.setSilentMode(it) },
-                                    enabled = connector == CONN_DMM
-                                )
-                                SwitchItem(
-                                    text = stringResource(id = R.string.mode_broadcast),
-                                    checked = broadcastMode,
-                                    onCheckedChange = {
-                                        viewModel.setBroadcastMode(it)
-                                        if (viewModel.isKcanotifyInstalled && !it) {
-                                            showKcanotifyBroadcastSetDialog(context, viewModel)
-                                        }
-                                    }
-                                )
-                                SwitchItem(
-                                    text = stringResource(id = R.string.mode_show_panel),
-                                    checked = panelStart,
-                                    onCheckedChange = { viewModel.setPanelStart(it) }
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(15.dp))
-
-                        // Start Button
-                        Button(
-                            onClick = {
-                                val prefConnector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM)
-                                if (prefConnector != CONN_DMM) {
-                                    showThirdPartyConnectorDialog(context, viewModel)
-                                } else {
-                                    startBrowserActivity(context, viewModel)
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF283593) // colorButton
-                            ),
-                            shape = CircleShape,
-                            modifier = Modifier.height(56.dp).border(2.dp, Color(0xFFFFC400), CircleShape)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp)) {
-                                Icon(Icons.Default.PlayArrow, null, tint = Color.White)
-                                Spacer(Modifier.width(8.dp))
-                                Text("START", fontWeight = FontWeight.Bold, color = Color.White)
-                            }
-                        }
-
-                        Text(
-                            text = stringResource(id = R.string.cache_clear_text),
-                            color = Color(0xFFFFC400), // colorAccent
-                            fontSize = 14.sp,
-                            modifier = Modifier
-                                .padding(top = 8.dp)
-                                .clickable { showCacheClearDialog(context, viewModel) }
-                        )
-                        
-                        Spacer(modifier = Modifier.height(24.dp))
-                    }
+                IconButton(onClick = onSettingsClick) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.settings),
+                        contentDescription = "Settings",
+                        tint = Color.White
+                    )
                 }
             }
 
@@ -259,6 +300,50 @@ fun EntranceScreen(viewModel: EntranceViewModel) {
                 )
             }
         }
+    }
+}
+
+@Preview(name = "Entrance - Portrait", showBackground = true, widthDp = 411, heightDp = 823)
+@Composable
+fun EntranceScreenPreview() {
+    GotobrowserTheme {
+        EntranceScreenContent(
+            connector = CONN_DMM,
+            silentMode = false,
+            broadcastMode = true,
+            panelStart = true,
+            onConnectorClick = {},
+            onAutoCompleteClick = {},
+            onSilentChange = {},
+            onBroadcastChange = {},
+            onPanelChange = {},
+            onStartClick = {},
+            onCacheClearClick = {},
+            onManualClick = {},
+            onSettingsClick = {}
+        )
+    }
+}
+
+@Preview(name = "Entrance - Landscape", showBackground = true, widthDp = 823, heightDp = 411)
+@Composable
+fun EntranceScreenLandscapePreview() {
+    GotobrowserTheme {
+        EntranceScreenContent(
+            connector = CONN_DMM,
+            silentMode = false,
+            broadcastMode = true,
+            panelStart = true,
+            onConnectorClick = {},
+            onAutoCompleteClick = {},
+            onSilentChange = {},
+            onBroadcastChange = {},
+            onPanelChange = {},
+            onStartClick = {},
+            onCacheClearClick = {},
+            onManualClick = {},
+            onSettingsClick = {}
+        )
     }
 }
 

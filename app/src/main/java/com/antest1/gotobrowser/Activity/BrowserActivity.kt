@@ -174,17 +174,6 @@ class BrowserActivity : ComponentActivity() {
         setupSmoothPipAnimation()
     }
 
-    @Composable
-    private fun PanelButton(id: Int, active: Boolean = false, onClick: () -> Unit) {
-        IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
-            Icon(
-                painterResource(id = id), null,
-                tint = if (active) Color(0xFFFFC400) else Color.White,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-
     fun isKcMode(): Boolean = viewModel.isKcBrowserMode
     fun isMuteMode(): Boolean = java.lang.Boolean.TRUE == viewModel.isMuteMode.value
     fun isCaptionAvailable(): Boolean = java.lang.Boolean.TRUE == viewModel.isCaptionMode.value
@@ -427,6 +416,69 @@ class BrowserActivity : ComponentActivity() {
     }
 }
 
+// Top-level so both the activity's floating toolbar and the IDE preview can use it.
+@Composable
+fun PanelButton(id: Int, active: Boolean = false, onClick: () -> Unit) {
+    IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
+        Icon(
+            painterResource(id = id), null,
+            tint = if (active) Color(0xFFFFC400) else Color.White,
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
+// Stateless overlay layer (subtitle, capture, close). Extracted so the real
+// overlays can be rendered in an IDE preview without a ViewModel or WebView.
+@Composable
+fun BrowserOverlayLayer(
+    showSubtitle: Boolean,
+    subtitleText: String,
+    subtitleVisible: Boolean,
+    isCapture: Boolean,
+    closeButtonVisible: Boolean,
+    onSubtitleTap: () -> Unit,
+    onCaptureClick: () -> Unit,
+    onCloseClick: () -> Unit
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Subtitle Overlay
+        if (showSubtitle && subtitleVisible) {
+            Box(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 12.dp), contentAlignment = Alignment.BottomCenter) {
+                Text(
+                    text = subtitleText.ifEmpty { stringResource(id = R.string.subtitle_default) },
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.clickable { onSubtitleTap() }
+                )
+            }
+        }
+
+        // Camera Button (Square)
+        if (isCapture) {
+            IconButton(
+                onClick = onCaptureClick,
+                modifier = Modifier.align(Alignment.TopEnd).padding(24.dp).size(64.dp)
+                    .background(Color.Black.copy(alpha = 0.5f)).border(2.dp, Color.White)
+            ) {
+                Icon(painterResource(id = R.drawable.capture_icon), "Capture", tint = Color.White, modifier = Modifier.size(32.dp))
+            }
+        }
+
+        // DMM Close Button
+        if (closeButtonVisible) {
+            IconButton(
+                onClick = onCloseClick,
+                modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
+            ) {
+                Icon(Icons.Default.Close, "Close", tint = Color.White)
+            }
+        }
+    }
+}
+
 @Composable
 fun BrowserScreenContent(
     viewModel: BrowserViewModel,
@@ -527,67 +579,61 @@ fun BrowserScreenContent(
             }
         }
 
-        // Subtitle Overlay
-        if (viewModel.isKcBrowserMode && isCaption && subtitleVisible.value) {
-            Box(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 12.dp), contentAlignment = Alignment.BottomCenter) {
-                Text(
-                    text = currentSubtitle.ifEmpty { stringResource(id = R.string.subtitle_default) },
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.clickable { subtitleVisible.value = false }
-                )
-            }
-        }
-
-        // Camera Button (Square)
-        if (isCapture) {
-            IconButton(
-                onClick = {
-                    manager?.captureGameScreen(activity.findViewById(android.R.id.content)) // Or use view reference
-                    showFlash.value = true
-                },
-                modifier = Modifier.align(Alignment.TopEnd).padding(24.dp).size(64.dp)
-                    .background(Color.Black.copy(alpha = 0.5f)).border(2.dp, Color.White)
-            ) {
-                Icon(painterResource(id = R.drawable.capture_icon), "Capture", tint = Color.White, modifier = Modifier.size(32.dp))
-            }
-        }
-
-        // DMM Close Button
-        if (closeButtonVisible.value) {
-            IconButton(
-                onClick = { activity.finish() },
-                modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
-            ) {
-                Icon(Icons.Default.Close, "Close", tint = Color.White)
-            }
-        }
+        BrowserOverlayLayer(
+            showSubtitle = viewModel.isKcBrowserMode && isCaption,
+            subtitleText = currentSubtitle,
+            subtitleVisible = subtitleVisible.value,
+            isCapture = isCapture,
+            closeButtonVisible = closeButtonVisible.value,
+            onSubtitleTap = { subtitleVisible.value = false },
+            onCaptureClick = {
+                manager?.captureGameScreen(activity.findViewById(android.R.id.content)) // Or use view reference
+                showFlash.value = true
+            },
+            onCloseClick = { activity.finish() }
+        )
     }
 }
 
-@Preview(showBackground = true, widthDp = 800, heightDp = 480)
+@Preview(name = "Browser - Overlays + Toolbar", showBackground = true, widthDp = 800, heightDp = 480)
 @Composable
 fun BrowserScreenPreview() {
     GotobrowserTheme {
-        Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
-            Text("Browser Preview (WebView not renderable in Preview)", color = Color.White)
-
-            // Preview the floating panel
-            Surface(
-                modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp).fillMaxHeight(0.7f).width(56.dp),
-                shape = RoundedCornerShape(28.dp),
-                color = Color(0xCC444444)
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+            // Placeholder for the WebView area (an actual WebView cannot render in Preview).
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .fillMaxHeight()
+                    .aspectRatio(1200f / 720f)
+                    .background(Color(0xFF101010)),
+                contentAlignment = Alignment.Center
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(vertical = 6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)
-                ) {
-                    repeat(6) {
-                        Box(modifier = Modifier.size(28.dp).background(Color.DarkGray, CircleShape))
-                    }
+                Text("WebView (not renderable in Preview)", color = Color.White)
+            }
+
+            BrowserOverlayLayer(
+                showSubtitle = true,
+                subtitleText = "Sample subtitle text",
+                subtitleVisible = true,
+                isCapture = true,
+                closeButtonVisible = false,
+                onSubtitleTap = {},
+                onCaptureClick = {},
+                onCloseClick = {}
+            )
+
+            VerticalFloatingToolbar(visible = true, onVisibleChange = {}) {
+                PanelButton(id = R.drawable.refresh_icon, onClick = {})
+                PanelButton(id = R.drawable.volume_off, active = true, onClick = {})
+                PanelButton(id = R.drawable.camera_icon, active = true, onClick = {})
+                PanelButton(id = R.drawable.screen_lock, onClick = {})
+                PanelButton(id = R.drawable.light_mode, onClick = {})
+                PanelButton(id = R.drawable.caption_icon, active = true, onClick = {})
+                PanelButton(id = R.drawable.exit_to_app, onClick = {})
+                Spacer(modifier = Modifier.height(4.dp))
+                IconButton(onClick = {}) {
+                    Icon(painterResource(id = R.drawable.close_icon), "Close", tint = Color.White)
                 }
             }
         }

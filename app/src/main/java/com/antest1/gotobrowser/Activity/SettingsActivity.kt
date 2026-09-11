@@ -7,13 +7,25 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.ViewModelProvider
@@ -82,9 +94,38 @@ class SettingsActivity : AppCompatActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+// ViewModel-bound entry point. Delegates rendering to the stateless
+// SettingsScreenContent, supplying the real PreferenceFragment as the body.
 @Composable
 fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel) {
+    SettingsScreenContent(
+        onBack = onBack,
+        content = {
+            AndroidView(
+                factory = { context ->
+                    val frameLayout = android.widget.FrameLayout(context).apply {
+                        id = android.view.View.generateViewId()
+                    }
+                    val activity = context as androidx.fragment.app.FragmentActivity
+                    activity.supportFragmentManager.beginTransaction()
+                        .replace(frameLayout.id, SettingsActivity.SettingsFragment())
+                        .commit()
+                    frameLayout
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    )
+}
+
+// Stateless scaffold + top bar. The body is a slot so the IDE preview can
+// supply representative content (a PreferenceFragment cannot render in Preview).
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreenContent(
+    onBack: () -> Unit,
+    content: @Composable () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -97,18 +138,81 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel) {
             )
         }
     ) { padding ->
-        AndroidView(
-            factory = { context ->
-                val frameLayout = android.widget.FrameLayout(context).apply {
-                    id = android.view.View.generateViewId()
-                }
-                val activity = context as androidx.fragment.app.FragmentActivity
-                activity.supportFragmentManager.beginTransaction()
-                    .replace(frameLayout.id, SettingsActivity.SettingsFragment())
-                    .commit()
-                frameLayout
-            },
-            modifier = Modifier.fillMaxSize().padding(padding)
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            content()
+        }
+    }
+}
+
+// A representative settings row, mimicking how a Material preference looks.
+@Composable
+private fun SettingsSampleRow(
+    title: String,
+    summary: String? = null,
+    switchChecked: Boolean? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, style = MaterialTheme.typography.bodyLarge)
+            if (summary != null) {
+                Text(
+                    text = summary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        if (switchChecked != null) {
+            Switch(checked = switchChecked, onCheckedChange = {})
+        }
+    }
+}
+
+// Sample list so the preview shows representative content instead of a blank body.
+@Composable
+private fun SettingsSampleList() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        SettingsSampleRow(title = "Use landscape mode", switchChecked = true)
+        SettingsSampleRow(title = "Show keyboard at start", switchChecked = true)
+        SettingsSampleRow(title = "Broadcast to Kcanotify", switchChecked = false)
+        SettingsSampleRow(title = "Use external cache", switchChecked = false)
+        SettingsSampleRow(title = "Enable picture-in-picture", switchChecked = false)
+        SettingsSampleRow(title = "Cursor mode", summary = "1")
+        SettingsSampleRow(title = "Subtitle update", switchChecked = true)
+        SettingsSampleRow(title = "Subtitle font size", summary = "18")
+        SettingsSampleRow(title = "Log level", summary = "1")
+        SettingsSampleRow(title = "Reset settings", summary = "Restore all defaults")
+        SettingsSampleRow(title = "About", summary = "Version information")
+    }
+}
+
+@Preview(name = "Settings - Portrait", showBackground = true, widthDp = 411, heightDp = 823)
+@Composable
+fun SettingsScreenPreview() {
+    GotobrowserTheme {
+        SettingsScreenContent(
+            onBack = {},
+            content = { SettingsSampleList() }
+        )
+    }
+}
+
+@Preview(name = "Settings - Landscape", showBackground = true, widthDp = 823, heightDp = 411)
+@Composable
+fun SettingsScreenLandscapePreview() {
+    GotobrowserTheme {
+        SettingsScreenContent(
+            onBack = {},
+            content = { SettingsSampleList() }
         )
     }
 }
