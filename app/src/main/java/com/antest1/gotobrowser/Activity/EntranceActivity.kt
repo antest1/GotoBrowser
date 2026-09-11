@@ -1,384 +1,435 @@
-package com.antest1.gotobrowser.Activity;
+package com.antest1.gotobrowser.Activity
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.ResolveInfo;
-import android.net.Uri;
-import android.os.Bundle;
-import android.view.View;
-import android.webkit.WebView;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.widget.EditText
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.customtabs.CustomTabColorSchemeParams
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
+import com.antest1.gotobrowser.Browser.WebViewManager
+import com.antest1.gotobrowser.BuildConfig
+import com.antest1.gotobrowser.Constants.*
+import com.antest1.gotobrowser.Helpers.BackPressCloseHandler
+import com.antest1.gotobrowser.Helpers.KcEnUtils
+import com.antest1.gotobrowser.Helpers.KcUtils
+import com.antest1.gotobrowser.R
+import com.antest1.gotobrowser.ui.theme.GotobrowserTheme
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import java.util.*
 
-import com.antest1.gotobrowser.Browser.WebViewManager;
-import com.antest1.gotobrowser.BuildConfig;
-import com.antest1.gotobrowser.Helpers.BackPressCloseHandler;
-import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
-import com.antest1.gotobrowser.Helpers.KcEnUtils;
-import com.antest1.gotobrowser.Helpers.KcUtils;
-import com.antest1.gotobrowser.Helpers.KenPatcher;
-import com.antest1.gotobrowser.Helpers.VersionDatabase;
-import com.antest1.gotobrowser.R;
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.materialswitch.MaterialSwitch;
+class EntranceActivity : ComponentActivity() {
+    private lateinit var viewModel: EntranceViewModel
 
-import java.io.File;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (!isTaskRoot) finish()
 
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.browser.customtabs.CustomTabColorSchemeParams;
-import androidx.browser.customtabs.CustomTabsIntent;
-import androidx.core.content.ContextCompat;
+        viewModel = ViewModelProvider(this).get(EntranceViewModel::class.java)
 
-import static com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD;
-import static com.antest1.gotobrowser.Constants.ACTION_SHOWPANEL;
-import static com.antest1.gotobrowser.Constants.CACHE_DIR;
-import static com.antest1.gotobrowser.Constants.CONN_DMM;
-import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
-import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
-import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
-import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
-import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY;
-import static com.antest1.gotobrowser.Constants.PREF_CONNECTOR;
-import static com.antest1.gotobrowser.Constants.PREF_DMM_ID;
-import static com.antest1.gotobrowser.Constants.PREF_DMM_PASS;
-import static com.antest1.gotobrowser.Constants.PREF_KEYBOARD;
-import static com.antest1.gotobrowser.Constants.PREF_LATEST_URL;
-import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH;
-import static com.antest1.gotobrowser.Constants.PREF_PANELSTART;
-import static com.antest1.gotobrowser.Constants.PREF_SILENT;
-import static com.antest1.gotobrowser.Constants.PREF_TP_DISCLAIMED;
-import static com.antest1.gotobrowser.Constants.URL_LIST;
-import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
-import static com.antest1.gotobrowser.Helpers.KcUtils.clearApplicationCache;
-import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
+        setContent {
+            GotobrowserTheme {
+                EntranceScreen(viewModel)
+            }
+        }
+        
+        WebViewManager.clearKcCacheProxy()
+    }
+}
 
-public class EntranceActivity extends AppCompatActivity {
-    private SharedPreferences sharedPref;
-    private MaterialCardView selectCard;
-    private TextView selectText;
-    private VersionDatabase versionTable;
-    private boolean kcanotifyInstalledFlag;
-    private KenPatcher kenPatcher = new KenPatcher();
+@Preview(showBackground = true, widthDp = 800, heightDp = 480)
+@Composable
+fun EntranceScreenPreview() {
+    Box(modifier = Modifier.fillMaxSize().background(Color.DarkGray)) {
+        Text("Preview requires valid ViewModel state", color = Color.White)
+    }
+}
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (!isTaskRoot()) finish();
-        setContentView(R.layout.activity_entrance);
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EntranceScreen(viewModel: EntranceViewModel) {
+    val context = LocalContext.current
+    val sharedPref = viewModel.sharedPref
+    
+    val connector by viewModel.connector.observeAsState(CONN_DMM)
+    val silentMode by viewModel.silentMode.observeAsState(false)
+    val broadcastMode by viewModel.broadcastMode.observeAsState(false)
+    val panelStart by viewModel.panelStart.observeAsState(false)
 
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) actionBar.hide();
+    // Using a Surface as the root to ensure a solid background base
+    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF262933)) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Background layer - Using alpha parameter directly for stable rendering from frame 1
+            Image(
+                painter = painterResource(id = R.mipmap.background),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                alpha = 0.5f,
+                contentScale = ContentScale.Crop
+            )
 
-        GotoVersionCheck appCheck = getRetrofitAdapter(getApplicationContext(), GITHUBAPI_ROOT)
-                .create(GotoVersionCheck.class);
-        KcUtils.requestLatestAppVersion(this, appCheck, true);
+            Image(
+                painter = painterResource(id = R.mipmap.gotland_full),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize().offset(y = 120.dp),
+                contentScale = ContentScale.Crop
+            )
 
-        kcanotifyInstalledFlag = KcUtils.isKcanotifyInstalled(getApplicationContext());
-
-        versionTable = new VersionDatabase(getApplicationContext(), null, VERSION_TABLE_VERSION);
-        BackPressCloseHandler backPressCloseHandler = new BackPressCloseHandler(this, true);
-        sharedPref = getSharedPreferences(getString(R.string.preference_key), Context.MODE_PRIVATE);
-        SettingsActivity.setInitialSettings(sharedPref);
-        kenPatcher.prepare(this);
-
-        getOnBackPressedDispatcher().addCallback(this, backPressCloseHandler);
-
-        SharedPreferences.Editor editor = sharedPref.edit();
-
-        ((Toolbar)findViewById(R.id.toolbar)).setOnMenuItemClickListener(onMenuItemClickListener);
-
-        MaterialSwitch silentSwitch = findViewById(R.id.switch_silent);
-        silentSwitch.setChecked(sharedPref.getBoolean(PREF_SILENT, false));
-        silentSwitch.setOnCheckedChangeListener((buttonView, isChecked)
-                -> editor.putBoolean(PREF_SILENT, isChecked).apply());
-
-        MaterialSwitch broadcastSwitch = findViewById(R.id.switch_broadcast);
-        broadcastSwitch.setChecked(sharedPref.getBoolean(PREF_BROADCAST, false));
-        broadcastSwitch.setOnCheckedChangeListener((buttonView, isChecked)
-                -> {
-                    editor.putBoolean(PREF_BROADCAST, isChecked).apply();
-                    if (kcanotifyInstalledFlag && !isChecked) showKcanotifyBroadcastSetDialog();
+            Scaffold(
+                containerColor = Color.Transparent,
+                topBar = {
+                    TopAppBar(
+                        title = { },
+                        actions = {
+                            IconButton(onClick = { openManual(context) }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.help_icon),
+                                    contentDescription = "Manual",
+                                    tint = Color.White
+                                )
+                            }
+                            IconButton(onClick = { openSettings(context) }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.settings),
+                                    contentDescription = "Settings",
+                                    tint = Color.White
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                    )
                 }
-        );
+            ) { padding ->
+                Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Spacer(modifier = Modifier.height(180.dp))
+                        
+                        // Connector Selection Card
+                        Card(
+                            onClick = { showConnectorSelectionDialog(context, viewModel) },
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0x80283593) // colorSiteSelection
+                            ),
+                            modifier = Modifier.widthIn(min = 200.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = connector.uppercase(),
+                                    color = Color.White,
+                                    fontSize = 24.sp,
+                                    modifier = Modifier.padding(horizontal = 60.dp, vertical = 8.dp),
+                                    textAlign = TextAlign.Center
+                                )
+                                IconButton(
+                                    onClick = { showAutoCompleteDialog(context, viewModel) },
+                                    modifier = Modifier.align(Alignment.CenterEnd)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.passkey_icon),
+                                        contentDescription = "Autocomplete",
+                                        tint = Color(0xFFFFC400) // colorAccent
+                                    )
+                                }
+                            }
+                        }
 
-        MaterialSwitch layoutControlSwitch = findViewById(R.id.switch_control);
-        layoutControlSwitch.setChecked(sharedPref.getBoolean(PREF_PANELSTART, false));
-        layoutControlSwitch.setOnCheckedChangeListener((buttonView, isChecked)
-                -> editor.putBoolean(PREF_PANELSTART, isChecked).apply()
-        );
+                        Spacer(modifier = Modifier.height(15.dp))
 
-        selectCard = findViewById(R.id.connector_select_card);
-        selectText = findViewById(R.id.connector_select);
-        selectCard.setOnClickListener(v -> showConnectorSelectionDialog());
-        String connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
-        silentSwitch.setEnabled(CONN_DMM.equals(connector));
-        selectText.setText(connector);
+                        // Switches Card
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0x40000000)
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 60.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(15.dp)) {
+                                SwitchItem(
+                                    text = stringResource(id = R.string.mode_silent),
+                                    checked = silentMode,
+                                    onCheckedChange = { viewModel.setSilentMode(it) },
+                                    enabled = connector == CONN_DMM
+                                )
+                                SwitchItem(
+                                    text = stringResource(id = R.string.mode_broadcast),
+                                    checked = broadcastMode,
+                                    onCheckedChange = {
+                                        viewModel.setBroadcastMode(it)
+                                        if (viewModel.isKcanotifyInstalled && !it) {
+                                            showKcanotifyBroadcastSetDialog(context, viewModel)
+                                        }
+                                    }
+                                )
+                                SwitchItem(
+                                    text = stringResource(id = R.string.mode_show_panel),
+                                    checked = panelStart,
+                                    onCheckedChange = { viewModel.setPanelStart(it) }
+                                )
+                            }
+                        }
 
-        TextView autoCompleteButton = findViewById(R.id.webview_autocomplete);
-        autoCompleteButton.setOnClickListener(v -> showAutoCompleteDialog());
+                        Spacer(modifier = Modifier.height(15.dp))
 
-        TextView clearButton = findViewById(R.id.webview_clear);
-        clearButton.setOnClickListener(v -> showCacheClearDialog());
+                        // Start Button
+                        Button(
+                            onClick = {
+                                val prefConnector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM)
+                                if (prefConnector != CONN_DMM) {
+                                    showThirdPartyConnectorDialog(context, viewModel)
+                                } else {
+                                    startBrowserActivity(context, viewModel)
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF283593) // colorButton
+                            ),
+                            shape = CircleShape,
+                            modifier = Modifier.height(56.dp).border(2.dp, Color(0xFFFFC400), CircleShape)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp)) {
+                                Icon(Icons.Default.PlayArrow, null, tint = Color.White)
+                                Spacer(Modifier.width(8.dp))
+                                Text("START", fontWeight = FontWeight.Bold, color = Color.White)
+                            }
+                        }
 
-        MaterialButton startButton = findViewById(R.id.webview_start);
-        startButton.setOnClickListener(v -> {
-            String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
-            if (!pref_connector.equals(CONN_DMM)) {
-                showThirdPartyConnectorDialog();
-            } else {
-                startBrowserActivity();
+                        Text(
+                            text = stringResource(id = R.string.cache_clear_text),
+                            color = Color(0xFFFFC400), // colorAccent
+                            fontSize = 14.sp,
+                            modifier = Modifier
+                                .padding(top = 8.dp)
+                                .clickable { showCacheClearDialog(context, viewModel) }
+                        )
+                        
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                }
             }
-        });
 
-        TextView versionText = findViewById(R.id.version_info);
-        versionText.setText(String.format(Locale.US,
-                getString(R.string.version_format), BuildConfig.VERSION_NAME));
-
-        TextView copyrightText = findViewById(R.id.copyright);
-        copyrightText.setText(String.format(Locale.US,
-                getString(R.string.copyright_format),Calendar.getInstance().get(Calendar.YEAR)));
-
-        WebViewManager.clearKcCacheProxy();
-
-        if (kcanotifyInstalledFlag && !sharedPref.getBoolean(PREF_BROADCAST, false)) {
-            showKcanotifyBroadcastSetDialog();
-        }
-
-        KcEnUtils enUtils = new KcEnUtils();
-        if (sharedPref.getBoolean(PREF_MOD_KCCP_LANG_PATCH, false)) {
-            String availableVersion = enUtils.checkKantaiEnUpdateEntrance(this);
-            if (availableVersion != null) {
-                MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(this);
-                alertDialogBuilder.setTitle(R.string.settings_mod_kantaien_enable);
-                alertDialogBuilder
-                        .setCancelable(false)
-                        .setMessage(String.format(Locale.US, this.getString(R.string.setting_latest_download), availableVersion))
-                        .setPositiveButton(R.string.action_ok,
-                                (dialog, id) -> {
-                                    enUtils.requestPatchUpdateEntrance(this);
-                                    dialog.dismiss();
-                                })
-                        .setNegativeButton(R.string.action_cancel,
-                                (dialog, id) -> dialog.cancel());
-                alertDialogBuilder.show();
+            // Bottom Info Labels
+            Box(modifier = Modifier.fillMaxSize().padding(2.dp)) {
+                Text(
+                    text = String.format(Locale.US, stringResource(id = R.string.version_format), BuildConfig.VERSION_NAME),
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    modifier = Modifier.align(Alignment.BottomStart)
+                )
+                Text(
+                    text = String.format(Locale.US, stringResource(id = R.string.copyright_format), Calendar.getInstance().get(Calendar.YEAR)),
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    modifier = Modifier.align(Alignment.BottomEnd),
+                    textAlign = TextAlign.End
+                )
             }
         }
     }
+}
 
-    @Override
-    public void onResume() {
-        super.onResume();
+@Composable
+fun SwitchItem(text: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit, enabled: Boolean = true) {
+    Row(
+        modifier = Modifier.fillMaxWidth().height(48.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.weight(1f),
+            color = Color.White,
+            fontSize = 15.sp
+        )
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            enabled = enabled,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color(0xFF333C75),
+                checkedTrackColor = Color(0xFFAAB1BF),
+                uncheckedThumbColor = Color(0xFFD3D3D3),
+                uncheckedTrackColor = Color(0xFF30374A)
+            )
+        )
     }
+}
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
+private fun openSettings(context: Context) {
+    val intent = Intent(context, SettingsActivity::class.java)
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(intent)
+}
+
+private fun openManual(context: Context) {
+    val url = context.getString(R.string.manual_link)
+    val intentBuilder = CustomTabsIntent.Builder()
+    intentBuilder.setShowTitle(true)
+    val params = CustomTabColorSchemeParams.Builder()
+        .setToolbarColor(ContextCompat.getColor(context, R.color.colorSettingsBackground))
+        .build()
+    intentBuilder.setDefaultColorSchemeParams(params)
+    intentBuilder.setUrlBarHidingEnabled(true)
+
+    val customTabsIntent = intentBuilder.build()
+    val customTabsApps = context.packageManager.queryIntentActivities(customTabsIntent.intent, 0)
+    if (customTabsApps.isNotEmpty()) {
+        customTabsIntent.launchUrl(context, Uri.parse(url))
+    } else {
+        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        context.startActivity(browserIntent)
     }
+}
 
-    final private Toolbar.OnMenuItemClickListener onMenuItemClickListener = (item) -> {
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            Intent intent = new Intent(EntranceActivity.this, SettingsActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            return true;
-        } else if (id == R.id.action_manual) {
-            String url = getString(R.string.manual_link);
-            CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder();
-            intentBuilder.setShowTitle(true);
-            CustomTabColorSchemeParams params = new CustomTabColorSchemeParams.Builder()
-                    .setToolbarColor(ContextCompat.getColor(getApplicationContext(), R.color.colorSettingsBackground))
-                    .build();
-            intentBuilder.setDefaultColorSchemeParams(params);
-            intentBuilder.setUrlBarHidingEnabled(true);
+private fun showConnectorSelectionDialog(context: Context, viewModel: EntranceViewModel) {
+    val listItems = context.resources.getStringArray(R.array.connector_list)
+    val currentConnector = viewModel.connector.value
+    val connectorIdx = listItems.indexOf(currentConnector)
 
-            final CustomTabsIntent customTabsIntent = intentBuilder.build();
-            final List<ResolveInfo> customTabsApps = getPackageManager().queryIntentActivities(customTabsIntent.intent, 0);
-            if (!customTabsApps.isEmpty()) {
-                customTabsIntent.launchUrl(EntranceActivity.this, Uri.parse(url));
-            } else {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                startActivity(browserIntent);
-            }
-            return true;
+    MaterialAlertDialogBuilder(context)
+        .setTitle(context.getString(R.string.select_server))
+        .setSingleChoiceItems(listItems, connectorIdx) { dialog, i ->
+            viewModel.setConnector(listItems[i])
+            viewModel.sharedPref.edit().putString(PREF_LATEST_URL, URL_LIST[i]).apply()
+            KcUtils.showToast(context.applicationContext, URL_LIST[i])
+            dialog.dismiss()
         }
-        return false;
-    };
+        .show()
+}
 
-    private void showConnectorSelectionDialog() {
-        MaterialSwitch silentSwitch = findViewById(R.id.switch_silent);
-        final String[] listItems = getResources().getStringArray(R.array.connector_list);
-        int connector_idx = -1;
-        String connector1 = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
-        for (int i = 0; i < listItems.length; i++) {
-            if (listItems[i].equals(connector1)) {
-                connector_idx = i;
-                break;
-            }
+private fun showAutoCompleteDialog(context: Context, viewModel: EntranceViewModel) {
+    val dialogView = LayoutInflater.from(context).inflate(R.layout.login_form, null)
+    val formEmail = dialogView.findViewById<EditText>(R.id.input_id)
+    val formPassword = dialogView.findViewById<EditText>(R.id.input_pw)
+    formEmail.setText(viewModel.sharedPref.getString(PREF_DMM_ID, ""))
+    formPassword.setText(viewModel.sharedPref.getString(PREF_DMM_PASS, ""))
+
+    MaterialAlertDialogBuilder(context)
+        .setView(dialogView)
+        .setPositiveButton(R.string.text_save) { dialog, _ ->
+            val loginId = formEmail.text.toString()
+            val loginPassword = formPassword.text.toString()
+            viewModel.sharedPref.edit().putString(PREF_DMM_ID, loginId).apply()
+            viewModel.sharedPref.edit().putString(PREF_DMM_PASS, loginPassword).apply()
+            dialog.dismiss()
         }
-        MaterialAlertDialogBuilder mBuilder = new MaterialAlertDialogBuilder(EntranceActivity.this);
-        mBuilder.setTitle(getString(R.string.select_server));
-        mBuilder.setSingleChoiceItems(listItems, connector_idx, (dialogInterface, i) -> {
-            silentSwitch.setEnabled(i == 0);
-            SharedPreferences.Editor editor = sharedPref.edit();
-            editor.putString(PREF_CONNECTOR, listItems[i]);
-            editor.putString(PREF_LATEST_URL, URL_LIST[i]);
-            editor.apply();
-            selectText.setText(listItems[i]);
-            KcUtils.showToast(getApplicationContext(), URL_LIST[i]);
-            dialogInterface.dismiss();
-        });
-        mBuilder.show();
-    }
+        .setNegativeButton(R.string.text_cancel) { dialog, _ -> dialog.cancel() }
+        .show()
+}
 
-    private void showAutoCompleteDialog() {
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(EntranceActivity.this);
-        View dialogView = getLayoutInflater().inflate(R.layout.login_form, null);
-        final EditText formEmail = dialogView.findViewById(R.id.input_id);
-        final EditText formPassword = dialogView.findViewById(R.id.input_pw);
-        formEmail.setText(sharedPref.getString(PREF_DMM_ID, ""));
-        formPassword.setText(sharedPref.getString(PREF_DMM_PASS, ""));
-        builder.setView(dialogView);
-        builder.setPositiveButton(R.string.text_save, (dialog, which) -> {
-            String login_id = formEmail.getText().toString();
-            String login_password = formPassword.getText().toString();
-            sharedPref.edit().putString(PREF_DMM_ID, login_id).apply();
-            sharedPref.edit().putString(PREF_DMM_PASS, login_password).apply();
-            dialog.dismiss();
-        });
-        builder.setNegativeButton(R.string.text_cancel, (dialog, which) -> dialog.cancel());
-        builder.show();
-    }
-
-    private void showCacheClearDialog() {
-        MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(EntranceActivity.this);
-        alertDialogBuilder.setTitle(R.string.cache_clear_text);
-        alertDialogBuilder
-                .setCancelable(false)
-                .setMessage(getString(R.string.clearcache_msg))
-                .setPositiveButton(R.string.action_ok, (dialog, id) -> {
-                    clearBrowserCache();
-                    KcUtils.showToast(getApplicationContext(), R.string.cache_cleared_toast);
-                    dialog.dismiss();
-                }).setNegativeButton(R.string.action_cancel, (dialog, id) -> dialog.cancel());
-        alertDialogBuilder.show();
-    }
-
-    private void showKcanotifyBroadcastSetDialog() {
-        MaterialSwitch broadcastSwitch = findViewById(R.id.switch_broadcast);
-        MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(EntranceActivity.this);
-        alertDialogBuilder.setTitle(getString(R.string.kcanotify_broadcast_dialog_title));
-        alertDialogBuilder
-                .setCancelable(false)
-                .setMessage(String.format(Locale.US, getString(R.string.kcanotify_broadcast_dialog_message),
-                        getString(R.string.mode_broadcast), getString(R.string.action_ok)))
-                .setPositiveButton(R.string.action_ok,
-                        (dialog, id) -> {
-                            broadcastSwitch.setChecked(true);
-                            dialog.dismiss();
-                        })
-                .setNegativeButton(R.string.action_cancel,
-                        (dialog, id) -> dialog.cancel());
-        alertDialogBuilder.show();
-    }
-
-
-    private void clearBrowserCache() {
-        // clear webview cache
-        WebView webview = new WebView(getApplicationContext());
-        webview.clearCache(true);
-
-        // clear version table
-        versionTable.clearVersionDatabase();
-
-        // clear internal cache dir
-        clearApplicationCache(getApplicationContext(), getCacheDir());
-
-        // clear resource cache dir
-        File cache_dir = new File(KcUtils.getAppCacheFileDir(getApplicationContext(), CACHE_DIR));
-        clearApplicationCache(getApplicationContext(), cache_dir);
-
-        // clear legacy cache dir
-        File cache_old = new File(KcUtils.getAppCacheFileDir(getApplicationContext(), "/cache/"));
-        if (cache_old.exists()) {
-            clearApplicationCache(getApplicationContext(), cache_old);
-            cache_old.delete();
+private fun showCacheClearDialog(context: Context, viewModel: EntranceViewModel) {
+    MaterialAlertDialogBuilder(context)
+        .setTitle(R.string.cache_clear_text)
+        .setCancelable(false)
+        .setMessage(context.getString(R.string.clearcache_msg))
+        .setPositiveButton(R.string.action_ok) { dialog, _ ->
+            viewModel.clearBrowserCache()
+            KcUtils.showToast(context.applicationContext, R.string.cache_cleared_toast)
+            dialog.dismiss()
         }
+        .setNegativeButton(R.string.action_cancel) { dialog, _ -> dialog.cancel() }
+        .show()
+}
 
-        // clear patched cache dir
-        for (KenPatcher.PatchLanguage language : KenPatcher.PatchLanguage.values()) {
-            String folderName = "/_patched_cache_" + language.name().toLowerCase();
-            String patched_cache_dir = KcUtils.getAppCacheFileDir(getApplicationContext(), folderName);
-            clearApplicationCache(getApplicationContext(), new File(patched_cache_dir));
+private fun showKcanotifyBroadcastSetDialog(context: Context, viewModel: EntranceViewModel) {
+    MaterialAlertDialogBuilder(context)
+        .setTitle(context.getString(R.string.kcanotify_broadcast_dialog_title))
+        .setCancelable(false)
+        .setMessage(String.format(Locale.US, context.getString(R.string.kcanotify_broadcast_dialog_message),
+            context.getString(R.string.mode_broadcast), context.getString(R.string.action_ok)))
+        .setPositiveButton(R.string.action_ok) { dialog, _ ->
+            viewModel.setBroadcastMode(true)
+            dialog.dismiss()
         }
+        .setNegativeButton(R.string.action_cancel) { dialog, _ -> dialog.cancel() }
+        .show()
+}
+
+private fun showThirdPartyConnectorDialog(context: Context, viewModel: EntranceViewModel) {
+    val disclaimed = viewModel.sharedPref.getBoolean(PREF_TP_DISCLAIMED, false)
+    if (disclaimed) {
+        startBrowserActivity(context, viewModel)
+        return
     }
 
-    private void startBrowserActivity() {
-        String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
-        boolean prefKeyboardOn = sharedPref.getBoolean(PREF_KEYBOARD, true);
-        boolean prefPanelStart = sharedPref.getBoolean(PREF_PANELSTART, true);
-        Intent intent = new Intent(EntranceActivity.this, BrowserActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-                | Intent.FLAG_ACTIVITY_CLEAR_TASK
-                | Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setAction(WebViewManager.OPEN_KANCOLLE);
-
-        String options = "";
-        if (prefPanelStart) options = options.concat(ACTION_SHOWPANEL);
-        if (prefKeyboardOn) options = options.concat(ACTION_SHOWKEYBOARD);
-        intent.putExtra("options", options);
-
-        String login_id = sharedPref.getString(PREF_DMM_ID, "");
-        String login_password = sharedPref.getString(PREF_DMM_PASS, "");
-        intent.putExtra("login_id", login_id);
-        intent.putExtra("login_pw", login_password);
-
-        boolean prefAlterGadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false);
-        boolean isProxyMethod = sharedPref.getString(PREF_ALTER_METHOD, "").equals(PREF_ALTER_METHOD_PROXY);
-        String alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, "");
-
-        if (prefAlterGadget && isProxyMethod && pref_connector.equals(CONN_DMM)) {
-            WebViewManager.setKcCacheProxy(alterEndpoint, () -> {
-                        startActivity(intent);
-                        finish();
-                    },
-                    () -> KcUtils.showToast(getApplicationContext(),
-                            R.string.setting_alter_method_proxy_error_toast));
-        } else {
-            startActivity(intent);
-            finish();
+    MaterialAlertDialogBuilder(context)
+        .setTitle("Disclaimer")
+        .setCancelable(false)
+        .setMessage(context.getString(R.string.thirdpartyconnector_msg))
+        .setPositiveButton(R.string.action_ok) { dialog, _ ->
+            viewModel.sharedPref.edit().putBoolean(PREF_TP_DISCLAIMED, true).apply()
+            dialog.dismiss()
+            startBrowserActivity(context, viewModel)
         }
-    }
+        .setNegativeButton(R.string.action_cancel) { dialog, _ -> dialog.cancel() }
+        .show()
+}
 
-    private void showThirdPartyConnectorDialog() {
-        boolean disclaimed = sharedPref.getBoolean(PREF_TP_DISCLAIMED, false);
-        if (disclaimed) {
-            startBrowserActivity();
-            return;
-        }
+private fun startBrowserActivity(context: Context, viewModel: EntranceViewModel) {
+    val sharedPref = viewModel.sharedPref
+    val prefConnector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM)
+    val prefKeyboardOn = sharedPref.getBoolean(PREF_KEYBOARD, true)
+    val prefPanelStart = sharedPref.getBoolean(PREF_PANELSTART, true)
+    val intent = Intent(context, BrowserActivity::class.java)
+    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+    intent.action = WebViewManager.OPEN_KANCOLLE
 
-        MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(EntranceActivity.this);
-        alertDialogBuilder.setTitle("Disclaimer");
-        alertDialogBuilder
-                .setCancelable(false)
-                .setMessage(getString(R.string.thirdpartyconnector_msg))
-                .setPositiveButton(R.string.action_ok,
-                        (dialog, id) -> {
-                            sharedPref.edit().putBoolean(PREF_TP_DISCLAIMED, true).apply();
-                            dialog.dismiss();
-                            startBrowserActivity();
-                        })
-                .setNegativeButton(R.string.action_cancel,
-                        (dialog, id) -> dialog.cancel());
-        alertDialogBuilder.show();
+    var options = ""
+    if (prefPanelStart) options = options.plus(ACTION_SHOWPANEL)
+    if (prefKeyboardOn) options = options.plus(ACTION_SHOWKEYBOARD)
+    intent.putExtra("options", options)
+
+    val loginId = sharedPref.getString(PREF_DMM_ID, "")
+    val loginPassword = sharedPref.getString(PREF_DMM_PASS, "")
+    intent.putExtra("login_id", loginId)
+    intent.putExtra("login_pw", loginPassword)
+
+    val prefAlterGadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false)
+    val isProxyMethod = sharedPref.getString(PREF_ALTER_METHOD, "") == PREF_ALTER_METHOD_PROXY
+    val alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, "")
+
+    if (prefAlterGadget && isProxyMethod && prefConnector == CONN_DMM) {
+        WebViewManager.setKcCacheProxy(alterEndpoint, {
+            context.startActivity(intent)
+            if (context is EntranceActivity) context.finish()
+        }, {
+            KcUtils.showToast(context.applicationContext, R.string.setting_alter_method_proxy_error_toast)
+        })
+    } else {
+        context.startActivity(intent)
+        if (context is EntranceActivity) context.finish()
     }
 }

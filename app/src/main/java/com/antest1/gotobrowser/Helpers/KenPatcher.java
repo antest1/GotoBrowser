@@ -56,11 +56,11 @@ public class KenPatcher {
         }
     }
 
-    public void prepare(Activity activity) {
+    public void prepare(Context context) {
         // Only update the enable status when opening the browser view
         // Require reopening the browser after switching the MOD on or off
-        SharedPreferences sharedPref = activity.getSharedPreferences(
-                activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = context.getSharedPreferences(
+                context.getString(R.string.preference_key), Context.MODE_PRIVATE);
         if (sharedPref.getBoolean(PREF_MOD_KCCP_LANG_PATCH, false)) {
             patchLanguage = getCurrentPatchLanguage(
                     sharedPref.getString(PREF_MOD_KCCP_LANG_PATCH_NAME, "")
@@ -70,7 +70,7 @@ public class KenPatcher {
         }
     }
 
-    public static String patchKantaiEn(String main_js, Activity activity) {
+    public static String patchKantaiEn(String main_js, Context context) {
         if (!isPatcherEnabled()) {
             return main_js;
         }
@@ -81,16 +81,16 @@ public class KenPatcher {
         JsonObject translations = new JsonObject();
         StringBuilder regex = new StringBuilder("[");
         String rawText = KcEnUtils.getAssetPath() + "/kcs2/js/main.js/ignore-raw_text_translations";
-        String patcherPath = activity.getExternalFilesDir(null).getAbsolutePath()
+        String patcherPath = context.getExternalFilesDir(null).getAbsolutePath()
                 + "/" + KcEnUtils.getAssetPath() + "/kcs2/js/main.js/ignore-patcher_contents.js";
 
         String patcherContents = loadExternalText(patcherPath);
 
-        listExternalFiles(rawText, translationFiles, activity);
-        listExternalFiles(rawText + "_regex", regexFiles, activity);
+        listExternalFiles(rawText, translationFiles, context);
+        listExternalFiles(rawText + "_regex", regexFiles, context);
 
         for (String file : translationFiles) {
-            JsonElement json = loadExternalJSON(file, activity);
+            JsonElement json = loadExternalJSON(file, context);
             if (!(json instanceof JsonObject)) {
                 continue;
             }
@@ -100,7 +100,7 @@ public class KenPatcher {
         }
 
         for (String file : regexFiles) {
-            JsonElement json = loadExternalJSON(file, activity);
+            JsonElement json = loadExternalJSON(file, context);
             if (!(json instanceof JsonObject)) {
                 continue;
             }
@@ -225,8 +225,8 @@ public class KenPatcher {
                 patcherContents;
     }
 
-    private static boolean listExternalFiles(String path, List<String> fileList, Activity activity) {
-        String absolutePath = activity.getExternalFilesDir(null).getAbsolutePath();
+    private static boolean listExternalFiles(String path, List<String> fileList, Context context) {
+        String absolutePath = context.getExternalFilesDir(null).getAbsolutePath();
         File[] files = new File(absolutePath + "/" + path).listFiles();
         if (files != null) {
             for (File file : files) {
@@ -242,7 +242,7 @@ public class KenPatcher {
         return false;
     }
 
-    public static JsonElement loadExternalJSON(String filename, Activity activity) {
+    public static JsonElement loadExternalJSON(String filename, Context context) {
         try {
             File file = new File(filename);
             FileInputStream stream = new FileInputStream(file);

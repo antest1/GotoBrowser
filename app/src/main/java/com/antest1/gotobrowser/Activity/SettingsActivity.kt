@@ -1,443 +1,114 @@
-package com.antest1.gotobrowser.Activity;
+package com.antest1.gotobrowser.Activity
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.SharedPreferences
+import android.os.Build
+import android.os.Bundle
+import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.ViewModelProvider
+import com.antest1.gotobrowser.Constants.*
+import com.antest1.gotobrowser.R
+import com.antest1.gotobrowser.ui.theme.GotobrowserTheme
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.preference.EditTextPreference;
-import androidx.preference.ListPreference;
-import androidx.preference.Preference;
-import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.SwitchPreferenceCompat;
-import androidx.webkit.WebViewFeature;
+class SettingsActivity : AppCompatActivity() {
+    private lateinit var viewModel: SettingsViewModel
 
-import com.antest1.gotobrowser.BuildConfig;
-import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
-import com.antest1.gotobrowser.Helpers.KcEnUtils;
-import com.antest1.gotobrowser.Helpers.KcUtils;
-import com.antest1.gotobrowser.Helpers.VersionDatabase;
-import com.antest1.gotobrowser.Preference.MaterialListPreference;
-import com.antest1.gotobrowser.R;
-import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.slider.Slider;
-import com.google.android.material.snackbar.Snackbar;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
 
-import java.util.Locale;
-import java.util.Map;
-
-import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
-import static com.antest1.gotobrowser.Constants.DEFAULT_SUBTITLE_FONT_SIZE;
-import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
-import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
-import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
-import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
-import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
-import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY;
-import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_URL;
-import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
-import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
-import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
-import static com.antest1.gotobrowser.Constants.PREF_CLICK_SETTINGS;
-import static com.antest1.gotobrowser.Constants.PREF_CURSOR_MODE;
-import static com.antest1.gotobrowser.Constants.PREF_CURSOR_MODE_TOUCH;
-import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
-import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
-import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
-import static com.antest1.gotobrowser.Constants.PREF_KEYBOARD;
-import static com.antest1.gotobrowser.Constants.PREF_LANDSCAPE;
-import static com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_FPS;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_LEGACY;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_DELETE;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_UPDATE;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_CRIT;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_EN;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_GITHUB;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_ID;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_NAME;
-import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
-import static com.antest1.gotobrowser.Constants.PREF_DISABLE_REFRESH_DIALOG;
-import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
-import static com.antest1.gotobrowser.Constants.PREF_SETTINGS;
-import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE;
-import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
-import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
-import static com.antest1.gotobrowser.Constants.PREF_TP_DISCLAIMED;
-import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
-import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
-import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
-
-import java.io.IOException;
-
-public class SettingsActivity extends AppCompatActivity {
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.settings, new SettingsFragment())
-                .commit();
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
+        setContent {
+            GotobrowserTheme {
+                SettingsScreen(
+                    onBack = { finish() },
+                    viewModel = viewModel
+                )
+            }
         }
-        createNotificationChannel();
+        createNotificationChannel()
     }
 
-    public static void setInitialSettings(SharedPreferences sharedPref) {
-        SharedPreferences.Editor editor = sharedPref.edit();
-        for (String key: PREF_SETTINGS) {
-            if (!sharedPref.contains(key)) switch (key) {
-                case PREF_LANDSCAPE:
-                case PREF_ADJUSTMENT:
-                case PREF_FONT_PREFETCH:
-                case PREF_USE_EXTCACHE:
-                case PREF_DOWNLOAD_RETRY:
-                case PREF_KEYBOARD:
-                case PREF_BROADCAST:
-                    editor.putBoolean(key, true);
-                    break;
-                case PREF_PIP_MODE:
-                case PREF_MULTIWIN_MARGIN:
-                case PREF_DEVTOOLS_DEBUG:
-                case PREF_TP_DISCLAIMED:
-                case PREF_MOD_KANTAI3D:
-                case PREF_MOD_FPS:
-                case PREF_MOD_CRIT:
-                case PREF_LEGACY_RENDERER:
-                case PREF_ALTER_GADGET:
-                case PREF_DISABLE_REFRESH_DIALOG:
-                    editor.putBoolean(key, false);
-                    break;
-                case PREF_MOD_KCCP_LANG_PATCH:
-                    editor.putBoolean(key, sharedPref.getBoolean(PREF_MOD_KANTAIEN_LEGACY, false));
-                    break;
-                case PREF_ALTER_METHOD:
-                    editor.putString(key, PREF_ALTER_METHOD_URL);
-                    break;
-                case PREF_ALTER_ENDPOINT:
-                    editor.putString(key, DEFAULT_ALTER_GADGET_URL);
-                    break;
-                case PREF_CURSOR_MODE:
-                    editor.putString(key, PREF_CURSOR_MODE_TOUCH);
-                    break;
-                case PREF_SUBTITLE_FONTSIZE:
-                    editor.putInt(key, DEFAULT_SUBTITLE_FONT_SIZE);
-                    break;
-                case PREF_MOD_KCCP_LANG_PATCH_NAME:
-                    editor.putString(key, PREF_MOD_KCCP_LANG_PATCH_EN);
-                    break;
-                default:
-                    editor.putString(key, "");
-                    break;
-            }
-        }
-        editor.apply();
-    }
+    companion object {
+        const val CHANNEL_ID = "gotobrowser_screenshot"
 
-    public static class SettingsFragment extends PreferenceFragmentCompat
-            implements Preference.OnPreferenceChangeListener,
-            Preference.OnPreferenceClickListener {
-
-        private VersionDatabase versionTable;
-        private SharedPreferences sharedPref;
-        private GotoVersionCheck appCheck;
-        private final KcEnUtils enUtils = new KcEnUtils();
-
-        @Override
-        public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-            setPreferencesFromResource(R.xml.root_preferences, rootKey);
-            Context context = getContext();
-            if (context != null) {
-                sharedPref = context.getSharedPreferences(
-                        getString(R.string.preference_key), Context.MODE_PRIVATE);
-                versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
-                appCheck = getRetrofitAdapter(context, GITHUBAPI_ROOT).create(GotoVersionCheck.class);
-
-                Map<String, ?> allEntries = sharedPref.getAll();
-                for (String key : allEntries.keySet()) {
-                    Log.e("GOTO", key);
-                    Preference preference = findPreference(key);
-                    if (preference == null) continue;
-                    if (preference instanceof ListPreference) {
-                        Log.e("GOTO", key + ": " + sharedPref.getString(key, ""));
-                        if (PREF_MOD_KCCP_LANG_PATCH_NAME.equals(key)) {
-                            preference.setSummaryProvider((Preference.SummaryProvider<ListPreference>) pref -> {
-                                String value = pref.getValue();
-                                Log.e("GOTO", "PREF_MOD_KCCP_LANG_PATCH_NAME: " + value);
-                                if (PREF_MOD_KCCP_LANG_PATCH_EN.equals(value)) {
-                                    return getString(R.string.settings_mod_kccp_patch_en_summary);
-                                } else if (PREF_MOD_KCCP_LANG_PATCH_ID.equals(value)) {
-                                    return getString(R.string.settings_mod_kccp_patch_id_summary);
-                                } else {
-                                    return pref.getEntry();
-                                }
-                            });
-                        }
-                    } else if (preference instanceof EditTextPreference ep) {
-                        Log.e("GOTO", key + ": " + sharedPref.getString(key, ""));
-                        ep.setSummary(sharedPref.getString(key, ""));
-                    } else if (preference instanceof SwitchPreferenceCompat sp) {
-                        Log.e("GOTO", key + ": " + sharedPref.getBoolean(key, false));
-                        sp.setChecked(sharedPref.getBoolean(key, false));
-                    } else if (key.equals(PREF_SUBTITLE_FONTSIZE)) {
-                        preference.setSummary(Integer.toString(sharedPref.getInt(key, DEFAULT_SUBTITLE_FONT_SIZE)));
-                    }
-                    preference.setOnPreferenceChangeListener(this);
-                }
-                for (String key: PREF_CLICK_SETTINGS) {
-                    Preference preference = findPreference(key);
-                    if (preference != null) {
-                        preference.setOnPreferenceClickListener(this);
+        @JvmStatic
+        fun setInitialSettings(sharedPref: SharedPreferences) {
+            val editor = sharedPref.edit()
+            for (key in PREF_SETTINGS) {
+                if (!sharedPref.contains(key)) {
+                    when (key) {
+                        PREF_LANDSCAPE, PREF_KEYBOARD, PREF_SUBTITLE_UPDATE -> editor.putBoolean(key, true)
+                        PREF_ADJUSTMENT, PREF_BROADCAST, PREF_USE_EXTCACHE,
+                        PREF_PIP_MODE, PREF_MULTIWIN_MARGIN, PREF_ALTER_GADGET,
+                        PREF_DOWNLOAD_RETRY, PREF_MOD_KANTAI3D, PREF_MOD_KCCP_LANG_PATCH,
+                        PREF_MOD_FPS, PREF_MOD_CRIT, PREF_DEVTOOLS_DEBUG -> editor.putBoolean(key, false)
+                        PREF_CURSOR_MODE -> editor.putString(key, "1")
+                        PREF_ALTER_METHOD -> editor.putString(key, "1")
+                        PREF_SUBTITLE_FONTSIZE -> editor.putInt(key, 18)
                     }
                 }
             }
-        }
-
-        @Override
-        public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-            super.onViewCreated(view, savedInstanceState);
-            Preference version_pref = findPreference(PREF_APP_VERSION);
-            if (version_pref != null) {
-                version_pref.setSummary(BuildConfig.VERSION_NAME);
-            }
-            updateSubtitleDescriptionText();
-            updateKCCPLangPatchDescriptionText(null);
-            updateKCCPLangPatchInfo(null);
-            updateKantai3dDisable();
-        }
-
-        @Override
-        public boolean onPreferenceClick(@NonNull Preference preference) {
-            String key = preference.getKey();
-            switch (key) {
-                case PREF_CHECK_UPDATE:
-                    KcUtils.requestLatestAppVersion(getActivity(), appCheck, true);
-                    break;
-                case PREF_SUBTITLE_UPDATE:
-                    SubtitleProviderUtils.getCurrentSubtitleProvider().downloadUpdateFromPreference(this, versionTable);
-                    break;
-                case PREF_MOD_KANTAIEN_UPDATE:
-                    try {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                            enUtils.requestPatchUpdate(this);
-                        }
-                    } catch (IOException e) {
-                        Log.e("GOTO", KcUtils.getStringFromException(e));
-                    }
-                    break;
-                case PREF_MOD_KANTAIEN_DELETE:
-                    enUtils.requestPatchDelete(this);
-                    break;
-                case PREF_SUBTITLE_FONTSIZE:
-                    if (getActivity() != null) {
-                        showSubtitleFontSizeDialog(getActivity());
-                    }
-                    break;
-            }
-            return super.onPreferenceTreeClick(preference);
-        }
-
-        @Override
-        public void onDisplayPreferenceDialog(@NonNull Preference preference) {
-            if (preference instanceof ListPreference) {
-                showMaterialListPreferenceDialog((ListPreference) preference);
-            } else {
-                super.onDisplayPreferenceDialog(preference);
-            }
-        }
-
-        private void showMaterialListPreferenceDialog(@NonNull ListPreference preference) {
-            DialogFragment dialogFragment = new MaterialListPreference();
-
-            Bundle args = new Bundle(1);
-            args.putString("key", preference.getKey());
-            dialogFragment.setArguments(args);
-            dialogFragment.setTargetFragment(this, 0);
-            dialogFragment.show(getParentFragmentManager(), "androidx.preference.PreferenceFragment.DIALOG");
-        }
-
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object newValue) {
-            String key = preference.getKey();
-            Log.e("GOTO", "onPreferenceChange " + key);
-            if (preference instanceof ListPreference) {
-                String stringValue = (String) newValue;
-                if (key.equals(PREF_ALTER_METHOD)) {
-                    if (stringValue.equals(PREF_ALTER_METHOD_PROXY)
-                            && !WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
-                        if (getActivity() != null) {
-                            Snackbar.make(getActivity().findViewById(R.id.main_container),
-                                    "PROXY_OVERRIDE not supported, use other option",
-                                    Snackbar.LENGTH_LONG).show();
-                        }
-                        return false;
-                    }
-                }
-
-                sharedPref.edit().putString(key, stringValue).apply();
-                if (key.equals(PREF_SUBTITLE_LOCALE)) {
-                    setSubtitlePreference(stringValue);
-                }
-
-                if (key.equals(PREF_MOD_KCCP_LANG_PATCH_NAME)) {
-                    updateKCCPLangPatchInfo(stringValue);
-                    updateKCCPLangPatchDescriptionText(stringValue);
-                }
-            }
-            else if (preference instanceof EditTextPreference) {
-                String stringValue = (String) newValue;
-                if (stringValue.isEmpty()) stringValue = DEFAULT_ALTER_GADGET_URL;
-                sharedPref.edit().putString(key, stringValue).apply();
-                preference.setSummary(stringValue);
-            }
-            else if (preference instanceof SwitchPreferenceCompat) {
-                boolean value = (boolean) newValue;
-                sharedPref.edit().putBoolean(key, value).apply();
-
-                if (key.equals(PREF_USE_EXTCACHE)) {
-                    updateSubtitleDescriptionText();
-                }
-
-                if (key.equals(PREF_LEGACY_RENDERER)) {
-                    updateKantai3dDisable();
-                }
-
-                if (key.equals(PREF_MOD_KCCP_LANG_PATCH)) {
-                    updateKCCPLangPatchDescriptionText(null);
-                }
-            }
-            return true;
-        }
-
-        private void updateSubtitleDescriptionText() {
-            String subtitleLocale = sharedPref.getString(PREF_SUBTITLE_LOCALE, "");
-            if (!subtitleLocale.isEmpty()) {
-                setSubtitlePreference(subtitleLocale);
-            } else {
-                Preference subtitleUpdate = findPreference(PREF_SUBTITLE_UPDATE);
-                if (subtitleUpdate != null) {
-                    subtitleUpdate.setEnabled(false);
-                    subtitleUpdate.setSummary(getString(R.string.subtitle_select_language));
-                }
-            }
-        }
-
-        private void updateKantai3dDisable() {
-            // Kantai3D only works with WebGL renderer
-            // Gray out the option when legacy renderer is chosen
-            boolean isWebglEnabled = !sharedPref.getBoolean(PREF_LEGACY_RENDERER, false);
-            Preference modKantai3d = findPreference(PREF_MOD_KANTAI3D);
-            if (modKantai3d != null) modKantai3d.setEnabled(isWebglEnabled);
-        }
-
-        private void setSubtitlePreference(String subtitleLocaleCode) {
-            Preference subtitleUpdate = findPreference(PREF_SUBTITLE_UPDATE);
-            SubtitleProviderUtils.getSubtitleProvider(subtitleLocaleCode).checkUpdateFromPreference(this, subtitleLocaleCode, subtitleUpdate, versionTable);
-        }
-
-        private void updateKCCPLangPatchInfo(String lang) {
-            ListPreference modKCCPLangPatchName = findPreference(PREF_MOD_KCCP_LANG_PATCH_NAME);
-            Preference modKCCPLangPatchInfo = findPreference(PREF_MOD_KCCP_LANG_PATCH_GITHUB);
-            if (modKCCPLangPatchName == null || modKCCPLangPatchInfo == null) return;
-            if (lang == null) lang = modKCCPLangPatchName.getValue();
-
-            String target_url;
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            if (PREF_MOD_KCCP_LANG_PATCH_ID.equals(lang)) {
-                target_url = getString(R.string.settings_mod_kccp_patch_id_link);
-                modKCCPLangPatchInfo.setTitle(R.string.settings_mod_kantaiid_about);
-            } else { // use EN as default
-                target_url = getString(R.string.settings_mod_kccp_patch_en_link);
-                modKCCPLangPatchInfo.setTitle(R.string.settings_mod_kantaien_about);
-            }
-            intent.setData(Uri.parse(target_url));
-            modKCCPLangPatchInfo.setIntent(intent);
-            modKCCPLangPatchInfo.setSummary(target_url);
-        }
-
-        private void updateKCCPLangPatchDescriptionText(String lang) {
-            ListPreference modKCCPLangPatchName = findPreference(PREF_MOD_KCCP_LANG_PATCH_NAME);
-            Preference modKCCPLangPatchUpdate = findPreference(PREF_MOD_KANTAIEN_UPDATE);
-            if (modKCCPLangPatchName == null || modKCCPLangPatchUpdate == null) return;
-            if (lang == null) lang = modKCCPLangPatchName.getValue();
-
-            if (sharedPref.getBoolean(PREF_MOD_KCCP_LANG_PATCH, false)) {
-                enUtils.setPatchLanguage(lang);
-                enUtils.checkKantaiEnUpdate(this, modKCCPLangPatchUpdate);
-            } else {
-                modKCCPLangPatchUpdate.setSummary("Mod disabled.");
-            }
-        }
-
-        private void showSubtitleFontSizeDialog(FragmentActivity activity) {
-            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity);
-            View dialogView = getLayoutInflater().inflate(R.layout.dialog_subtitle_size, null);
-
-            final int[] currentValue = {DEFAULT_SUBTITLE_FONT_SIZE};
-            try {
-                currentValue[0] = sharedPref.getInt(PREF_SUBTITLE_FONTSIZE, DEFAULT_SUBTITLE_FONT_SIZE);
-            } catch (Exception e) {
-                sharedPref.edit().putInt(PREF_SUBTITLE_FONTSIZE, currentValue[0]).apply();
-            }
-
-            TextView subtitleText = dialogView.findViewById(R.id.subtitle_example);
-            BrowserActivity.setSubtitleTextView(activity, subtitleText, currentValue[0]);
-            subtitleText.setText(String.format(Locale.US, getString(R.string.settings_subtitle_example), currentValue[0]));
-
-            Slider fontSizeSlider = dialogView.findViewById(R.id.subtitle_fontsize);
-            fontSizeSlider.setValue(currentValue[0]);
-            fontSizeSlider.addOnChangeListener((seekBar, value, fromUser) -> {
-                if (fromUser) {
-                    currentValue[0] = (int) value;
-                    BrowserActivity.setSubtitleTextView(activity, subtitleText, currentValue[0]);
-                    subtitleText.setText(String.format(Locale.US, getString(R.string.settings_subtitle_example), currentValue[0]));
-                }
-            });
-
-            builder.setTitle(R.string.settings_subtitle_fontsize);
-            builder.setView(dialogView);
-            builder.setPositiveButton(R.string.text_save, (dialog, which) -> {
-                sharedPref.edit().putInt(PREF_SUBTITLE_FONTSIZE, currentValue[0]).apply();
-                Preference pref = findPreference(PREF_SUBTITLE_FONTSIZE);
-                if (pref != null) pref.setSummary(Integer.toString(currentValue[0]));
-            });
-            builder.setNegativeButton(R.string.text_cancel, (dialog, which) -> dialog.cancel());
-            builder.show();
+            editor.apply()
         }
     }
 
-    private void createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
+    private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = getString(R.string.channel_name);
-            String description = getString(R.string.channel_description);
-            int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel channel = new NotificationChannel("en_patch", name, importance);
-            channel.setDescription(description);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
+            val name: CharSequence = getString(R.string.channel_name)
+            val description = getString(R.string.channel_description)
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel(CHANNEL_ID, name, importance)
+            channel.description = description
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager?.createNotificationChannel(channel)
         }
+    }
+
+    class SettingsFragment : androidx.preference.PreferenceFragmentCompat() {
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            setPreferencesFromResource(R.xml.root_preferences, rootKey)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Settings") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        AndroidView(
+            factory = { context ->
+                val frameLayout = android.widget.FrameLayout(context).apply {
+                    id = android.view.View.generateViewId()
+                }
+                val activity = context as androidx.fragment.app.FragmentActivity
+                activity.supportFragmentManager.beginTransaction()
+                    .replace(frameLayout.id, SettingsActivity.SettingsFragment())
+                    .commit()
+                frameLayout
+            },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        )
     }
 }
