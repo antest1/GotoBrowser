@@ -11,7 +11,6 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.WindowManager;
 import android.webkit.WebResourceResponse;
@@ -46,11 +45,9 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -97,6 +94,22 @@ public class ResourceProcess {
     private static final int RES_KCSAPI = 0b1000000;
     private static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss z";
 
+    private static final Pattern INIT_VOLUME_PATTERN = Pattern.compile(
+            String.format(Locale.US, "(%s,%s,%s,%s,%s);",
+                    "this\\[\\w+\\(\\w+\\)\\]=(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\),\\w+\\))",
+                    "this\\[\\w+\\(\\w+\\)\\]=(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\),\\w+\\))",
+                    "this\\[\\w+\\(\\w+\\)\\]=(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\),\\w+\\))",
+                    "this\\[\\w+\\(\\w+\\)\\]=0x1===\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\),\\w+\\)",
+                    "this\\[\\w+\\(\\w+\\)\\]=0x1===\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\),\\w+\\)")
+    );
+    private static final Pattern HOWL_PATTERN = Pattern.compile("(new \\w+\\[\\(\\w+\\(\\w+\\)\\)])(\\(\\w+\\)),this(?:\\[\\w+\\(\\w+\\)]){2}\\(\\w+,\\w+,\\w+\\)\\):");
+    private static final Pattern TOUCH_EVENT_PATTERN = Pattern.compile("('(out|over|down|move|up)'?:[^,;=}]{20,150},?){5,}");
+
+    private static final String TAG_D = "GOTO-D";
+    private static final String TAG_P = "GOTO-P";
+    private static final String TAG_E = "GOTO-E";
+    private static final String TAG_G = "GOTO";
+
     private static String userAgent;
 
     public static boolean isImage(int state) { return (state & RES_IMAGE) > 0; }
@@ -117,6 +130,18 @@ public class ResourceProcess {
     }
     public static boolean isKcsApi(int state) {
         return (state & RES_KCSAPI) > 0;
+    }
+
+    private static class ResourceRequestInfo {
+        String key = "";
+        String url = "";
+        String host = "";
+        String path = "";
+        String version = "";
+        String filename = "";
+        String fullUrl = "";
+        String outputDir = "";
+        String outputPath = "";
     }
 
     private final BrowserActivity activity;
@@ -156,27 +181,30 @@ public class ResourceProcess {
 
     public static void setUserAgent(String agent) { userAgent = agent; }
 
-    public static int getCurrentState(String url) {
+    public static int getCurrentState(Uri source) {
+        String path = source.getPath();
+        if (path == null) return 0;
         int state = 0;
-        if (url.contains("kcs2") && (url.contains(".png") || url.contains(".jpg"))) {
+        String url = source.toString();
+        if (path.contains("kcs2") && (path.endsWith(".png") || path.endsWith(".jpg"))) {
             state |= RES_IMAGE;
         }
-        if (url.contains(".mp3")) {
+        if (path.endsWith(".mp3")) {
             state |= RES_AUDIO;
         }
-        if (url.contains(".json")) {
+        if (path.endsWith(".json")) {
             state |= RES_JSON;
         }
-        if ((url.contains("/js/") || url.contains("/script/")) && url.contains(".js")) {
+        if ((path.contains("/js/") || path.contains("/script/")) && path.endsWith(".js")) {
             state |= RES_JS;
         }
-        if (url.contains(".woff2")) {
+        if (path.endsWith(".woff2")) {
             state |= RES_FONT;
         }
-        if (url.contains(".css")) {
+        if (path.endsWith(".css")) {
             state |= RES_CSS;
         }
-        if (url.contains("kcsapi") && !url.contains("osapi.dmm.com")) {
+        if (path.contains("kcsapi") && !url.contains("osapi.dmm.com")) {
             state |= RES_KCSAPI;
         }
         return state;
@@ -184,9 +212,9 @@ public class ResourceProcess {
 
     @SuppressLint("ApplySharedPref")
     public WebResourceResponse processWebRequest(Uri source) {
+        int resource_type = getCurrentState(source);
         String url = source.toString();
-        int resource_type = getCurrentState(url);
-        if (resource_type > 0) Log.e("GOTO", url + " - " + resource_type);
+        if (resource_type > 0) Log.e(TAG_G, url + " - " + resource_type);
         boolean is_image = ResourceProcess.isImage(resource_type);
         boolean is_audio = ResourceProcess.isAudio(resource_type);
         boolean is_json = ResourceProcess.isJson(resource_type);
@@ -214,9 +242,9 @@ public class ResourceProcess {
             return getInjectedKcaCdaJs();
         }
 
-        JsonObject file_info = getPathAndFileInfo(source);
-        String path = file_info.get("path").getAsString();
-        String filename = file_info.get("filename").getAsString();
+        ResourceRequestInfo requestInfo = getPathAndFileInfo(source);
+        String path = requestInfo.path;
+        String filename = requestInfo.filename;
 
         try {
             if (!path.isEmpty() && !filename.isEmpty()) {
@@ -232,45 +260,37 @@ public class ResourceProcess {
 
                 if (!is_kcsapi) {
                     // JsonObject update_info = checkResourceUpdate(source);
-                    if (is_image || is_json) return processImageDataResource(file_info, resource_type);
-                    if (is_js) return processScriptFile(file_info);
-                    if (is_audio) return processAudioFile(file_info, resource_type);
-                    if (is_css) return processStylesheet(file_info);
+                    if (is_image || is_json) return processImageDataResource(requestInfo, resource_type);
+                    if (is_js) return processScriptFile(requestInfo);
+                    if (is_audio) return processAudioFile(requestInfo, resource_type);
+                    if (is_css) return processStylesheet(requestInfo);
                     if (is_font) {
                         if (sharedPref.getBoolean(PREF_FONT_PREFETCH, true) && !KenPatcher.isPatcherEnabled()) {
                             return getFontFile(filename);
                         } else {
-                            return processFontFile(file_info);
+                            return processFontFile(requestInfo);
                         }
                     }
                 }
             }
 
         } catch (Exception e) {
-            Log.e("GOTO", KcUtils.getStringFromException(e));
+            Log.e(TAG_G, KcUtils.getStringFromException(e));
             KcUtils.reportException(e);
         }
         return null;
     }
 
-    private JsonObject getPathAndFileInfo(Uri source) {
-        JsonObject file_info = new JsonObject();
+    private ResourceRequestInfo getPathAndFileInfo(Uri source) {
+        ResourceRequestInfo info = new ResourceRequestInfo();
 
-        String key = "";
         String cacheDir = KcUtils.getAppCacheFileDir(context, CACHE_DIR);
-        String url = source.toString();
-        String host = "";
-        String path = "";
-        String filename = "";
-        String fullPath = "";
-        String version = "";
-        String outputDir = "";
-        String outputPath = "";
+        info.url = source.toString();
 
         if (source.getPath() != null) {
             String scheme = source.getScheme();
-            host = source.getHost();
-            path = source.getPath();
+            info.host = source.getHost();
+            info.path = source.getPath();
 
             List<String> segments = source.getPathSegments();
             if (segments.size() > 1) {
@@ -278,47 +298,36 @@ public class ResourceProcess {
                 for (String segment : segments.subList(0, segments.size() - 1)) {
                     outputPathBuilder.append(segment).append("/");
                 }
-                outputDir = outputPathBuilder.toString();
+                info.outputDir = outputPathBuilder.toString();
             } else {
-                outputDir = cacheDir;
+                info.outputDir = cacheDir;
             }
 
-            filename = source.getLastPathSegment();
-            if (filename != null) {
-                outputPath = outputDir.concat(filename);
+            info.filename = source.getLastPathSegment();
+            if (info.filename != null) {
+                info.outputPath = info.outputDir.concat(info.filename);
             }
 
-            fullPath = String.format(Locale.US, "%s://%s%s", scheme, host, path);
-            if (source.getQueryParameterNames().contains("version")) {
-                version = source.getQueryParameter("version");
-                if (version == null) {
-                    version = "";
-                }
+            info.fullUrl = String.format(Locale.US, "%s://%s%s", scheme, info.host, info.path);
+            String version = source.getQueryParameter("version");
+            if (version != null) {
+                info.version = version;
             }
 
-            if (!version.isEmpty()) {
-                fullPath = fullPath + "?version=" + version;
+            if (!info.version.isEmpty()) {
+                info.fullUrl = info.fullUrl + "?version=" + info.version;
             }
 
-            key = String.format(Locale.US, "|%s|%s", path, version);
+            info.key = String.format(Locale.US, "|%s|%s", info.path, info.version);
         }
 
-        file_info.addProperty("key", key);
-        file_info.addProperty("url", url);
-        file_info.addProperty("host", host);
-        file_info.addProperty("path", path);
-        file_info.addProperty("version", version);
-        file_info.addProperty("filename", filename);
-        file_info.addProperty("full_url", fullPath);
-        file_info.addProperty("out_folder_dir", outputDir);
-        file_info.addProperty("out_file_path", outputPath);
-        return file_info;
+        return info;
     }
 
     private boolean checkBlockedContent(String url) {
         for (String rule : REQUEST_BLOCK_RULES) {
             if (url.contains(rule)) {
-                Log.e("GOTO", "blocked: ".concat(url));
+                Log.e(TAG_G, "blocked: ".concat(url));
                 return true;
             }
         }
@@ -374,15 +383,15 @@ public class ResourceProcess {
         }
     }
 
-    private WebResourceResponse processImageDataResource(JsonObject file_info, int resource_type) {
-        String update_key = file_info.get("key").getAsString();
-        String path = file_info.get("path").getAsString();
-        String resource_url = file_info.get("full_url").getAsString();
-        String out_file_path = file_info.get("out_file_path").getAsString();
+    private WebResourceResponse processImageDataResource(ResourceRequestInfo requestInfo, int resource_type) {
+        String update_key = requestInfo.key;
+        String path = requestInfo.path;
+        String resource_url = requestInfo.fullUrl;
+        String out_file_path = requestInfo.outputPath;
         String log_path = out_file_path;
         File file = getImageFile(out_file_path);
 
-        Log.e("GOTO-D", "resource_url: " + resource_url);
+        Log.e(TAG_D, "resource_url: " + resource_url);
         String cacheExpiredDate = versionTable.getCacheControlValue(update_key);
         String prevLastModified = versionTable.getVersionValue(update_key);
 
@@ -403,19 +412,19 @@ public class ResourceProcess {
                     String cache_expired = getCacheExpiredAt(result.get("cache_control").getAsString());
                     String last_modified = result.get("last_modified").getAsString();
                     versionTable.putCacheAndVersion(update_key, last_modified, cache_expired);
-                    Log.e("GOTO-D", update_key + " last_modified: " + last_modified);
-                    Log.e("GOTO-D", update_key + " cache_expired: " + cache_expired);
+                    Log.e(TAG_D, update_key + " last_modified: " + last_modified);
+                    Log.e(TAG_D, update_key + " cache_expired: " + cache_expired);
                 } else if (response_code == 304) {
-                    Log.e("GOTO-D", update_key + " use cached resource (304)");
+                    Log.e(TAG_D, update_key + " use cached resource (304)");
                 } else {
-                    Log.e("GOTO-D", update_key + " response_code: " + response_code);
+                    Log.e(TAG_D, update_key + " response_code: " + response_code);
                 }
             } else {
-                Log.e("GOTO-D", "download error: " + update_key);
-                return promptForRetry(file_info, resource_type);
+                Log.e(TAG_D, "download error: " + update_key);
+                return promptForRetry(requestInfo, resource_type);
             }
         } else {
-            Log.e("GOTO-D", "using cache: " + update_key + " " + cacheExpiredDate);
+            Log.e(TAG_D, "using cache: " + update_key + " " + cacheExpiredDate);
         }
 
         if (KenPatcher.isPatcherEnabled()) {
@@ -438,12 +447,12 @@ public class ResourceProcess {
                 if (!patchedFile.exists() || update_flag || patchVersion == null ||
                         !Objects.equals(versionTable.getVersionValue(patchFilePath), hash)) {
                     versionTable.putVersionValue(patchFilePath, hash);
-                    Log.e("GOTO-D", "needs repatch: " + patchedFilePath + " " + hash);
+                    Log.e(TAG_D, "needs repatch: " + patchedFilePath + " " + hash);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         usePatchedCache = patchImage(out_file_path, patchedFilePath, patchFilePath);
                     }
                 } else {
-                    Log.e("GOTO-D", "using cached patched file: " + patchedFilePath + " " + hash);
+                    Log.e(TAG_D, "using cached patched file: " + patchedFilePath + " " + hash);
                     usePatchedCache = true;
                 }
             }
@@ -455,13 +464,13 @@ public class ResourceProcess {
 
         try {
             InputStream is = new BufferedInputStream(new FileInputStream(file));
-            Log.e("GOTO", log_path + " " + is.available());
+            Log.e(TAG_G, log_path + " " + is.available());
             String type = ResourceProcess.isImage(resource_type) ? "image/png" : "application/json";
             return new WebResourceResponse(type, "utf-8", is);
         } catch (IOException e) {
             KcUtils.reportException(e);
             // Fail to load
-            return promptForRetry(file_info, resource_type);
+            return promptForRetry(requestInfo, resource_type);
         }
     }
 
@@ -485,7 +494,7 @@ public class ResourceProcess {
         });
     }
 
-    private WebResourceResponse promptForRetry(JsonObject file_info, int resource_type) {
+    private WebResourceResponse promptForRetry(ResourceRequestInfo requestInfo, int resource_type) {
         boolean isRetryPromptEnabled = sharedPref.getBoolean(PREF_DOWNLOAD_RETRY, true);
         if (!isRetryPromptEnabled) {
             return null;
@@ -517,7 +526,7 @@ public class ResourceProcess {
             if (!activity.isFinishing()) {
                 try {
                     MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity);
-                    String path = file_info.get("path").getAsString();
+                    String path = requestInfo.path;
                     builder.setTitle(activity.getString(R.string.dialog_retry_title))
                             .setMessage(String.format(activity.getString(R.string.dialog_retry_message), path))
                             .setPositiveButton(activity.getString(R.string.dialog_retry_yes), dialogClickListener)
@@ -542,17 +551,17 @@ public class ResourceProcess {
             return null;
         } else {
             if (ResourceProcess.isImage(resource_type)) {
-                return processImageDataResource(file_info, resource_type);
+                return processImageDataResource(requestInfo, resource_type);
             } else if (ResourceProcess.isAudio(resource_type)) {
-                return processAudioFile(file_info, resource_type);
+                return processAudioFile(requestInfo, resource_type);
             }
         }
         return null;
     }
 
-    private WebResourceResponse processScriptFile(JsonObject file_info) throws IOException {
+    private WebResourceResponse processScriptFile(ResourceRequestInfo requestInfo) throws IOException {
         boolean silent_mode = sharedPref.getBoolean(PREF_SILENT, false);
-        String url = file_info.get("url").getAsString();
+        String url = requestInfo.url;
         if (prefAlterGadget && isGadgetUrlReplaceMode && url.contains("gadget_html5")) {
             url = WebViewManager.replaceEndpoint(url, alterEndpoint);
             byte[] byteArray = KcUtils.downloadDataFromURL(url);
@@ -570,8 +579,8 @@ public class ResourceProcess {
         }
     }
 
-    private WebResourceResponse processStylesheet(JsonObject file_info) throws IOException {
-        String url = file_info.get("url").getAsString();
+    private WebResourceResponse processStylesheet(ResourceRequestInfo requestInfo) throws IOException {
+        String url = requestInfo.url;
         boolean is_adjustment = sharedPref.getBoolean(PREF_ADJUSTMENT, false);
         if (is_adjustment) {
             AssetManager as = context.getAssets();
@@ -598,16 +607,16 @@ public class ResourceProcess {
         return null;
     }
 
-    private WebResourceResponse processAudioFile(JsonObject file_info, int resource_type) {
-        String update_key = file_info.get("key").getAsString();
+    private WebResourceResponse processAudioFile(ResourceRequestInfo requestInfo, int resource_type) {
+        String update_key = requestInfo.key;
 
-        String path = file_info.get("path").getAsString();
-        String resource_url = file_info.get("full_url").getAsString();
-        String out_file_path = file_info.get("out_file_path").getAsString();
+        String path = requestInfo.path;
+        String resource_url = requestInfo.fullUrl;
+        String out_file_path = requestInfo.outputPath;
 
-        String url = file_info.get("url").getAsString();
+        String url = requestInfo.url;
         File file = new File(out_file_path);
-        Log.e("GOTO-E", "resource_url: " + resource_url);
+        Log.e(TAG_E, "resource_url: " + resource_url);
 
         String cacheExpiredDate = versionTable.getCacheControlValue(update_key);
         String prevLastModified = versionTable.getVersionValue(update_key);
@@ -627,19 +636,19 @@ public class ResourceProcess {
                     String cache_expired = getCacheExpiredAt(result.get("cache_control").getAsString());
                     String last_modified = result.get("last_modified").getAsString();
                     versionTable.putCacheAndVersion(update_key, last_modified, cache_expired);
-                    Log.e("GOTO-D", update_key + " last_modified: " + last_modified);
-                    Log.e("GOTO-D", update_key + " cache_expired: " + cache_expired);
+                    Log.e(TAG_D, update_key + " last_modified: " + last_modified);
+                    Log.e(TAG_D, update_key + " cache_expired: " + cache_expired);
                 } else if (response_code == 304) {
-                    Log.e("GOTO-D", update_key + " use cached resource (304)");
+                    Log.e(TAG_D, update_key + " use cached resource (304)");
                 } else {
-                    Log.e("GOTO-D", update_key + " response_code: " + response_code);
+                    Log.e(TAG_D, update_key + " response_code: " + response_code);
                 }
             } else {
-                Log.e("GOTO-D", "download error: " + update_key);
-                return promptForRetry(file_info, resource_type);
+                Log.e(TAG_D, "download error: " + update_key);
+                return promptForRetry(requestInfo, resource_type);
             }
         } else {
-            Log.e("GOTO-D", "using cache: " + update_key + " " + cacheExpiredDate);
+            Log.e(TAG_D, "using cache: " + update_key + " " + cacheExpiredDate);
         }
 
         String voiceSize = String.valueOf(file.length());
@@ -662,18 +671,18 @@ public class ResourceProcess {
         } catch (IOException e) {
             KcUtils.reportException(e);
             // Fail to load
-            return promptForRetry(file_info, resource_type);
+            return promptForRetry(requestInfo, resource_type);
         }
     }
 
-    private WebResourceResponse processFontFile(JsonObject file_info) throws IOException {
-        String path = file_info.get("path").getAsString();
-        String update_key = file_info.get("key").getAsString();
-        String resource_url = file_info.get("full_url").getAsString();
-        String out_file_path = file_info.get("out_file_path").getAsString();
+    private WebResourceResponse processFontFile(ResourceRequestInfo requestInfo) throws IOException {
+        String path = requestInfo.path;
+        String update_key = requestInfo.key;
+        String resource_url = requestInfo.fullUrl;
+        String out_file_path = requestInfo.outputPath;
 
         File file = new File(out_file_path);
-        Log.e("GOTO-E", "resource_url: " + resource_url);
+        Log.e(TAG_E, "resource_url: " + resource_url);
 
         String cacheExpiredDate = versionTable.getCacheControlValue(update_key);
         String prevLastModified = versionTable.getVersionValue(update_key);
@@ -693,18 +702,18 @@ public class ResourceProcess {
                     String cache_expired = getCacheExpiredAt(result.get("cache_control").getAsString());
                     String last_modified = result.get("last_modified").getAsString();
                     versionTable.putCacheAndVersion(update_key, last_modified, cache_expired);
-                    Log.e("GOTO-D", update_key + " last_modified: " + last_modified);
-                    Log.e("GOTO-D", update_key + " cache_expired: " + cache_expired);
+                    Log.e(TAG_D, update_key + " last_modified: " + last_modified);
+                    Log.e(TAG_D, update_key + " cache_expired: " + cache_expired);
                 } else if (response_code == 304) {
-                    Log.e("GOTO-D", update_key + " use cached resource (304)");
+                    Log.e(TAG_D, update_key + " use cached resource (304)");
                 } else {
-                    Log.e("GOTO-D", update_key + " response_code: " + response_code);
+                    Log.e(TAG_D, update_key + " response_code: " + response_code);
                 }
             } else {
-                Log.e("GOTO-D", "download error: " + update_key);
+                Log.e(TAG_D, "download error: " + update_key);
             }
         } else {
-            Log.e("GOTO-D", "using cache: " + update_key + " " + cacheExpiredDate);
+            Log.e(TAG_D, "using cache: " + update_key + " " + cacheExpiredDate);
         }
 
         file = applyKenPatcherIfAvailable(path, file, false);
@@ -724,9 +733,9 @@ public class ResourceProcess {
 
     private void setSubtitleAfter(SubtitleData data) {
         Runnable r = new VoiceSubtitleRunnable(data);
+        Log.e(TAG_G, "playHourVoice after: " + data.getExtraDelay() + " msec");
         shipVoiceHandler.removeCallbacks(r);
         shipVoiceHandler.postDelayed(r, data.getExtraDelay());
-        Log.e("GOTO", "playHourVoice after: " + data.getExtraDelay() + " msec");
     }
 
     private File getImageFile(String path) {
@@ -755,7 +764,7 @@ public class ResourceProcess {
 
     private boolean getIpBannedStatus(String url) {
         JsonObject result = downloadResource(resourceClient, url, null);
-        Log.e("GOTO", "IpBannedStatus: " + result);
+        Log.e(TAG_G, "IpBannedStatus: " + result);
         if (result.has("response_code")) {
             return result.get("response_code").getAsInt() == 403;
         } else {
@@ -839,22 +848,13 @@ public class ResourceProcess {
 
         // 2025.10 update: fix patch logic for silent mode (default value added)
         if (silent_mode) {
-            List<String> initVolumePattern1 = Collections.nCopies(3,"this\\[\\w+\\(\\w+\\)\\]=(\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\),\\w+\\))");
-            List<String> initVolumePattern2 = Collections.nCopies(2,"this\\[\\w+\\(\\w+\\)\\]=0x1===\\w+\\[\\w+\\(\\w+\\)\\]\\[\\w+\\(\\w+\\)\\]\\(\\w+,\\w+\\(\\w+\\),\\w+\\)");
-
-            List<String> initVolumePatternConcat = new ArrayList<>();
-            initVolumePatternConcat.addAll(initVolumePattern1);
-            initVolumePatternConcat.addAll(initVolumePattern2);
-
-            Pattern initVolumePattern = Pattern.compile(
-                    TextUtils.join(",", initVolumePatternConcat).concat(";"));
-            Matcher invPatternMatcher = initVolumePattern.matcher(main_js);
+            Matcher invPatternMatcher = INIT_VOLUME_PATTERN.matcher(main_js);
 
             if (invPatternMatcher.find()) {
                 String statement = invPatternMatcher.group(0);
-                String varBgm = invPatternMatcher.group(1);
-                String varSe = invPatternMatcher.group(2);
-                String varVoice = invPatternMatcher.group(3);
+                String varBgm = invPatternMatcher.group(2);
+                String varSe = invPatternMatcher.group(3);
+                String varVoice = invPatternMatcher.group(4);
 
                 if (statement != null && varBgm != null && varSe != null && varVoice != null) {
                     String newStatement = statement.replace(varBgm, "0")
@@ -864,8 +864,7 @@ public class ResourceProcess {
             }
         }
 
-        Pattern howlPattern = Pattern.compile("(new \\w+\\[\\(\\w+\\(\\w+\\)\\)])(\\(\\w+\\)),this(?:\\[\\w+\\(\\w+\\)]){2}\\(\\w+,\\w+,\\w+\\)\\):");
-        Matcher howlPatternMatcher = howlPattern.matcher(main_js);
+        Matcher howlPatternMatcher = HOWL_PATTERN.matcher(main_js);
         boolean howl_found = howlPatternMatcher.find();
         if (howl_found) {
             String _howl_fn = escapeMatchedGroup(howlPatternMatcher.group(1));
@@ -877,7 +876,7 @@ public class ResourceProcess {
         //main_js = main_js.replace("over:n.pointer?\"pointerover\":\"mouseover\"", "over:\"touchover\"");
         //main_js = main_js.replace("out:n.pointer?\"pointerout\":\"mouseout\"", "out:\"touchout\"");
         if (isCursorTouchMode) {
-            main_js = main_js.replaceFirst("('(out|over|down|move|up)'?:[^,;=}]{20,150},?){5,}",
+            main_js = TOUCH_EVENT_PATTERN.matcher(main_js).replaceFirst(
                     "down:void 0!==document.ontouchstart?'touchstart':'mousedown',\n" + "move:void 0!==document.ontouchstart?'touchmove':'mousemove',\n" + "up:void 0!==document.ontouchstart?'touchend':'mouseup',\n" + "over:'touchover',\n" + "out:'touchout'");
         }
 
@@ -979,7 +978,7 @@ public class ResourceProcess {
                 !Objects.equals(patchVersion, hash)) {
 
             versionTable.putVersionValue(patchFilePath, hash);
-            Log.e("GOTO-P", "needs repatch: " + patchedFilePath + " " + hash);
+            Log.e(TAG_P, "needs repatch: " + patchedFilePath + " " + hash);
 
             try {
                 patchedFile.getParentFile().mkdirs();
@@ -987,8 +986,7 @@ public class ResourceProcess {
                 if (patchFile.isFile()) {
                     KcUtils.copyFileUsingStream(patchFile, patchedFile);
                     usePatchedCache = true;
-                }
-                else {
+                } else {
                     String ext = "";
                     String name = originalFile.getName();
                     int dot = name.lastIndexOf('.');
@@ -1018,7 +1016,7 @@ public class ResourceProcess {
             }
 
         } else {
-            Log.e("GOTO-P", "using cached patched file: " + patchedFilePath + " " + hash);
+            Log.e(TAG_P, "using cached patched file: " + patchedFilePath + " " + hash);
             usePatchedCache = true;
         }
 
@@ -1027,24 +1025,24 @@ public class ResourceProcess {
 
     public static boolean patchImage(String ogDestination, String ptDestination, String patchFile) {
         try {
-            if (ResourceProcess.isImage(ResourceProcess.getCurrentState(ptDestination))) {
+            if (ResourceProcess.isImage(ResourceProcess.getCurrentState(Uri.fromFile(new File(ptDestination))))) {
                 Bitmap ogSpritesheet = BitmapFactory.decodeFile(ogDestination);
                 File metadataFile = new File(getSpriteMetadataPath(ogDestination));
-                Log.e("GOTO-P", "patchImage-src: " + metadataFile.getAbsolutePath());
+                Log.e(TAG_P, "patchImage-src: " + metadataFile.getAbsolutePath());
                 File dest = new File(ptDestination);
-                Log.e("GOTO-P", "patchImage-desc: " + metadataFile.getAbsolutePath());
+                Log.e(TAG_P, "patchImage-desc: " + metadataFile.getAbsolutePath());
                 if (!metadataFile.exists()) {
                     Bitmap ogImage = BitmapFactory.decodeFile(patchFile.concat("/original.png"));
-                    Log.e("GOTO-P", patchFile.concat("/original.png"));
+                    Log.e(TAG_P, patchFile.concat("/original.png"));
                     if (ogSpritesheet != null && ogImage != null && KcEnUtils.bitmapEqual(ogSpritesheet, ogImage, 0.01f)) {
                         File source = new File(patchFile.concat("/patched.png"));
                         dest.getParentFile().mkdirs();
                         dest.createNewFile();
                         KcUtils.copyFileUsingStream(source, dest);
-                        Log.e("GOTO-P", "image patched: " + ptDestination);
+                        Log.e(TAG_P, "image patched: " + ptDestination);
                         return true;
                     } else {
-                        Log.e("GOTO-P", "image not patched: "
+                        Log.e(TAG_P, "image not patched: "
                                 + patchFile.concat("/original.png") + " "
                                 + (ogSpritesheet != null) + " "
                                 + (ogImage != null) + " "
