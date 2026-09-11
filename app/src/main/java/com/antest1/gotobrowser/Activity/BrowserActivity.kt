@@ -62,9 +62,9 @@ import com.antest1.gotobrowser.Helpers.BackPressCloseHandler
 import com.antest1.gotobrowser.Helpers.KcUtils
 import com.antest1.gotobrowser.Notification.ScreenshotNotification
 import com.antest1.gotobrowser.R
+import com.antest1.gotobrowser.ui.component.VerticalFloatingToolbar
 import com.antest1.gotobrowser.ui.theme.GotobrowserTheme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.launch
 import java.util.*
 
 class BrowserActivity : ComponentActivity() {
@@ -117,64 +117,9 @@ class BrowserActivity : ComponentActivity() {
 
         setContent {
             GotobrowserTheme {
-                val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-                val scope = rememberCoroutineScope()
+                val toolbarVisible = remember { mutableStateOf(false) }
 
-                ModalNavigationDrawer(
-                    drawerState = drawerState,
-                    gesturesEnabled = true, // Enables edge-swipe to open
-                    drawerContent = {
-                        ModalDrawerSheet(
-                            drawerContainerColor = Color.Transparent,
-                            drawerTonalElevation = 0.dp,
-                            modifier = Modifier.width(88.dp) // Width for the floating pill
-                        ) {
-                            Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
-                                Surface(
-                                    modifier = Modifier
-                                        .fillMaxHeight(0.7f) // Don't take full height
-                                        .width(72.dp)
-                                        .padding(start = 8.dp),
-                                    shape = RoundedCornerShape(36.dp),
-                                    color = Color(0xCC666666), // Lighter semi-transparent grey
-                                    shadowElevation = 8.dp
-                                )
- {
-                                    Column(
-                                        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
-                                    ) {
-                                        val isMute by viewModel.isMuteMode.observeAsState(false)
-                                        val isCapture by viewModel.isCaptureMode.observeAsState(false)
-                                        val isLock by viewModel.isLockMode.observeAsState(false)
-                                        val isKeep by viewModel.isKeepMode.observeAsState(false)
-                                        val isCaption by viewModel.isCaptionMode.observeAsState(false)
-
-                                        PanelButton(id = R.drawable.refresh_icon, onClick = { showRefreshDialog() })
-                                        PanelButton(id = R.drawable.volume_off, active = isMute, onClick = { viewModel.toggleMuteMode() })
-                                        PanelButton(id = R.drawable.camera_icon, active = isCapture, onClick = {
-                                            if (!checkStoragePermissionGrated()) showStoragePermissionDialog()
-                                            viewModel.toggleCaptureMode()
-                                        })
-                                        PanelButton(id = R.drawable.screen_lock, active = isLock, onClick = { viewModel.toggleLockMode(); updateOrientationLock() })
-                                        PanelButton(id = R.drawable.light_mode, active = isKeep, onClick = { viewModel.toggleKeepMode() })
-                                        PanelButton(id = R.drawable.caption_icon, active = isCaption, onClick = { viewModel.toggleCaptionMode() })
-                                        if (viewModel.k3dPatcher.isPatcherEnabled) {
-                                            PanelButton(id = R.drawable.kantai3d_icon, onClick = { showKantai3dDialog(this@BrowserActivity, viewModel.k3dPatcher) })
-                                        }
-                                        PanelButton(id = R.drawable.exit_to_app, onClick = { showLogoutDialog() })
-
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        IconButton(onClick = { scope.launch { drawerState.close() } }) {
-                                            Icon(painterResource(id = R.drawable.close_icon), "Close", tint = Color.White)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                ) {
+                Box(modifier = Modifier.fillMaxSize()) {
                     BrowserScreenContent(
                         viewModel = viewModel,
                         errorText = errorText,
@@ -184,8 +129,38 @@ class BrowserActivity : ComponentActivity() {
                         onViewCreated = { mContentView = it },
                         intent = intent,
                         activity = this@BrowserActivity,
-                        onToggleDrawer = { scope.launch { if (drawerState.isClosed) drawerState.open() else drawerState.close() } }
+                        onBackgroundTap = { toolbarVisible.value = !toolbarVisible.value }
                     )
+
+                    VerticalFloatingToolbar(
+                        visible = toolbarVisible.value,
+                        onVisibleChange = { toolbarVisible.value = it }
+                    ) {
+                        val isMute by viewModel.isMuteMode.observeAsState(false)
+                        val isCapture by viewModel.isCaptureMode.observeAsState(false)
+                        val isLock by viewModel.isLockMode.observeAsState(false)
+                        val isKeep by viewModel.isKeepMode.observeAsState(false)
+                        val isCaption by viewModel.isCaptionMode.observeAsState(false)
+
+                        PanelButton(id = R.drawable.refresh_icon, onClick = { showRefreshDialog() })
+                        PanelButton(id = R.drawable.volume_off, active = isMute, onClick = { viewModel.toggleMuteMode() })
+                        PanelButton(id = R.drawable.camera_icon, active = isCapture, onClick = {
+                            if (!checkStoragePermissionGrated()) showStoragePermissionDialog()
+                            viewModel.toggleCaptureMode()
+                        })
+                        PanelButton(id = R.drawable.screen_lock, active = isLock, onClick = { viewModel.toggleLockMode(); updateOrientationLock() })
+                        PanelButton(id = R.drawable.light_mode, active = isKeep, onClick = { viewModel.toggleKeepMode() })
+                        PanelButton(id = R.drawable.caption_icon, active = isCaption, onClick = { viewModel.toggleCaptionMode() })
+                        if (viewModel.k3dPatcher.isPatcherEnabled) {
+                            PanelButton(id = R.drawable.kantai3d_icon, onClick = { showKantai3dDialog(this@BrowserActivity, viewModel.k3dPatcher) })
+                        }
+                        PanelButton(id = R.drawable.exit_to_app, onClick = { showLogoutDialog() })
+
+                        Spacer(modifier = Modifier.height(4.dp))
+                        IconButton(onClick = { toolbarVisible.value = false }) {
+                            Icon(painterResource(id = R.drawable.close_icon), "Close", tint = Color.White)
+                        }
+                    }
                 }
             }
         }
@@ -201,11 +176,11 @@ class BrowserActivity : ComponentActivity() {
 
     @Composable
     private fun PanelButton(id: Int, active: Boolean = false, onClick: () -> Unit) {
-        IconButton(onClick = onClick, modifier = Modifier.size(48.dp)) {
+        IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
             Icon(
                 painterResource(id = id), null,
                 tint = if (active) Color(0xFFFFC400) else Color.White,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(20.dp)
             )
         }
     }
@@ -462,12 +437,20 @@ fun BrowserScreenContent(
     onViewCreated: (WebViewL) -> Unit,
     intent: Intent?,
     activity: BrowserActivity,
-    onToggleDrawer: () -> Unit
+    onBackgroundTap: () -> Unit
 ) {
     val isCaption by viewModel.isCaptionMode.observeAsState(false)
     val isCapture by viewModel.isCaptureMode.observeAsState(false)
     val isKeep by viewModel.isKeepMode.observeAsState(false)
     val showFlash = remember { mutableStateOf(false) }
+
+    val currentSubtitle = subtitleTextValue.value
+    val subtitleVisible = remember { mutableStateOf(true) }
+    LaunchedEffect(currentSubtitle) {
+        if (currentSubtitle.isNotEmpty()) {
+            subtitleVisible.value = true
+        }
+    }
 
     LaunchedEffect(isKeep) {
         if (isKeep) activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -481,7 +464,7 @@ fun BrowserScreenContent(
             .clickable(
                 interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                 indication = null
-            ) { onToggleDrawer() }
+            ) { onBackgroundTap() }
     ) {
         // WebView with proper "Scale to Fit" 15:9
         BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -545,15 +528,15 @@ fun BrowserScreenContent(
         }
 
         // Subtitle Overlay
-        if (viewModel.isKcBrowserMode && isCaption) {
+        if (viewModel.isKcBrowserMode && isCaption && subtitleVisible.value) {
             Box(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 12.dp), contentAlignment = Alignment.BottomCenter) {
                 Text(
-                    text = subtitleTextValue.value.ifEmpty { stringResource(id = R.string.subtitle_default) },
+                    text = currentSubtitle.ifEmpty { stringResource(id = R.string.subtitle_default) },
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.clickable { subtitleTextValue.value = "" }
+                    modifier = Modifier.clickable { subtitleVisible.value = false }
                 )
             }
         }
@@ -593,17 +576,17 @@ fun BrowserScreenPreview() {
 
             // Preview the floating panel
             Surface(
-                modifier = Modifier.align(Alignment.CenterStart).fillMaxHeight(0.7f).width(72.dp).padding(start = 8.dp),
-                shape = RoundedCornerShape(36.dp),
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp).fillMaxHeight(0.7f).width(56.dp),
+                shape = RoundedCornerShape(28.dp),
                 color = Color(0xCC444444)
             ) {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().padding(vertical = 6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
+                    verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)
                 ) {
                     repeat(6) {
-                        Box(modifier = Modifier.size(32.dp).background(Color.DarkGray, CircleShape))
+                        Box(modifier = Modifier.size(28.dp).background(Color.DarkGray, CircleShape))
                     }
                 }
             }
