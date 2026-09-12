@@ -1,6 +1,5 @@
 package com.antest1.gotobrowser.Helpers;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
@@ -8,20 +7,15 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
-import android.view.View;
 import android.webkit.JavascriptInterface;
-import android.widget.TextView;
 
 import com.antest1.gotobrowser.R;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

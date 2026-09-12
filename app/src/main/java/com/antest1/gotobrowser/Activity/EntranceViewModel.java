@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.webkit.WebView;
 
-import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.Helpers.KenPatcher;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.Helpers.KcUtils;

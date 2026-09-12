@@ -8,13 +8,11 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -33,12 +31,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+
+private const val RevealStripLayoutId = "reveal_strip"
+private const val BarLayoutId = "bar"
 
 /**
  * A vertical floating toolbar docked to the left edge of its parent.
@@ -116,20 +120,50 @@ fun VerticalFloatingToolbar(
         )
     }
 
-    BoxWithConstraints(
+    // A custom layout is used here instead of BoxWithConstraints so that the
+    // parent's max height can be read without incurring a subcomposition pass.
+    // Children are aligned to the vertical center and horizontal start, and the
+    // bar is capped to a fraction of the parent height (wrapping shorter content).
+    Layout(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.CenterStart
-    ) {
-        // Cap the bar height so it wraps a short content exactly, but scrolls
-        // when the content is taller than this fraction of the parent.
-        val maxBarHeight = maxHeight * barHeightFraction
+        content = {
+            // Thin strip along the left edge used to swipe the bar open while hidden.
+            if (!visible) {
+                Box(
+                    modifier = Modifier
+                        .layoutId(RevealStripLayoutId)
+                        .width(revealWidth)
+                        .fillMaxHeight()
+                        .pointerInput(Unit) {
+                            detectHorizontalDragGestures(
+                                onDragStart = { coroutineScope.launch { offsetX.stop() } },
+                                onHorizontalDrag = { change, dragAmount ->
+                                    change.consume()
+                                    coroutineScope.launch {
+                                        offsetX.snapTo(
+                                            (offsetX.value + dragAmount).coerceIn(hiddenX, dockedX)
+                                        )
+                                    }
+                                },
+                                onDragEnd = { settle() },
+                                onDragCancel = { settle() }
+                            )
+                        }
+                )
+            }
 
-        // Thin strip along the left edge used to swipe the bar open while hidden.
-        if (!visible) {
-            Box(
+            Surface(
                 modifier = Modifier
-                    .width(revealWidth)
-                    .fillMaxHeight()
+                    .layoutId(BarLayoutId)
+                    .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+                    .width(barWidth)
+                    // Swallow taps that land on the bar so they do not fall through
+                    // to the background toggle.
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { }
+                    // Horizontal drag: the bar follows the finger and can be dragged off-screen left.
                     .pointerInput(Unit) {
                         detectHorizontalDragGestures(
                             onDragStart = { coroutineScope.launch { offsetX.stop() } },
@@ -144,50 +178,57 @@ fun VerticalFloatingToolbar(
                             onDragEnd = { settle() },
                             onDragCancel = { settle() }
                         )
-                    }
-            )
+                    },
+                shape = shape,
+                color = containerColor,
+                shadowElevation = elevation
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(vertical = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(contentSpacing, Alignment.CenterVertically),
+                    content = content
+                )
+            }
+        }
+    ) { measurables, constraints ->
+        // Cap the bar height so it wraps a short content exactly, but scrolls
+        // when the content is taller than this fraction of the parent.
+        val maxBarHeight = if (constraints.hasBoundedHeight) {
+            (constraints.maxHeight * barHeightFraction).roundToInt()
+        } else {
+            Constraints.Infinity
         }
 
-        Surface(
-            modifier = Modifier
-                .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-                .width(barWidth)
-                .heightIn(max = maxBarHeight)
-                // Swallow taps that land on the bar so they do not fall through
-                // to the background toggle.
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) { }
-                // Horizontal drag: the bar follows the finger and can be dragged off-screen left.
-                .pointerInput(Unit) {
-                    detectHorizontalDragGestures(
-                        onDragStart = { coroutineScope.launch { offsetX.stop() } },
-                        onHorizontalDrag = { change, dragAmount ->
-                            change.consume()
-                            coroutineScope.launch {
-                                offsetX.snapTo(
-                                    (offsetX.value + dragAmount).coerceIn(hiddenX, dockedX)
-                                )
-                            }
-                        },
-                        onDragEnd = { settle() },
-                        onDragCancel = { settle() }
-                    )
-                },
-            shape = shape,
-            color = containerColor,
-            shadowElevation = elevation
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(vertical = 6.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(contentSpacing, Alignment.CenterVertically),
-                content = content
-            )
+        // The parent is measured with fillMaxSize, so its incoming constraints
+        // impose minWidth = maxWidth = the parent width. Children set their own
+        // width (the bar via `width(barWidth)`, the strip via `width(revealWidth)`),
+        // but `Modifier.width` is incoming-enforcing, so a non-zero incoming
+        // minWidth would coerce them to the full parent width. Loosen the
+        // minimums before measuring the children to let them size themselves.
+        val looseConstraints = constraints.copy(minWidth = 0, minHeight = 0)
+
+        val placeables = measurables.map { measurable ->
+            when (measurable.layoutId) {
+                // The bar may not exceed the height cap; it decides its own size
+                // below that via its scrollable content.
+                BarLayoutId -> measurable.measure(
+                    looseConstraints.copy(maxHeight = maxBarHeight)
+                )
+                // The reveal strip fills the parent height.
+                else -> measurable.measure(looseConstraints)
+            }
+        }
+
+        val width = constraints.maxWidth
+        val height = constraints.maxHeight
+        layout(width, height) {
+            placeables.forEach { placeable ->
+                placeable.place(x = 0, y = (height - placeable.height) / 2)
+            }
         }
     }
 }

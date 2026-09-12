@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.net.Uri
@@ -15,34 +14,45 @@ import android.net.http.SslError
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.util.Rational
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Surface
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.SslErrorHandler
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
-import androidx.annotation.NonNull
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,7 +67,10 @@ import androidx.lifecycle.ViewModelProvider
 import com.antest1.gotobrowser.Browser.WebViewL
 import com.antest1.gotobrowser.Browser.WebViewManager
 import com.antest1.gotobrowser.BuildConfig
-import com.antest1.gotobrowser.Constants.*
+import com.antest1.gotobrowser.Constants.ACTION_SHOWKEYBOARD
+import com.antest1.gotobrowser.Constants.PREF_LANDSCAPE
+import com.antest1.gotobrowser.Constants.PREF_PIP_MODE
+import com.antest1.gotobrowser.Constants.REQUEST_NOTIFICATION_PERMISSION
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler
 import com.antest1.gotobrowser.Helpers.KcUtils
 import com.antest1.gotobrowser.Notification.ScreenshotNotification
@@ -65,11 +78,11 @@ import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.ui.component.VerticalFloatingToolbar
 import com.antest1.gotobrowser.ui.theme.GotobrowserTheme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import java.util.*
+import java.util.Locale
 
 class BrowserActivity : ComponentActivity() {
     companion object {
-        val FOREGROUND_ACTION = "${BuildConfig.APPLICATION_ID}.foreground"
+        const val FOREGROUND_ACTION = "${BuildConfig.APPLICATION_ID}.foreground"
 
         @JvmStatic
         fun setSubtitleTextView(context: Context, tv: TextView, size: Int) {
@@ -94,11 +107,13 @@ class BrowserActivity : ComponentActivity() {
     private val errorText = mutableStateOf("")
     private val subtitleTextValue = mutableStateOf("")
     private val closeButtonVisible = mutableStateOf(false)
+    // Hoisted out of setContent so handleBackPress() can reveal the toolbar.
+    private val toolbarVisible = mutableStateOf(false)
 
     @SuppressLint("SourceLockedOrientationActivity", "ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(BrowserViewModel::class.java)
+        viewModel = ViewModelProvider(this)[BrowserViewModel::class.java]
         screenshotNotification = ScreenshotNotification(this)
         backPressCloseHandler = BackPressCloseHandler(this, true)
 
@@ -106,7 +121,7 @@ class BrowserActivity : ComponentActivity() {
         sendIsFrontChanged(true)
 
         val intent = getIntent()
-        viewModel.setKcBrowserMode(WebViewManager.OPEN_KANCOLLE == intent.action)
+        viewModel.isKcBrowserMode = WebViewManager.OPEN_KANCOLLE == intent.action
 
         if (viewModel.sharedPref.getBoolean(PREF_LANDSCAPE, true)) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
@@ -117,8 +132,6 @@ class BrowserActivity : ComponentActivity() {
 
         setContent {
             GotobrowserTheme {
-                val toolbarVisible = remember { mutableStateOf(false) }
-
                 Box(modifier = Modifier.fillMaxSize()) {
                     BrowserScreenContent(
                         viewModel = viewModel,
@@ -177,8 +190,10 @@ class BrowserActivity : ComponentActivity() {
     fun isKcMode(): Boolean = viewModel.isKcBrowserMode
     fun isMuteMode(): Boolean = java.lang.Boolean.TRUE == viewModel.isMuteMode.value
     fun isCaptionAvailable(): Boolean = java.lang.Boolean.TRUE == viewModel.isCaptionMode.value
-    fun isSubtitleAvailable(): Boolean = viewModel.isSubtitleLoaded()
-    fun setStartedFlag() { viewModel.setStartedFlag(true) }
+    fun isSubtitleAvailable(): Boolean = viewModel.isSubtitleLoaded
+    fun setStartedFlag() {
+        viewModel.isStartedFlag = true
+    }
 
     fun setErrorText(text: String) { errorText.value = text }
     fun setSubtitleText(text: String) { subtitleTextValue.value = text }
@@ -187,7 +202,7 @@ class BrowserActivity : ComponentActivity() {
     private fun updateOrientationLock() {
         val isLockMode = java.lang.Boolean.TRUE == viewModel.isLockMode.value
         if (viewModel.sharedPref.getBoolean(PREF_LANDSCAPE, false)) {
-            if (isLockMode) {
+            requestedOrientation = if (isLockMode) {
                 val rot = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     display?.rotation ?: Surface.ROTATION_0
                 } else {
@@ -195,14 +210,14 @@ class BrowserActivity : ComponentActivity() {
                     windowManager.defaultDisplay.rotation
                 }
                 if (rot == Surface.ROTATION_270) {
-                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+                    ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
                 } else {
-                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                    ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                 }
-            } else requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+            } else ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
         } else {
-            if (isLockMode) requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
-            else requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER
+            requestedOrientation = if (isLockMode) ActivityInfo.SCREEN_ORIENTATION_LOCKED
+            else ActivityInfo.SCREEN_ORIENTATION_USER
         }
     }
 
@@ -228,6 +243,12 @@ class BrowserActivity : ComponentActivity() {
 
     fun handleBackPress() {
         if (viewModel.isKcBrowserMode) {
+            // Reveal the floating toolbar on back press, so the user can always
+            // bring it back even when the edge-swipe reveal gesture is consumed
+            // by the system back gesture. This coincides with the
+            // "Press back again to exit" prompt. Setting the state to true while
+            // the toolbar is already visible is a no-op.
+            toolbarVisible.value = true
             backPressCloseHandler.handleOnBackPressed()
         } else {
             val intent = Intent(this, EntranceActivity::class.java)
@@ -302,7 +323,7 @@ class BrowserActivity : ComponentActivity() {
     }
 
     private fun refreshPageOrFinish() {
-        viewModel.setConnectorInfo(WebViewManager.getDefaultPage(this, viewModel.isKcBrowserMode))
+        viewModel.connectorInfo = WebViewManager.getDefaultPage(this, viewModel.isKcBrowserMode)
         val info = viewModel.connectorInfo
         if (manager != null && info != null && info.size == 2) {
             mContentView?.let { manager?.refreshPage(it) }
@@ -375,9 +396,9 @@ class BrowserActivity : ComponentActivity() {
         }
     }
 
-    fun sendIsFrontChanged(is_front: Boolean) {
+    fun sendIsFrontChanged(isFront: Boolean) {
         val intent = Intent(FOREGROUND_ACTION)
-        intent.putExtra("is_front", is_front)
+        intent.putExtra("is_front", isFront)
         sendBroadcast(intent)
     }
 
@@ -545,7 +566,7 @@ fun BrowserScreenContent(
                         manager?.setHardwareAcceleratedFlag()
                         activity.initPanelKeyboardFromIntent(intent)
                         // Initial setup...
-                        viewModel.setConnectorInfo(WebViewManager.getDefaultPage(activity, viewModel.isKcBrowserMode))
+                        viewModel.connectorInfo = WebViewManager.getDefaultPage(activity, viewModel.isKcBrowserMode)
                         val info = viewModel.connectorInfo
                         if (info != null && info.size == 2) {
                             manager?.setWebViewSettings(this)

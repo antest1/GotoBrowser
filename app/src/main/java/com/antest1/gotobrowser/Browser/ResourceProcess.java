@@ -169,10 +169,6 @@ public class ResourceProcess {
                 .equals(PREF_CURSOR_MODE_TOUCH);
         alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL);
         prefModKantaiEn = sharedPref.getBoolean(PREF_MOD_KCCP_LANG_PATCH, false);
-        // subtitleText = activity.findViewById(R.id.subtitle_view);
-        // if (subtitleText != null) {
-        //    subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
-        // }
     }
 
     public static String getUserAgent() {

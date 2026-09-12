@@ -4,7 +4,6 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.antest1.gotobrowser.Browser.WebViewManager;
 import com.antest1.gotobrowser.Helpers.CritPatcher;
 import com.antest1.gotobrowser.Helpers.FpsPatcher;
 import com.antest1.gotobrowser.Helpers.K3dPatcher;
