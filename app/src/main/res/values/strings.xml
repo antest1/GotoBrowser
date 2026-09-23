@@ -50,6 +50,10 @@
     <string name="browser_fontprefetch">Prefetch Font Assets</string>
     <string name="browser_enablepipmode">Picture-in-picture mode</string>
     <string name="browser_disable_refresh_dialog">Disable Refresh Warning Dialog</string>
+    <string name="browser_quick_game_reload">Enable Quick Game Reload</string>
+    <string name="browser_quick_game_reload_summary">Reload only the KanColle game frame instead of the full page</string>
+    <string name="browser_quick_game_reload_short_press">Quick Reload on Short Press</string>
+    <string name="browser_quick_game_reload_short_press_summary">On: short press reloads the game frame and long press performs a normal refresh. Off: long press reloads the game frame.</string>
     <string name="logout_msg">Are you sure you want to Logout?</string>
     <string name="noti_screenshot_name">GotoBrowser Screenshot</string>
     <string name="noti_screenshot_title">Screenshot Captured</string>

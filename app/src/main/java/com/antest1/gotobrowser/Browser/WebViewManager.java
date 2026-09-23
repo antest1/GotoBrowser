@@ -314,6 +314,17 @@ public class WebViewManager {
         }
     }
 
+    public boolean quickReloadGame(WebViewL webview) {
+        String prefConnector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
+
+        if (!CONN_DMM.equals(prefConnector)) {
+            return false;
+        }
+
+        webview.evaluateJavascript(QUICK_RELOAD_SEND_DMM, null);
+        return true;
+    }
+
     public void refreshPage(WebViewL webview) {
         refreshFlag = true;
         webview.loadUrl("about:blank");

@@ -79,6 +79,8 @@ import static com.antest1.gotobrowser.Constants.PREF_LOCKMODE;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_MUTEMODE;
 import static com.antest1.gotobrowser.Constants.PREF_DISABLE_REFRESH_DIALOG;
+import static com.antest1.gotobrowser.Constants.PREF_QUICK_GAME_RELOAD;
+import static com.antest1.gotobrowser.Constants.PREF_QUICK_GAME_RELOAD_SHORT_PRESS;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SHOWCC;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE;
@@ -181,7 +183,13 @@ public class BrowserActivity extends AppCompatActivity {
 
             // Browser Panel Buttons
             View menuRefresh = findViewById(R.id.menu_refresh);
-            menuRefresh.setOnClickListener(v -> showRefreshDialog());
+
+            menuRefresh.setOnClickListener(v -> handleRefresh(false));
+
+            menuRefresh.setOnLongClickListener(v -> {
+                handleRefresh(true);
+                return true;
+            });
 
             View menuLogout = findViewById(R.id.menu_logout);
             menuLogout.setOnClickListener(v -> showLogoutDialog());
@@ -671,6 +679,23 @@ public class BrowserActivity extends AppCompatActivity {
         } else {
             finish();
         }
+    }
+
+    private void handleRefresh(boolean longPress) {
+        boolean quickReloadEnabled =
+                sharedPref.getBoolean(PREF_QUICK_GAME_RELOAD, false);
+
+        boolean quickReloadOnShortPress =
+                sharedPref.getBoolean(PREF_QUICK_GAME_RELOAD_SHORT_PRESS, false);
+
+        boolean shouldQuickReload =
+                quickReloadEnabled && (quickReloadOnShortPress != longPress);
+
+        if (shouldQuickReload && manager.quickReloadGame(mContentView)) {
+            return;
+        }
+
+        showRefreshDialog();
     }
 
     public void showRefreshDialog() {

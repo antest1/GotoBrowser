@@ -74,6 +74,8 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_ID;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_NAME;
 import static com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN;
 import static com.antest1.gotobrowser.Constants.PREF_DISABLE_REFRESH_DIALOG;
+import static com.antest1.gotobrowser.Constants.PREF_QUICK_GAME_RELOAD;
+import static com.antest1.gotobrowser.Constants.PREF_QUICK_GAME_RELOAD_SHORT_PRESS;
 import static com.antest1.gotobrowser.Constants.PREF_PIP_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_SETTINGS;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE;
@@ -125,6 +127,8 @@ public class SettingsActivity extends AppCompatActivity {
                 case PREF_LEGACY_RENDERER:
                 case PREF_ALTER_GADGET:
                 case PREF_DISABLE_REFRESH_DIALOG:
+                case PREF_QUICK_GAME_RELOAD:
+                case PREF_QUICK_GAME_RELOAD_SHORT_PRESS:
                     editor.putBoolean(key, false);
                     break;
                 case PREF_MOD_KCCP_LANG_PATCH:
@@ -209,6 +213,7 @@ public class SettingsActivity extends AppCompatActivity {
                         preference.setOnPreferenceClickListener(this);
                     }
                 }
+                updateQuickReloadPreferenceVisibility();
             }
         }
 
@@ -313,6 +318,15 @@ public class SettingsActivity extends AppCompatActivity {
                 boolean value = (boolean) newValue;
                 sharedPref.edit().putBoolean(key, value).apply();
 
+                if (key.equals(PREF_QUICK_GAME_RELOAD)) {
+                    Preference quickReloadMode =
+                            findPreference(PREF_QUICK_GAME_RELOAD_SHORT_PRESS);
+
+                    if (quickReloadMode != null) {
+                        quickReloadMode.setVisible(value);
+                    }
+                }
+
                 if (key.equals(PREF_USE_EXTCACHE)) {
                     updateSubtitleDescriptionText();
                 }
@@ -385,6 +399,17 @@ public class SettingsActivity extends AppCompatActivity {
                 enUtils.checkKantaiEnUpdate(this, modKCCPLangPatchUpdate);
             } else {
                 modKCCPLangPatchUpdate.setSummary("Mod disabled.");
+            }
+        }
+
+        private void updateQuickReloadPreferenceVisibility() {
+            Preference preference =
+                    findPreference(PREF_QUICK_GAME_RELOAD_SHORT_PRESS);
+
+            if (preference != null) {
+                preference.setVisible(
+                        sharedPref.getBoolean(PREF_QUICK_GAME_RELOAD, false)
+                );
             }
         }
 

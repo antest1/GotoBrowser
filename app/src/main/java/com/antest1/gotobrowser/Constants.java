@@ -19,6 +19,8 @@ public class Constants {
     public static final String PREF_KEEPMODE = "pref_keepmode";
     public static final String PREF_SHOWCC = "pref_showcc";
     public static final String PREF_DISABLE_REFRESH_DIALOG = "pref_disable_refresh_dialog";
+    public static final String PREF_QUICK_GAME_RELOAD = "pref_quick_game_reload";
+    public static final String PREF_QUICK_GAME_RELOAD_SHORT_PRESS = "pref_quick_game_reload_short_press";
     public static final String PREF_LATEST_URL = "pref_latest_url";
     public static final String PREF_DMM_ID = "pref_autocomplete_id";
     public static final String PREF_DMM_PASS = "pref_autocomplete_pass";
@@ -77,6 +79,8 @@ public class Constants {
             PREF_DEVTOOLS_DEBUG,
             PREF_CURSOR_MODE,
             PREF_DISABLE_REFRESH_DIALOG,
+            PREF_QUICK_GAME_RELOAD,
+            PREF_QUICK_GAME_RELOAD_SHORT_PRESS,
             PREF_SUBTITLE_FONTSIZE
     };
 
@@ -117,6 +121,7 @@ public class Constants {
     public static final String ADD_VIEWPORT_META = "var metaTag=document.createElement('meta');metaTag.name='viewport',metaTag.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',document.getElementsByTagName('head')[0].appendChild(metaTag);";
 
     public static final String MUTE_SEND_DMM = "(function(){var msg={sound:%d};var origin=\"*\";var game_frame=document.getElementById(\"game_frame\");if(game_frame!=null){game_frame.contentWindow.postMessage(msg,origin)};return \"done\"})()";
+    public static final String QUICK_RELOAD_SEND_DMM = "(function(){var game_frame=document.getElementById(\"game_frame\");if(game_frame!=null){game_frame.contentWindow.postMessage(\"gotobrowser_quick_reload\",\"*\");return true;}return false;})()";
     public static final String MUTE_SEND_OOI = "(function(){var msg={sound:%d};var origin=\"*\";var game_frame=document.getElementById(\"externalswf\");if(game_frame!=null){game_frame.contentWindow.postMessage(msg,origin)};return \"done\"})()";
     public static final String MUTE_LISTEN = "\nwindow.addEventListener(\"message\",function(e){(e.data.sound!=null)&&(global_mute=e.data.sound,Howler.mute(global_mute),(!global_mute&&gb_h&&gb_h&&!gb_h.playing())&&gb_h.play())});";
     public static final String DMM_COOKIE = "document.cookie='ckcy_remedied_check=\"ec_mrnhbtk\";expires={date};path=/;domain=.dmm.com';document.cookie='ckcy=1;path=/;domain=.dmm.com;expires={date};path=/;domain=.dmm.com';";

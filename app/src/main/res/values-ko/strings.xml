@@ -42,6 +42,10 @@
     <string name="browser_fontprefetch">폰트 파일 미리 로드</string>
     <string name="browser_enablepipmode">PIP 모드 활성화</string>
     <string name="browser_disable_refresh_dialog">새로고침 확인 비활성화</string>
+    <string name="browser_quick_game_reload">빠른 게임 새로고침 사용</string>
+    <string name="browser_quick_game_reload_summary">전체 페이지가 아닌 칸코레 게임 화면만 다시 불러옵니다</string>
+    <string name="browser_quick_game_reload_short_press">짧게 눌러 빠른 새로고침</string>
+    <string name="browser_quick_game_reload_short_press_summary">켜짐: 짧게 누르면 게임만 빠르게 새로고침하고 길게 누르면 일반 새로고침을 실행합니다. 꺼짐: 길게 누르면 게임만 빠르게 새로고침합니다.</string>
     <string name="logout_msg">로그아웃하시겠습니까?</string>
     <string name="noti_screenshot_name">GotoBrowser 스크린샷</string>
     <string name="noti_screenshot_title">스크린샷 저장됨</string>

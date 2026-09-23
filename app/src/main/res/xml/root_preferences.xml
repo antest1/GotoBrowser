@@ -52,6 +52,18 @@
 
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
+            app:key="pref_quick_game_reload"
+            app:title="@string/browser_quick_game_reload"
+            app:summary="@string/browser_quick_game_reload_summary" />
+
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="pref_quick_game_reload_short_press"
+            app:title="@string/browser_quick_game_reload_short_press"
+            app:summary="@string/browser_quick_game_reload_short_press_summary" />
+
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
             app:key="pref_pip_mode"
             app:title="@string/browser_enablepipmode" />
 

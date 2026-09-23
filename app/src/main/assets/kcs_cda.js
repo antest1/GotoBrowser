@@ -1,5 +1,13 @@
 ﻿window.addEventListener('message', function (event) {
 	if (typeof event.data == "string") {
+        if (event.data == "gotobrowser_quick_reload" && event.source === window.parent) {
+            var game = document.getElementById("htmlWrap");
+            if (game) {
+                game.src = game.src;
+            }
+            return;
+        }
+
         // サーバ選択前
         if (event.data == "w") {
             if (ConstServerInfo.Gadget == event.origin + "/") {

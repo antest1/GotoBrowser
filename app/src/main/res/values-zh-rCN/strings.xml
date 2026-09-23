@@ -40,6 +40,10 @@
     <string name="browser_fontprefetch">预先载入字体</string>
     <string name="browser_enablepipmode">启用画中画模式</string>
     <string name="browser_disable_refresh_dialog">禁用重新加载确认</string>
+    <string name="browser_quick_game_reload">启用快速游戏重载</string>
+    <string name="browser_quick_game_reload_summary">仅重新加载舰队Collection游戏画面，而不刷新整个页面</string>
+    <string name="browser_quick_game_reload_short_press">短按时快速重载</string>
+    <string name="browser_quick_game_reload_short_press_summary">开启：短按快速重载游戏，长按执行普通刷新。关闭：长按快速重载游戏。</string>
     <string name="logout_msg">您确定要登出吗？</string>
     <string name="noti_screenshot_name">GotoBrowser截图</string>
     <string name="noti_screenshot_title">已储存萤幕截图</string>
