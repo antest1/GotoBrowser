@@ -150,7 +150,6 @@ public class ResourceProcess {
     private final OkHttpClient resourceClient = new OkHttpClient();
     SharedPreferences sharedPref;
 
-    private final TextView subtitleText;
     private final Handler shipVoiceHandler = new Handler();
     private final Handler clearSubHandler = new Handler();
 
@@ -170,8 +169,6 @@ public class ResourceProcess {
                 .equals(PREF_CURSOR_MODE_TOUCH);
         alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL);
         prefModKantaiEn = sharedPref.getBoolean(PREF_MOD_KCCP_LANG_PATCH, false);
-        subtitleText = activity.findViewById(R.id.subtitle_view);
-        subtitleText.setOnClickListener(v -> clearSubHandler.postDelayed(clearSubtitle, 250));
     }
 
     public static String getUserAgent() {
@@ -899,7 +896,7 @@ public class ResourceProcess {
     private final Runnable clearSubtitle = new Runnable() {
         @Override
         public void run() {
-            subtitleText.setText("");
+            activity.setSubtitleText("");
         }
     };
 
@@ -926,7 +923,7 @@ public class ResourceProcess {
                 }
 
                 if (activity.isCaptionAvailable()) {
-                    subtitleText.setText(subtitle_text);
+                    activity.setSubtitleText(subtitle_text);
                 }
                 clearSubHandler.postDelayed(clearSubtitle, duration);
             });
