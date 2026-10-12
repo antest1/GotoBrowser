@@ -287,6 +287,8 @@ public class KcUtils {
                 downloadResult.addProperty("cache_control", cache_control);
             } else if (response.code() == 304) {
                 Log.e("GOTO", "304 Not Modified " + fullpath);
+                // a 304 may carry a new Cache-Control, used to refresh the expiry
+                downloadResult.addProperty("cache_control", response.header("Cache-Control", null));
             } else if (response.code() == 403) {
                 Log.e("GOTO", "403 Forbidden" + fullpath);
             }
