@@ -93,6 +93,8 @@ public class ResourceProcess {
     private static final int RES_CSS    = 0b0100000;
     private static final int RES_KCSAPI = 0b1000000;
     private static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss z";
+    // used when a 304 response carries no max-age (30 days, the default the pre-rev6 code used)
+    private static final long DEFAULT_REVALIDATED_MAX_AGE = 2592000L;
 
     private static final Pattern INIT_VOLUME_PATTERN = Pattern.compile(
             String.format(Locale.US, "(%s,%s,%s,%s,%s);",
@@ -377,10 +379,38 @@ public class ResourceProcess {
             long expiryMillis = now.getTime() + (maxAgeSeconds * 1000);
             Date expiryDate = new Date(expiryMillis);
             SimpleDateFormat sdf = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
+            // HTTP dates are always in GMT (parseHttpDate reads them as GMT)
+            sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
             return sdf.format(expiryDate);
         } else {
             return versionTable.getDefaultValue();
         }
+    }
+
+    // JsonObject.get(key).getAsString() throws on a missing/null header, so read it safely
+   private static String getResultString(JsonObject result, String key) {
+        if (result == null || !result.has(key) || result.get(key).isJsonNull()) return null;
+        return result.get(key).getAsString();
+    }
+
+    // Store Last-Modified and expiry for a downloaded (200) resource.
+    private void saveCacheInfo(String update_key, String lastModified, JsonObject result) {
+        String cacheExpired = getCacheExpiredAt(getResultString(result, "cache_control"));
+        if (lastModified == null) lastModified = versionTable.getDefaultValue();
+        versionTable.putCacheAndVersion(update_key, lastModified, cacheExpired);
+        Log.e(TAG_D, update_key + " last_modified: " + lastModified);
+        Log.e(TAG_D, update_key + " cache_expired: " + cacheExpired);
+    }
+
+    // On a revalidated (304) resource the stored Last-Modified is still valid, so only renew
+    // the expiry. Without this, an expired entry would be revalidated on every request.
+    private void renewCacheExpiry(String update_key, JsonObject result) {
+        String cacheExpired = getCacheExpiredAt(getResultString(result, "cache_control"));
+        if (cacheExpired.equals(versionTable.getDefaultValue())) {
+            cacheExpired = getCacheExpiredAt("max-age=" + DEFAULT_REVALIDATED_MAX_AGE);
+        }
+        versionTable.putCacheControlValue(update_key, cacheExpired);
+        Log.e(TAG_D, update_key + " cache_expired: " + cacheExpired);
     }
 
     private WebResourceResponse processImageDataResource(ResourceRequestInfo requestInfo, int resource_type) {
@@ -409,12 +439,9 @@ public class ResourceProcess {
                 int response_code = result.get("response_code").getAsInt();
                 if (response_code == 200) {
                     update_flag = true;
-                    String cache_expired = getCacheExpiredAt(result.get("cache_control").getAsString());
-                    String last_modified = result.get("last_modified").getAsString();
-                    versionTable.putCacheAndVersion(update_key, last_modified, cache_expired);
-                    Log.e(TAG_D, update_key + " last_modified: " + last_modified);
-                    Log.e(TAG_D, update_key + " cache_expired: " + cache_expired);
+                    saveCacheInfo(update_key, getResultString(result, "last_modified"), result);
                 } else if (response_code == 304) {
+                    renewCacheExpiry(update_key, result);
                     Log.e(TAG_D, update_key + " use cached resource (304)");
                 } else {
                     Log.e(TAG_D, update_key + " response_code: " + response_code);
@@ -633,12 +660,9 @@ public class ResourceProcess {
             if (result.has("response_code")) {
                 int response_code = result.get("response_code").getAsInt();
                 if (response_code == 200) {
-                    String cache_expired = getCacheExpiredAt(result.get("cache_control").getAsString());
-                    String last_modified = result.get("last_modified").getAsString();
-                    versionTable.putCacheAndVersion(update_key, last_modified, cache_expired);
-                    Log.e(TAG_D, update_key + " last_modified: " + last_modified);
-                    Log.e(TAG_D, update_key + " cache_expired: " + cache_expired);
+                    saveCacheInfo(update_key, getResultString(result, "last_modified"), result);
                 } else if (response_code == 304) {
+                    renewCacheExpiry(update_key, result);
                     Log.e(TAG_D, update_key + " use cached resource (304)");
                 } else {
                     Log.e(TAG_D, update_key + " response_code: " + response_code);
@@ -699,12 +723,9 @@ public class ResourceProcess {
             if (result.has("response_code")) {
                 int response_code = result.get("response_code").getAsInt();
                 if (response_code == 200) {
-                    String cache_expired = getCacheExpiredAt(result.get("cache_control").getAsString());
-                    String last_modified = result.get("last_modified").getAsString();
-                    versionTable.putCacheAndVersion(update_key, last_modified, cache_expired);
-                    Log.e(TAG_D, update_key + " last_modified: " + last_modified);
-                    Log.e(TAG_D, update_key + " cache_expired: " + cache_expired);
+                    saveCacheInfo(update_key, getResultString(result, "last_modified"), result);
                 } else if (response_code == 304) {
+                    renewCacheExpiry(update_key, result);
                     Log.e(TAG_D, update_key + " use cached resource (304)");
                 } else {
                     Log.e(TAG_D, update_key + " response_code: " + response_code);
