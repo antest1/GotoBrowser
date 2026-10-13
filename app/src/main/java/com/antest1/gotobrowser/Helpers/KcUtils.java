@@ -290,12 +290,13 @@ public class KcUtils {
                     byte[] buffer = new byte[16384];
                     int bytes;
                     if (file != null) {
-                        if (file.getParentFile() != null) file.getParentFile().mkdirs();
-                        FileOutputStream fos = new FileOutputStream(file);
+                        File temp = newTempSibling(file);
+                        FileOutputStream fos = new FileOutputStream(temp);
                         while ((bytes = in.read(buffer)) != -1) {
                             fos.write(buffer, 0, bytes);
                         }
                         fos.close();
+                        replaceFile(temp, file);
                     }
                     body.close();
                 }
@@ -634,13 +635,30 @@ public class KcUtils {
     }
 
     public static void copyFileUsingStream(File source, File dest) throws IOException {
-        try (InputStream is = new FileInputStream(source); OutputStream os = new FileOutputStream(dest)) {
+        File temp = newTempSibling(dest);
+        try (InputStream is = new FileInputStream(source); OutputStream os = new FileOutputStream(temp)) {
             byte[] buffer = new byte[16384];
             int length;
             while ((length = is.read(buffer)) > 0) {
                 os.write(buffer, 0, length);
             }
+        } catch (IOException e) {
+            temp.delete();
+            throw e;
         }
+        replaceFile(temp, dest);
+    }
+
+    // Write through a unique temp sibling, then rename(2) over the target so a concurrent reader
+    // on the previous inode never sees partially written content.
+    private static File newTempSibling(File dest) {
+        File parent = dest.getParentFile();
+        if (parent != null) parent.mkdirs();
+        return new File(parent, dest.getName() + "-" + System.nanoTime() + ".tmp");
+    }
+
+    private static void replaceFile(File temp, File dest) {
+        if (!temp.renameTo(dest)) temp.delete();
     }
 
     public static String getWebkitErrorCodeText(int errorCode) {
