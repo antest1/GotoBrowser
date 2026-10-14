@@ -46,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -53,7 +54,10 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -107,8 +111,18 @@ public class ResourceProcess {
 
     private static final String TAG_D = "GOTO-D";
     private static final String TAG_P = "GOTO-P";
-    private static final String TAG_E = "GOTO-E";
     private static final String TAG_G = "GOTO";
+
+    // Freshness window for cached resources, overriding the server's unrealistic max-age.
+    private static final long CACHE_TTL_MS = 24L * 60 * 60 * 1000;
+
+    // downloadResourceIfMissing results.
+    private static final int RESOURCE_CACHED = 0;
+    private static final int RESOURCE_DOWNLOADED = 1;
+    private static final int RESOURCE_FAILED = -1;
+
+    private static final ExecutorService REVALIDATION_EXECUTOR = Executors.newFixedThreadPool(4);
+    private static final Set<String> revalidationInFlight = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private static String userAgent;
 
@@ -351,12 +365,6 @@ public class ResourceProcess {
         }
     }
 
-    private int checkCacheExpired(String expiryDate) {
-        Date parsedExpiryDate = parseHttpDate(expiryDate);
-        if (parsedExpiryDate == null) return -1;
-        return parsedExpiryDate.before(new Date()) ? 1 : 0;
-    }
-
     public static Date parseHttpDate(String dateString) {
         try {
             SimpleDateFormat formatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
@@ -369,63 +377,70 @@ public class ResourceProcess {
         }
     }
 
-    private String getCacheExpiredAt(String cache_control) {
-        Long maxAgeSeconds = KcUtils.extractMaxAge(cache_control);
-        if (maxAgeSeconds != null) {
-            // 3. Calculate expiration
-            Date now = new Date();
-            long expiryMillis = now.getTime() + (maxAgeSeconds * 1000);
-            Date expiryDate = new Date(expiryMillis);
-            SimpleDateFormat sdf = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
-            return sdf.format(expiryDate);
-        } else {
-            return versionTable.getDefaultValue();
-        }
+    private WebResourceResponse processImageDataResource(ResourceRequestInfo requestInfo, int resource_type) {
+        File file = getImageFile(requestInfo.outputPath);
+        int status = downloadResourceIfMissing(requestInfo, file);
+        if (status == RESOURCE_FAILED) return promptForRetry(requestInfo, resource_type);
+        return serveLocalCachedImage(file, requestInfo, resource_type, status == RESOURCE_DOWNLOADED);
     }
 
-    private WebResourceResponse processImageDataResource(ResourceRequestInfo requestInfo, int resource_type) {
+    // Serves the cached copy if present (refreshing it in the background), else downloads once.
+    private int downloadResourceIfMissing(ResourceRequestInfo requestInfo, File file) {
         String update_key = requestInfo.key;
-        String path = requestInfo.path;
-        String resource_url = requestInfo.fullUrl;
-        String out_file_path = requestInfo.outputPath;
-        String log_path = out_file_path;
-        File file = getImageFile(out_file_path);
+        boolean cached = file.exists() && file.length() > 0
+                && !Objects.equals(versionTable.getVersionValue(update_key), versionTable.getDefaultValue());
+        if (cached) {
+            revalidateCacheInBackground(update_key, requestInfo.fullUrl, file);
+            return RESOURCE_CACHED;
+        }
+        JsonObject result = downloadResource(resourceClient, requestInfo.fullUrl, file, null);
+        if (!result.has("response_code")) return RESOURCE_FAILED;
+        if (result.get("response_code").getAsInt() != 200) return RESOURCE_CACHED;
+        versionTable.putCacheAndVersion(update_key, result.get("last_modified").getAsString(), getRevalidationExpiry());
+        return RESOURCE_DOWNLOADED;
+    }
 
-        Log.e(TAG_D, "resource_url: " + resource_url);
-        String cacheExpiredDate = versionTable.getCacheControlValue(update_key);
+    // Stale-while-revalidate (off the UI thread): the conditional GET result is used on a future
+    // load, so an asset updated without a version bump self-heals within CACHE_TTL_MS.
+    private void revalidateCacheInBackground(String update_key, String resource_url, File file) {
+        Date expiry = parseHttpDate(versionTable.getCacheControlValue(update_key));
+        if (expiry != null && System.currentTimeMillis() < expiry.getTime()) return;
+        if (!revalidationInFlight.add(update_key)) return;
+
         String prevLastModified = versionTable.getVersionValue(update_key);
+        final String ifModifiedSince = Objects.equals(versionTable.getDefaultValue(), prevLastModified) ? null : prevLastModified;
 
-        int isCacheExpired = checkCacheExpired(cacheExpiredDate);
-        boolean isDefaultValue = prevLastModified.equals(versionTable.getDefaultValue())
-                || cacheExpiredDate.equals(versionTable.getDefaultValue());
-        if (!file.exists() || isDefaultValue || isCacheExpired == -1) prevLastModified = null;
-
-        boolean update_flag = false;
-        if (prevLastModified == null || isCacheExpired == 1) {
-            JsonObject result = downloadResource(
-                    resourceClient, resource_url, file, prevLastModified);
-
-            if (result.has("response_code")) {
+        REVALIDATION_EXECUTOR.execute(() -> {
+            try {
+                JsonObject result = downloadResource(resourceClient, resource_url, file, ifModifiedSince);
+                if (!result.has("response_code")) return;
                 int response_code = result.get("response_code").getAsInt();
                 if (response_code == 200) {
-                    update_flag = true;
-                    String cache_expired = getCacheExpiredAt(result.get("cache_control").getAsString());
-                    String last_modified = result.get("last_modified").getAsString();
-                    versionTable.putCacheAndVersion(update_key, last_modified, cache_expired);
-                    Log.e(TAG_D, update_key + " last_modified: " + last_modified);
-                    Log.e(TAG_D, update_key + " cache_expired: " + cache_expired);
+                    versionTable.putCacheAndVersion(update_key, result.get("last_modified").getAsString(), getRevalidationExpiry());
                 } else if (response_code == 304) {
-                    Log.e(TAG_D, update_key + " use cached resource (304)");
-                } else {
-                    Log.e(TAG_D, update_key + " response_code: " + response_code);
+                    versionTable.putCacheControlValue(update_key, getRevalidationExpiry());
                 }
-            } else {
-                Log.e(TAG_D, "download error: " + update_key);
-                return promptForRetry(requestInfo, resource_type);
+            } catch (Exception e) {
+                KcUtils.reportException(e);
+            } finally {
+                revalidationInFlight.remove(update_key);
             }
-        } else {
-            Log.e(TAG_D, "using cache: " + update_key + " " + cacheExpiredDate);
-        }
+        });
+    }
+
+    private String getRevalidationExpiry() {
+        SimpleDateFormat sdf = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return sdf.format(new Date(System.currentTimeMillis() + CACHE_TTL_MS));
+    }
+
+    // Applies the Ken patch if available, then returns a response backed by the local file.
+    // updateFlag=true forces re-patch after a fresh download.
+    private WebResourceResponse serveLocalCachedImage(File originalFile, ResourceRequestInfo requestInfo, int resource_type, boolean updateFlag) {
+        String path = requestInfo.path;
+        String out_file_path = requestInfo.outputPath;
+        String log_path = out_file_path;
+        File file = originalFile;
 
         if (KenPatcher.isPatcherEnabled()) {
             String patchedFilePath = KcUtils.getAppCacheFileDir(context, KcEnUtils.getPatchedCachePath().concat(path));
@@ -444,7 +459,7 @@ public class ResourceProcess {
                 }
                 String hash = GetMD5HashOfString(patchStrings);
                 String patchVersion = versionTable.getVersionValue(patchFilePath);
-                if (!patchedFile.exists() || update_flag || patchVersion == null ||
+                if (!patchedFile.exists() || updateFlag || patchVersion == null ||
                         !Objects.equals(versionTable.getVersionValue(patchFilePath), hash)) {
                     versionTable.putVersionValue(patchFilePath, hash);
                     Log.e(TAG_D, "needs repatch: " + patchedFilePath + " " + hash);
@@ -608,47 +623,11 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processAudioFile(ResourceRequestInfo requestInfo, int resource_type) {
-        String update_key = requestInfo.key;
-
         String path = requestInfo.path;
-        String resource_url = requestInfo.fullUrl;
-        String out_file_path = requestInfo.outputPath;
-
         String url = requestInfo.url;
-        File file = new File(out_file_path);
-        Log.e(TAG_E, "resource_url: " + resource_url);
-
-        String cacheExpiredDate = versionTable.getCacheControlValue(update_key);
-        String prevLastModified = versionTable.getVersionValue(update_key);
-
-        int isCacheExpired = checkCacheExpired(cacheExpiredDate);
-        boolean isDefaultValue = prevLastModified.equals(versionTable.getDefaultValue())
-                        || cacheExpiredDate.equals(versionTable.getDefaultValue());
-        if (!file.exists() || isDefaultValue || isCacheExpired == -1) prevLastModified = null;
-
-        if (prevLastModified == null || isCacheExpired == 1) {
-            JsonObject result = downloadResource(
-                    resourceClient, resource_url, file, prevLastModified);
-
-            if (result.has("response_code")) {
-                int response_code = result.get("response_code").getAsInt();
-                if (response_code == 200) {
-                    String cache_expired = getCacheExpiredAt(result.get("cache_control").getAsString());
-                    String last_modified = result.get("last_modified").getAsString();
-                    versionTable.putCacheAndVersion(update_key, last_modified, cache_expired);
-                    Log.e(TAG_D, update_key + " last_modified: " + last_modified);
-                    Log.e(TAG_D, update_key + " cache_expired: " + cache_expired);
-                } else if (response_code == 304) {
-                    Log.e(TAG_D, update_key + " use cached resource (304)");
-                } else {
-                    Log.e(TAG_D, update_key + " response_code: " + response_code);
-                }
-            } else {
-                Log.e(TAG_D, "download error: " + update_key);
-                return promptForRetry(requestInfo, resource_type);
-            }
-        } else {
-            Log.e(TAG_D, "using cache: " + update_key + " " + cacheExpiredDate);
+        File file = new File(requestInfo.outputPath);
+        if (downloadResourceIfMissing(requestInfo, file) == RESOURCE_FAILED) {
+            return promptForRetry(requestInfo, resource_type);
         }
 
         String voiceSize = String.valueOf(file.length());
@@ -677,45 +656,8 @@ public class ResourceProcess {
 
     private WebResourceResponse processFontFile(ResourceRequestInfo requestInfo) throws IOException {
         String path = requestInfo.path;
-        String update_key = requestInfo.key;
-        String resource_url = requestInfo.fullUrl;
-        String out_file_path = requestInfo.outputPath;
-
-        File file = new File(out_file_path);
-        Log.e(TAG_E, "resource_url: " + resource_url);
-
-        String cacheExpiredDate = versionTable.getCacheControlValue(update_key);
-        String prevLastModified = versionTable.getVersionValue(update_key);
-
-        int isCacheExpired = checkCacheExpired(cacheExpiredDate);
-        boolean isDefaultValue = prevLastModified.equals(versionTable.getDefaultValue())
-                || cacheExpiredDate.equals(versionTable.getDefaultValue());
-        if (!file.exists() || isDefaultValue || isCacheExpired == -1) prevLastModified = null;
-
-        if (prevLastModified == null || isCacheExpired == 1) {
-            JsonObject result = downloadResource(
-                    resourceClient, resource_url, file, prevLastModified);
-
-            if (result.has("response_code")) {
-                int response_code = result.get("response_code").getAsInt();
-                if (response_code == 200) {
-                    String cache_expired = getCacheExpiredAt(result.get("cache_control").getAsString());
-                    String last_modified = result.get("last_modified").getAsString();
-                    versionTable.putCacheAndVersion(update_key, last_modified, cache_expired);
-                    Log.e(TAG_D, update_key + " last_modified: " + last_modified);
-                    Log.e(TAG_D, update_key + " cache_expired: " + cache_expired);
-                } else if (response_code == 304) {
-                    Log.e(TAG_D, update_key + " use cached resource (304)");
-                } else {
-                    Log.e(TAG_D, update_key + " response_code: " + response_code);
-                }
-            } else {
-                Log.e(TAG_D, "download error: " + update_key);
-            }
-        } else {
-            Log.e(TAG_D, "using cache: " + update_key + " " + cacheExpiredDate);
-        }
-
+        File file = new File(requestInfo.outputPath);
+        downloadResourceIfMissing(requestInfo, file);
         file = applyKenPatcherIfAvailable(path, file, false);
         InputStream is = new BufferedInputStream(new FileInputStream(file));
         return new WebResourceResponse("application/font-woff2", "binary", is);
