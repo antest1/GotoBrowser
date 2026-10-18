@@ -368,7 +368,7 @@ fun SettingsContent(
 
 @Composable
 private fun DisplaySection(viewModel: SettingsViewModel?, onSettingChanged: (String) -> Unit) {
-    SwitchRow(viewModel, PREF_LANDSCAPE, R.string.mode_landscape, onSettingChanged = onSettingChanged)
+    SwitchRow(viewModel, PREF_LANDSCAPE, R.string.mode_landscape, defaultValue = true, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_ADJUSTMENT, R.string.mode_adjustment, R.string.settings_recommended_summary, defaultValue = true, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_PIP_MODE, R.string.browser_enablepipmode, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_MULTIWIN_MARGIN, R.string.settings_mw_margin, onSettingChanged = onSettingChanged)
@@ -882,7 +882,10 @@ private fun ListOptionDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            Column {
+            // The options list is unbounded: in landscape the dialog's text slot is only
+            // given the height left over by the title and buttons, so rows beyond that
+            // were laid out off the bottom and clipped away. Scroll instead.
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 options.forEach { option ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

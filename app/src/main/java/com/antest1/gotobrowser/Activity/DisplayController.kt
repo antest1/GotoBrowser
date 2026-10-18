@@ -54,7 +54,7 @@ class DisplayController(
 
     fun updateOrientationLock() {
         val isLockMode = activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_LOCKMODE, false)
-        if (activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_LANDSCAPE, false)) {
+        if (activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_LANDSCAPE, true)) {
             activity.requestedOrientation = if (isLockMode) {
                 val rot = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     activity.display?.rotation ?: Surface.ROTATION_0
