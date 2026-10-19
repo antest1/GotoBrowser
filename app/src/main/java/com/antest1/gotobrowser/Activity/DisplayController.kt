@@ -18,7 +18,7 @@ import kotlin.math.abs
 
 class DisplayController(
     private val activity: BrowserActivity,
-    private val mContentView: WebView?,
+    private val mContentView: WebView,
     private val onMultiwinMarginChanged: (Int) -> Unit
 ) {
     fun updateMultiwindowMargin() {
@@ -76,9 +76,9 @@ class DisplayController(
 
     fun applyKeyboardSetting() {
         if (activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_KEYBOARD, true)) return
-        mContentView?.isFocusableInTouchMode = false
-        mContentView?.isFocusable = false
-        mContentView?.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+        mContentView.isFocusableInTouchMode = false
+        mContentView.isFocusable = false
+        mContentView.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
     }
 
     fun applyFpsLimit() {

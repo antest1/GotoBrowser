@@ -7,17 +7,20 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.net.http.SslError
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.view.Surface
+import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.webkit.SslErrorHandler
+import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
@@ -53,7 +56,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -61,11 +65,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider
+import com.antest1.gotobrowser.Browser.GameAreaLayout
 import com.antest1.gotobrowser.Browser.WebViewL
 import com.antest1.gotobrowser.Browser.WebViewManager
 import com.antest1.gotobrowser.BuildConfig
@@ -128,7 +132,6 @@ class BrowserActivity : ComponentActivity() {
     private val refreshPromptVisible = mutableStateOf(false)
     private val refreshOption = mutableStateOf(RefreshOption.QUICK)
     private val subtitleFontSize = mutableStateOf(DEFAULT_SUBTITLE_FONT_SIZE)
-    private val multiwinMarginDp = mutableStateOf(0)
 
     private val liveSettings = setOf(
         PREF_LANDSCAPE,
@@ -146,6 +149,7 @@ class BrowserActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.setBackgroundDrawable(ColorDrawable(android.graphics.Color.BLACK))
         viewModel = ViewModelProvider(this)[BrowserViewModel::class.java]
         WebViewManager.setWebViewDebugging(viewModel.sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false))
         settingsViewModel = ViewModelProvider(this)[SettingsViewModel::class.java]
@@ -170,9 +174,6 @@ class BrowserActivity : ComponentActivity() {
         manager = WebViewManager(this)
         manager?.setDataDirectorySuffix()
 
-        pipController = PipController(this, mContentView, { isInPictureInPictureModeState.value = it }, { hideSystemBars() })
-        displayController = DisplayController(this, mContentView) { multiwinMarginDp.value = it }
-
         val prefAlterGadget = viewModel.sharedPref.getBoolean(PREF_ALTER_GADGET, false)
         val isProxyMethod = PREF_ALTER_METHOD_PROXY == viewModel.sharedPref.getString(PREF_ALTER_METHOD, "")
         val alterEndpoint = viewModel.sharedPref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL)
@@ -192,32 +193,54 @@ class BrowserActivity : ComponentActivity() {
             }
         }
 
-        setContent {
+        val webView = createWebView()
+        mContentView = webView
+        pipController = PipController(this, webView, { isInPictureInPictureModeState.value = it }, { hideSystemBars() })
+        pipController.setupPinchToPipGesture()
+        val gameArea = GameAreaLayout(this).apply { addView(webView) }
+        displayController = DisplayController(this, webView) { gameArea.marginDp = it }
+
+        val backgroundTapView = View(this).apply {
+            isClickable = true
+            setOnClickListener { toolbarVisible.value = !toolbarVisible.value }
+        }
+        val rootLayout = FrameLayout(this).apply {
+            setBackgroundColor(android.graphics.Color.BLACK)
+            addView(
+                backgroundTapView,
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            )
+            addView(
+                gameArea,
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            )
+        }
+
+        val composeView = ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        }
+        composeView.setContent {
             GotobrowserTheme {
                 LaunchedEffect(settingsSheetVisible.value, refreshPromptVisible.value) {
                     hideSystemBars()
                 }
 
                 Box(modifier = Modifier.fillMaxSize()) {
-                    BrowserScreenContent(
+                    BrowserOverlayContent(
                         viewModel = viewModel,
                         errorText = errorText,
                         subtitleTextValue = subtitleTextValue,
                         closeButtonVisible = closeButtonVisible,
                         subtitleFontSize = subtitleFontSize,
-                        multiwinMarginDp = multiwinMarginDp,
-                        manager = manager,
-                        onViewCreated = { 
-                            mContentView = it 
-                            pipController = PipController(this@BrowserActivity, it, { isInPictureInPictureModeState.value = it }, { hideSystemBars() })
-                            displayController = DisplayController(this@BrowserActivity, it) { multiwinMarginDp.value = it }
-                            pipController.setupSmoothPipAnimation()
-                            displayController.applyKeyboardSetting()
-                            displayController.applyFpsLimit()
-                        },
-                        intent = intent,
                         activity = this@BrowserActivity,
-                        onBackgroundTap = { toolbarVisible.value = !toolbarVisible.value }
+                        onCapture = { manager?.captureGameScreen(webView) },
+                        onClose = { finish() }
                     )
 
                     ControlLayout(
@@ -308,6 +331,15 @@ class BrowserActivity : ComponentActivity() {
             }
         }
 
+        rootLayout.addView(
+            composeView,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
+        setContentView(rootLayout)
+
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 handleBackPress()
@@ -315,7 +347,26 @@ class BrowserActivity : ComponentActivity() {
         })
 
         pipController.setupSmoothPipAnimation()
+        displayController.applyKeyboardSetting()
+        displayController.applyFpsLimit()
         hideSystemBars()
+    }
+
+    private fun createWebView(): WebViewL {
+        val webView = WebViewL(this)
+        webView.addJavascriptInterface(viewModel.k3dPatcher, "kantai3dInterface")
+        manager?.setHardwareAcceleratedFlag()
+        val info = WebViewManager.getDefaultPage(this)
+        viewModel.connectorInfo = info
+        if (info.size == 2) {
+            manager?.setWebViewSettings(webView)
+            WebViewManager.enableBrowserCookie(webView)
+            manager?.setWebViewClient(this, webView)
+            manager?.setPopupView(webView)
+            manager?.openPage(webView, info)
+        }
+        webView.setBackgroundColor(android.graphics.Color.BLACK)
+        return webView
     }
 
     fun isMuteMode(): Boolean = java.lang.Boolean.TRUE == viewModel.isMuteMode.value
@@ -752,18 +803,15 @@ fun BrowserOverlayLayer(
 }
 
 @Composable
-fun BrowserScreenContent(
+fun BrowserOverlayContent(
     viewModel: BrowserViewModel,
     errorText: MutableState<String>,
     subtitleTextValue: MutableState<String>,
     closeButtonVisible: MutableState<Boolean>,
     subtitleFontSize: MutableState<Int>,
-    multiwinMarginDp: MutableState<Int>,
-    manager: WebViewManager?,
-    onViewCreated: (WebViewL) -> Unit,
-    intent: Intent?,
     activity: BrowserActivity,
-    onBackgroundTap: () -> Unit
+    onCapture: () -> Unit,
+    onClose: () -> Unit
 ) {
     val isCaption by viewModel.isCaptionMode.observeAsState(false)
     val isCapture by viewModel.isCaptureMode.observeAsState(false)
@@ -783,57 +831,12 @@ fun BrowserScreenContent(
         else activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .clickable(
-                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                indication = null
-            ) { onBackgroundTap() }
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             val ratio = 1200f / 720f
             val containerWidth = maxWidth.value
             val containerHeight = maxHeight.value
-
-            val finalWidth: androidx.compose.ui.unit.Dp
-            val finalHeight: androidx.compose.ui.unit.Dp
-
-            if (containerWidth / containerHeight > ratio) {
-                finalHeight = maxHeight
-                finalWidth = maxHeight * ratio
-            } else {
-                finalWidth = maxWidth
-                finalHeight = maxWidth / ratio
-            }
-
-            AndroidView(
-                factory = { ctx ->
-                    WebViewL(ctx).apply {
-                        onViewCreated(this)
-                        addJavascriptInterface(viewModel.k3dPatcher, "kantai3dInterface")
-                        manager?.setHardwareAcceleratedFlag()
-                        viewModel.connectorInfo = WebViewManager.getDefaultPage(activity)
-                        val info = viewModel.connectorInfo
-                        if (info != null && info.size == 2) {
-                            manager?.setWebViewSettings(this)
-                            WebViewManager.enableBrowserCookie(this)
-                            manager?.setWebViewClient(activity, this)
-                            manager?.setPopupView(this)
-                            manager?.openPage(this, info)
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .size(width = finalWidth, height = finalHeight)
-                    .padding(top = multiwinMarginDp.value.dp, bottom = multiwinMarginDp.value.dp)
-                    .background(Color.Black)
-                    .clickable(enabled = false) { }
-                    .pointerInput(Unit) {
-                        activity.pipController.handlePinchToPipGesture(this)
-                    }
-            )
+            val finalHeight = if (containerWidth / containerHeight > ratio) maxHeight else maxWidth / ratio
 
             if (errorText.value.isNotEmpty()) {
                 Text(
@@ -861,10 +864,10 @@ fun BrowserScreenContent(
                     closeButtonVisible = closeButtonVisible.value,
                     onSubtitleTap = { subtitleVisible.value = false },
                     onCaptureClick = {
-                        activity.mContentView?.let { manager?.captureGameScreen(it) }
+                        onCapture()
                         showFlash.value = true
                     },
-                    onCloseClick = { activity.finish() },
+                    onCloseClick = onClose,
                     webViewHeight = finalHeight,
                     containerHeight = maxHeight
                 )

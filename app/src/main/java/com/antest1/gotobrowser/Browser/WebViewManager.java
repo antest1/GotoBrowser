@@ -12,7 +12,6 @@ import android.net.http.SslError;
 import android.os.Build;
 import android.os.Message;
 import android.util.Log;
-import android.view.View;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.JsResult;
@@ -96,10 +95,7 @@ public class WebViewManager {
         setWebViewRendererSetting(view);
         view.setScrollbarFadingEnabled(true);
         view.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            view.getSettings().setOffscreenPreRaster(true);
-        }
-        view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        // Leave Chromium's default rendering path; the WebView is already hardware accelerated.
     }
 
     public static void setWebViewDebugging(boolean enabled) {
