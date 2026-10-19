@@ -21,7 +21,6 @@ import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -31,7 +30,6 @@ import com.antest1.gotobrowser.Browser.ResourceProcess;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.R;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -455,12 +453,7 @@ public class KcUtils {
      */
     private static void showMessage(Activity ac, String message) {
         if (ac.isFinishing() || ac.isDestroyed()) return;
-        View content = ac.findViewById(android.R.id.content);
-        if (content != null) {
-            Snackbar.make(content, message, Snackbar.LENGTH_LONG).show();
-        } else {
-            showToast(ac.getApplicationContext(), message);
-        }
+        showToast(ac.getApplicationContext(), message);
     }
 
     private static void checkAppUpdate(Activity ac,
