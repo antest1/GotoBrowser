@@ -19,6 +19,7 @@ public class Constants {
     public static final String PREF_KEEPMODE = "pref_keepmode";
     public static final String PREF_SHOWCC = "pref_showcc";
     public static final String PREF_DISABLE_REFRESH_DIALOG = "pref_disable_refresh_dialog";
+    public static final String PREF_QUICK_GAME_RELOAD = "pref_quick_game_reload";
     public static final String PREF_LATEST_URL = "pref_latest_url";
     public static final String PREF_DMM_ID = "pref_autocomplete_id";
     public static final String PREF_DMM_PASS = "pref_autocomplete_pass";
@@ -27,7 +28,6 @@ public class Constants {
     public static final String PREF_FONT_PREFETCH = "pref_font_prefetch";
     public static final String PREF_PIP_MODE = "pref_pip_mode";
     public static final String PREF_ALTER_GADGET = "pref_alter_gadget";
-    public static final String PREF_APP_VERSION = "pref_app_version";
     public static final String PREF_CHECK_UPDATE = "pref_check_update";
     public static final String PREF_MULTIWIN_MARGIN = "pref_multiwin_margin";
     public static final String PREF_DEVTOOLS_DEBUG = "pref_devtools_debug";
@@ -42,10 +42,11 @@ public class Constants {
     public static final String PREF_MOD_KCCP_LANG_PATCH_EN = "kccp_lang_en";
     public static final String PREF_MOD_KCCP_LANG_PATCH_ID = "kccp_lang_id";
 
-    public static final String PREF_MOD_KANTAIEN_LEGACY = "pref_mod_kantaien";
     public static final String PREF_MOD_KANTAIEN_UPDATE = "pref_mod_kantaien_update";
     public static final String PREF_MOD_KANTAIEN_DELETE = "pref_mod_kantaien_delete";
     public static final String PREF_MOD_FPS = "pref_mod_fps";
+    public static final String PREF_FPS_LIMIT = "pref_fps_limit";
+    public static final String DEFAULT_FPS_LIMIT = "default";
     public static final String PREF_MOD_CRIT = "pref_mod_crit";
     public static final String PREF_USE_EXTCACHE = "pref_use_extcache";
     public static final String PREF_UI_HELP_CHECKED = "pref_ui_help_checked";
@@ -53,46 +54,8 @@ public class Constants {
     public static final String PREF_CURSOR_MODE = "pref_cursor_mode";
     public static final String PREF_SUBTITLE_FONTSIZE = "pref_subtitle_size";
 
-    public static final String[] PREF_SETTINGS = {
-            PREF_LANDSCAPE,
-            PREF_ADJUSTMENT,
-            PREF_FONT_PREFETCH,
-            PREF_KEYBOARD,
-            PREF_BROADCAST,
-            PREF_USE_EXTCACHE,
-            PREF_PIP_MODE,
-            PREF_MULTIWIN_MARGIN,
-            PREF_LEGACY_RENDERER,
-            PREF_ALTER_GADGET,
-            PREF_ALTER_METHOD,
-            PREF_ALTER_ENDPOINT,
-            PREF_DOWNLOAD_RETRY,
-            PREF_SUBTITLE_LOCALE,
-            PREF_LEGACY_RENDERER,
-            PREF_MOD_KANTAI3D,
-            PREF_MOD_KCCP_LANG_PATCH,
-            PREF_MOD_KCCP_LANG_PATCH_NAME,
-            PREF_MOD_FPS,
-            PREF_MOD_CRIT,
-            PREF_DEVTOOLS_DEBUG,
-            PREF_CURSOR_MODE,
-            PREF_DISABLE_REFRESH_DIALOG,
-            PREF_SUBTITLE_FONTSIZE
-    };
-
-    public static final String[] PREF_CLICK_SETTINGS = {
-            PREF_CHECK_UPDATE,
-            PREF_SUBTITLE_UPDATE,
-            PREF_MOD_KANTAIEN_UPDATE,
-            PREF_MOD_KANTAIEN_DELETE,
-            PREF_SUBTITLE_FONTSIZE
-    };
-
     public static final String PREF_ALTER_METHOD_URL = "1";
     public static final String PREF_ALTER_METHOD_PROXY = "2";
-
-    public static final String ACTION_SHOWPANEL = "with_layout_control_";
-    public static final String ACTION_SHOWKEYBOARD = "with_keyboard_";
 
     public static final String CONN_DMM = "DMM direct";
     public static final String CONN_KANMOE = "kancolle.moe";
@@ -124,6 +87,9 @@ public class Constants {
     public static final String CAPTURE_SEND_OOI = "(function(){var msg={capture:true};var origin=\"*\";var doc=document.getElementById(\"externalswf\");if(doc){doc.contentWindow.postMessage(msg,origin)}else{document.getElementsByTagName(\"iframe\")[0].contentWindow.postMessage(msg,origin)};return\"done\"})()";
     public static final String CAPTURE_LISTEN = "window.addEventListener(\"message\",function(e){if(e.data.capture!=null){(async function(){{let canvas=document.querySelector('canvas');requestAnimationFrame(()=>{{if(canvas!=null){let dataurl=canvas.toDataURL('image/png');GotoBrowser.kcs_process_canvas_dataurl(dataurl);}}});}})();}});";
 
+    public static final String REFRESH_GAME_FRAME_DMM = "(function(){var f=document.getElementById(\"game_frame\")||document.getElementsByTagName(\"iframe\")[0];if(f!=null&&f.contentWindow){f.contentWindow.postMessage(\"gotobrowser_quick_reload\",\"*\");return \"done\";}location.reload();return \"fallback\";})()";
+    public static final String REFRESH_GAME_FRAME_OOI = "(function(){var f=document.getElementById(\"externalswf\")||document.getElementsByTagName(\"iframe\")[0];if(f!=null&&f.contentWindow){f.contentWindow.postMessage(\"gotobrowser_quick_reload\",\"*\");return \"done\";}location.reload();return \"fallback\";})()";
+
     public static final String ADJUST_SCRIPT = "(()=>{const t=\"data-game-resize-init\",e=1200;if(document.documentElement.hasAttribute(t))return;document.documentElement.setAttribute(t,\"true\");const n=()=>{const t=document.querySelector(\".gamesResetStyle\");if(!t)return!1;const n=document.createElement(\"style\");n.textContent=\".gamesResetStyle>main{margin:0!important;padding:0!important}.gamesResetStyle>:not(main){display:none!important}#game_frame{transform-origin:top left}\",document.head.appendChild(n);const i=document.getElementById(\"game_frame\");if(!i)return!1;const o=()=>{console.log(\"innerWidth:\",window.innerWidth),i.style.transform=`scale(${window.innerWidth/e})`};let r=0;const a=()=>{cancelAnimationFrame(r),r=requestAnimationFrame(o)};return window.addEventListener(\"resize\",a,{passive:!0}),o(),!0},i=new MutationObserver((()=>{n()&&i.disconnect()}));i.observe(document.body,{childList:!0,subtree:!0}),n()})();";
     public static final String AUTOCOMPLETE_DMM = "function v(e,t){let o=Object.getOwnPropertyDescriptor(e,\"value\").set,s=Object.getPrototypeOf(e),l=Object.getOwnPropertyDescriptor(s,\"value\").set;o&&o!==l?l.call(e,t):o.call(e,t)}if(document.forms.loginForm!=undefined){v(document.forms.loginForm.elements.login_id,\"%s\"),document.forms.loginForm.elements.login_id.dispatchEvent(new Event(\"input\",{bubbles:!0})),v(document.forms.loginForm.elements.password,\"%s\"),document.forms.loginForm.elements.password.dispatchEvent(new Event(\"input\",{bubbles:!0}));}";
     public static final String AUTOCOMPLETE_OOI = "$('input[name=\"login_id\"]').val(\"%s\");$('input[name=\"password\"]').val(\"%s\");";
@@ -144,7 +110,6 @@ public class Constants {
     };
 
     public static final String GADGET_OSAPI_IFR = "osapi.dmm.com/gadgets/ifr?aid=854854";
-    public static final String INIT_GAME_FRAME = "artemis.games.dmm.com/member/pc/init-game-frame/kancolle";
     public static final String GADGET_HTTP_URL = "http://w00g.kancolle-server.com/";
     public static final String GADGET_HTTPS_URL = "https://w00g.kancolle-server.com/";
     public static final String DEFAULT_ALTER_GADGET_URL = "https://kcwiki.github.io/cache/";

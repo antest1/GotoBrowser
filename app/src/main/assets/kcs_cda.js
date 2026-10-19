@@ -1,4 +1,14 @@
 ﻿window.addEventListener('message', function (event) {
+    if (event.data == "gotobrowser_quick_reload") {
+        var game = document.getElementById("htmlWrap");
+        if (game) {
+            game.src = game.src;
+        } else {
+            location.reload();
+        }
+        return;
+    }
+
 	if (typeof event.data == "string") {
         // サーバ選択前
         if (event.data == "w") {

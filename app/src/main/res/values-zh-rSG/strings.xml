@@ -8,13 +8,17 @@
     <string name="select_server_toast">请先选择一个登入方式</string>
     <string name="cache_clear_text">清除快取</string>
     <string name="cache_cleared_toast">Webview快取已清除</string>
-    <string name="clearcache_msg">仅当图象或声音未正确载入时使用此选项，确认清除快取吗？</string>
+    <string name="clearcache_msg">当图片或声音无法正常加载，或需要切换登录方式时使用。清除后可能需要重新登录。</string>
+    <string name="thirdpartyconnector_msg">使用非官方网页代理连接（如 OOI）时，根据其政策，游戏资源可能与原始资源不同。GotoBrowser 不干预各连接的政策。如果不希望显示非官方资源，请清除缓存并使用 DMM Direct 进行游戏。</string>
     <string name="backpress_msg">再按一次返回键退出</string>
     <string name="refresh_msg">是否要刷新页面？</string>
-    <string name="mode_landscape">横向模式</string>
+    <string name="refresh_quick_msg">仅重新加载游戏框架，而不刷新整个页面。\n\n快速刷新未必总能成功，若出现网络错误，请使用完全刷新。</string>
+    <string name="refresh_full_msg">重新加载整个页面。这是最可靠的刷新方式，但比快速刷新耗时更长。</string>
+    <string name="mode_landscape">仅限横向</string>
     <string name="mode_adjustment">自动调整佈局</string>
     <string name="mode_silent">以静音模式启动</string>
     <string name="mode_broadcast">使用广播讯息方式</string>
+    <string name="mode_broadcast_summary">将GotoBrowser与Kcanotify一起使用</string>
     <string name="mode_show_panel">启动时显示控制台</string>
     <string name="mode_enable_keyboard">允许键盘输入</string>
     <string name="button_start">开始游戏</string>
@@ -26,6 +30,12 @@
     <string name="settings_version_label">目前版本</string>
     <string name="settings_version_check">检查更新</string>
     <string name="settings_recommended_summary">推荐</string>
+    <string name="settings_display_label">显示</string>
+    <string name="settings_control_label">操作</string>
+    <string name="settings_download_label">缓存</string>
+    <string name="settings_connection_login_label">登录与连接</string>
+    <string name="settings_login_section_header">登录</string>
+    <string name="settings_bypass_section_header">登录服务器封锁绕行</string>
     <string name="settings_subtitle_label">字幕设定</string>
     <string name="settings_subtitle_fontsize" >字体大小</string>
     <string name="settings_subtitle_example" formatted="false">文字大小：%d</string>
@@ -36,9 +46,9 @@
     <string name="setting_latest_version">已是最新版本</string>
     <string name="setting_latest_download" formatted="false">已推出新版本 (%s)\n是否要下载？</string>
     <string name="setting_latest_download_subtitle" formatted="false">已推出新版本 (%s)</string>
-    <string name="settings_appinfo_browsersettings">浏览器设定</string>
     <string name="browser_fontprefetch">预先载入字体</string>
     <string name="browser_enablepipmode">启用画中画模式</string>
+    <string name="browser_enablepipmode_summary">开启后，当你返回主屏幕、向上滑动或在网页区域使用双指缩小手势时，应用将以浮动小窗形式继续运行。</string>
     <string name="browser_disable_refresh_dialog">禁用重新加载确认</string>
     <string name="logout_msg">您确定要登出吗？</string>
     <string name="noti_screenshot_name">GotoBrowser截图</string>
@@ -64,6 +74,8 @@
     <string name="setting_cursor_mode_mouse">使用鼠标</string>
 
     <string name="menu_tooltip_refresh">重新整理页面</string>
+    <string name="menu_quick_refresh">快速刷新</string>
+    <string name="menu_full_refresh">完全刷新</string>
     <string name="menu_tooltip_mute">静音</string>
     <string name="menu_tooltip_camera">萤幕截图</string>
     <string name="menu_tooltip_lock">自动旋转锁定</string>
@@ -75,6 +87,9 @@
     <string name="settings_legacy_renderer_summary">强制PixiJS引擎使用Canvas渲染器而非WebGL渲染器。可解决大部份奇怪图形错误但会降低效能。</string>
 
     <string name="settings_mod_label">第三方MOD（风险自负）</string>
+    <string name="settings_mod_group_general">常規</string>
+    <string name="settings_mod_group_kantai3d">Kantai3D 視覺模組</string>
+    <string name="settings_mod_group_kccp">語言翻譯模組</string>
     <string name="settings_mod_kantai3d_enable">Kantai3D v4.0</string>
     <string name="settings_mod_kantai3d_summary">为部份秘书舰添加仿立体以及乳摇视觉效果。作者：@laplamgor</string>
     <string name="settings_mod_kantai3d_about">关于Kantai3D</string>
@@ -92,16 +107,16 @@
     <string name="settings_mod_kccp_patch_en_summary">KanColle English Patch (作者: @Oradimi)</string>
     <string name="settings_mod_kccp_patch_id_summary">KanColle Indonesia Patch (作者: @SLAVUSworks)</string>
 
-    <string name="settings_mod_fps_enable">移除60帧限制</string>
-    <string name="settings_mod_fps_summary">支援高萤幕更新率手机，不会影响游戏动画速度。</string>
+    <string name="settings_mod_fps_enable">FPS渲染 Mod</string>
+    <string name="settings_mod_fps_summary">使用VSYNC渲染，比原版游戏更流畅且运行效率更高。</string>
+    <string name="settings_fps_limit_title">FPS限制</string>
+    <string name="settings_fps_limit_summary">降低帧率限制可节省电量并减少发热。</string>
+    <string name="settings_fps_limit_summary_format">%1$s — 降低帧率限制可节省电量并减少发热。</string>
+    <string name="settings_fps_limit_default">默认（最高）</string>
+    <string name="settings_fps_limit_option">%d FPS</string>
     <string name="settings_mod_crit_enable">真正的Critical hit</string>
     <string name="settings_mod_crit_summary">删除游戏命中的硬编码混淆，使其在真正Critical hit才显示。作者：@Oradimi</string>
     <string name="settings_use_external_dir">将快取存放至外部储存空间</string>
-    <string name="menu_tooltip_kantai3d">开关立体效果</string>
-    <string name="msg_kantai3d_init">未侦测到秘书舰</string>
-    <string name="msg_kantai3d_loaded">已载入目前秘书舰CG的深度图： %s</string>
-    <string name="msg_kantai3d_error">找不到目前秘书舰CG的深度图： %s</string>
-    <string name="msg_kantai3d_redirect">欲查看所有支援3D的舰娘CG列表，或贡献新的深度图，请前往： https://github.com/laplamgor/kantai3d</string>
 
     <string name="en_download_start">下载开始…</string>
     <string name="en_unzip_start">正在解压缩……请稍候……</string>
@@ -124,4 +139,9 @@
     <string name="dialog_ipblock_message" formatted="false">请在主屏幕或设置中激活「%s」选项。</string>
     <string name="kcanotify_broadcast_dialog_title">检测到Kcanotify</string>
     <string name="kcanotify_broadcast_dialog_message" formatted="false">若要将GotoBrowser与Kcanotify一起使用，必须激活「%s」。您想通过单击%s激活它吗？</string>
+    <string name="settings_menu_tooltip">设置</string>
+    <string name="settings_refresh_required_title">需要重新加载</string>
+    <string name="settings_refresh_required_msg">设置已保存。需要重新加载游戏才能生效。你想现在重新加载吗？</string>
+    <string name="settings_refresh_now">现在重新加载</string>
+    <string name="settings_refresh_later">暂不重新加载</string>
 </resources>
