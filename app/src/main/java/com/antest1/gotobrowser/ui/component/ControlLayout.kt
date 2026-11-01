@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,7 +24,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Surface
@@ -38,12 +38,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -83,40 +85,73 @@ fun ControlLayout(
             content = toolbarContent
         )
 
-        // Top Right Buttons (Settings, Help) - Smaller & Subtle
+        // Top Right Buttons (Settings, Help) - same glassy circle as the toolbar so they read as buttons
+        val topMenuButtonSize = dimensionResource(R.dimen.top_menu_button_size)
+        val topMenuIconSize = dimensionResource(R.dimen.top_menu_icon_size)
+        val topMenuPadding = dimensionResource(R.dimen.top_menu_padding)
+        val topMenuSpacing = dimensionResource(R.dimen.top_menu_spacing)
         AnimatedVisibility(
             visible = visible,
             enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
             exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(16.dp)
+                .padding(topMenuPadding)
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onHelpClick, modifier = Modifier.size(32.dp)) {
-                    Icon(
-                        painterResource(id = R.drawable.help_icon),
-                        contentDescription = "Help",
-                        tint = Color.White.copy(alpha = 0.7f),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+            Row(horizontalArrangement = Arrangement.spacedBy(topMenuSpacing), verticalAlignment = Alignment.CenterVertically) {
+                GlassyCircleButton(
+                    iconRes = R.drawable.help_icon,
+                    contentDescription = "Help",
+                    size = topMenuButtonSize,
+                    iconSize = topMenuIconSize,
+                    onClick = onHelpClick
+                )
                 TooltipBox(
                     positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                     tooltip = { PlainTooltip { Text(stringResource(R.string.settings_menu_tooltip)) } },
                     state = rememberTooltipState()
                 ) {
-                    IconButton(onClick = onSettingsClick, modifier = Modifier.size(32.dp)) {
-                        Icon(
-                            painterResource(id = R.drawable.settings),
-                            contentDescription = stringResource(R.string.settings_menu_tooltip),
-                            tint = Color.White.copy(alpha = 0.7f),
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
+                    GlassyCircleButton(
+                        iconRes = R.drawable.settings,
+                        contentDescription = stringResource(R.string.settings_menu_tooltip),
+                        size = topMenuButtonSize,
+                        iconSize = topMenuIconSize,
+                        onClick = onSettingsClick
+                    )
                 }
             }
         }
+    }
+}
+
+/**
+ * A small round glassy button. Deliberately NOT a Material3 IconButton: it enforces a
+ * 48dp minimum interactive size and draws its background/ripple at that size even when a smaller
+ * Modifier.size is given, which made 32dp buttons overflow their layout slot and overlap neighbours.
+ */
+@Composable
+private fun GlassyCircleButton(
+    iconRes: Int,
+    contentDescription: String?,
+    size: androidx.compose.ui.unit.Dp,
+    iconSize: androidx.compose.ui.unit.Dp,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .glassyStyle(CircleShape)
+            .clip(CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(id = iconRes),
+            contentDescription = contentDescription,
+            tint = Color.White,
+            modifier = Modifier.size(iconSize)
+        )
     }
 }
 

@@ -58,6 +58,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -673,13 +674,15 @@ fun PanelButton(
     active: Boolean = false,
     onClick: () -> Unit
 ) {
+    val buttonSize = dimensionResource(R.dimen.browser_panel_button_size)
+    val iconSize = dimensionResource(R.dimen.browser_panel_button_icon_size)
     val button = @Composable {
-        IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
+        IconButton(onClick = onClick, modifier = Modifier.size(buttonSize)) {
             Icon(
                 painterResource(id = id),
                 contentDescription = tooltip,
                 tint = if (active) Color(0xFFFFC400) else Color.White,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(iconSize)
             )
         }
     }
@@ -751,19 +754,19 @@ fun BrowserOverlayLayer(
                 }
             ) { measurables, constraints ->
                 val placeable = measurables.first().measure(constraints.copy(minWidth = 0, minHeight = 0))
-                
+
                 val webViewBottomPx = if (webViewHeight != androidx.compose.ui.unit.Dp.Unspecified && containerHeight != androidx.compose.ui.unit.Dp.Unspecified) {
                     ((containerHeight + webViewHeight) / 2f).toPx()
                 } else {
                     constraints.maxHeight.toFloat()
                 }
-                
+
                 val paddingPx = 12.dp.toPx()
                 var y = webViewBottomPx + paddingPx
                 if (y + placeable.height > constraints.maxHeight - paddingPx) {
                     y = constraints.maxHeight - paddingPx - placeable.height
                 }
-                
+
                 layout(constraints.maxWidth, constraints.maxHeight) {
                     placeable.placeRelative(
                         x = (constraints.maxWidth - placeable.width) / 2,
@@ -774,19 +777,29 @@ fun BrowserOverlayLayer(
         }
 
         if (isCapture) {
+            // Placed below the top-right help/settings row so the two never overlap,
+            // and right-aligned with that row by sharing its end padding.
+            val cameraSize = dimensionResource(R.dimen.browser_camera_size)
+            val cameraIconSize = dimensionResource(R.dimen.browser_camera_icon_size)
+            val topMenuPadding = dimensionResource(R.dimen.top_menu_padding)
+            val topMenuButtonSize = dimensionResource(R.dimen.top_menu_button_size)
+            val topMenuGap = dimensionResource(R.dimen.top_menu_gap)
             IconButton(
                 onClick = onCaptureClick,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(24.dp)
-                    .size(64.dp)
+                    .padding(
+                        top = topMenuPadding + topMenuButtonSize + topMenuGap,
+                        end = topMenuPadding
+                    )
+                    .size(cameraSize)
                     .glassyStyle(RoundedCornerShape(8.dp))
             ) {
                 Icon(
                     painterResource(id = R.drawable.capture_icon),
                     stringResource(R.string.menu_tooltip_camera),
                     tint = Color.White,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(cameraIconSize)
                 )
             }
         }
