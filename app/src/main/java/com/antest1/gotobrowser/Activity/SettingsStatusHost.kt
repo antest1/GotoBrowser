@@ -13,7 +13,7 @@ import android.content.Context
 interface SettingsStatusHost {
     fun getContext(): Context?
 
-    fun requireContext(): Context
+    fun requireContext(): Context?
 
     fun getString(resId: Int): String
 

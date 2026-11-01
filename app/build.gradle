@@ -55,6 +55,9 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel:2.8.7'
     implementation 'androidx.lifecycle:lifecycle-livedata:2.8.7'
 
+    // Force 16 KB page-size compliant version of graphics-path (1.0.1 supports minSdk 21)
+    implementation 'androidx.graphics:graphics-path:1.0.1'
+
     // Compose
     def composeBom = platform('androidx.compose:compose-bom:2024.09.03')
     implementation composeBom

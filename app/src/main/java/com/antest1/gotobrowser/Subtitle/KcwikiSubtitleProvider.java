@@ -287,8 +287,10 @@ public class KcwikiSubtitleProvider implements SubtitleProvider  {
     }
 
     public void downloadUpdateFromPreference(SettingsStatusHost host, VersionDatabase versionTable) {
+        Context context = host.requireContext();
+        if (context == null) return;
         try {
-            KcwikiSubtitleApi downloader = getRetrofitAdapter(host.requireContext(), "https://api.kcwiki.moe/").create(KcwikiSubtitleApi.class);
+            KcwikiSubtitleApi downloader = getRetrofitAdapter(context, "https://api.kcwiki.moe/").create(KcwikiSubtitleApi.class);
             Call<JsonObject> call = downloader.getSubtitle(subtitleLocaleToDownload);
             call.enqueue(new Callback<JsonObject>() {
                 @Override

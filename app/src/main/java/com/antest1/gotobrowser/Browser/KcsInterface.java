@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
-import android.widget.TextView;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.ContentProvider.KcaPacketStore;
@@ -42,7 +41,7 @@ public class KcsInterface {
         packetTable = new KcaPacketStore(ac.getApplicationContext(), null, PACKETSTORE_VERSION);
         SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
-        broadcast_mode = sharedPref.getBoolean(PREF_BROADCAST, false);
+        broadcast_mode = sharedPref.getBoolean(PREF_BROADCAST, true);
         use_devtools = sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
     }
 

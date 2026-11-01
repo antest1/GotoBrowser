@@ -1,11 +1,13 @@
 package com.antest1.gotobrowser.Activity;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.util.Log;
+import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -16,11 +18,15 @@ import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
 import com.antest1.gotobrowser.Helpers.KcEnUtils;
 import com.antest1.gotobrowser.Helpers.KcUtils;
+import com.antest1.gotobrowser.Helpers.MessageCallback;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
+import com.antest1.gotobrowser.Helpers.KenPatcher;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.Locale;
 
 import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
@@ -29,34 +35,53 @@ import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY;
-import static com.antest1.gotobrowser.Constants.PREF_APP_VERSION;
-import static com.antest1.gotobrowser.Constants.PREF_CHECK_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_DELETE;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_UPDATE;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_EN;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_GITHUB;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_ID;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_NAME;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
-import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
-import static com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
+import static com.antest1.gotobrowser.Constants.CACHE_DIR;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
+import static com.antest1.gotobrowser.Helpers.KcUtils.clearApplicationCache;
 
 /**
  * Holds the observable state of the Compose settings screen and performs the
  * same side effects the old {@code SettingsFragment} (PreferenceFragmentCompat)
  * used to trigger. Async helpers that used to mutate Preference objects now
- * push updates back through {@link SettingsStatusHost}, which is implemented by
- * {@link SettingsActivity} and delegates to the LiveData exposed here.
+ * push updates back through {@link SettingsStatusHost}.
  */
 public class SettingsViewModel extends AndroidViewModel {
     /** Host context is not available while the screen is off-screen. */
     private static final String SUBTITLE_UPDATE_LOADING = "checking updates...";
+
+    /**
+     * The activity the settings sheet is attached to, needed because dialogs
+     * require a window token (see {@link #requireContext()}). Held weakly: a
+     * ViewModel outlives its activity on a configuration change.
+     */
+    private WeakReference<Activity> hostActivity = new WeakReference<>(null);
+
+    public void setHostActivity(Activity activity) {
+        hostActivity = new WeakReference<>(activity);
+    }
+
+    public void clearHostActivity(Activity activity) {
+        if (hostActivity.get() == activity) {
+            hostActivity = new WeakReference<>(null);
+        }
+    }
+
+    /** The dialog-capable context, or null when detached / finishing. */
+    private Activity dialogActivity() {
+        Activity activity = hostActivity.get();
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+            return null;
+        }
+        return activity;
+    }
 
     private final SharedPreferences sharedPref;
     private final VersionDatabase versionTable;
@@ -219,7 +244,7 @@ public class SettingsViewModel extends AndroidViewModel {
     public void refreshSubtitleDescription() {
         Context context = getApplication().getApplicationContext();
         String subtitleLocale = sharedPref.getString(PREF_SUBTITLE_LOCALE, "");
-        if (subtitleLocale != null && !subtitleLocale.isEmpty()) {
+        if (!subtitleLocale.isEmpty()) {
             SubtitleProviderUtils.getSubtitleProvider(subtitleLocale)
                     .checkUpdateFromPreference(host, subtitleLocale, versionTable);
         } else {
@@ -233,6 +258,41 @@ public class SettingsViewModel extends AndroidViewModel {
 
     public void checkAppUpdate(android.app.Activity activity) {
         KcUtils.requestLatestAppVersion(activity, appCheck, true);
+    }
+
+    public void checkAppUpdate(android.app.Activity activity, MessageCallback onMessage) {
+        KcUtils.requestLatestAppVersion(activity, appCheck, true, onMessage);
+    }
+
+    public void clearBrowserCache() {
+        Context context = getApplication().getApplicationContext();
+        // clear webview cache
+        WebView webview = new WebView(context);
+        webview.clearCache(true);
+
+        // clear version table
+        versionTable.clearVersionDatabase();
+
+        // clear internal cache dir
+        clearApplicationCache(context, context.getCacheDir());
+
+        // clear resource cache dir
+        File cache_dir = new File(KcUtils.getAppCacheFileDir(context, CACHE_DIR));
+        clearApplicationCache(context, cache_dir);
+
+        // clear legacy cache dir
+        File cache_old = new File(KcUtils.getAppCacheFileDir(context, "/cache/"));
+        if (cache_old.exists()) {
+            clearApplicationCache(context, cache_old);
+            cache_old.delete();
+        }
+
+        // clear patched cache dir
+        for (KenPatcher.PatchLanguage language : KenPatcher.PatchLanguage.values()) {
+            String folderName = "/_patched_cache_" + language.name().toLowerCase();
+            String patched_cache_dir = KcUtils.getAppCacheFileDir(context, folderName);
+            clearApplicationCache(context, new File(patched_cache_dir));
+        }
     }
 
     public void downloadSubtitleUpdate() {
@@ -317,12 +377,13 @@ public class SettingsViewModel extends AndroidViewModel {
     private final SettingsStatusHost host = new SettingsStatusHost() {
         @Override
         public Context getContext() {
-            return getApplication().getApplicationContext();
+            Activity activity = dialogActivity();
+            return activity != null ? activity : getApplication().getApplicationContext();
         }
 
         @Override
         public Context requireContext() {
-            return getApplication().getApplicationContext();
+            return dialogActivity();
         }
 
         @Override

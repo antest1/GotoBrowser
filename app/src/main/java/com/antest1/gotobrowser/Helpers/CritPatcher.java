@@ -2,7 +2,6 @@ package com.antest1.gotobrowser.Helpers;
 
 import static com.antest1.gotobrowser.Constants.PREF_MOD_CRIT;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 

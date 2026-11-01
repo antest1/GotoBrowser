@@ -9,7 +9,6 @@ import com.antest1.gotobrowser.Activity.SettingsStatusHost;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -202,11 +201,9 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
 
     private void loadQuoteAnnotation(Context context) {
         AssetManager as = context.getAssets();
-        try {
-            final Gson gson = new Gson();
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    as.open("quotes_label.json")));
-            quoteLabel = gson.fromJson(reader, JsonObject.class);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                as.open("quotes_label.json")))) {
+            quoteLabel = KcUtils.getGson().fromJson(reader, JsonObject.class);
         } catch (IOException e) {
             reportException(e);
             e.printStackTrace();
@@ -501,7 +498,12 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                 String commit = subtitleData.get("latest_commit").getAsString();
                 String path = subtitleData.get("download_url").getAsString();
 
-                Kc3SubtitleRepo subtitleRepo = getRetrofitAdapter(host.requireContext(), SUBTITLE_ROOT).create(Kc3SubtitleRepo.class);
+                // requireContext() is null when the sheet has no activity; the
+                // adapter only needs a context, not a window.
+                Context context = host.requireContext();
+                if (context == null) return;
+
+                Kc3SubtitleRepo subtitleRepo = getRetrofitAdapter(context, SUBTITLE_ROOT).create(Kc3SubtitleRepo.class);
                 Call<JsonObject> call = subtitleRepo.download(commit, path);
                 call.enqueue(new Callback<JsonObject>() {
                     @Override
@@ -510,7 +512,10 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                     }
                     @Override
                     public void onFailure(Call<JsonObject> call, Throwable t) {
-                        KcUtils.showToast(host.requireContext(), t.getLocalizedMessage());
+                        Context uiContext = host.requireContext();
+                        if (uiContext != null) {
+                            KcUtils.showToast(uiContext, t.getLocalizedMessage());
+                        }
                     }
                 });
             } catch (IllegalStateException e) {

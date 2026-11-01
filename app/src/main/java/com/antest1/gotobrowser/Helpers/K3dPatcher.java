@@ -34,7 +34,6 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
 import retrofit2.Call;
 
 public class K3dPatcher implements SensorEventListener {
-    private Context context;
     private SensorManager mSensorManager;
     private Sensor mGyroscope;
 
@@ -42,22 +41,9 @@ public class K3dPatcher implements SensorEventListener {
     private float gyroY = 0f;
 
     private static boolean isPatcherEnabled = false;
-    private boolean isEffectEnabled = true; // for user to temporarily disable the effect in-game
 
     private long oldTime = 0;
     private int rotation = ROTATION_0;
-
-    public boolean isPatcherEnabled() {
-        return isPatcherEnabled;
-    }
-
-    public boolean isEffectEnabled() {
-        return isEffectEnabled;
-    }
-
-    public void setEffectEnabled(boolean effectEnabled) {
-        isEffectEnabled = effectEnabled;
-    }
 
     public void setRotation(int rotation) {
         this.rotation = rotation;
@@ -65,9 +51,6 @@ public class K3dPatcher implements SensorEventListener {
 
     @JavascriptInterface
     public float getX(){
-        if (!isEffectEnabled) {
-            return 0;
-        }
         decayTiltAngle();
         float sign = Math.signum(gyroX);
         double num = Math.abs(gyroX) * 0.000002;
@@ -77,39 +60,28 @@ public class K3dPatcher implements SensorEventListener {
 
     @JavascriptInterface
     public float getY(){
-        if (!isEffectEnabled) {
-            return 0;
-        }
         float sign = Math.signum(gyroY);
         double num = Math.abs(gyroY) * 0.000002;
         double gotY = Math.sqrt(1.0 + num) - 1.0;
         return (float)gotY * sign ;
     }
 
-    private String imageUrl = null;
-    private boolean depthMapLoaded = false;
-
-    public String getImageUrl() { return imageUrl; }
-    public boolean isDepthMapLoaded() { return depthMapLoaded; }
-
     @JavascriptInterface
     public void notifyError(String newImageUrl){
-        imageUrl = newImageUrl;
-        depthMapLoaded = false;
+        // No longer used
     }
 
     @JavascriptInterface
     public void notifyLoaded(String newImageUrl){
-        imageUrl = newImageUrl;
-        depthMapLoaded = true;
+        // No longer used
     }
 
     private void decayTiltAngle() {
         // Slowly rebound the tile angle until it becomes centre
         long newTime = System.currentTimeMillis();
         if (oldTime != 0) {
-            // The angle becomes 95% after every 10ms
-            double decay = Math.pow(0.994359f, (newTime - oldTime));
+            // The angle becomes 99.6% after every 10ms
+            float decay = (float) Math.pow(0.996f, (newTime - oldTime));
             gyroX *= decay;
             gyroY *= decay;
         }
@@ -127,7 +99,6 @@ public class K3dPatcher implements SensorEventListener {
                 !sharedPref.getBoolean(PREF_LEGACY_RENDERER, false);
 
         if (isPatcherEnabled) {
-            this.context = context;
             mSensorManager = (SensorManager)context.getSystemService(SENSOR_SERVICE);
             if (mSensorManager != null) {
                 mGyroscope = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
@@ -152,11 +123,6 @@ public class K3dPatcher implements SensorEventListener {
     public void onSensorChanged(SensorEvent sensorEvent) {
         if (lastEventTimestamp != 0 && sensorEvent.timestamp != lastEventTimestamp) {
             switch (rotation) {
-                default:
-                case ROTATION_0:
-                    gyroX -= sensorEvent.values[1] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
-                    gyroY += sensorEvent.values[0] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
-                    break;
                 case ROTATION_90:
                     gyroX -= sensorEvent.values[0] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
                     gyroY -= sensorEvent.values[1] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
@@ -168,6 +134,11 @@ public class K3dPatcher implements SensorEventListener {
                 case ROTATION_270:
                     gyroX += sensorEvent.values[0] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
                     gyroY += sensorEvent.values[1] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                case ROTATION_0:
+                default:
+                    gyroX -= sensorEvent.values[1] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    gyroY += sensorEvent.values[0] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    break;
             }
         }
 
@@ -201,7 +172,7 @@ public class K3dPatcher implements SensorEventListener {
         }
 
         String replaced = main_js;
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         Matcher matcher = null;
         for (Map.Entry<String, String> stringToReplace : stringsToReplace.entrySet()) {
             Pattern pattern = Pattern.compile(stringToReplace.getKey());

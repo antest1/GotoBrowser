@@ -9,13 +9,17 @@
     <string name="select_server_toast">接続方式を先に選択してください。</string>
     <string name="cache_clear_text">キャッシュ削除</string>
     <string name="cache_cleared_toast">WebViewのキャッシュを削除しました。</string>
-    <string name="clearcache_msg">画像や音声などが正しく表示されない場合にのみ使用してください。本当にキャッシュを削除しますか？</string>
+    <string name="clearcache_msg">画像や音声が正しく読み込まれない場合や、ログイン方法を切り替える場合に使用してください。削除後は再度ログインが必要になることがあります。</string>
+    <string name="thirdpartyconnector_msg">非公式のWebプロキシ型コネクタ（OOIなど）の場合、その方針によってゲームリソースが本来のものと異なることがあります。GotoBrowserは各コネクタの方針を関知しません。非公式のリソースを表示したくない場合は、キャッシュを削除してDMM Directでプレイしてください。</string>
     <string name="backpress_msg">もう一度押すと終了します</string>
     <string name="refresh_msg">リフレッシュしますか？</string>
-    <string name="mode_landscape">横固定モード</string>
+    <string name="refresh_quick_msg">ゲームフレームのみを再読み込みし、ページ全体は更新しません。\n\nクイックリフレッシュは常に成功するとは限りません。ネットワークエラーが発生した場合は、フルリフレッシュを使用してください。</string>
+    <string name="refresh_full_msg">ページ全体を再読み込みします。最も確実なリフレッシュ方法ですが、クイックリフレッシュより時間がかかります。</string>
+    <string name="mode_landscape">横向きのみ</string>
     <string name="mode_adjustment">レイアウト自動調整</string>
     <string name="mode_silent">音量OFFでスタート</string>
     <string name="mode_broadcast">ブロードキャストモード</string>
+    <string name="mode_broadcast_summary">GotoBrowserをKcanotifyと一緒に使用する</string>
     <string name="mode_show_panel">起動時にパネルを表示</string>
     <string name="mode_enable_keyboard">キーボード入力を有効に</string>
     <string name="button_start">スタート</string>
@@ -27,6 +31,12 @@
     <string name="settings_version_label">現在のバージョン</string>
     <string name="settings_version_check">更新の確認</string>
     <string name="settings_recommended_summary">おすすめ</string>
+    <string name="settings_display_label">表示</string>
+    <string name="settings_control_label">操作</string>
+    <string name="settings_download_label">キャッシュ</string>
+    <string name="settings_connection_login_label">ログインと接続</string>
+    <string name="settings_login_section_header">ログイン</string>
+    <string name="settings_bypass_section_header">国外ブロックのバイパス</string>
     <string name="settings_subtitle_label">字幕設定</string>
     <string name="settings_subtitle_fontsize" >フォントサイズ</string>
     <string name="settings_subtitle_example" formatted="false">字幕テキスト：%d</string>
@@ -37,9 +47,9 @@
     <string name="setting_latest_version">最新バージョンです。</string>
     <string name="setting_latest_download" formatted="false">アップデートがあります。(%s)\nダウンロードしますか？</string>
     <string name="setting_latest_download_subtitle" formatted="false">アップデートがあります。(%s)</string>
-    <string name="settings_appinfo_browsersettings">ブラウザ設定</string>
     <string name="browser_fontprefetch">フォントをプリロード</string>
     <string name="browser_enablepipmode">PIPモードを有効にする</string>
+    <string name="browser_enablepipmode_summary">ホーム画面に戻る、上にスワイプする、またはブラウザ画面を2本の指でピンチイン（縮小）すると、小さなフローティング窓でアプリを再生し続けます。</string>
     <string name="browser_disable_refresh_dialog">再読み込み確認を無効にする</string>
     <string name="logout_msg">本当にログアウトしますか？</string>
     <string name="noti_screenshot_name">GotoBrowserスクリーンショット</string>
@@ -65,6 +75,8 @@
     <string name="setting_cursor_mode_mouse">マウス使用</string>
 
     <string name="menu_tooltip_refresh">リフレッシュ</string>
+    <string name="menu_quick_refresh">クイックリフレッシュ</string>
+    <string name="menu_full_refresh">フルリフレッシュ</string>
     <string name="menu_tooltip_mute">ミュート</string>
     <string name="menu_tooltip_camera">スクリーンショット</string>
     <string name="menu_tooltip_lock">回転ロック</string>
@@ -76,6 +88,9 @@
     <string name="settings_legacy_renderer_enable">レガシーレンダラを使用する</string>
 
     <string name="settings_mod_label">非公式のMOD（自己責任で使ってください）</string>
+    <string name="settings_mod_group_general">一般</string>
+    <string name="settings_mod_group_kantai3d">Kantai3D 視覚効果</string>
+    <string name="settings_mod_group_kccp">言語パッチ (KCCP)</string>
     <string name="settings_mod_kantai3d_enable">Kantai3D v4.0</string>
     <string name="settings_mod_kantai3d_summary">一部の秘書艦に3Dのような視覚効果とおける乳揺れを追加します。作者：@laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
@@ -98,11 +113,6 @@
     <string name="settings_mod_crit_enable">真のクリティカルヒット</string>
     <string name="settings_mod_crit_summary">ハードコードされたヒットの難読化を削除します。 クリティカルヒットのみがそのように表示されます。 作者：@Oradimi</string>
     <string name="settings_use_external_dir">キャッシングに外部ストレージを使用</string>
-    <string name="menu_tooltip_kantai3d">3D効果</string>
-    <string name="msg_kantai3d_init">秘書艦が検出されません</string>
-    <string name="msg_kantai3d_loaded">現在の秘書艦CGの深度マップをダウンロードしました： %s</string>
-    <string name="msg_kantai3d_error">現在の秘書艦CGの深度マップが見つからない： %s</string>
-    <string name="msg_kantai3d_redirect">3D対応のCGリストをすべて表示したり、新しい深さマップに貢献したりするには: https://github.com/laplamgor/kantai3d</string>
 
     <string name="en_download_start">ダウンロードを開始しています…</string>
     <string name="en_unzip_start">解凍中…お待ちください…</string>
@@ -124,4 +134,9 @@
     <string name="dialog_ipblock_message" formatted="false">メイン画面で「%s」オプションを有効にしてください。（設定でも有効にできます）</string>
     <string name="kcanotify_broadcast_dialog_title">Kcanotifyが検出されました</string>
     <string name="kcanotify_broadcast_dialog_message" formatted="false">GotoBrowserをKcanotifyと一緒に使用するには、「%s」を有効にする必要があります。%sをクリックして有効にしますか?</string>
+    <string name="settings_menu_tooltip">設定</string>
+    <string name="settings_refresh_required_title">再読み込みが必要です</string>
+    <string name="settings_refresh_required_msg">設定が保存されました。効果を有効にするにはゲームの再読み込みが必要です。今すぐ再読み込みしますか？</string>
+    <string name="settings_refresh_now">今すぐ再読み込み</string>
+    <string name="settings_refresh_later">再読み込みせずに設定を変更</string>
 </resources>

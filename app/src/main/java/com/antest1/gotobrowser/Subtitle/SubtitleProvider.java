@@ -46,12 +46,12 @@ public interface SubtitleProvider {
     //   17:Yasen(2) is replaced with 917. might map to 17, but not for now;
     //   18 still used at day as random Attack, 918 used at night opening
     Map<String, Map<String, String>> specialShipVoices =
-            new HashMap<String, Map<String, String>>() {{
-                put("432", new HashMap<String, String>() {{
+            new HashMap<>() {{
+                put("432", new HashMap<>() {{
                     put("917", "917");
                     put("918", "918");
                 }});
-                put("353", new HashMap<String, String>() {{
+                put("353", new HashMap<>() {{
                     put("917", "917");
                     put("918", "918");
                 }});
