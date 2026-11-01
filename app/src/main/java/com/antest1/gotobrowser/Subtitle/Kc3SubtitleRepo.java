@@ -1,5 +1,6 @@
 package com.antest1.gotobrowser.Subtitle;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import retrofit2.Call;

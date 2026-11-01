@@ -12,15 +12,17 @@ public class SubtitleProviderUtils {
     }
 
     public static SubtitleProvider getSubtitleProvider(String subtitleLocale) {
-        return switch (subtitleLocale) {
-            case "zh-tw", "zh-cn" -> {
-                currentProvider = kcwikiSubtitleProvider;
-                yield kcwikiSubtitleProvider;
-            }
-            default -> {
+        switch (subtitleLocale) {
+            default:
+            case "en":
+            case "kr":
+            case "jp":
                 currentProvider = kc3SubtitleProvider;
-                yield kc3SubtitleProvider;
-            }
-        };
+                return kc3SubtitleProvider;
+            case "zh-tw":
+            case "zh-cn":
+                currentProvider = kcwikiSubtitleProvider;
+                return kcwikiSubtitleProvider;
+        }
     }
 }
