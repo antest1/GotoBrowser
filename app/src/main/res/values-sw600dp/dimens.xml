@@ -13,6 +13,6 @@
     <dimen name="top_menu_gap">8dp</dimen>
 
     <!-- Screenshot (capture) button (BrowserOverlayLayer) -->
-    <dimen name="browser_camera_size">64dp</dimen>
-    <dimen name="browser_camera_icon_size">32dp</dimen>
+    <dimen name="browser_camera_size">80dp</dimen>
+    <dimen name="browser_camera_icon_size">40dp</dimen>
 </resources>
