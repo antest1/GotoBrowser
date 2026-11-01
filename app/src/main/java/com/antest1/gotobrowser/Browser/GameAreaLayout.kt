@@ -21,15 +21,20 @@ class GameAreaLayout(context: Context) : FrameLayout(context) {
             return
         }
 
+        // Padding is set from the display-cutout insets in BrowserActivity,
+        // so the 1200:720 fit is computed against the cutout-free area only.
+        val availableWidth = (containerWidth - paddingLeft - paddingRight).coerceAtLeast(1)
+        val availableHeight = (containerHeight - paddingTop - paddingBottom).coerceAtLeast(1)
+
         val ratio = 1200f / 720f
         val width: Int
         val height: Int
-        if (containerWidth.toFloat() / containerHeight > ratio) {
-            height = containerHeight
-            width = (containerHeight * ratio).roundToInt()
+        if (availableWidth.toFloat() / availableHeight > ratio) {
+            height = availableHeight
+            width = (availableHeight * ratio).roundToInt()
         } else {
-            width = containerWidth
-            height = (containerWidth / ratio).roundToInt()
+            width = availableWidth
+            height = (availableWidth / ratio).roundToInt()
         }
 
         val margin = (marginDp * resources.displayMetrics.density).roundToInt()
@@ -42,8 +47,10 @@ class GameAreaLayout(context: Context) : FrameLayout(context) {
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         val child = getChildAt(0) ?: return
-        val childLeft = (width - child.measuredWidth) / 2
-        val childTop = (height - child.measuredHeight) / 2
+        val availableWidth = width - paddingLeft - paddingRight
+        val availableHeight = height - paddingTop - paddingBottom
+        val childLeft = paddingLeft + (availableWidth - child.measuredWidth) / 2
+        val childTop = paddingTop + (availableHeight - child.measuredHeight) / 2
         child.layout(childLeft, childTop, childLeft + child.measuredWidth, childTop + child.measuredHeight)
     }
 }

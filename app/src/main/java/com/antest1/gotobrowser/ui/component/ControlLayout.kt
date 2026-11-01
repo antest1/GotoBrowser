@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -51,6 +52,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.antest1.gotobrowser.Activity.safeOverlayInsets
 import com.antest1.gotobrowser.R
 
 enum class RefreshOption { QUICK, FULL }
@@ -96,6 +98,7 @@ fun ControlLayout(
             exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
             modifier = Modifier
                 .align(Alignment.TopEnd)
+                .windowInsetsPadding(safeOverlayInsets())
                 .padding(topMenuPadding)
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(topMenuSpacing), verticalAlignment = Alignment.CenterVertically) {

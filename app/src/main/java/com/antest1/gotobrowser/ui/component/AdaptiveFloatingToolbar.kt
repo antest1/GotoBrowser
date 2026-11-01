@@ -13,6 +13,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,6 +43,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -74,10 +79,22 @@ fun AdaptiveFloatingToolbar(
     val marginPx = with(density) { margin.toPx() }
     val barSizePx = with(density) { barSize.toPx() }
 
+    // Display cutout / system bar insets on the edge the bar docks against.
+    // The bar is positioned in unpadded (physical screen) coordinates so that
+    // the hidden state is really off-screen; the docked state is pushed in by
+    // the inset so it does not sit under the camera hole.
+    val layoutDirection = LocalLayoutDirection.current
+    val safeInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout)
+    val insetLeftPx = safeInsets.getLeft(density, layoutDirection).toFloat()
+    val insetTopPx = safeInsets.getTop(density).toFloat()
+    val insetRightPx = safeInsets.getRight(density, layoutDirection).toFloat()
+    val insetBottomPx = safeInsets.getBottom(density).toFloat()
+    val dockInsetPx = if (isLandscape) insetLeftPx else insetBottomPx
+
     // Offset logic
-    // Vertical: slides horizontally from left (-barSize to margin)
-    // Horizontal: slides vertically from bottom (containerHeight to containerHeight - margin - barSize)
-    val dockedOffset = marginPx
+    // Vertical: slides horizontally from left (-barSize to inset + margin)
+    // Horizontal: slides vertically from bottom (-barSize to inset + margin)
+    val dockedOffset = marginPx + dockInsetPx
     val hiddenOffset = -barSizePx
     val triggerOffset = (dockedOffset + hiddenOffset) / 2f
 
@@ -105,7 +122,11 @@ fun AdaptiveFloatingToolbar(
         }
     }
 
-    LaunchedEffect(visible) {
+    // Keyed on the target offsets as well as visibility: window insets usually
+    // arrive after the first composition, so dockedOffset changes once the
+    // cutout is known. Without these keys the bar would stay at its inset-less
+    // initial position until the next show/hide toggle.
+    LaunchedEffect(visible, dockedOffset, hiddenOffset) {
         offsetAnim.animateTo(
             targetValue = if (visible) dockedOffset else hiddenOffset,
             animationSpec = settleSpec
@@ -239,29 +260,33 @@ fun AdaptiveFloatingToolbar(
         }
     ) { measurables, constraints ->
         val maxBarLength = ((if (isLandscape) constraints.maxHeight else constraints.maxWidth) * barLengthFraction).roundToInt()
-        
-        // WebView geometry (simplified dodge logic for now, similar to original)
+
+        // WebView geometry (simplified dodge logic for now, similar to original).
+        // GameAreaLayout pads itself by the same insets, so fit the 1200:720 box
+        // into the inset-free area and offset it back into screen coordinates.
         val containerWidth = constraints.maxWidth.toFloat()
         val containerHeight = constraints.maxHeight.toFloat()
+        val safeWidth = (containerWidth - insetLeftPx - insetRightPx).coerceAtLeast(1f)
+        val safeHeight = (containerHeight - insetTopPx - insetBottomPx).coerceAtLeast(1f)
         val ratio = 1200f / 720f
         val wvw: Float
         val wvh: Float
-        if (containerWidth / containerHeight > ratio) {
-            wvh = containerHeight
-            wvw = containerHeight * ratio
+        if (safeWidth / safeHeight > ratio) {
+            wvh = safeHeight
+            wvw = safeHeight * ratio
         } else {
-            wvw = containerWidth
-            wvh = containerWidth / ratio
+            wvw = safeWidth
+            wvh = safeWidth / ratio
         }
-        val wvl = (containerWidth - wvw) / 2f
-        val wvt = (containerHeight - wvh) / 2f
+        val wvl = insetLeftPx + (safeWidth - wvw) / 2f
+        val wvt = insetTopPx + (safeHeight - wvh) / 2f
         val wvr = wvl + wvw
         val wvb = wvt + wvh
 
         val revealSizePx = with(density) { revealSize.toPx() }
         val fabSpacingPx = with(density) { 16.dp.toPx() }
         val barSizePx = with(density) { barSize.toPx() }
-        
+
         val looseConstraints = constraints.copy(minWidth = 0, minHeight = 0)
         val placeables = measurables.map { measurable ->
             when (measurable.layoutId) {

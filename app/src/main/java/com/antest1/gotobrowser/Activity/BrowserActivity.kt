@@ -28,11 +28,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -68,7 +73,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.antest1.gotobrowser.Browser.GameAreaLayout
 import com.antest1.gotobrowser.Browser.WebViewL
@@ -199,6 +206,17 @@ class BrowserActivity : ComponentActivity() {
         pipController = PipController(this, webView, { isInPictureInPictureModeState.value = it }, { hideSystemBars() })
         pipController.setupPinchToPipGesture()
         val gameArea = GameAreaLayout(this).apply { addView(webView) }
+        // Keep the game area clear of the display cutout. Since targetSdk 35 the
+        // window always extends into the cutout, so on 16:10 tablets the WebView
+        // could otherwise be partially covered. Insets are passed through, not consumed.
+        // Must stay in sync with safeOverlayInsets() below.
+        ViewCompat.setOnApplyWindowInsetsListener(gameArea) { v, insets ->
+            val safe = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.setPadding(safe.left, safe.top, safe.right, safe.bottom)
+            insets
+        }
         displayController = DisplayController(this, webView) { gameArea.marginDp = it }
 
         val backgroundTapView = View(this).apply {
@@ -232,6 +250,10 @@ class BrowserActivity : ComponentActivity() {
                     hideSystemBars()
                 }
 
+                // Insets are NOT applied at this root on purpose: the floating toolbar
+                // slides off the physical screen edge, so it needs unpadded coordinates
+                // and handles the cutout itself. Each overlay applies safeOverlayInsets()
+                // where it needs to stay clear of the cutout / system bars.
                 Box(modifier = Modifier.fillMaxSize()) {
                     BrowserOverlayContent(
                         viewModel = viewModel,
@@ -666,6 +688,16 @@ class BrowserActivity : ComponentActivity() {
     }
 }
 
+/**
+ * System bars + display cutout. IME is intentionally excluded so overlays do
+ * not jump when the keyboard opens on the login page. While the bars are
+ * hidden their insets report 0, so in normal fullscreen play this is
+ * effectively cutout-only.
+ */
+@Composable
+fun safeOverlayInsets(): WindowInsets =
+    WindowInsets.systemBars.union(WindowInsets.displayCutout)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PanelButton(
@@ -844,7 +876,9 @@ fun BrowserOverlayContent(
         else activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // Same insets GameAreaLayout receives as padding, so the WebView geometry
+    // computed below matches where the game is actually drawn.
+    Box(modifier = Modifier.fillMaxSize().windowInsetsPadding(safeOverlayInsets())) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             val ratio = 1200f / 720f
             val containerWidth = maxWidth.value
