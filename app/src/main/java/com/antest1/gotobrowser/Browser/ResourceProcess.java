@@ -19,7 +19,6 @@ import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleData;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.gson.JsonObject;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -31,9 +30,12 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -60,6 +62,7 @@ import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
+import static com.antest1.gotobrowser.Helpers.KcUtils.DownloadResult;
 import static com.antest1.gotobrowser.Helpers.KcUtils.downloadResource;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getEmptyStream;
 
@@ -73,8 +76,6 @@ public class ResourceProcess {
     public static final int RES_KCSAPI = 0b1000000;
     public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss z";
 
-    private static final String TAG_D = "GOTO-D";
-    private static final String TAG_P = "GOTO-P";
     private static final String TAG_G = "GOTO";
 
     // Freshness window for cached resources, overriding the server's unrealistic max-age.
@@ -275,7 +276,7 @@ public class ResourceProcess {
             if (info.filename != null) {
                 info.outputPath = info.outputDir.concat(info.filename);
             }
-            info.fullUrl = String.format(Locale.US, "%s://%s%s", scheme, info.host, info.path);
+            info.fullUrl = scheme + "://" + info.host + info.path;
             String version = source.getQueryParameter("version");
             if (version != null) {
                 info.version = version;
@@ -283,7 +284,7 @@ public class ResourceProcess {
             if (!info.version.isEmpty()) {
                 info.fullUrl = info.fullUrl + "?version=" + info.version;
             }
-            info.key = String.format(Locale.US, "|%s|%s", info.path, info.version);
+            info.key = "|" + info.path + "|" + info.version;
         }
         return info;
     }
@@ -315,18 +316,25 @@ public class ResourceProcess {
         }
     }
 
-    public static Date parseHttpDate(String dateString) {
-        try {
+    private static final ThreadLocal<SimpleDateFormat> HTTP_DATE_FORMATTER = new ThreadLocal<>() {
+        @Override
+        protected SimpleDateFormat initialValue() {
             SimpleDateFormat formatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
             formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
-            return formatter.parse(dateString);
+            return formatter;
+        }
+    };
+
+    public static Date parseHttpDate(String dateString) {
+        try {
+            return HTTP_DATE_FORMATTER.get().parse(dateString);
         } catch (ParseException | NullPointerException e) {
             return null;
         }
     }
 
     private WebResourceResponse processImageDataResource(ResourceRequestInfo requestInfo, int resource_type) {
-        File file = getImageFile(requestInfo.outputPath);
+        File file = new File(requestInfo.outputPath);
         int status = downloadResourceIfMissing(requestInfo, file);
         if (status == RESOURCE_FAILED) return promptForRetry(requestInfo, resource_type);
         return serveLocalCachedImage(file, requestInfo, resource_type, status == RESOURCE_DOWNLOADED);
@@ -341,11 +349,12 @@ public class ResourceProcess {
             revalidateCacheInBackground(update_key, requestInfo.fullUrl, file);
             return RESOURCE_CACHED;
         }
-        JsonObject result = downloadResource(resourceClient, requestInfo.fullUrl, file, null);
-        if (!result.has("response_code")) return RESOURCE_FAILED;
-        if (result.get("response_code").getAsInt() != 200) return RESOURCE_CACHED;
-        versionTable.putCacheAndVersion(update_key, result.get("last_modified").getAsString(), getRevalidationExpiry());
-        return RESOURCE_DOWNLOADED;
+        DownloadResult result = downloadResource(resourceClient, requestInfo.fullUrl, file, null);
+        if (result.responseCode == 200) {
+            versionTable.putCacheAndVersion(update_key, result.lastModified, getRevalidationExpiry());
+            return RESOURCE_DOWNLOADED;
+        }
+        return result.responseCode == -1 ? RESOURCE_FAILED : RESOURCE_CACHED;
     }
 
     // Stale-while-revalidate (off the UI thread): the conditional GET result is used on a future
@@ -360,12 +369,10 @@ public class ResourceProcess {
 
         REVALIDATION_EXECUTOR.execute(() -> {
             try {
-                JsonObject result = downloadResource(resourceClient, resource_url, file, ifModifiedSince);
-                if (!result.has("response_code")) return;
-                int response_code = result.get("response_code").getAsInt();
-                if (response_code == 200) {
-                    versionTable.putCacheAndVersion(update_key, result.get("last_modified").getAsString(), getRevalidationExpiry());
-                } else if (response_code == 304) {
+                DownloadResult result = downloadResource(resourceClient, resource_url, file, ifModifiedSince);
+                if (result.responseCode == 200) {
+                    versionTable.putCacheAndVersion(update_key, result.lastModified, getRevalidationExpiry());
+                } else if (result.responseCode == 304) {
                     versionTable.putCacheControlValue(update_key, getRevalidationExpiry());
                 }
             } catch (Exception e) {
@@ -377,54 +384,13 @@ public class ResourceProcess {
     }
 
     private String getRevalidationExpiry() {
-        SimpleDateFormat sdf = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
-        sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return sdf.format(new Date(System.currentTimeMillis() + CACHE_TTL_MS));
+        return HTTP_DATE_FORMATTER.get().format(new Date(System.currentTimeMillis() + CACHE_TTL_MS));
     }
 
-    // Applies the Ken patch if available, then returns a response backed by the local file.
-    // updateFlag=true forces re-patch after a fresh download.
+    // Patches the image only if a changed source is detected, then returns a response backed by
+    // the local file. updateFlag=true forces re-patch after a fresh download.
     private WebResourceResponse serveLocalCachedImage(File originalFile, ResourceRequestInfo requestInfo, int resource_type, boolean updateFlag) {
-        String path = requestInfo.path;
-        String out_file_path = requestInfo.outputPath;
-        String log_path = out_file_path;
-        File file = originalFile;
-
-        if (KenPatcher.isPatcherEnabled()) {
-            String patchedFilePath = KcUtils.getAppCacheFileDir(context, KcEnUtils.getPatchedCachePath().concat(path));
-            String patchFilePath = KcUtils.getAppCacheFileDir(context,
-                    ("/" + KcEnUtils.getAssetPath()).concat(path));
-            File patchedFile = getImageFile(patchedFilePath);
-            File patchFile = new File(patchFilePath);
-
-            boolean usePatchedCache = false;
-            if (patchFile.isDirectory()) {
-                String patchStrings;
-                if (new File(patchFilePath.concat("/original")).isDirectory()) {
-                    patchStrings = dirMD5(patchFilePath.concat("/original")) + dirMD5(patchFilePath.concat("/patched"));
-                } else {
-                    patchStrings = dirMD5(patchFilePath);
-                }
-                String hash = GetMD5HashOfString(patchStrings);
-                String patchVersion = versionTable.getVersionValue(patchFilePath);
-                if (!patchedFile.exists() || updateFlag || patchVersion == null ||
-                        !Objects.equals(versionTable.getVersionValue(patchFilePath), hash)) {
-                    versionTable.putVersionValue(patchFilePath, hash);
-                    Log.e(TAG_D, "needs repatch: " + patchedFilePath + " " + hash);
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        usePatchedCache = patchImage(out_file_path, patchedFilePath, patchFilePath);
-                    }
-                } else {
-                    Log.e(TAG_D, "using cached patched file: " + patchedFilePath + " " + hash);
-                    usePatchedCache = true;
-                }
-            }
-            if (usePatchedCache) {
-                file = patchedFile;
-                log_path = patchedFilePath;
-            }
-        }
-
+        File file = ResourcePatcher.INSTANCE.patchImageIfAvailable(context, versionTable, requestInfo.path, originalFile, updateFlag);
         try {
             InputStream is = new BufferedInputStream(new FileInputStream(file));
             String type = ResourceProcess.isImage(resource_type) ? "image/png" : "application/json";
@@ -512,7 +478,29 @@ public class ResourceProcess {
         }
 
         if (url.contains("kcs2/js/main.js")) {
-            byte[] byteArray = KcUtils.downloadDataFromURL(url);
+            String update_key = requestInfo.key;
+            String resource_url = requestInfo.fullUrl;
+            String out_file_path = requestInfo.outputPath;
+            File file = new File(out_file_path);
+
+            String prevLastModified = versionTable.getVersionValue(update_key);
+            if (!file.exists() || file.length() == 0 || prevLastModified.equals(versionTable.getDefaultValue())) {
+                prevLastModified = null;
+            }
+
+            // main.js is core game code; bypass max-age caching and issue If-Modified-Since revalidation.
+            DownloadResult result = downloadResource(resourceClient, resource_url, file, prevLastModified);
+            if (result.responseCode == 200) {
+                versionTable.putCacheAndVersion(update_key, result.lastModified, versionTable.getDefaultValue());
+            }
+
+            byte[] byteArray;
+            if (file.exists() && file.length() > 0) {
+                byteArray = KcUtils.getBytesFromInputStream(new FileInputStream(file));
+            } else {
+                byteArray = KcUtils.downloadDataFromURL(url);
+            }
+
             String main_js = ResourcePatcher.INSTANCE.patchMainScript(context, activity, new String(byteArray, StandardCharsets.UTF_8), silent_mode, isCursorTouchMode, getTouchEventPatchJs());
             InputStream is = new ByteArrayInputStream(main_js.getBytes());
             return new WebResourceResponse("application/javascript", "utf-8", is);
@@ -545,8 +533,6 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processAudioFile(ResourceRequestInfo requestInfo, int resource_type) {
-        String path = requestInfo.path;
-        String url = requestInfo.url;
         File file = new File(requestInfo.outputPath);
         if (downloadResourceIfMissing(requestInfo, file) == RESOURCE_FAILED) {
             return promptForRetry(requestInfo, resource_type);
@@ -571,12 +557,10 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processFontFile(ResourceRequestInfo requestInfo) throws IOException {
-        String path = requestInfo.path;
         File file = new File(requestInfo.outputPath);
         downloadResourceIfMissing(requestInfo, file);
-        file = applyKenPatcherIfAvailable(path, file, false);
-        InputStream is = new BufferedInputStream(new FileInputStream(file));
-        return new WebResourceResponse("application/font-woff2", "binary", is);
+        file = ResourcePatcher.INSTANCE.applyKenPatcherIfAvailable(context, versionTable, requestInfo.path, file, false);
+        return new WebResourceResponse("application/font-woff2", "binary", new BufferedInputStream(new FileInputStream(file)));
     }
 
     private void setSubtitle(SubtitleData data) {
@@ -608,8 +592,8 @@ public class ResourceProcess {
     }
 
     private boolean getIpBannedStatus(String url) {
-        JsonObject result = downloadResource(resourceClient, url, null);
-        return result.has("response_code") && result.get("response_code").getAsInt() == 403;
+        DownloadResult result = downloadResource(resourceClient, url, null);
+        return result.responseCode == 403;
     }
 
     private WebResourceResponse getInjectedKcaCdaJs() {
@@ -634,11 +618,11 @@ public class ResourceProcess {
         try {
             InputStream inputStream = context.getAssets().open("touch_event_patch.js");
             ByteArrayOutputStream result = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[16384];
             for (int length; (length = inputStream.read(buffer)) != -1;) {
                 result.write(buffer, 0, length);
             }
-            return result.toString(StandardCharsets.UTF_8);
+            return result.toString("UTF-8");
         } catch (IOException e) { return null; }
     }
 

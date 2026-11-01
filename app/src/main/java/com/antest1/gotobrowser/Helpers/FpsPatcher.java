@@ -1,6 +1,5 @@
 package com.antest1.gotobrowser.Helpers;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -28,7 +27,7 @@ public class FpsPatcher {
             return main_js;
         }
 
-        // Change the create.js ticker mode from Timer to to RAF
+        // Change the create.js ticker mode from Timer to RAF
         Pattern pattern = Pattern.compile("(createjs[^,;=]{0,40})(\\=createjs[^,;=]{0,40}),");
         Matcher matcher = pattern.matcher(main_js);
         return matcher.replaceFirst("$1=createjs.Ticker.RAF,");

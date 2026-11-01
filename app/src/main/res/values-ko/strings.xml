@@ -109,8 +109,13 @@
     <string name="settings_mod_kccp_patch_en_summary">KanColle English Patch (저자: @Oradimi)</string>
     <string name="settings_mod_kccp_patch_id_summary">KanColle Indonesia Patch (저자: @SLAVUSworks)</string>
 
-    <string name="settings_mod_fps_enable">60FPS 제한 제거</string>
-    <string name="settings_mod_fps_summary">더 높은 화면 재생 빈도 장치를 지원합니다. 애니메이션 속도는 영향을 받지 않습니다.</string>
+    <string name="settings_mod_fps_enable">FPS 렌더링 모드</string>
+    <string name="settings_mod_fps_summary">VSYNC 렌더링을 사용하여 원본 게임보다 부드럽고 효율적으로 작동합니다.</string>
+    <string name="settings_fps_limit_title">FPS 제한</string>
+    <string name="settings_fps_limit_summary">목표 FPS를 낮추면 배터리가 절약되고 발열이 줄어듭니다.</string>
+    <string name="settings_fps_limit_summary_format">%1$s — 목표 FPS를 낮추면 배터리가 절약되고 발열이 줄어듭니다.</string>
+    <string name="settings_fps_limit_default">기본 (최대)</string>
+    <string name="settings_fps_limit_option">%d FPS</string>
     <string name="settings_mod_crit_enable">진정한 크리티컬 히트</string>
     <string name="settings_mod_crit_summary">하드 코딩된 데미지의 난독화를 제거합니다. 크리티컬 히트(CL2)만을 Critical Hit로 표시됩니다. 저자: @Oradimi</string>
     <string name="settings_use_external_dir">리소스 캐싱 시 외부 저장소 사용</string>

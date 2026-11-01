@@ -107,8 +107,13 @@
     <string name="settings_mod_kccp_patch_en_summary">KanColle English Patch (作者: @Oradimi)</string>
     <string name="settings_mod_kccp_patch_id_summary">KanColle Indonesia Patch (作者: @SLAVUSworks)</string>
 
-    <string name="settings_mod_fps_enable">移除60帧限制</string>
-    <string name="settings_mod_fps_summary">支援高萤幕更新率手机，不会影响游戏动画速度。</string>
+    <string name="settings_mod_fps_enable">FPS渲染 Mod</string>
+    <string name="settings_mod_fps_summary">使用VSYNC渲染，比原版游戏更流畅且运行效率更高。</string>
+    <string name="settings_fps_limit_title">FPS限制</string>
+    <string name="settings_fps_limit_summary">降低帧率限制可节省电量并减少发热。</string>
+    <string name="settings_fps_limit_summary_format">%1$s — 降低帧率限制可节省电量并减少发热。</string>
+    <string name="settings_fps_limit_default">默认（最高）</string>
+    <string name="settings_fps_limit_option">%d FPS</string>
     <string name="settings_mod_crit_enable">真正的Critical hit</string>
     <string name="settings_mod_crit_summary">删除游戏命中的硬编码混淆，使其在真正Critical hit才显示。作者：@Oradimi</string>
     <string name="settings_use_external_dir">将快取存放至外部储存空间</string>

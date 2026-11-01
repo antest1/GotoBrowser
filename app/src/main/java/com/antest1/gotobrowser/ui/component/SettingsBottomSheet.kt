@@ -82,7 +82,9 @@ import com.antest1.gotobrowser.Constants.PREF_DISABLE_REFRESH_DIALOG
 import com.antest1.gotobrowser.Constants.PREF_DMM_ID
 import com.antest1.gotobrowser.Constants.PREF_DMM_PASS
 import com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY
+import com.antest1.gotobrowser.Constants.DEFAULT_FPS_LIMIT
 import com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH
+import com.antest1.gotobrowser.Constants.PREF_FPS_LIMIT
 import com.antest1.gotobrowser.Constants.PREF_KEYBOARD
 import com.antest1.gotobrowser.Constants.PREF_LANDSCAPE
 import com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER
@@ -366,7 +368,7 @@ fun SettingsContent(
 
 @Composable
 private fun DisplaySection(viewModel: SettingsViewModel?, onSettingChanged: (String) -> Unit) {
-    SwitchRow(viewModel, PREF_LANDSCAPE, R.string.mode_landscape, onSettingChanged = onSettingChanged)
+    SwitchRow(viewModel, PREF_LANDSCAPE, R.string.mode_landscape, defaultValue = true, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_ADJUSTMENT, R.string.mode_adjustment, R.string.settings_recommended_summary, defaultValue = true, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_PIP_MODE, R.string.browser_enablepipmode, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_MULTIWIN_MARGIN, R.string.settings_mw_margin, onSettingChanged = onSettingChanged)
@@ -616,6 +618,18 @@ private fun ModsSection(
     SectionHeader(R.string.settings_mod_group_general)
     SwitchRow(viewModel, PREF_MOD_FPS, R.string.settings_mod_fps_enable, R.string.settings_mod_fps_summary,
         onSettingChanged = onSettingChanged)
+    val fpsOptions = fpsLimitOptions(context)
+    ListRow(
+        viewModel = viewModel,
+        key = PREF_FPS_LIMIT,
+        titleRes = R.string.settings_fps_limit_title,
+        options = fpsOptions,
+        summaryProvider = { selectedValue ->
+            val optTitle = fpsOptions.firstOrNull { it.value == selectedValue }?.title ?: selectedValue
+            context.getString(R.string.settings_fps_limit_summary_format, optTitle)
+        },
+        onSettingChanged = onSettingChanged
+    )
     SwitchRow(viewModel, PREF_MOD_CRIT, R.string.settings_mod_crit_enable, R.string.settings_mod_crit_summary,
         onSettingChanged = onSettingChanged)
 
@@ -868,7 +882,10 @@ private fun ListOptionDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            Column {
+            // The options list is unbounded: in landscape the dialog's text slot is only
+            // given the height left over by the title and buttons, so rows beyond that
+            // were laid out off the bottom and clipped away. Scroll instead.
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 options.forEach { option ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -1025,6 +1042,37 @@ private fun KcanotifyBroadcastDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         }
     )
+}
+
+private fun fpsLimitOptions(context: Context): List<ListOption> {
+    val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as? android.hardware.display.DisplayManager
+    val display = displayManager?.getDisplay(android.view.Display.DEFAULT_DISPLAY)
+    val modes = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) display?.supportedModes else null
+    val rates = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+        modes?.map { it.refreshRate.roundToInt() }
+            ?.filter { it >= 30 }
+            ?.distinct()
+            ?.sorted() ?: emptyList()
+    } else emptyList()
+
+    val supportedRates = if (rates.isNotEmpty()) rates else listOf(30, 60, 90, 120)
+
+    val options = mutableListOf<ListOption>()
+    options.add(
+        ListOption(
+            DEFAULT_FPS_LIMIT,
+            context.getString(R.string.settings_fps_limit_default)
+        )
+    )
+    for (rate in supportedRates) {
+        options.add(
+            ListOption(
+                rate.toString(),
+                context.getString(R.string.settings_fps_limit_option, rate)
+            )
+        )
+    }
+    return options
 }
 
 private fun cursorModeOptions() = listOf(

@@ -80,8 +80,8 @@ public class K3dPatcher implements SensorEventListener {
         // Slowly rebound the tile angle until it becomes centre
         long newTime = System.currentTimeMillis();
         if (oldTime != 0) {
-            // The angle becomes 99.6% after every 10ms
-            float decay = (float) Math.pow(0.996f, (newTime - oldTime));
+            // The angle becomes 99.8% after every 10ms
+            float decay = (float) Math.pow(0.998f, (newTime - oldTime));
             gyroX *= decay;
             gyroY *= decay;
         }
@@ -134,6 +134,7 @@ public class K3dPatcher implements SensorEventListener {
                 case ROTATION_270:
                     gyroX += sensorEvent.values[0] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
                     gyroY += sensorEvent.values[1] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
+                    break;
                 case ROTATION_0:
                 default:
                     gyroX -= sensorEvent.values[1] * (sensorEvent.timestamp - lastEventTimestamp) / 1000;
@@ -171,14 +172,13 @@ public class K3dPatcher implements SensorEventListener {
             stringsToReplace.put(patch.getAsJsonObject().get("pattern").getAsString(), patch.getAsJsonObject().get("replacement").getAsString());
         }
 
-        String replaced = main_js;
-        StringBuilder sb = new StringBuilder();
+        StringBuffer sb = new StringBuffer();
         Matcher matcher = null;
         for (Map.Entry<String, String> stringToReplace : stringsToReplace.entrySet()) {
             Pattern pattern = Pattern.compile(stringToReplace.getKey());
             // Match the next pattern using the same matcher
             if (matcher == null) {
-                matcher = pattern.matcher(replaced);
+                matcher = pattern.matcher(main_js);
             } else {
                 matcher.usePattern(pattern);
             }

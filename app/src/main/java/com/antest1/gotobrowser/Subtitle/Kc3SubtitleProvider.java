@@ -250,10 +250,9 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             public void run() {
                 String last_modified = table.getVersionValue(key);
                 if (!last_modified.equals(commit)) {
-                    JsonObject result = KcUtils.downloadResource(resourceClient, download_path, file);
-                    if (result.has("response_code")) {
-                        int response_code = result.get("response_code").getAsInt();
-                        if (response_code != 304) table.putVersionValue(key, commit);
+                    KcUtils.DownloadResult result = KcUtils.downloadResource(resourceClient, download_path, file);
+                    if (result.responseCode != -1 && result.responseCode != 304) {
+                        table.putVersionValue(key, commit);
                     }
                 }
             }

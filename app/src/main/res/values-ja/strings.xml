@@ -108,8 +108,13 @@
     <string name="settings_mod_kccp_patch_en_summary">KanColle English Patch (作者: @Oradimi)</string>
     <string name="settings_mod_kccp_patch_id_summary">KanColle Indonesia Patch (作者: @SLAVUSworks)</string>
 
-    <string name="settings_mod_fps_enable">60FPS制限を削除します</string>
-    <string name="settings_mod_fps_summary">高リフレッシュ・レート対応。ゲームの速度は影響を受けません。</string>
+    <string name="settings_mod_fps_enable">FPSレンダリングモッド</string>
+    <string name="settings_mod_fps_summary">VSYNCレンダリングを使用し、元ゲームより滑らかで効率的に動作させます。</string>
+    <string name="settings_fps_limit_title">FPS制限</string>
+    <string name="settings_fps_limit_summary">制限を下げるとバッテリー消費と発熱を抑えられます。</string>
+    <string name="settings_fps_limit_summary_format">%1$s — 制限を下げるとバッテリー消費と発熱を抑えられます。</string>
+    <string name="settings_fps_limit_default">デフォルト (最大)</string>
+    <string name="settings_fps_limit_option">%d FPS</string>
     <string name="settings_mod_crit_enable">真のクリティカルヒット</string>
     <string name="settings_mod_crit_summary">ハードコードされたヒットの難読化を削除します。 クリティカルヒットのみがそのように表示されます。 作者：@Oradimi</string>
     <string name="settings_use_external_dir">キャッシングに外部ストレージを使用</string>

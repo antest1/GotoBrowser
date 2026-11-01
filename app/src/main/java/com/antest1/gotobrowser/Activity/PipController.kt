@@ -1,17 +1,17 @@
 package com.antest1.gotobrowser.Activity
 
+import android.annotation.SuppressLint
 import android.app.PictureInPictureParams
 import android.graphics.Rect
 import android.os.Build
 import android.util.Rational
+import android.view.ScaleGestureDetector
 import android.webkit.WebView
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.PointerInputScope
 import com.antest1.gotobrowser.Constants.PREF_PIP_MODE
 
 class PipController(
     private val activity: BrowserActivity,
-    private val mContentView: WebView?,
+    private val mContentView: WebView,
     private val onPipModeChanged: (Boolean) -> Unit,
     private val hideSystemBars: () -> Unit
 ) {
@@ -19,7 +19,7 @@ class PipController(
         val pipEnabled = activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_PIP_MODE, false)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && activity.supportsPiPMode() && pipEnabled) {
             val sourceRectHint = Rect()
-            mContentView?.getGlobalVisibleRect(sourceRectHint)
+            mContentView.getGlobalVisibleRect(sourceRectHint)
             activity.setPictureInPictureParams(
                 PictureInPictureParams.Builder()
                     .setSeamlessResizeEnabled(false)
@@ -28,7 +28,7 @@ class PipController(
                     .setAspectRatio(Rational(1200, 720))
                     .build()
             )
-            mContentView?.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            mContentView.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
                 if (left != oldLeft || right != oldRight || top != oldTop || bottom != oldBottom) {
                     mContentView.getGlobalVisibleRect(sourceRectHint)
                     activity.setPictureInPictureParams(
@@ -49,7 +49,7 @@ class PipController(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && activity.supportsPiPMode() && pipEnabled) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
                 val sourceRectHint = Rect()
-                mContentView?.getGlobalVisibleRect(sourceRectHint)
+                mContentView.getGlobalVisibleRect(sourceRectHint)
                 activity.enterPictureInPictureMode(
                     PictureInPictureParams.Builder()
                         .setAspectRatio(Rational(1200, 720))
@@ -67,48 +67,43 @@ class PipController(
         }
     }
 
-    suspend fun handlePinchToPipGesture(scope: PointerInputScope) {
-        val pipEnabled = activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_PIP_MODE, false)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && activity.supportsPiPMode() && pipEnabled) {
-            scope.awaitPointerEventScope {
-                while (true) {
-                    var zoom = 1f
-                    while (true) {
-                        val event = awaitPointerEvent(PointerEventPass.Initial)
-                        val changes = event.changes
-                        if (changes.any { it.isConsumed }) break
+    @SuppressLint("ClickableViewAccessibility")
+    fun setupPinchToPipGesture() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !activity.supportsPiPMode()) return
 
-                        val pressedChanges = changes.filter { it.pressed }
-                        if (pressedChanges.size < 2) {
-                            if (pressedChanges.isEmpty()) break
-                            zoom = 1f
-                        } else {
-                            val p1 = pressedChanges[0]
-                            val p2 = pressedChanges[1]
-                            val currDist = (p1.position - p2.position).getDistance()
-                            val prevDist = (p1.previousPosition - p2.previousPosition).getDistance()
+        var zoom = 1f
+        val detector = ScaleGestureDetector(
+            activity,
+            object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+                    zoom = 1f
+                    return true
+                }
 
-                            if (prevDist > 0) {
-                                val scaleDelta = currDist / prevDist
-                                zoom *= scaleDelta
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    val pipEnabled = activity.getSharedPreferences("shared_pref", 0)
+                        .getBoolean(PREF_PIP_MODE, false)
+                    if (!pipEnabled) return false
 
-                                if (zoom < 0.75f) {
-                                    changes.forEach { it.consume() }
-                                    val sourceRectHint = Rect()
-                                    mContentView?.getGlobalVisibleRect(sourceRectHint)
-                                    activity.enterPictureInPictureMode(
-                                        PictureInPictureParams.Builder()
-                                            .setAspectRatio(Rational(1200, 720))
-                                            .setSourceRectHint(sourceRectHint)
-                                            .build()
-                                    )
-                                    break
-                                }
-                            }
-                        }
+                    zoom *= detector.scaleFactor
+                    if (zoom < 0.75f) {
+                        zoom = 1f
+                        val sourceRectHint = Rect()
+                        mContentView.getGlobalVisibleRect(sourceRectHint)
+                        activity.enterPictureInPictureMode(
+                            PictureInPictureParams.Builder()
+                                .setAspectRatio(Rational(1200, 720))
+                                .setSourceRectHint(sourceRectHint)
+                                .build()
+                        )
                     }
+                    return true
                 }
             }
+        )
+        mContentView.setOnTouchListener { _, event ->
+            detector.onTouchEvent(event)
+            false
         }
     }
 }

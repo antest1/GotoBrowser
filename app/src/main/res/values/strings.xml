@@ -123,8 +123,13 @@
     <string name="settings_mod_kccp_patch_en_link" formatted="false" translatable="false">https://github.com/Oradimi/KanColle-English-Patch-KCCP</string>
     <string name="settings_mod_kccp_patch_id_link" formatted="false" translatable="false">https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP</string>
 
-    <string name="settings_mod_fps_enable">Remove 60 FPS limit</string>
-    <string name="settings_mod_fps_summary">Support higher refresh rate devices. Animation speed is not affected.</string>
+    <string name="settings_mod_fps_enable">FPS Rendering Mod</string>
+    <string name="settings_mod_fps_summary">Use VSYNC rendering for smoother performance and better efficiency than original game.</string>
+    <string name="settings_fps_limit_title">FPS Limit</string>
+    <string name="settings_fps_limit_summary">Lowering target FPS limit saves battery life and reduces heating.</string>
+    <string name="settings_fps_limit_summary_format">%1$s — Lowering target FPS limit saves battery life and reduces heating.</string>
+    <string name="settings_fps_limit_default">Default (Max Rate)</string>
+    <string name="settings_fps_limit_option">%d FPS</string>
     <string name="settings_mod_crit_enable">True Critical Hits</string>
     <string name="settings_mod_crit_summary">Removes some hard-coded obfuscation for hits. Only a critical hit will be displayed as such, etc. Author: @Oradimi</string>
     <string name="settings_use_external_dir">External Storage for Resource Caching</string>

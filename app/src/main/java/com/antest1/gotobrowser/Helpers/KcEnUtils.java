@@ -56,7 +56,7 @@ public class KcEnUtils {
     private static String ENPATCH_ZIP_FILE_SRC() { return GITHUB_BASE() + "archive/refs/heads/master.zip"; }
     private static String ENPATCH_COMMIT_URL() { return "https://api.github.com/repos/" + getGitHubNameRootPath() + "commits/master"; }
 
-    private static int BUFFER_SIZE = 8192;
+    private static int BUFFER_SIZE = 16384;
 
     private final OkHttpClient client = new OkHttpClient();
     private boolean newVersionFlag = false;
@@ -434,7 +434,7 @@ public class KcEnUtils {
         StringBuilder returnVal = new StringBuilder();
         try {
             InputStream input = new FileInputStream(filePath);
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[16384];
             MessageDigest md5Hash = MessageDigest.getInstance("MD5");
             int numRead = 0;
             while (numRead != -1) {

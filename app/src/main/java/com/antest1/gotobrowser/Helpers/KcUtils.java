@@ -21,7 +21,6 @@ import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -31,7 +30,6 @@ import com.antest1.gotobrowser.Browser.ResourceProcess;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.R;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -212,7 +210,7 @@ public class KcUtils {
     public static byte[] getBytesFromInputStream(InputStream in) throws IOException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int nRead;
-        byte[] data = new byte[1024];
+        byte[] data = new byte[16384];
         while ((nRead = in.read(data, 0, data.length)) != -1) {
             buffer.write(data, 0, nRead);
         }
@@ -245,7 +243,7 @@ public class KcUtils {
         InputStream in = new BufferedInputStream(new URL(url).openStream());
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int nRead;
-        byte[] data = new byte[1024];
+        byte[] data = new byte[16384];
         while ((nRead = in.read(data, 0, data.length)) != -1) {
             buffer.write(data, 0, nRead);
         }
@@ -254,31 +252,40 @@ public class KcUtils {
         return buffer.toByteArray();
     }
 
-    public static JsonObject downloadResource(OkHttpClient client, String fullpath, File file) {
+    public static class DownloadResult {
+        public int responseCode = -1;
+        public String lastModified;
+        public String cacheControl;
+        public String error;
+    }
+
+    public static DownloadResult downloadResource(OkHttpClient client, String fullpath, File file) {
         return downloadResource(client, fullpath, file, null);
     }
 
-    public static JsonObject downloadResource(OkHttpClient client, String fullpath, File file, String if_modified_since) {
+    public static DownloadResult downloadResource(OkHttpClient client, String fullpath, File file, String if_modified_since) {
         Request.Builder builder = new Request.Builder()
                 .header("User-Agent", ResourceProcess.getUserAgent())
                 .url(fullpath);
         if (if_modified_since != null) {
             builder = builder.addHeader("If-Modified-Since", if_modified_since);
         }
-        JsonObject downloadResult = new JsonObject();
+        DownloadResult downloadResult = new DownloadResult();
 
         Log.e("GOTO", "download " + fullpath + " " + if_modified_since);
         Request request = builder.build();
         try {
             Response response = client.newCall(request).execute();
+            downloadResult.responseCode = response.code();
+            downloadResult.lastModified = response.header("Last-Modified", null);
+            downloadResult.cacheControl = response.header("Cache-Control", null);
+
             if (response.code() == 200) {
                 Log.e("GOTO", "200 OK " + fullpath);
-                String last_modified = response.header("Last-Modified", null);
-                String cache_control = response.header("Cache-Control", null);
                 ResponseBody body = response.body();
                 if (body != null) {
                     InputStream in = body.byteStream();
-                    byte[] buffer = new byte[8 * 1024];
+                    byte[] buffer = new byte[16384];
                     int bytes;
                     if (file != null) {
                         File temp = newTempSibling(file);
@@ -291,18 +298,15 @@ public class KcUtils {
                     }
                     body.close();
                 }
-                downloadResult.addProperty("last_modified", last_modified);
-                downloadResult.addProperty("cache_control", cache_control);
             } else if (response.code() == 304) {
                 Log.e("GOTO", "304 Not Modified " + fullpath);
             } else if (response.code() == 403) {
-                Log.e("GOTO", "403 Forbidden" + fullpath);
+                Log.e("GOTO", "403 Forbidden " + fullpath);
             }
-            downloadResult.addProperty("response_code", response.code());
         } catch (Exception e) {
             Log.e("GOTO-E", getStringFromException(e));
             KcUtils.reportException(e);
-            downloadResult.addProperty("error", getStringFromException(e));
+            downloadResult.error = getStringFromException(e);
         }
         return downloadResult;
     }
@@ -449,12 +453,7 @@ public class KcUtils {
      */
     private static void showMessage(Activity ac, String message) {
         if (ac.isFinishing() || ac.isDestroyed()) return;
-        View content = ac.findViewById(android.R.id.content);
-        if (content != null) {
-            Snackbar.make(content, message, Snackbar.LENGTH_LONG).show();
-        } else {
-            showToast(ac.getApplicationContext(), message);
-        }
+        showToast(ac.getApplicationContext(), message);
     }
 
     private static void checkAppUpdate(Activity ac,
@@ -631,7 +630,7 @@ public class KcUtils {
     public static void copyFileUsingStream(File source, File dest) throws IOException {
         File temp = newTempSibling(dest);
         try (InputStream is = new FileInputStream(source); OutputStream os = new FileOutputStream(temp)) {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[16384];
             int length;
             while ((length = is.read(buffer)) > 0) {
                 os.write(buffer, 0, length);
