@@ -60,10 +60,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.antest1.gotobrowser.Activity.SettingsViewModel
@@ -115,6 +120,20 @@ private const val MAX_SUBTITLE_FONTSIZE = 24
 
 private const val GITHUB_KANTAI3D = "https://github.com/laplamgor/kantai3d"
 private const val GITHUB_GOTOBROWSER = "https://github.com/antest1/GotoBrowser/"
+
+/**
+ * Absorbs whatever scroll/fling the settings list leaves over so it never
+ * reaches the bottom sheet. Without this, pulling the list down while it is
+ * already at the top would drag the sheet and dismiss it. With it, the sheet
+ * can only be dragged away by its handle / header area.
+ */
+private val BlockSheetDragConnection = object : NestedScrollConnection {
+    override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset =
+        if (source == NestedScrollSource.UserInput) Offset(0f, available.y) else Offset.Zero
+
+    override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity =
+        Velocity(0f, available.y)
+}
 
 private data class ListOption(val value: String, val title: String, val summary: String? = null)
 
@@ -289,7 +308,9 @@ fun SettingsContent(
     }
 
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState())
+        modifier = modifier
+            .nestedScroll(BlockSheetDragConnection)
+            .verticalScroll(rememberScrollState())
     ) {
         when (currentScreen) {
             SettingsScreen.MAIN -> {
