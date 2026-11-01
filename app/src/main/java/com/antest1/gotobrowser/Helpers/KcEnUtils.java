@@ -1,17 +1,19 @@
 package com.antest1.gotobrowser.Helpers;
 
+import static com.antest1.gotobrowser.Constants.PREF_MOD_KANTAIEN_UPDATE;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
 import static com.antest1.gotobrowser.Helpers.KcUtils.parseJsonArray;
 import static com.antest1.gotobrowser.Helpers.KcUtils.parseJsonObject;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.antest1.gotobrowser.Activity.SettingsStatusHost;
+import androidx.preference.Preference;
+
+import com.antest1.gotobrowser.Activity.SettingsActivity;
 import com.antest1.gotobrowser.R;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.JsonArray;
@@ -26,7 +28,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
@@ -56,7 +57,7 @@ public class KcEnUtils {
     private static String ENPATCH_ZIP_FILE_SRC() { return GITHUB_BASE() + "archive/refs/heads/master.zip"; }
     private static String ENPATCH_COMMIT_URL() { return "https://api.github.com/repos/" + getGitHubNameRootPath() + "commits/master"; }
 
-    private static int BUFFER_SIZE = 16384;
+    private static int BUFFER_SIZE = 8192;
 
     private final OkHttpClient client = new OkHttpClient();
     private boolean newVersionFlag = false;
@@ -182,9 +183,7 @@ public class KcEnUtils {
                     if (response.code() == 200) {
                         ResponseBody body = response.body();
                         if (body != null) {
-                            try (Reader reader = body.charStream()) {
-                                return parseJsonObject(reader);
-                            }
+                            return parseJsonObject(body.string());
                         }
                     } else {
                         resultData.addProperty("error", String.valueOf(response.code()));
@@ -218,9 +217,7 @@ public class KcEnUtils {
                     if (response.code() == 200) {
                         ResponseBody body = response.body();
                         if (body != null) {
-                            try (Reader reader = body.charStream()) {
-                                return parseJsonArray(reader);
-                            }
+                            return parseJsonArray(body.string());
                         }
                     }
                 } catch (IOException e) {
@@ -236,12 +233,13 @@ public class KcEnUtils {
         return enVersionInfo;
     }
 
-    public void checkKantaiEnUpdate(SettingsStatusHost host) {
+    public void checkKantaiEnUpdate(SettingsActivity.SettingsFragment fragment, Preference kantaiEnUpdate) {
         // To do: clean up this mess
-        host.setPatchUpdateStatus("Checking updates...", false);
+        kantaiEnUpdate.setSummary("Checking updates...");
+        kantaiEnUpdate.setEnabled(false);
 
         JsonObject enPatchLocalInfo;
-        String enPatchLocalInfoPath = getEnPatchLocalFolder(host.getContext()).concat(ENPATCH_INFO_LOCAL_FILE());
+        String enPatchLocalInfoPath = getEnPatchLocalFolder(fragment.requireContext()).concat(ENPATCH_INFO_LOCAL_FILE());
 
         JsonObject enPatchInfo = getKantaiEnUpdateInfo(client);
         String availableVersion = "";
@@ -250,25 +248,27 @@ public class KcEnUtils {
 
         File enPatchLocalInfoFile = new File(enPatchLocalInfoPath);
         if (!enPatchLocalInfoFile.exists()) {
-            host.setPatchUpdateStatus(String.format(Locale.US,
+            kantaiEnUpdate.setSummary(String.format(Locale.US,
                     "Data not installed yet. (%s)",
-                    availableVersion), true);
+                    availableVersion));
+            kantaiEnUpdate.setEnabled(true);
             newVersionFlag = false;
         } else {
             enPatchLocalInfo = KcUtils.readJsonObjectFromFile(enPatchLocalInfoFile.getPath());
             if (enPatchLocalInfo != null && enPatchLocalInfo.has("version")) {
                 currentVersion = enPatchLocalInfo.get("version").getAsString();
                 if (!currentVersion.equals(availableVersion)) {
-                    host.setPatchUpdateStatus(String.format(Locale.US,
-                            host.getString(R.string.setting_latest_download_subtitle),
-                            availableVersion), true);
+                    kantaiEnUpdate.setSummary(String.format(Locale.US,
+                            fragment.getString(R.string.setting_latest_download_subtitle),
+                            availableVersion));
+                    kantaiEnUpdate.setEnabled(true);
                     newVersionFlag = true;
                 } else {
-                    host.setPatchUpdateStatus(host.getString(R.string.setting_latest_version), false);
+                    kantaiEnUpdate.setSummary(fragment.getString(R.string.setting_latest_version));
                     newVersionFlag = false;
                 }
             } else {
-                host.setPatchUpdateStatus("Error occurred while retrieving latest version", false);
+                kantaiEnUpdate.setSummary("Error occurred while retrieving latest version");
                 newVersionFlag = false;
             }
         }
@@ -309,21 +309,16 @@ public class KcEnUtils {
         }
     }
 
-    public void requestPatchUpdate(SettingsStatusHost host) throws IOException {
+    public void requestPatchUpdate(SettingsActivity.SettingsFragment fragment) throws IOException {
         // To do: clean up this mess
-        if (host.requireContext() == null) {
-            // No window to show progress in; do not start an invisible download.
-            host.setPatchUpdateStatus("Cannot start download: no window available", false);
-            return;
-        }
-        Context context = host.requireContext();
+        Context context = fragment.requireContext();
         if (newVersionFlag) {
             // Updates the patch by downloading each new file individually, and deleting outdated ones
-            new PatchIndividualDownloader(context, host).execute();
+            new PatchIndividualDownloader(context, fragment).execute();
         } else {
             // Downloads and extracts the Patch zip
             JsonObject enPatchInfo = getKantaiEnUpdateInfo(client);
-            new PatchZipDownloader(context, host, enPatchInfo).execute();
+            new PatchZipDownloader(context, fragment, enPatchInfo).execute();
         }
     }
 
@@ -332,9 +327,8 @@ public class KcEnUtils {
         new PatchIndividualDownloader(context, null).execute();
     }
 
-    public void requestPatchDelete(SettingsStatusHost host) {
-        if (host.requireContext() == null) return;
-        Context context = host.requireContext();
+    public void requestPatchDelete(SettingsActivity.SettingsFragment fragment) {
+        Context context = fragment.requireContext();
         MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(context);
         alertDialogBuilder.setTitle(R.string.settings_mod_kantaien_delete);
         alertDialogBuilder
@@ -352,10 +346,10 @@ public class KcEnUtils {
         alertDialogBuilder.show();
     }
 
-    private static void deleteEnglishPatch(Context context) {
-        File zipFile = new File(KcUtils.getAppCacheFileDir(context, "/master.zip"));
+    private static void deleteEnglishPatch(Context fragment) {
+        File zipFile = new File(KcUtils.getAppCacheFileDir(fragment, "/master.zip"));
         zipFile.delete();
-        File patchFolder = new File(KcUtils.getAppCacheFileDir(context, ENPATCH_LOCAL_FOLDER()));
+        File patchFolder = new File(KcUtils.getAppCacheFileDir(fragment, ENPATCH_LOCAL_FOLDER()));
         KcUtils.deleteRecursive(patchFolder);
     }
 
@@ -434,7 +428,7 @@ public class KcEnUtils {
         StringBuilder returnVal = new StringBuilder();
         try {
             InputStream input = new FileInputStream(filePath);
-            byte[] buffer = new byte[16384];
+            byte[] buffer = new byte[1024];
             MessageDigest md5Hash = MessageDigest.getInstance("MD5");
             int numRead = 0;
             while (numRead != -1) {
@@ -474,13 +468,11 @@ public class KcEnUtils {
 
     private static String getLatestCommit(OkHttpClient client) throws IOException {
         Request request = new Request.Builder().url(ENPATCH_COMMIT_URL()).build();
-        try (Response response = client.newCall(request).execute()) {
-            if (response.isSuccessful() && response.body() != null) {
-                try (Reader reader = response.body().charStream()) {
-                    JsonObject json = parseJsonObject(reader);
-                    return json.get("sha").getAsString();
-                }
-            }
+        Response response = client.newCall(request).execute();
+
+        if (response.isSuccessful() && response.body() != null) {
+            JsonObject json = parseJsonObject(response.body().string());
+            return json.get("sha").getAsString();
         }
         return null;
     }
@@ -500,28 +492,17 @@ public class KcEnUtils {
     private static class PatchIndividualDownloader extends AsyncTask<Void, String, Integer> {
 
         private final Context context;
-        private final SettingsStatusHost host;
+        private final SettingsActivity.SettingsFragment fragment;
         private final OkHttpClient client = new OkHttpClient();
         private ProgressDialog dialog;
 
-        public PatchIndividualDownloader(Context ctx, SettingsStatusHost host) {
+        public PatchIndividualDownloader(Context ctx, SettingsActivity.SettingsFragment frag) {
             this.context = ctx;
-            this.host = host;
-        }
-
-        /** A ProgressDialog needs a window token, so only show it with an activity. */
-        private boolean canShowDialog() {
-            return context instanceof Activity
-                    && !((Activity) context).isFinishing()
-                    && !((Activity) context).isDestroyed();
+            this.fragment = frag;
         }
 
         @Override
         protected void onPreExecute() {
-            if (!canShowDialog()) {
-                dialog = null;
-                return;
-            }
             dialog = new ProgressDialog(context);
             dialog.setTitle("Update Patch Files");
             dialog.setMessage("Downloading...");
@@ -532,28 +513,29 @@ public class KcEnUtils {
 
         @Override
         protected void onProgressUpdate(String... values) {
-            if (dialog != null) dialog.setMessage(values[0]);
+            dialog.setMessage(values[0]);
         }
 
         @Override
         protected void onPostExecute(Integer result) {
-            if (dialog != null) {
-                dialog.dismiss();
-                dialog = null;
-            }
+            dialog.dismiss();
 
             if (result == 1) {
                 KcUtils.showToast(context, "Patch updated");
 
-                if (host != null) {
-                    host.setPatchUpdateStatus(context.getString(R.string.setting_latest_version), false);
+                if (fragment != null) {
+                    Preference pref = fragment.findPreference(PREF_MOD_KANTAIEN_UPDATE);
+                    if (pref != null) {
+                        pref.setSummary(context.getString(R.string.setting_latest_version));
+                        pref.setEnabled(false);
+                    }
                 }
 
             } else if (result == 2) {
                 KcUtils.showToast(context, "Downloading Zip...");
                 JsonObject enPatchInfo = getKantaiEnUpdateInfo(client);
-                if (host != null)
-                    new PatchZipDownloader(context, host, enPatchInfo).execute();
+                if (fragment != null)
+                    new PatchZipDownloader(context, fragment, enPatchInfo).execute();
                 else
                     new PatchZipDownloader(context, null, enPatchInfo).execute();
             } else {
@@ -655,12 +637,10 @@ public class KcEnUtils {
                     + oldSha + "..." + newSha;
 
             Request request = new Request.Builder().url(url).build();
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
-                    try (Reader reader = response.body().charStream()) {
-                        return parseJsonObject(reader);
-                    }
-                }
+            Response response = client.newCall(request).execute();
+
+            if (response.isSuccessful() && response.body() != null) {
+                return parseJsonObject(response.body().string());
             }
 
             return null;
@@ -669,24 +649,17 @@ public class KcEnUtils {
 
 
     private static class PatchZipDownloader extends AsyncTask<Integer, String, Integer> {
-        private SettingsStatusHost host;
+        private SettingsActivity.SettingsFragment fragment;
         private final OkHttpClient client = new OkHttpClient();
         private Context context;
         private JsonObject patchInfo;
         private ProgressDialog mProgressDialog;
         long patchSize = 370000000;
 
-        public PatchZipDownloader(Context ctx, SettingsStatusHost host, JsonObject patch_info) {
+        public PatchZipDownloader(Context ctx, SettingsActivity.SettingsFragment f, JsonObject patch_info) {
             this.context = ctx;
-            this.host = host;
+            this.fragment = f;
             this.patchInfo = patch_info;
-        }
-
-        /** See {@link PatchIndividualDownloader#canShowDialog()}. */
-        private boolean canShowDialog() {
-            return context instanceof Activity
-                    && !((Activity) context).isFinishing()
-                    && !((Activity) context).isDestroyed();
         }
 
         @Override
@@ -696,10 +669,6 @@ public class KcEnUtils {
             }
 
             super.onPreExecute();
-            if (!canShowDialog()) {
-                mProgressDialog = null;
-                return;
-            }
             mProgressDialog = new ProgressDialog(context);
             mProgressDialog.setTitle("Update Patch Files");
             mProgressDialog.setMessage("Downloading...");
@@ -714,7 +683,7 @@ public class KcEnUtils {
         @Override
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
-            if (mProgressDialog != null) mProgressDialog.setMessage(values[0]);
+            mProgressDialog.setMessage(values[0]);
         }
 
         @Override
@@ -759,7 +728,7 @@ public class KcEnUtils {
                         );
 
                         publishProgress(message);
-                        if (mProgressDialog != null) mProgressDialog.setProgress(percent);
+                        mProgressDialog.setProgress(percent);
 
                         lastUpdateTime = now;
                         lastTransferred = transferred;
@@ -804,25 +773,28 @@ public class KcEnUtils {
         protected void onPostExecute(Integer integer) {
             super.onPostExecute(integer);
 
-            if (host != null) {
+            Preference kantaiEnUpdate = null;
+            if (fragment != null) kantaiEnUpdate =
+                    fragment.findPreference(PREF_MOD_KANTAIEN_UPDATE);
+
+            if (kantaiEnUpdate != null) {
                 if (integer == 1) {
                     Log.e("GOTO", "Zip was deleted");
                     KcUtils.showToast(context, R.string.en_install_done_notification);
-                    host.setPatchUpdateStatus(host.getString(R.string.setting_latest_version), false);
+                    kantaiEnUpdate.setSummary(fragment.getString(R.string.setting_latest_version));
+                    kantaiEnUpdate.setEnabled(false);
                 } else if (integer == 0) {
                     Log.e("GOTO", "Zip wasn't deleted");
                     KcUtils.showToast(context, "Download successful but zip was not deleted");
-                    host.setPatchUpdateStatus(host.getString(R.string.setting_latest_version), false);
+                    kantaiEnUpdate.setSummary(fragment.getString(R.string.setting_latest_version));
+                    kantaiEnUpdate.setEnabled(false);
                 } else if (integer == -1) {
                     Log.e("GOTO", "Error occurred while downloading");
                     KcUtils.showToast(context, "Error occurred while downloading");
                 }
             }
 
-            if (mProgressDialog != null) {
-                mProgressDialog.dismiss();
-                mProgressDialog = null;
-            }
+            if (mProgressDialog != null) mProgressDialog.dismiss();
         }
     }
 }

@@ -5,7 +5,9 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.antest1.gotobrowser.Activity.SettingsStatusHost;
+import androidx.preference.Preference;
+
+import com.antest1.gotobrowser.Activity.SettingsActivity;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
@@ -34,6 +36,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
 
@@ -241,66 +244,66 @@ public class KcwikiSubtitleProvider implements SubtitleProvider  {
 
     private String subtitleLocaleToDownload = "zh-cn";
 
-    public void checkUpdateFromPreference(SettingsStatusHost host, String localeCode, VersionDatabase versionTable) {
+    public void checkUpdateFromPreference(SettingsActivity.SettingsFragment fragment, String localeCode, Preference subtitleUpdate, VersionDatabase versionTable) {
         subtitleLocaleToDownload = localeCode;
 
-        host.setSubtitleUpdateStatus("checking updates...", false);
+        subtitleUpdate.setSummary("checking updates...");
+        subtitleUpdate.setEnabled(false);
 
-        Context context = host.getContext();
+        Context context = fragment.getContext();
         if (context != null) {
             KcwikiSubtitleApi downloader = getRetrofitAdapter(context, "https://api.kcwiki.moe/").create(KcwikiSubtitleApi.class);
             Call<JsonObject> call = downloader.getSubTitleVersion();
             call.enqueue(new Callback<JsonObject>() {
                 @Override
                 public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                    if (host.getContext() == null) return;
+                    if (fragment.getActivity() == null) return;
                     JsonObject versionObject = response.body();
                     if (versionObject != null && !versionObject.isJsonNull()) {
                         String filename = String.format(Locale.US, QUOTES_FILENAME_FORMAT, localeCode);
 
 
-                        String subtitle_folder = KcUtils.getAppCacheFileDir(host.getContext(), "/subtitle/");
+                        String subtitle_folder = KcUtils.getAppCacheFileDir(fragment.getContext(), "/subtitle/");
                         String subtitle_path = subtitle_folder.concat(filename);
                         String currentVersion = versionTable.getVersionValue(subtitle_path);
                         if (!versionObject.isEmpty()) {
                             String newVersion = versionObject.get("version").getAsString();
                             if (!currentVersion.equals(newVersion)) {
                                 String summary = String.format(Locale.US,
-                                        host.getString(R.string.setting_latest_download_subtitle),
+                                        fragment.getString(R.string.setting_latest_download_subtitle),
                                         newVersion);
-                                host.setSubtitleUpdateStatus(summary, true);
+                                subtitleUpdate.setSummary(summary);
+                                subtitleUpdate.setEnabled(true);
                             } else {
-                                host.setSubtitleUpdateStatus(host.getString(R.string.setting_latest_version), false);
+                                subtitleUpdate.setSummary(fragment.getString(R.string.setting_latest_version));
                             }
                         } else {
-                            host.setSubtitleUpdateStatus("no data", false);
+                            subtitleUpdate.setSummary("no data");
                         }
                     }
                 }
                 @Override
                 public void onFailure(Call<JsonObject> call, Throwable t) {
-                    if (host.getContext() == null) return;
-                    host.setSubtitleUpdateStatus("failed loading subtitle data", false);
+                    if (fragment.getActivity() == null) return;
+                    subtitleUpdate.setSummary("failed loading subtitle data");
                 }
             });
         }
     }
 
-    public void downloadUpdateFromPreference(SettingsStatusHost host, VersionDatabase versionTable) {
-        Context context = host.requireContext();
-        if (context == null) return;
+    public void downloadUpdateFromPreference(SettingsActivity.SettingsFragment fragment, VersionDatabase versionTable) {
         try {
-            KcwikiSubtitleApi downloader = getRetrofitAdapter(context, "https://api.kcwiki.moe/").create(KcwikiSubtitleApi.class);
+            KcwikiSubtitleApi downloader = getRetrofitAdapter(fragment.requireContext(), "https://api.kcwiki.moe/").create(KcwikiSubtitleApi.class);
             Call<JsonObject> call = downloader.getSubtitle(subtitleLocaleToDownload);
             call.enqueue(new Callback<JsonObject>() {
                 @Override
                 public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                    saveQuotesFile(host, response, versionTable);
+                    saveQuotesFile(fragment, response, versionTable);
                 }
                 @Override
                 public void onFailure(Call<JsonObject> call, Throwable t) {
-                    if (host.getContext() != null) {
-                        KcUtils.showToast(host.getContext(), t.getLocalizedMessage());
+                    if (fragment.isAdded() && fragment.getActivity() != null) {
+                        KcUtils.showToast(fragment.getContext(), t.getLocalizedMessage());
                     }
                 }
             });
@@ -309,11 +312,11 @@ public class KcwikiSubtitleProvider implements SubtitleProvider  {
         }
     }
 
-    private void saveQuotesFile(SettingsStatusHost host, Response<JsonObject> response, VersionDatabase versionTable) {
+    private void saveQuotesFile(SettingsActivity.SettingsFragment fragment, Response<JsonObject> response, VersionDatabase versionTable) {
         String message;
         String locale_code = subtitleLocaleToDownload;
 
-        Context context = host.getContext();
+        Context context = fragment.getContext();
         if (context != null) {
             String filename = String.format(Locale.US, QUOTES_FILENAME_FORMAT, locale_code);
             String subtitle_folder = KcUtils.getAppCacheFileDir(context, "/subtitle/");
@@ -330,7 +333,11 @@ public class KcwikiSubtitleProvider implements SubtitleProvider  {
                     fos.write(data.toString().getBytes());
                     fos.close();
                     versionTable.putVersionValue(subtitle_path, data.get("version").getAsString());
-                    host.setSubtitleUpdateStatus(host.getString(R.string.setting_latest_version), false);
+                    Preference subtitleUpdate = fragment.findPreference(PREF_SUBTITLE_UPDATE);
+                    if (subtitleUpdate != null) {
+                        subtitleUpdate.setSummary(fragment.getString(R.string.setting_latest_version));
+                        subtitleUpdate.setEnabled(false);
+                    }
                 } else {
                     message = "No data to write: quotes_".concat(locale_code).concat(".json");
                     KcUtils.showToast(context, message);

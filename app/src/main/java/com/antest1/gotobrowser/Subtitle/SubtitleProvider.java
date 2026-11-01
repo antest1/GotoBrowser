@@ -2,7 +2,9 @@ package com.antest1.gotobrowser.Subtitle;
 
 import android.content.Context;
 
-import com.antest1.gotobrowser.Activity.SettingsStatusHost;
+import androidx.preference.Preference;
+
+import com.antest1.gotobrowser.Activity.SettingsActivity;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.google.gson.JsonObject;
 
@@ -17,9 +19,9 @@ public interface SubtitleProvider {
 
     SubtitleData getSubtitleData(String url, String path, String voiceSize);
 
-    void checkUpdateFromPreference(SettingsStatusHost host, String localeCode, VersionDatabase versionTable);
+    void checkUpdateFromPreference(SettingsActivity.SettingsFragment fragment, String localeCode, Preference subtitleUpdate, VersionDatabase versionTable);
 
-    void downloadUpdateFromPreference(SettingsStatusHost host, VersionDatabase versionTable);
+    void downloadUpdateFromPreference(SettingsActivity.SettingsFragment fragment, VersionDatabase versionTable);
 
     // Common data preset
 
@@ -46,12 +48,12 @@ public interface SubtitleProvider {
     //   17:Yasen(2) is replaced with 917. might map to 17, but not for now;
     //   18 still used at day as random Attack, 918 used at night opening
     Map<String, Map<String, String>> specialShipVoices =
-            new HashMap<>() {{
-                put("432", new HashMap<>() {{
+            new HashMap<String, Map<String, String>>() {{
+                put("432", new HashMap<String, String>() {{
                     put("917", "917");
                     put("918", "918");
                 }});
-                put("353", new HashMap<>() {{
+                put("353", new HashMap<String, String>() {{
                     put("917", "917");
                     put("918", "918");
                 }});
