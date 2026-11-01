@@ -30,7 +30,6 @@ import com.antest1.gotobrowser.Browser.ResourceProcess;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.R;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -88,6 +87,12 @@ import static android.webkit.WebViewClient.*;
 
 public class KcUtils {
     private static final FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
+
+    private static final Gson gson = new Gson();
+
+    public static Gson getGson() {
+        return gson;
+    }
 
     public static void showToast(Context context, String message) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show();
@@ -205,7 +210,7 @@ public class KcUtils {
     public static byte[] getBytesFromInputStream(InputStream in) throws IOException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int nRead;
-        byte[] data = new byte[1024];
+        byte[] data = new byte[16384];
         while ((nRead = in.read(data, 0, data.length)) != -1) {
             buffer.write(data, 0, nRead);
         }
@@ -238,7 +243,7 @@ public class KcUtils {
         InputStream in = new BufferedInputStream(new URL(url).openStream());
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int nRead;
-        byte[] data = new byte[1024];
+        byte[] data = new byte[16384];
         while ((nRead = in.read(data, 0, data.length)) != -1) {
             buffer.write(data, 0, nRead);
         }
@@ -247,54 +252,61 @@ public class KcUtils {
         return buffer.toByteArray();
     }
 
-    public static JsonObject downloadResource(OkHttpClient client, String fullpath, File file) {
+    public static class DownloadResult {
+        public int responseCode = -1;
+        public String lastModified;
+        public String cacheControl;
+        public String error;
+    }
+
+    public static DownloadResult downloadResource(OkHttpClient client, String fullpath, File file) {
         return downloadResource(client, fullpath, file, null);
     }
 
-    public static JsonObject downloadResource(OkHttpClient client, String fullpath, File file, String if_modified_since) {
+    public static DownloadResult downloadResource(OkHttpClient client, String fullpath, File file, String if_modified_since) {
         Request.Builder builder = new Request.Builder()
                 .header("User-Agent", ResourceProcess.getUserAgent())
                 .url(fullpath);
         if (if_modified_since != null) {
             builder = builder.addHeader("If-Modified-Since", if_modified_since);
         }
-        JsonObject downloadResult = new JsonObject();
+        DownloadResult downloadResult = new DownloadResult();
 
         Log.e("GOTO", "download " + fullpath + " " + if_modified_since);
         Request request = builder.build();
         try {
             Response response = client.newCall(request).execute();
+            downloadResult.responseCode = response.code();
+            downloadResult.lastModified = response.header("Last-Modified", null);
+            downloadResult.cacheControl = response.header("Cache-Control", null);
+
             if (response.code() == 200) {
                 Log.e("GOTO", "200 OK " + fullpath);
-                String last_modified = response.header("Last-Modified", null);
-                String cache_control = response.header("Cache-Control", null);
                 ResponseBody body = response.body();
                 if (body != null) {
                     InputStream in = body.byteStream();
-                    byte[] buffer = new byte[8 * 1024];
+                    byte[] buffer = new byte[16384];
                     int bytes;
                     if (file != null) {
-                        file.getParentFile().mkdirs();
-                        FileOutputStream fos = new FileOutputStream(file);
+                        File temp = newTempSibling(file);
+                        FileOutputStream fos = new FileOutputStream(temp);
                         while ((bytes = in.read(buffer)) != -1) {
                             fos.write(buffer, 0, bytes);
                         }
                         fos.close();
+                        replaceFile(temp, file);
                     }
                     body.close();
                 }
-                downloadResult.addProperty("last_modified", last_modified);
-                downloadResult.addProperty("cache_control", cache_control);
             } else if (response.code() == 304) {
                 Log.e("GOTO", "304 Not Modified " + fullpath);
             } else if (response.code() == 403) {
-                Log.e("GOTO", "403 Forbidden" + fullpath);
+                Log.e("GOTO", "403 Forbidden " + fullpath);
             }
-            downloadResult.addProperty("response_code", response.code());
         } catch (Exception e) {
             Log.e("GOTO-E", getStringFromException(e));
             KcUtils.reportException(e);
-            downloadResult.addProperty("error", getStringFromException(e));
+            downloadResult.error = getStringFromException(e);
         }
         return downloadResult;
     }
@@ -318,7 +330,7 @@ public class KcUtils {
 
         OkHttpClient client = builder.build();
         return new Retrofit.Builder()
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(getGson()))
                 .baseUrl(baseUrl)
                 .client(client).build();
     }
@@ -337,22 +349,24 @@ public class KcUtils {
     }
 
     public static JsonObject parseJsonObject(String data) {
-        final Gson gson = new Gson();
-        return gson.fromJson(data, JsonObject.class);
+        return getGson().fromJson(data, JsonObject.class);
     }
 
     public static JsonArray parseJsonArray(String data) {
-        final Gson gson = new Gson();
-        return gson.fromJson(data, JsonArray.class);
+        return getGson().fromJson(data, JsonArray.class);
+    }
+
+    public static JsonObject parseJsonObject(java.io.Reader reader) {
+        return getGson().fromJson(reader, JsonObject.class);
+    }
+
+    public static JsonArray parseJsonArray(java.io.Reader reader) {
+        return getGson().fromJson(reader, JsonArray.class);
     }
 
     public static JsonObject readJsonObjectFromFile(String path) {
-        try {
-            final BufferedReader reader = new BufferedReader(new FileReader(path));
-            String line;
-            StringBuilder sb = new StringBuilder();
-            while ((line = reader.readLine()) != null) sb.append(line);
-            return parseJsonObject(sb.toString());
+        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+            return getGson().fromJson(reader, JsonObject.class);
         } catch (IOException e) {
             KcUtils.reportException(e);
         }
@@ -388,6 +402,19 @@ public class KcUtils {
     }
 
     public static void requestLatestAppVersion(Activity ac, GotoVersionCheck appCheck, boolean show_toast) {
+        requestLatestAppVersion(ac, appCheck, show_toast, null);
+    }
+
+    /**
+     * Checks the latest release.
+     *
+     * @param onMessage when non-null, the outcome text is delivered here instead
+     *        of being shown in the activity's window. This lets a host that owns
+     *        its own surface (e.g. a modal bottom sheet in its own window) display
+     *        the message where the user can actually see it.
+     */
+    public static void requestLatestAppVersion(Activity ac, GotoVersionCheck appCheck,
+                                               boolean show_toast, MessageCallback onMessage) {
         Call<JsonObject> call = appCheck.version();
         call.enqueue(new Callback<JsonObject>() {
             @Override
@@ -395,26 +422,44 @@ public class KcUtils {
                                    @NonNull retrofit2.Response<JsonObject> response) {
                 Log.e("GOTO", response.headers().toString());
                 if (response.code() == 200) {
-                    checkAppUpdate(ac, response, show_toast);
+                    checkAppUpdate(ac, response, show_toast, onMessage);
                 } else {
                     String message = "HTTP: " + response.code();
                     if (response.code() == 404) message = "No update found.";
-                    Snackbar.make(ac.findViewById(R.id.main_container),
-                            message, Snackbar.LENGTH_LONG).show();
+                    report(ac, message, onMessage);
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
-                Snackbar.make(ac.findViewById(R.id.main_container),
-                        String.valueOf(t.getLocalizedMessage()), Snackbar.LENGTH_LONG).show();
+                report(ac, String.valueOf(t.getLocalizedMessage()), onMessage);
             }
         });
     }
 
+    /** Delivers the message to the callback when present, else to the window. */
+    private static void report(Activity ac, String message, MessageCallback onMessage) {
+        if (onMessage != null) {
+            onMessage.onMessage(message);
+        } else {
+            showMessage(ac, message);
+        }
+    }
+
+    /**
+     * Shows a message to the user, preferring the activity's window but falling
+     * back to a plain toast when the content view is not available yet (e.g. the
+     * check fires before the activity has set its content view).
+     */
+    private static void showMessage(Activity ac, String message) {
+        if (ac.isFinishing() || ac.isDestroyed()) return;
+        showToast(ac.getApplicationContext(), message);
+    }
+
     private static void checkAppUpdate(Activity ac,
                                        retrofit2.Response<JsonObject> response,
-                                       boolean show_toast) {
+                                       boolean show_toast,
+                                       MessageCallback onMessage) {
         JsonObject version_info = response.body();
         if (version_info != null && version_info.has("tag_name")) {
             Log.e("GOTO", version_info.toString());
@@ -423,16 +468,18 @@ public class KcUtils {
                     "https://luckyjervis.com/GotoBrowser/apk_download.php?q=%s", tag);
             if (BuildConfig.VERSION_NAME.equals(tag)) {
                 if (show_toast)
-                    Snackbar.make(ac.findViewById(R.id.main_container),
-                            R.string.setting_latest_version, Snackbar.LENGTH_LONG).show();
+                    report(ac, ac.getString(R.string.setting_latest_version), onMessage);
             } else {
-                showAppUpdateDownloadDialog(ac, tag, latest_file);
+                // A newer release exists: the dialog must be shown, so it stays
+                // on the activity's window even when a message callback is set.
+                showAppUpdateDownloadDialog(ac, tag, latest_file, onMessage);
             }
         }
     }
 
-    private static void showAppUpdateDownloadDialog(Activity ac, String tag, String latest_file) {
-        if (!ac.isFinishing()) {
+    private static void showAppUpdateDownloadDialog(Activity ac, String tag, String latest_file,
+                                                    MessageCallback onMessage) {
+        if (!ac.isFinishing() && !ac.isDestroyed()) {
             MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(ac);
             alertDialogBuilder.setTitle(ac.getString(R.string.app_name));
             alertDialogBuilder
@@ -443,6 +490,10 @@ public class KcUtils {
                                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(latest_file));
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                 ac.startActivity(intent);
+                                dialog.dismiss();
+                                // The sheet stays open behind the dialog, so tell it
+                                // to close now that the user is leaving to download.
+                                if (onMessage != null) onMessage.onMessage(null);
                             })
                     .setNegativeButton(R.string.action_cancel,
                             (dialog, id) -> dialog.cancel());
@@ -577,13 +628,30 @@ public class KcUtils {
     }
 
     public static void copyFileUsingStream(File source, File dest) throws IOException {
-        try (InputStream is = new FileInputStream(source); OutputStream os = new FileOutputStream(dest)) {
-            byte[] buffer = new byte[1024];
+        File temp = newTempSibling(dest);
+        try (InputStream is = new FileInputStream(source); OutputStream os = new FileOutputStream(temp)) {
+            byte[] buffer = new byte[16384];
             int length;
             while ((length = is.read(buffer)) > 0) {
                 os.write(buffer, 0, length);
             }
+        } catch (IOException e) {
+            temp.delete();
+            throw e;
         }
+        replaceFile(temp, dest);
+    }
+
+    // Write through a unique temp sibling, then rename(2) over the target so a concurrent reader
+    // on the previous inode never sees partially written content.
+    private static File newTempSibling(File dest) {
+        File parent = dest.getParentFile();
+        if (parent != null) parent.mkdirs();
+        return new File(parent, dest.getName() + "-" + System.nanoTime() + ".tmp");
+    }
+
+    private static void replaceFile(File temp, File dest) {
+        if (!temp.renameTo(dest)) temp.delete();
     }
 
     public static String getWebkitErrorCodeText(int errorCode) {

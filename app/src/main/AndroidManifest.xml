@@ -49,47 +49,9 @@
             android:value="240dip" />
 
         <activity
-            android:name=".Activity.EntranceActivity"
-            android:label="@string/app_name"
-            android:theme="@style/FullscreenTheme"
-            android:exported="true">
-            <layout
-                android:defaultWidth="400dp"
-                android:defaultHeight="240dp"
-                android:gravity="start|end" />
-
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".Activity.BrowserActivity" />
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".Activity.SettingsActivity"
-            android:label="@string/app_name"
-            android:theme="@style/FullscreenTheme"
-            android:exported="false">
-            <layout
-                android:defaultWidth="400dp"
-                android:defaultHeight="240dp"
-                android:gravity="start|end" />
-
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".Activity.EntranceActivity" />
-
-            <intent-filter>
-                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
             android:name=".Activity.BrowserActivity"
             android:alwaysRetainTaskState="true"
+            android:launchMode="singleTask"
             android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout|uiMode|keyboard|navigation"
             android:label="@string/app_name"
             android:supportsPictureInPicture="true"
@@ -100,11 +62,10 @@
                 android:defaultHeight="240dp"
                 android:gravity="start|end" />
 
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".Activity.EntranceActivity" />
-
             <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
             </intent-filter>
         </activity>

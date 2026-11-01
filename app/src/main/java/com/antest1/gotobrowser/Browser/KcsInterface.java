@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
-import android.widget.TextView;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.ContentProvider.KcaPacketStore;
@@ -42,7 +41,7 @@ public class KcsInterface {
         packetTable = new KcaPacketStore(ac.getApplicationContext(), null, PACKETSTORE_VERSION);
         SharedPreferences sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
-        broadcast_mode = sharedPref.getBoolean(PREF_BROADCAST, false);
+        broadcast_mode = sharedPref.getBoolean(PREF_BROADCAST, true);
         use_devtools = sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
     }
 
@@ -68,7 +67,7 @@ public class KcsInterface {
     public void kcs_axios_error(String error) {
         activity.runOnUiThread(() -> {
             String text = String.format(Locale.US, "[Error] %s", error);
-            ((TextView) activity.findViewById(R.id.kc_error_text)).setText(text);
+            activity.setErrorText(text);
         });
     }
 
@@ -90,7 +89,7 @@ public class KcsInterface {
                     int result = response_obj.get("api_result").getAsInt();
                     String message = response_obj.get("api_result_msg").getAsString();
                     String text = (result == 1) ? "" : String.format(Locale.US, "[%d] %s\n%s (%d)", result, message, url, finalResponse.length());
-                    ((TextView) activity.findViewById(R.id.kc_error_text)).setText(text);
+                    activity.setErrorText(text);
                 }
             });
         } catch (Exception e) {
@@ -103,7 +102,7 @@ public class KcsInterface {
         } catch (SQLiteFullException e) {
             activity.runOnUiThread(() -> {
                 String text = "[error] broadcast failed: database or disk is full";
-                ((TextView) activity.findViewById(R.id.kc_error_text)).setText(text);
+                activity.setErrorText(text);
             });
         }
     }

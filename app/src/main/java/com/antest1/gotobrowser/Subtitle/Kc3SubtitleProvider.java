@@ -5,13 +5,10 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
 
-import androidx.preference.Preference;
-
-import com.antest1.gotobrowser.Activity.SettingsActivity;
+import com.antest1.gotobrowser.Activity.SettingsStatusHost;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -44,7 +41,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
-import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_UPDATE;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_PATH_FORMAT;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_ROOT;
 import static com.antest1.gotobrowser.Constants.SUBTITLE_SIZE_PATH;
@@ -205,11 +201,9 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
 
     private void loadQuoteAnnotation(Context context) {
         AssetManager as = context.getAssets();
-        try {
-            final Gson gson = new Gson();
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    as.open("quotes_label.json")));
-            quoteLabel = gson.fromJson(reader, JsonObject.class);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                as.open("quotes_label.json")))) {
+            quoteLabel = KcUtils.getGson().fromJson(reader, JsonObject.class);
         } catch (IOException e) {
             reportException(e);
             e.printStackTrace();
@@ -256,10 +250,9 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             public void run() {
                 String last_modified = table.getVersionValue(key);
                 if (!last_modified.equals(commit)) {
-                    JsonObject result = KcUtils.downloadResource(resourceClient, download_path, file);
-                    if (result.has("response_code")) {
-                        int response_code = result.get("response_code").getAsInt();
-                        if (response_code != 304) table.putVersionValue(key, commit);
+                    KcUtils.DownloadResult result = KcUtils.downloadResource(resourceClient, download_path, file);
+                    if (result.responseCode != -1 && result.responseCode != 304) {
+                        table.putVersionValue(key, commit);
                     }
                 }
             }
@@ -449,12 +442,11 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
 
     private JsonObject subtitleData = null;
 
-    public void checkUpdateFromPreference(SettingsActivity.SettingsFragment fragment, String localeCode, Preference subtitleUpdate, VersionDatabase versionTable) {
+    public void checkUpdateFromPreference(SettingsStatusHost host, String localeCode, VersionDatabase versionTable) {
         subtitleData = null;
-        subtitleUpdate.setSummary("checking updates...");
-        subtitleUpdate.setEnabled(false);
+        host.setSubtitleUpdateStatus("checking updates...", false);
 
-        Context context = fragment.getContext();
+        Context context = host.getContext();
         if (context != null) {
             String subtitlePath = String.format(Locale.US, SUBTITLE_PATH_FORMAT, localeCode);
             Kc3SubtitleCheck updateCheck = getRetrofitAdapter(context, GITHUBAPI_ROOT).create(Kc3SubtitleCheck.class);
@@ -462,11 +454,11 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             call.enqueue(new Callback<JsonArray>() {
                 @Override
                 public void onResponse(Call<JsonArray> call, Response<JsonArray> response) {
-                    if (fragment.getActivity() == null) return;
+                    if (host.getContext() == null) return;
                     JsonArray commit_log = response.body();
                     if (commit_log != null && !commit_log.isJsonNull()) {
                         String filename = String.format(Locale.US, "quotes_%s.json", localeCode);
-                        String subtitle_folder = KcUtils.getAppCacheFileDir(fragment.getContext(), "/subtitle/");
+                        String subtitle_folder = KcUtils.getAppCacheFileDir(host.getContext(), "/subtitle/");
                         String subtitle_path = subtitle_folder.concat(filename);
                         String currentCommit = versionTable.getVersionValue(subtitle_path);
                         if (!commit_log.isEmpty()) {
@@ -478,44 +470,51 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                                 subtitleData.addProperty("latest_commit", latestCommit);
                                 subtitleData.addProperty("download_url", subtitlePath);
                                 String summary = String.format(Locale.US,
-                                        fragment.getString(R.string.setting_latest_download_subtitle),
+                                        host.getString(R.string.setting_latest_download_subtitle),
                                         latestCommit.substring(0, 6));
-                                subtitleUpdate.setSummary(summary);
-                                subtitleUpdate.setEnabled(true);
+                                host.setSubtitleUpdateStatus(summary, true);
                             } else {
-                                subtitleUpdate.setSummary(fragment.getString(R.string.setting_latest_version));
+                                host.setSubtitleUpdateStatus(host.getString(R.string.setting_latest_version), false);
                             }
                         } else {
-                            subtitleUpdate.setSummary("no data");
+                            host.setSubtitleUpdateStatus("no data", false);
                         }
                     }
                 }
 
                 @Override
                 public void onFailure(Call<JsonArray> call, Throwable t) {
-                    if (fragment.getActivity() == null) return;
-                    subtitleUpdate.setSummary("failed loading subtitle data");
+                    if (host.getContext() == null) return;
+                    host.setSubtitleUpdateStatus("failed loading subtitle data", false);
                 }
             });
         }
     }
 
-    public void downloadUpdateFromPreference(SettingsActivity.SettingsFragment fragment, VersionDatabase versionTable) {
+    public void downloadUpdateFromPreference(SettingsStatusHost host, VersionDatabase versionTable) {
         if (subtitleData != null) {
             try {
                 String commit = subtitleData.get("latest_commit").getAsString();
                 String path = subtitleData.get("download_url").getAsString();
 
-                Kc3SubtitleRepo subtitleRepo = getRetrofitAdapter(fragment.requireContext(), SUBTITLE_ROOT).create(Kc3SubtitleRepo.class);
+                // requireContext() is null when the sheet has no activity; the
+                // adapter only needs a context, not a window.
+                Context context = host.requireContext();
+                if (context == null) return;
+
+                Kc3SubtitleRepo subtitleRepo = getRetrofitAdapter(context, SUBTITLE_ROOT).create(Kc3SubtitleRepo.class);
                 Call<JsonObject> call = subtitleRepo.download(commit, path);
                 call.enqueue(new Callback<JsonObject>() {
                     @Override
                     public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                        saveQuotesFile(fragment, response, versionTable);
+                        saveQuotesFile(host, response, versionTable);
                     }
                     @Override
                     public void onFailure(Call<JsonObject> call, Throwable t) {
-                        KcUtils.showToast(fragment.requireContext(), t.getLocalizedMessage());
+                        Context uiContext = host.requireContext();
+                        if (uiContext != null) {
+                            KcUtils.showToast(uiContext, t.getLocalizedMessage());
+                        }
                     }
                 });
             } catch (IllegalStateException e) {
@@ -524,12 +523,12 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         }
     }
 
-    private void saveQuotesFile(SettingsActivity.SettingsFragment fragment, Response<JsonObject> response, VersionDatabase versionTable) {
+    private void saveQuotesFile(SettingsStatusHost host, Response<JsonObject> response, VersionDatabase versionTable) {
         String message;
         String locale_code = subtitleData.get("locale_code").getAsString();
         String commit = subtitleData.get("latest_commit").getAsString();
 
-        Context context = fragment.getContext();
+        Context context = host.getContext();
         if (context != null) {
             String filename = String.format(Locale.US, QUOTES_FILENAME_FORMAT, locale_code);
             String subtitle_folder = KcUtils.getAppCacheFileDir(context, "/subtitle/");
@@ -546,9 +545,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                     fos.write(data.toString().getBytes());
                     fos.close();
                     versionTable.putVersionValue(subtitle_path, commit);
-                    Preference subtitleUpdate = fragment.findPreference(PREF_SUBTITLE_UPDATE);
-                    subtitleUpdate.setSummary(fragment.getString(R.string.setting_latest_version));
-                    subtitleUpdate.setEnabled(false);
+                    host.setSubtitleUpdateStatus(host.getString(R.string.setting_latest_version), false);
                 } else {
                     message = "No data to write: quotes_".concat(locale_code).concat(".json");
                     KcUtils.showToast(context, message);
