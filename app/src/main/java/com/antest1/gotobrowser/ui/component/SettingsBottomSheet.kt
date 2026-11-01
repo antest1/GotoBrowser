@@ -126,6 +126,13 @@ private const val GITHUB_GOTOBROWSER = "https://github.com/antest1/GotoBrowser/"
  * reaches the bottom sheet. Without this, pulling the list down while it is
  * already at the top would drag the sheet and dismiss it. With it, the sheet
  * can only be dragged away by its handle / header area.
+ *
+ * Only user drags are absorbed in [onPostScroll]. Fling-driven deltas
+ * ([NestedScrollSource.SideEffect]) must be left unconsumed: otherwise the
+ * scrollable believes the fling is still being consumed, keeps its internal
+ * fling animation alive after the list has stopped, and swallows the next
+ * taps as "stop the fling" touches. The fling's leftover velocity is instead
+ * absorbed in [onPostFling], which is enough to keep it off the sheet.
  */
 private val BlockSheetDragConnection = object : NestedScrollConnection {
     override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset =
@@ -429,8 +436,21 @@ private fun DownloadSection(viewModel: SettingsViewModel?, onSettingChanged: (St
 @Composable
 private fun SubtitleSection(viewModel: SettingsViewModel?, subtitleSummary: String, subtitleEnabled: Boolean, onSettingChanged: (String) -> Unit) {
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
-    ListRow(viewModel, PREF_SUBTITLE_LOCALE, R.string.settings_subtitle_language, subtitleLocaleOptions(),
-        onSelected = { if (!isPreview) viewModel.onSubtitleLocaleChanged(it); true },
+    // PREF_SUBTITLE_LOCALE is stored as "" until the user picks a language (see
+    // SettingsViewModel.refreshSubtitleDescription, which treats "" as "not selected").
+    // Show that state explicitly instead of printing the raw empty string.
+    val localeOptions = subtitleLocaleOptions()
+    val selectLanguageLabel = stringResource(R.string.subtitle_select_language)
+    ListRow(viewModel, PREF_SUBTITLE_LOCALE, R.string.settings_subtitle_language, localeOptions,
+        // Fresh installs have no stored locale; keep it unselected rather than
+        // showing the first option as if it were chosen.
+        defaultValue = "",
+        summaryProvider = { value ->
+            localeOptions.firstOrNull { it.value == value }?.title ?: selectLanguageLabel
+        },
+        // The subtitle provider reads the locale back from preferences, so the
+        // update check must run only after the value has been written.
+        onPersisted = { if (!isPreview) viewModel.onSubtitleLocaleChanged(it) },
         onSettingChanged = onSettingChanged)
 
     var showSubtitleSizeDialog by remember { mutableStateOf(false) }
@@ -853,15 +873,22 @@ private fun ListRow(
     titleRes: Int,
     options: List<ListOption>,
     enabled: Boolean = true,
+    /** Value assumed when the preference has never been written. */
+    defaultValue: String = options.first().value,
     summaryProvider: (String) -> String = { value ->
         options.firstOrNull { it.value == value }?.summary
             ?: options.firstOrNull { it.value == value }?.title ?: value
     },
+    /** Pre-persist hook; return false to reject the selection. */
     onSelected: (String) -> Boolean = { true },
+    /** Runs after the new value has been written to preferences. */
+    onPersisted: (String) -> Unit = {},
     onSettingChanged: (String) -> Unit = {}
 ) {
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
-    var selected by remember { mutableStateOf(if (isPreview) options.first().value else viewModel.getString(key, options.first().value)) }
+    var selected by remember(viewModel, key) {
+        mutableStateOf(if (isPreview) defaultValue else viewModel.getString(key, defaultValue))
+    }
     var showDialog by remember { mutableStateOf(false) }
 
     ListItem(
@@ -882,6 +909,7 @@ private fun ListRow(
                     if (!isPreview) {
                         viewModel.setString(key, value)
                     }
+                    onPersisted(value)
                     onSettingChanged(key)
                 }
                 showDialog = false
