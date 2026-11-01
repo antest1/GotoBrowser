@@ -223,9 +223,8 @@ public class WebViewManager {
             @Override
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
                 final WebViewL popupWebView = new WebViewL(activity);
-                ImageView closeButton = activity.findViewById(R.id.dmm_browser_close);
+                activity.setCloseButtonVisible(true);
                 CookieManager.getInstance().setAcceptThirdPartyCookies(popupWebView, true);
-                closeButton.setVisibility(View.VISIBLE);
 
                 setPopupWebViewSetting(popupWebView);
                 popupWebView.setWebViewClient(new WebViewClient() {
@@ -244,10 +243,11 @@ public class WebViewManager {
                     }
                 });
 
-                closeButton.setOnClickListener(v -> {
-                    view.removeView(popupWebView);
-                    v.setVisibility(View.GONE);
-                });
+                // Logic handled in BrowserActivity via closeButtonVisible state
+                // closeButton.setOnClickListener(v -> {
+                //    view.removeView(popupWebView);
+                //    v.setVisibility(View.GONE);
+                // });
                 view.addView(popupWebView);
                 WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
                 transport.setWebView(popupWebView);
