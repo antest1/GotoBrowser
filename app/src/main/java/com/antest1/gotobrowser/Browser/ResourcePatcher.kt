@@ -239,7 +239,7 @@ object ResourcePatcher {
                     val originalFiles = KcEnUtils.listFiles("$patchFile$ogFolder")
                     val patchedFiles = KcEnUtils.listFiles("$patchFile$ptFolder")
 
-                    val ptSpritesheet = ogSpritesheet.copy(ogSpritesheet.config, true)
+                    val ptSpritesheet = ogSpritesheet.copy(ogSpritesheet.config ?: Bitmap.Config.ARGB_8888, true)
                     val ptWidth = ptSpritesheet.width
                     val ptHeight = ptSpritesheet.height
                     val ptPixels = IntArray(ptWidth * ptHeight)
