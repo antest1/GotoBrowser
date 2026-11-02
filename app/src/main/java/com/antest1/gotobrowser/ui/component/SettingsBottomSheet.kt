@@ -22,7 +22,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
@@ -46,7 +49,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -65,6 +70,8 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.window.DialogWindowProvider
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -156,6 +163,12 @@ enum class SettingsScreen {
     APP_INFO
 }
 
+private fun hideSystemBarsOf(window: android.view.Window) {
+    val controller = WindowCompat.getInsetsController(window, window.decorView)
+    controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    controller.hide(WindowInsetsCompat.Type.systemBars())
+}
+
 /**
  * Modal bottom sheet hosting the settings list on top of the browser.
  *
@@ -182,12 +195,10 @@ fun SettingsBottomSheet(
     val snackbarHostState = remember { SnackbarHostState() }
     var currentScreen by remember { mutableStateOf(SettingsScreen.MAIN) }
 
-    LaunchedEffect(Unit) {
-        activity?.window?.let { window ->
-            val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-            windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-        }
+    // Keep the activity window immersive while the sheet is up, and restore it on dismiss.
+    DisposableEffect(activity) {
+        activity?.window?.let(::hideSystemBarsOf)
+        onDispose { activity?.window?.let(::hideSystemBarsOf) }
     }
 
     ModalBottomSheet(
@@ -195,10 +206,32 @@ fun SettingsBottomSheet(
         sheetState = sheetState,
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
     ) {
+        // ModalBottomSheet renders in its own dialog window. When that window gains focus
+        // the system bars come back unless the dialog window hides them too, which also
+        // pushed the game area down behind the sheet. Apply the same immersive setup here.
+        //
+        // This must run synchronously during the dialog's first composition (SideEffect),
+        // not on the next frame (LaunchedEffect): the first composition happens while the
+        // dialog view is being attached, before the window reports its insets state, so
+        // hiding here means the bars never show. A frame later is already too late and the
+        // bars flash in and back out.
+        val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
+        val immersiveApplied = remember { mutableStateOf(false) }
+        SideEffect {
+            if (!immersiveApplied.value) {
+                dialogWindow?.let { window ->
+                    WindowCompat.setDecorFitsSystemWindows(window, false)
+                    hideSystemBarsOf(window)
+                    immersiveApplied.value = true
+                }
+            }
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
+                // System bars are hidden; only a top display cutout (portrait) still needs clearing.
+                .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Top))
                 .padding(start = 4.dp, end = 4.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
