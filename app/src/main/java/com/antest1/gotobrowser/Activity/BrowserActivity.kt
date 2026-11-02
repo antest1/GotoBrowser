@@ -28,11 +28,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -41,10 +46,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -58,6 +63,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -67,7 +73,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.antest1.gotobrowser.Browser.GameAreaLayout
 import com.antest1.gotobrowser.Browser.WebViewL
@@ -100,8 +108,10 @@ import com.antest1.gotobrowser.Notification.ScreenshotNotification
 import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils
 import com.antest1.gotobrowser.ui.component.ControlLayout
+import com.antest1.gotobrowser.ui.component.floatingToolbarEdgeMargin
 import com.antest1.gotobrowser.ui.component.RefreshOption
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
+import com.antest1.gotobrowser.ui.component.rememberToolbarTooltipPositionProvider
 import com.antest1.gotobrowser.ui.component.glassyStyle
 import com.antest1.gotobrowser.ui.theme.GotobrowserTheme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -198,6 +208,17 @@ class BrowserActivity : ComponentActivity() {
         pipController = PipController(this, webView, { isInPictureInPictureModeState.value = it }, { hideSystemBars() })
         pipController.setupPinchToPipGesture()
         val gameArea = GameAreaLayout(this).apply { addView(webView) }
+        // Keep the game area clear of the display cutout. Since targetSdk 35 the
+        // window always extends into the cutout, so on 16:10 tablets the WebView
+        // could otherwise be partially covered. Insets are passed through, not consumed.
+        // Must stay in sync with safeOverlayInsets() below.
+        ViewCompat.setOnApplyWindowInsetsListener(gameArea) { v, insets ->
+            val safe = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.setPadding(safe.left, safe.top, safe.right, safe.bottom)
+            insets
+        }
         displayController = DisplayController(this, webView) { gameArea.marginDp = it }
 
         val backgroundTapView = View(this).apply {
@@ -231,6 +252,10 @@ class BrowserActivity : ComponentActivity() {
                     hideSystemBars()
                 }
 
+                // Insets are NOT applied at this root on purpose: the floating toolbar
+                // slides off the physical screen edge, so it needs unpadded coordinates
+                // and handles the cutout itself. Each overlay applies safeOverlayInsets()
+                // where it needs to stay clear of the cutout / system bars.
                 Box(modifier = Modifier.fillMaxSize()) {
                     BrowserOverlayContent(
                         viewModel = viewModel,
@@ -254,8 +279,7 @@ class BrowserActivity : ComponentActivity() {
                             refreshOption.value = option
                             viewModel.setQuickGameReload(option == RefreshOption.QUICK)
                         },
-                        onSettingsClick = { settingsSheetVisible.value = true },
-                        onHelpClick = { openManual(this@BrowserActivity) }
+                        onSettingsClick = { settingsSheetVisible.value = true }
                     ) {
                         val isMute by viewModel.isMuteMode.observeAsState(false)
                         val isCapture by viewModel.isCaptureMode.observeAsState(false)
@@ -307,6 +331,7 @@ class BrowserActivity : ComponentActivity() {
                                 settingsSheetVisible.value = false
                                 showLogoutDialog()
                             },
+                            onHelpClick = { openManual(this@BrowserActivity) },
                             onSettingChanged = { key ->
                                 if (key in liveSettings) {
                                     applyLiveSetting(key)
@@ -665,6 +690,16 @@ class BrowserActivity : ComponentActivity() {
     }
 }
 
+/**
+ * System bars + display cutout. IME is intentionally excluded so overlays do
+ * not jump when the keyboard opens on the login page. While the bars are
+ * hidden their insets report 0, so in normal fullscreen play this is
+ * effectively cutout-only.
+ */
+@Composable
+fun safeOverlayInsets(): WindowInsets =
+    WindowInsets.systemBars.union(WindowInsets.displayCutout)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PanelButton(
@@ -673,20 +708,23 @@ fun PanelButton(
     active: Boolean = false,
     onClick: () -> Unit
 ) {
+    val buttonSize = dimensionResource(R.dimen.browser_panel_button_size)
+    val iconSize = dimensionResource(R.dimen.browser_panel_button_icon_size)
     val button = @Composable {
-        IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
+        IconButton(onClick = onClick, modifier = Modifier.size(buttonSize)) {
             Icon(
                 painterResource(id = id),
                 contentDescription = tooltip,
                 tint = if (active) Color(0xFFFFC400) else Color.White,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(iconSize)
             )
         }
     }
 
     if (tooltip != null) {
         TooltipBox(
-            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            // Toolbar hugs the start edge, so side tooltips open toward the game area.
+            positionProvider = rememberToolbarTooltipPositionProvider(TooltipAnchorPosition.End),
             tooltip = { PlainTooltip { Text(tooltip) } },
             state = rememberTooltipState()
         ) {
@@ -751,19 +789,19 @@ fun BrowserOverlayLayer(
                 }
             ) { measurables, constraints ->
                 val placeable = measurables.first().measure(constraints.copy(minWidth = 0, minHeight = 0))
-                
+
                 val webViewBottomPx = if (webViewHeight != androidx.compose.ui.unit.Dp.Unspecified && containerHeight != androidx.compose.ui.unit.Dp.Unspecified) {
                     ((containerHeight + webViewHeight) / 2f).toPx()
                 } else {
                     constraints.maxHeight.toFloat()
                 }
-                
+
                 val paddingPx = 12.dp.toPx()
                 var y = webViewBottomPx + paddingPx
                 if (y + placeable.height > constraints.maxHeight - paddingPx) {
                     y = constraints.maxHeight - paddingPx - placeable.height
                 }
-                
+
                 layout(constraints.maxWidth, constraints.maxHeight) {
                     placeable.placeRelative(
                         x = (constraints.maxWidth - placeable.width) / 2,
@@ -774,19 +812,30 @@ fun BrowserOverlayLayer(
         }
 
         if (isCapture) {
+            // Placed below the top-right settings button so the two never overlap,
+            // and right-aligned with that row by sharing its end padding.
+            val cameraSize = dimensionResource(R.dimen.browser_camera_size)
+            val cameraIconSize = dimensionResource(R.dimen.browser_camera_icon_size)
+            val topMenuPadding = dimensionResource(R.dimen.top_menu_padding)
+            val topMenuButtonSize = dimensionResource(R.dimen.top_menu_button_size)
+            val topMenuGap = dimensionResource(R.dimen.top_menu_gap)
+            val edgeMargin = floatingToolbarEdgeMargin()
             IconButton(
                 onClick = onCaptureClick,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(24.dp)
-                    .size(64.dp)
+                    .padding(
+                        top = topMenuPadding + topMenuButtonSize + topMenuGap,
+                        end = edgeMargin
+                    )
+                    .size(cameraSize)
                     .glassyStyle(RoundedCornerShape(8.dp))
             ) {
                 Icon(
                     painterResource(id = R.drawable.capture_icon),
                     stringResource(R.string.menu_tooltip_camera),
                     tint = Color.White,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(cameraIconSize)
                 )
             }
         }
@@ -831,7 +880,9 @@ fun BrowserOverlayContent(
         else activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // Same insets GameAreaLayout receives as padding, so the WebView geometry
+    // computed below matches where the game is actually drawn.
+    Box(modifier = Modifier.fillMaxSize().windowInsetsPadding(safeOverlayInsets())) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             val ratio = 1200f / 720f
             val containerWidth = maxWidth.value
@@ -922,8 +973,7 @@ fun ControlPreviewContent() {
             visible = true,
             onVisibleChange = {},
             onRefreshClick = {},
-            onSettingsClick = {},
-            onHelpClick = {}
+            onSettingsClick = {}
         ) {
             PanelButton(id = R.drawable.volume_off, tooltip = stringResource(R.string.menu_tooltip_mute), active = true, onClick = {})
             PanelButton(id = R.drawable.camera_icon, tooltip = stringResource(R.string.menu_tooltip_camera), active = true, onClick = {})

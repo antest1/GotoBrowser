@@ -9,25 +9,26 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
@@ -38,17 +39,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.antest1.gotobrowser.Activity.safeOverlayInsets
 import com.antest1.gotobrowser.R
 
 enum class RefreshOption { QUICK, FULL }
@@ -64,14 +68,18 @@ fun ControlLayout(
     selectedRefreshOption: RefreshOption = RefreshOption.QUICK,
     onRefreshOptionChange: (RefreshOption) -> Unit = {},
     onSettingsClick: () -> Unit,
-    onHelpClick: () -> Unit,
     toolbarContent: @Composable () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Main Toolbar (Adaptive)
+        // End inset equals the side inset, so the pill has uniform breathing room around the buttons.
+        val panelBarSize = dimensionResource(R.dimen.browser_panel_bar_size)
+        val panelButtonSize = dimensionResource(R.dimen.browser_panel_button_size)
         AdaptiveFloatingToolbar(
             visible = visible,
             onVisibleChange = onVisibleChange,
+            barSize = panelBarSize,
+            contentInset = (panelBarSize - panelButtonSize) / 2,
             fab = {
                 OneTouchRefreshFab(
                     selectedOption = selectedRefreshOption,
@@ -83,40 +91,70 @@ fun ControlLayout(
             content = toolbarContent
         )
 
-        // Top Right Buttons (Settings, Help) - Smaller & Subtle
+        // Top Right Button (Settings) - a single glassy circle, the same size as the refresh FAB,
+        // so the two corner buttons mirror each other. Help lives inside the settings sheet.
+        val topMenuButtonSize = dimensionResource(R.dimen.top_menu_button_size)
+        val topMenuIconSize = dimensionResource(R.dimen.top_menu_icon_size)
+        val topMenuPadding = dimensionResource(R.dimen.top_menu_padding)
+        val edgeMargin = floatingToolbarEdgeMargin()
         AnimatedVisibility(
             visible = visible,
             enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
             exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(16.dp)
+                .windowInsetsPadding(safeOverlayInsets())
+                .padding(top = topMenuPadding, end = edgeMargin)
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onHelpClick, modifier = Modifier.size(32.dp)) {
-                    Icon(
-                        painterResource(id = R.drawable.help_icon),
-                        contentDescription = "Help",
-                        tint = Color.White.copy(alpha = 0.7f),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-                TooltipBox(
-                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                    tooltip = { PlainTooltip { Text(stringResource(R.string.settings_menu_tooltip)) } },
-                    state = rememberTooltipState()
-                ) {
-                    IconButton(onClick = onSettingsClick, modifier = Modifier.size(32.dp)) {
-                        Icon(
-                            painterResource(id = R.drawable.settings),
-                            contentDescription = stringResource(R.string.settings_menu_tooltip),
-                            tint = Color.White.copy(alpha = 0.7f),
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
+            TooltipBox(
+                // Button sits in the top-end corner: no room above or to the end, so open toward start.
+                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                    positioning = TooltipAnchorPosition.Start,
+                    spacingBetweenTooltipAndAnchor = OverlayTooltipSpacing
+                ),
+                tooltip = { PlainTooltip { Text(stringResource(R.string.settings_menu_tooltip)) } },
+                state = rememberTooltipState()
+            ) {
+                GlassyCircleButton(
+                    iconRes = R.drawable.settings,
+                    contentDescription = stringResource(R.string.settings_menu_tooltip),
+                    size = topMenuButtonSize,
+                    iconSize = topMenuIconSize,
+                    onClick = onSettingsClick
+                )
             }
         }
+    }
+}
+
+/**
+ * A small round glassy button. Deliberately NOT a Material3 IconButton: it enforces a
+ * 48dp minimum interactive size and draws its background/ripple at that size even when a smaller
+ * Modifier.size is given, which made 32dp buttons overflow their layout slot and overlap neighbours.
+ */
+@Composable
+private fun GlassyCircleButton(
+    iconRes: Int,
+    contentDescription: String?,
+    size: androidx.compose.ui.unit.Dp,
+    iconSize: androidx.compose.ui.unit.Dp,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .glassyStyle(CircleShape)
+            .clip(CircleShape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(id = iconRes),
+            contentDescription = contentDescription,
+            tint = Color.White,
+            modifier = Modifier.size(iconSize)
+        )
     }
 }
 
@@ -134,9 +172,10 @@ private fun OneTouchRefreshFab(
     val haptic = LocalHapticFeedback.current
     val density = LocalDensity.current
 
-    val itemStepDp = 64.dp
+    val fabSizeDp = dimensionResource(R.dimen.refresh_fab_size)
+    val fabIconSizeDp = dimensionResource(R.dimen.refresh_fab_icon_size)
+    val itemStepDp = fabSizeDp + 8.dp
     val itemStepPx = with(density) { itemStepDp.toPx() }
-    val fabSizeDp = 56.dp
     val fabSizePx = with(density) { fabSizeDp.toPx() }
 
     val bottomOption = selectedOption
@@ -220,7 +259,7 @@ private fun OneTouchRefreshFab(
                 ),
                 contentDescription = stringResource(R.string.menu_tooltip_refresh),
                 tint = Color.White,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(fabIconSizeDp)
             )
         }
 
@@ -246,6 +285,8 @@ private fun OneTouchRefreshFab(
                         iconRes = if (option == RefreshOption.QUICK) R.drawable.quick_refresh_icon else R.drawable.refresh_icon,
                         iconTint = Color.White,
                         isHovered = hoveredOption == option,
+                        itemHeight = fabSizeDp,
+                        iconSize = fabIconSizeDp,
                         modifier = Modifier.offset(y = yOffset)
                     )
                 }
@@ -260,6 +301,8 @@ private fun ExtendedFabMenuItem(
     iconRes: Int,
     iconTint: Color,
     isHovered: Boolean,
+    itemHeight: androidx.compose.ui.unit.Dp,
+    iconSize: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier
 ) {
     val scale by animateFloatAsState(
@@ -271,7 +314,7 @@ private fun ExtendedFabMenuItem(
     Surface(
         modifier = modifier
             .wrapContentSize(align = Alignment.CenterStart, unbounded = true)
-            .requiredHeight(56.dp),
+            .requiredHeight(itemHeight),
         shape = CircleShape,
         color = if (isHovered) Color(0xFF3F4246) else Color(0xFF252729),
         border = BorderStroke(
@@ -282,7 +325,7 @@ private fun ExtendedFabMenuItem(
     ) {
         Row(
             modifier = Modifier
-                .height(56.dp)
+                .height(itemHeight)
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
@@ -291,14 +334,14 @@ private fun ExtendedFabMenuItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(56.dp),
+                modifier = Modifier.size(itemHeight),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     painter = painterResource(id = iconRes),
                     contentDescription = label,
                     tint = if (isHovered) iconTint else iconTint.copy(alpha = 0.85f),
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(iconSize)
                 )
             }
 

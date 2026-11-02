@@ -22,7 +22,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
@@ -46,7 +49,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -60,10 +65,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.window.DialogWindowProvider
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.antest1.gotobrowser.Activity.SettingsViewModel
@@ -116,6 +129,27 @@ private const val MAX_SUBTITLE_FONTSIZE = 24
 private const val GITHUB_KANTAI3D = "https://github.com/laplamgor/kantai3d"
 private const val GITHUB_GOTOBROWSER = "https://github.com/antest1/GotoBrowser/"
 
+/**
+ * Absorbs whatever scroll/fling the settings list leaves over so it never
+ * reaches the bottom sheet. Without this, pulling the list down while it is
+ * already at the top would drag the sheet and dismiss it. With it, the sheet
+ * can only be dragged away by its handle / header area.
+ *
+ * Only user drags are absorbed in [onPostScroll]. Fling-driven deltas
+ * ([NestedScrollSource.SideEffect]) must be left unconsumed: otherwise the
+ * scrollable believes the fling is still being consumed, keeps its internal
+ * fling animation alive after the list has stopped, and swallows the next
+ * taps as "stop the fling" touches. The fling's leftover velocity is instead
+ * absorbed in [onPostFling], which is enough to keep it off the sheet.
+ */
+private val BlockSheetDragConnection = object : NestedScrollConnection {
+    override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset =
+        if (source == NestedScrollSource.UserInput) Offset(0f, available.y) else Offset.Zero
+
+    override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity =
+        Velocity(0f, available.y)
+}
+
 private data class ListOption(val value: String, val title: String, val summary: String? = null)
 
 enum class SettingsScreen {
@@ -127,6 +161,12 @@ enum class SettingsScreen {
     CONNECTION_LOGIN,
     MODS,
     APP_INFO
+}
+
+private fun hideSystemBarsOf(window: android.view.Window) {
+    val controller = WindowCompat.getInsetsController(window, window.decorView)
+    controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    controller.hide(WindowInsetsCompat.Type.systemBars())
 }
 
 /**
@@ -148,18 +188,17 @@ fun SettingsBottomSheet(
     activity: android.app.Activity?,
     onDismissRequest: () -> Unit,
     onSettingChanged: (String) -> Unit,
-    onLogoutRequest: () -> Unit = {}
+    onLogoutRequest: () -> Unit = {},
+    onHelpClick: () -> Unit = {}
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
     var currentScreen by remember { mutableStateOf(SettingsScreen.MAIN) }
 
-    LaunchedEffect(Unit) {
-        activity?.window?.let { window ->
-            val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-            windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-        }
+    // Keep the activity window immersive while the sheet is up, and restore it on dismiss.
+    DisposableEffect(activity) {
+        activity?.window?.let(::hideSystemBarsOf)
+        onDispose { activity?.window?.let(::hideSystemBarsOf) }
     }
 
     ModalBottomSheet(
@@ -167,11 +206,33 @@ fun SettingsBottomSheet(
         sheetState = sheetState,
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
     ) {
+        // ModalBottomSheet renders in its own dialog window. When that window gains focus
+        // the system bars come back unless the dialog window hides them too, which also
+        // pushed the game area down behind the sheet. Apply the same immersive setup here.
+        //
+        // This must run synchronously during the dialog's first composition (SideEffect),
+        // not on the next frame (LaunchedEffect): the first composition happens while the
+        // dialog view is being attached, before the window reports its insets state, so
+        // hiding here means the bars never show. A frame later is already too late and the
+        // bars flash in and back out.
+        val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
+        val immersiveApplied = remember { mutableStateOf(false) }
+        SideEffect {
+            if (!immersiveApplied.value) {
+                dialogWindow?.let { window ->
+                    WindowCompat.setDecorFitsSystemWindows(window, false)
+                    hideSystemBarsOf(window)
+                    immersiveApplied.value = true
+                }
+            }
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(start = 4.dp, end = 16.dp, bottom = 8.dp),
+                // System bars are hidden; only a top display cutout (portrait) still needs clearing.
+                .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Top))
+                .padding(start = 4.dp, end = 4.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(modifier = Modifier.height(48.withDp())) {
@@ -203,6 +264,15 @@ fun SettingsBottomSheet(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.weight(1f)
             )
+            // Help (manual) entry point, kept in the header so it is reachable from every
+            // settings screen without scrolling.
+            IconButton(onClick = onHelpClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.help_icon),
+                    contentDescription = stringResource(R.string.settings_help_label),
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
 
         AnimatedContent(
@@ -289,7 +359,9 @@ fun SettingsContent(
     }
 
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState())
+        modifier = modifier
+            .nestedScroll(BlockSheetDragConnection)
+            .verticalScroll(rememberScrollState())
     ) {
         when (currentScreen) {
             SettingsScreen.MAIN -> {
@@ -408,8 +480,21 @@ private fun DownloadSection(viewModel: SettingsViewModel?, onSettingChanged: (St
 @Composable
 private fun SubtitleSection(viewModel: SettingsViewModel?, subtitleSummary: String, subtitleEnabled: Boolean, onSettingChanged: (String) -> Unit) {
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
-    ListRow(viewModel, PREF_SUBTITLE_LOCALE, R.string.settings_subtitle_language, subtitleLocaleOptions(),
-        onSelected = { if (!isPreview) viewModel.onSubtitleLocaleChanged(it); true },
+    // PREF_SUBTITLE_LOCALE is stored as "" until the user picks a language (see
+    // SettingsViewModel.refreshSubtitleDescription, which treats "" as "not selected").
+    // Show that state explicitly instead of printing the raw empty string.
+    val localeOptions = subtitleLocaleOptions()
+    val selectLanguageLabel = stringResource(R.string.subtitle_select_language)
+    ListRow(viewModel, PREF_SUBTITLE_LOCALE, R.string.settings_subtitle_language, localeOptions,
+        // Fresh installs have no stored locale; keep it unselected rather than
+        // showing the first option as if it were chosen.
+        defaultValue = "",
+        summaryProvider = { value ->
+            localeOptions.firstOrNull { it.value == value }?.title ?: selectLanguageLabel
+        },
+        // The subtitle provider reads the locale back from preferences, so the
+        // update check must run only after the value has been written.
+        onPersisted = { if (!isPreview) viewModel.onSubtitleLocaleChanged(it) },
         onSettingChanged = onSettingChanged)
 
     var showSubtitleSizeDialog by remember { mutableStateOf(false) }
@@ -832,15 +917,22 @@ private fun ListRow(
     titleRes: Int,
     options: List<ListOption>,
     enabled: Boolean = true,
+    /** Value assumed when the preference has never been written. */
+    defaultValue: String = options.first().value,
     summaryProvider: (String) -> String = { value ->
         options.firstOrNull { it.value == value }?.summary
             ?: options.firstOrNull { it.value == value }?.title ?: value
     },
+    /** Pre-persist hook; return false to reject the selection. */
     onSelected: (String) -> Boolean = { true },
+    /** Runs after the new value has been written to preferences. */
+    onPersisted: (String) -> Unit = {},
     onSettingChanged: (String) -> Unit = {}
 ) {
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
-    var selected by remember { mutableStateOf(if (isPreview) options.first().value else viewModel.getString(key, options.first().value)) }
+    var selected by remember(viewModel, key) {
+        mutableStateOf(if (isPreview) defaultValue else viewModel.getString(key, defaultValue))
+    }
     var showDialog by remember { mutableStateOf(false) }
 
     ListItem(
@@ -861,6 +953,7 @@ private fun ListRow(
                     if (!isPreview) {
                         viewModel.setString(key, value)
                     }
+                    onPersisted(value)
                     onSettingChanged(key)
                 }
                 showDialog = false

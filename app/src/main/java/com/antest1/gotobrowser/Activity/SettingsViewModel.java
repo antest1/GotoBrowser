@@ -242,13 +242,14 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     public void refreshSubtitleDescription() {
-        Context context = getApplication().getApplicationContext();
         String subtitleLocale = sharedPref.getString(PREF_SUBTITLE_LOCALE, "");
         if (!subtitleLocale.isEmpty()) {
             SubtitleProviderUtils.getSubtitleProvider(subtitleLocale)
                     .checkUpdateFromPreference(host, subtitleLocale, versionTable);
         } else {
-            setSubtitleUpdateStatus(context.getString(R.string.subtitle_select_language), false);
+            // No language chosen yet: the language row already shows the
+            // "select a language" hint, so keep this row's summary blank.
+            setSubtitleUpdateStatus("", false);
         }
     }
 
@@ -345,7 +346,7 @@ public class SettingsViewModel extends AndroidViewModel {
     public boolean onAlterMethodSelected(String value) {
         if (PREF_ALTER_METHOD_PROXY.equals(value)
                 && !androidx.webkit.WebViewFeature.isFeatureSupported(
-                        androidx.webkit.WebViewFeature.PROXY_OVERRIDE)) {
+                androidx.webkit.WebViewFeature.PROXY_OVERRIDE)) {
             return false;
         }
         setString(PREF_ALTER_METHOD, value);
