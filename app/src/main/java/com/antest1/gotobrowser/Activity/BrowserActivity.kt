@@ -108,6 +108,7 @@ import com.antest1.gotobrowser.Notification.ScreenshotNotification
 import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils
 import com.antest1.gotobrowser.ui.component.ControlLayout
+import com.antest1.gotobrowser.ui.component.floatingToolbarEdgeMargin
 import com.antest1.gotobrowser.ui.component.RefreshOption
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
 import com.antest1.gotobrowser.ui.component.glassyStyle
@@ -277,8 +278,7 @@ class BrowserActivity : ComponentActivity() {
                             refreshOption.value = option
                             viewModel.setQuickGameReload(option == RefreshOption.QUICK)
                         },
-                        onSettingsClick = { settingsSheetVisible.value = true },
-                        onHelpClick = { openManual(this@BrowserActivity) }
+                        onSettingsClick = { settingsSheetVisible.value = true }
                     ) {
                         val isMute by viewModel.isMuteMode.observeAsState(false)
                         val isCapture by viewModel.isCaptureMode.observeAsState(false)
@@ -330,6 +330,7 @@ class BrowserActivity : ComponentActivity() {
                                 settingsSheetVisible.value = false
                                 showLogoutDialog()
                             },
+                            onHelpClick = { openManual(this@BrowserActivity) },
                             onSettingChanged = { key ->
                                 if (key in liveSettings) {
                                     applyLiveSetting(key)
@@ -809,20 +810,21 @@ fun BrowserOverlayLayer(
         }
 
         if (isCapture) {
-            // Placed below the top-right help/settings row so the two never overlap,
+            // Placed below the top-right settings button so the two never overlap,
             // and right-aligned with that row by sharing its end padding.
             val cameraSize = dimensionResource(R.dimen.browser_camera_size)
             val cameraIconSize = dimensionResource(R.dimen.browser_camera_icon_size)
             val topMenuPadding = dimensionResource(R.dimen.top_menu_padding)
             val topMenuButtonSize = dimensionResource(R.dimen.top_menu_button_size)
             val topMenuGap = dimensionResource(R.dimen.top_menu_gap)
+            val edgeMargin = floatingToolbarEdgeMargin()
             IconButton(
                 onClick = onCaptureClick,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(
                         top = topMenuPadding + topMenuButtonSize + topMenuGap,
-                        end = topMenuPadding
+                        end = edgeMargin
                     )
                     .size(cameraSize)
                     .glassyStyle(RoundedCornerShape(8.dp))
@@ -969,8 +971,7 @@ fun ControlPreviewContent() {
             visible = true,
             onVisibleChange = {},
             onRefreshClick = {},
-            onSettingsClick = {},
-            onHelpClick = {}
+            onSettingsClick = {}
         ) {
             PanelButton(id = R.drawable.volume_off, tooltip = stringResource(R.string.menu_tooltip_mute), active = true, onClick = {})
             PanelButton(id = R.drawable.camera_icon, tooltip = stringResource(R.string.menu_tooltip_camera), active = true, onClick = {})

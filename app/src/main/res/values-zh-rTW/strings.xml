@@ -42,6 +42,7 @@
     <string name="settings_subtitle_download">下載字幕資料</string>
     <string name="settings_subtitle_language">字幕語言</string>
     <string name="settings_appinfo_label">應用程式資訊</string>
+    <string name="settings_help_label">說明</string>
     <string name="no_subtitle_file">請先到設定下載字幕資料</string>
     <string name="setting_latest_version">已是最新版本</string>
     <string name="setting_latest_download" formatted="false">已推出新版本 (%s)\n是否要下載？</string>

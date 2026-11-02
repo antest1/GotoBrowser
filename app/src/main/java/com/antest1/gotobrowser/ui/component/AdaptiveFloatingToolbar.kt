@@ -56,6 +56,17 @@ private const val RevealStrip2LayoutId = "reveal_strip_2"
 private const val BarLayoutId = "bar"
 private const val FabLayoutId = "fab"
 
+/**
+ * Distance between the floating toolbar and the screen edge it hugs:
+ * 16dp in portrait (horizontal bar), 24dp in landscape (vertical bar).
+ * The right-side corner buttons (settings, capture) use the same value so both edges match.
+ */
+@Composable
+fun floatingToolbarEdgeMargin(): Dp {
+    val configuration = LocalConfiguration.current
+    return if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 24.dp else 16.dp
+}
+
 @Composable
 fun AdaptiveFloatingToolbar(
     visible: Boolean,
@@ -74,8 +85,7 @@ fun AdaptiveFloatingToolbar(
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
 
-    // Margins as requested: 16dp for horizontal (Portrait), 24dp for vertical (Landscape)
-    val margin = if (isLandscape) 24.dp else 16.dp
+    val margin = floatingToolbarEdgeMargin()
     val marginPx = with(density) { margin.toPx() }
     val barSizePx = with(density) { barSize.toPx() }
 

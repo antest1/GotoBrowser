@@ -47,6 +47,7 @@
     <string name="settings_subtitle_language">Current Language</string>
     <string name="settings_source_code">Source Code</string>
     <string name="settings_appinfo_label">App Information</string>
+    <string name="settings_help_label">Help</string>
     <string name="no_subtitle_file">Please download subtitle data from the settings first</string>
     <string name="setting_latest_version">You have the latest version</string>
     <string name="setting_latest_download" formatted="false">An update is available. (%s)\nDo you want to download it?</string>

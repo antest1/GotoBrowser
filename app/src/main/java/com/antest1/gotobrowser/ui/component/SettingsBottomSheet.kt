@@ -65,6 +65,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -174,7 +175,8 @@ fun SettingsBottomSheet(
     activity: android.app.Activity?,
     onDismissRequest: () -> Unit,
     onSettingChanged: (String) -> Unit,
-    onLogoutRequest: () -> Unit = {}
+    onLogoutRequest: () -> Unit = {},
+    onHelpClick: () -> Unit = {}
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
@@ -197,7 +199,7 @@ fun SettingsBottomSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(start = 4.dp, end = 16.dp, bottom = 8.dp),
+                .padding(start = 4.dp, end = 4.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(modifier = Modifier.height(48.withDp())) {
@@ -229,6 +231,15 @@ fun SettingsBottomSheet(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.weight(1f)
             )
+            // Help (manual) entry point, kept in the header so it is reachable from every
+            // settings screen without scrolling.
+            IconButton(onClick = onHelpClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.help_icon),
+                    contentDescription = stringResource(R.string.settings_help_label),
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
 
         AnimatedContent(
