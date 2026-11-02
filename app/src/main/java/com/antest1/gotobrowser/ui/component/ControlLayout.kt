@@ -75,6 +75,7 @@ fun ControlLayout(
         AdaptiveFloatingToolbar(
             visible = visible,
             onVisibleChange = onVisibleChange,
+            barSize = dimensionResource(R.dimen.browser_panel_bar_size),
             fab = {
                 OneTouchRefreshFab(
                     selectedOption = selectedRefreshOption,
