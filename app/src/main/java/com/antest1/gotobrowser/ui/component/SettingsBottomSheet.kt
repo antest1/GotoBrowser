@@ -118,6 +118,7 @@ import com.antest1.gotobrowser.Constants.PREF_LATEST_URL
 import com.antest1.gotobrowser.Constants.URL_LIST
 import com.antest1.gotobrowser.Helpers.KcUtils
 import com.antest1.gotobrowser.R
+import com.antest1.gotobrowser.ui.theme.SettingsTheme
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Locale
@@ -181,7 +182,6 @@ private fun hideSystemBarsOf(window: android.view.Window) {
  *        snackbars). The sheet renders in its own window, so it cannot be
  *        resolved from [LocalContext] and must be supplied by the host.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsBottomSheet(
     viewModel: SettingsViewModel?,
@@ -190,6 +190,29 @@ fun SettingsBottomSheet(
     onSettingChanged: (String) -> Unit,
     onLogoutRequest: () -> Unit = {},
     onHelpClick: () -> Unit = {}
+) {
+    // The sheet has its own blue palette; the game overlay underneath keeps the neutral theme.
+    SettingsTheme {
+        SettingsBottomSheetContent(
+            viewModel = viewModel,
+            activity = activity,
+            onDismissRequest = onDismissRequest,
+            onSettingChanged = onSettingChanged,
+            onLogoutRequest = onLogoutRequest,
+            onHelpClick = onHelpClick
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsBottomSheetContent(
+    viewModel: SettingsViewModel?,
+    activity: android.app.Activity?,
+    onDismissRequest: () -> Unit,
+    onSettingChanged: (String) -> Unit,
+    onLogoutRequest: () -> Unit,
+    onHelpClick: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
