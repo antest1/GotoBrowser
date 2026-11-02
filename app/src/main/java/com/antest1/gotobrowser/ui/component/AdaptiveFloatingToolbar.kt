@@ -76,6 +76,8 @@ fun AdaptiveFloatingToolbar(
     barLengthFraction: Float = 0.7f,
     revealSize: Dp = 24.dp,
     contentSpacing: Dp = 8.dp,
+    /** Padding along the bar's main axis, before the first and after the last item. */
+    contentInset: Dp = 8.dp,
     elevation: Dp = 0.dp,
     fab: @Composable (() -> Unit)? = null,
     content: @Composable () -> Unit
@@ -255,13 +257,13 @@ fun AdaptiveFloatingToolbar(
             ) {
                 if (isLandscape) {
                     Column(
-                        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(vertical = 6.dp),
+                        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(vertical = contentInset),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(contentSpacing, Alignment.CenterVertically)
                     ) { content() }
                 } else {
                     Row(
-                        modifier = Modifier.fillMaxHeight().horizontalScroll(rememberScrollState()).padding(horizontal = 6.dp),
+                        modifier = Modifier.fillMaxHeight().horizontalScroll(rememberScrollState()).padding(horizontal = contentInset),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(contentSpacing, Alignment.CenterHorizontally)
                     ) { content() }

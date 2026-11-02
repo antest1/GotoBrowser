@@ -72,10 +72,14 @@ fun ControlLayout(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Main Toolbar (Adaptive)
+        // End inset equals the side inset, so the pill has uniform breathing room around the buttons.
+        val panelBarSize = dimensionResource(R.dimen.browser_panel_bar_size)
+        val panelButtonSize = dimensionResource(R.dimen.browser_panel_button_size)
         AdaptiveFloatingToolbar(
             visible = visible,
             onVisibleChange = onVisibleChange,
-            barSize = dimensionResource(R.dimen.browser_panel_bar_size),
+            barSize = panelBarSize,
+            contentInset = (panelBarSize - panelButtonSize) / 2,
             fab = {
                 OneTouchRefreshFab(
                     selectedOption = selectedRefreshOption,
