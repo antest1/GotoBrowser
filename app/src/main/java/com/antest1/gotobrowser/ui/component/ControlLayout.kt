@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
@@ -101,7 +102,11 @@ fun ControlLayout(
                 .padding(top = topMenuPadding, end = edgeMargin)
         ) {
             TooltipBox(
-                positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                // Button sits in the top-end corner: no room above or to the end, so open toward start.
+                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                    positioning = TooltipAnchorPosition.Start,
+                    spacingBetweenTooltipAndAnchor = OverlayTooltipSpacing
+                ),
                 tooltip = { PlainTooltip { Text(stringResource(R.string.settings_menu_tooltip)) } },
                 state = rememberTooltipState()
             ) {

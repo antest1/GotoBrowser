@@ -46,10 +46,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -111,6 +111,7 @@ import com.antest1.gotobrowser.ui.component.ControlLayout
 import com.antest1.gotobrowser.ui.component.floatingToolbarEdgeMargin
 import com.antest1.gotobrowser.ui.component.RefreshOption
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
+import com.antest1.gotobrowser.ui.component.rememberToolbarTooltipPositionProvider
 import com.antest1.gotobrowser.ui.component.glassyStyle
 import com.antest1.gotobrowser.ui.theme.GotobrowserTheme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -722,7 +723,8 @@ fun PanelButton(
 
     if (tooltip != null) {
         TooltipBox(
-            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            // Toolbar hugs the start edge, so side tooltips open toward the game area.
+            positionProvider = rememberToolbarTooltipPositionProvider(TooltipAnchorPosition.End),
             tooltip = { PlainTooltip { Text(tooltip) } },
             state = rememberTooltipState()
         ) {
