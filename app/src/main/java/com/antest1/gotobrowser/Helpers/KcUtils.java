@@ -326,8 +326,14 @@ public class KcUtils {
     }
 
     public static Retrofit getRetrofitAdapter(Context context, String baseUrl) {
+        return getRetrofitAdapter(context, baseUrl, true);
+    }
+
+    public static Retrofit getRetrofitAdapter(Context context, String baseUrl, boolean followRedirects) {
         OkHttpClient.Builder builder = new OkHttpClient().newBuilder();
         builder.cache(new Cache(context.getCacheDir(), CACHE_SIZE_BYTES));
+        builder.followRedirects(followRedirects);
+        builder.followSslRedirects(followRedirects);
 
         OkHttpClient client = builder.build();
         return new Retrofit.Builder()
@@ -416,23 +422,29 @@ public class KcUtils {
      */
     public static void requestLatestAppVersion(Activity ac, GotoVersionCheck appCheck,
                                                boolean show_toast, MessageCallback onMessage) {
-        Call<JsonObject> call = appCheck.version();
-        call.enqueue(new Callback<JsonObject>() {
+        Call<Void> call = appCheck.latestRelease();
+        call.enqueue(new Callback<Void>() {
             @Override
-            public void onResponse(@NonNull Call<JsonObject> call,
-                                   @NonNull retrofit2.Response<JsonObject> response) {
-                Log.e("GOTO", response.headers().toString());
-                if (response.code() == 200) {
-                    checkAppUpdate(ac, response, show_toast, onMessage);
+            public void onResponse(@NonNull Call<Void> call,
+                                   @NonNull retrofit2.Response<Void> response) {
+                int code = response.code();
+                if (code >= 300 && code < 400) {
+                    String tag = parseReleaseTag(response.headers().get("Location"));
+                    if (tag != null) {
+                        checkAppUpdate(ac, tag, show_toast, onMessage);
+                    } else {
+                        // Without any release, GitHub redirects to the release list.
+                        report(ac, "No update found.", onMessage);
+                    }
                 } else {
-                    String message = "HTTP: " + response.code();
-                    if (response.code() == 404) message = "No update found.";
+                    String message = "HTTP: " + code;
+                    if (code == 404) message = "No update found.";
                     report(ac, message, onMessage);
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
                 report(ac, String.valueOf(t.getLocalizedMessage()), onMessage);
             }
         });
@@ -457,24 +469,29 @@ public class KcUtils {
         showToast(ac.getApplicationContext(), message);
     }
 
-    private static void checkAppUpdate(Activity ac,
-                                       retrofit2.Response<JsonObject> response,
-                                       boolean show_toast,
+    /** Extracts "3.0-rev9" from a ".../releases/tag/v3.0-rev9" redirect target. */
+    private static String parseReleaseTag(String location) {
+        if (location == null) return null;
+        String marker = "/releases/tag/";
+        int idx = location.indexOf(marker);
+        if (idx < 0) return null;
+        String tag = Uri.decode(location.substring(idx + marker.length()));
+        if (tag.startsWith("v")) tag = tag.substring(1);
+        return tag.isEmpty() ? null : tag;
+    }
+
+    private static void checkAppUpdate(Activity ac, String tag, boolean show_toast,
                                        MessageCallback onMessage) {
-        JsonObject version_info = response.body();
-        if (version_info != null && version_info.has("tag_name")) {
-            Log.e("GOTO", version_info.toString());
-            String tag = version_info.get("tag_name").getAsString().substring(1);
-            String latest_file = String.format(Locale.US,
-                    "https://luckyjervis.com/GotoBrowser/apk_download.php?q=%s", tag);
-            if (BuildConfig.VERSION_NAME.equals(tag)) {
-                if (show_toast)
-                    report(ac, ac.getString(R.string.setting_latest_version), onMessage);
-            } else {
-                // A newer release exists: the dialog must be shown, so it stays
-                // on the activity's window even when a message callback is set.
-                showAppUpdateDownloadDialog(ac, tag, latest_file, onMessage);
-            }
+        Log.e("GOTO", "latest release: " + tag);
+        String latest_file = String.format(Locale.US,
+                "https://luckyjervis.com/GotoBrowser/apk_download.php?q=%s", tag);
+        if (BuildConfig.VERSION_NAME.equals(tag)) {
+            if (show_toast)
+                report(ac, ac.getString(R.string.setting_latest_version), onMessage);
+        } else {
+            // A newer release exists: the dialog must be shown, so it stays
+            // on the activity's window even when a message callback is set.
+            showAppUpdateDownloadDialog(ac, tag, latest_file, onMessage);
         }
     }
 
