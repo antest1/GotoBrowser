@@ -324,6 +324,10 @@ html:lang(ja) body {
     font-size: 20px;
     transform: translateY(-1px);
 }
+/* Bootstrap's danger red is 3.9:1 on the dark background; use a brighter red there (6.4:1). */
+[data-bs-theme="dark"] #rendered-md-content .text-danger {
+    color: #ff6b6b !important;
+}
 #rendered-md-content .alert {
     border-radius: var(--radius);
     border: 0;
