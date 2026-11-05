@@ -2,13 +2,11 @@ package com.antest1.gotobrowser.Browser;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
-import android.view.WindowManager;
 import android.webkit.WebResourceResponse;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
@@ -18,7 +16,8 @@ import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleData;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.antest1.gotobrowser.ui.component.DialogButton;
+import com.antest1.gotobrowser.ui.component.MessageDialog;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -41,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import okhttp3.OkHttpClient;
@@ -405,21 +405,11 @@ public class ResourceProcess {
     }
 
     private void showGadgetIpServerBlockedDialog() {
-        activity.runOnUiThread(() -> {
-            DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
-                if (which == DialogInterface.BUTTON_POSITIVE) {
-                    activity.finish();
-                }
-                dialog.dismiss();
-            };
-
-            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity);
-            builder.setTitle(activity.getString(R.string.dialog_ipblock_title))
-                    .setMessage(String.format(activity.getString(R.string.dialog_ipblock_message),
-                            activity.getString(R.string.connection_use_alter)))
-                    .setPositiveButton(activity.getString(R.string.action_ok), dialogClickListener)
-                    .setCancelable(false).show();
-        });
+        activity.showMessageDialog(new MessageDialog(
+                activity.getString(R.string.dialog_ipblock_title),
+                String.format(activity.getString(R.string.dialog_ipblock_message),
+                        activity.getString(R.string.connection_use_alter)),
+                new DialogButton(activity.getString(R.string.action_ok), activity::finish)));
     }
 
     private WebResourceResponse promptForRetry(ResourceRequestInfo requestInfo, int resource_type) {
@@ -427,36 +417,28 @@ public class ResourceProcess {
         if (!isRetryPromptEnabled) return null;
         final AtomicReference<Boolean> cancelled = new AtomicReference<>(false);
         final CountDownLatch retryReady = new CountDownLatch(1);
-        activity.runOnUiThread(() -> {
-            DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
-                switch (which) {
-                    case DialogInterface.BUTTON_POSITIVE:
-                        retryReady.countDown();
-                        break;
-                    case DialogInterface.BUTTON_NEGATIVE:
-                        sharedPref.edit().putBoolean(PREF_DOWNLOAD_RETRY, false).apply();
-                    case DialogInterface.BUTTON_NEUTRAL:
-                    default:
-                        cancelled.set(true);
-                }
-                dialog.dismiss();
-            };
-
-            if (!activity.isFinishing()) {
-                try {
-                    MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity);
-                    builder.setTitle(activity.getString(R.string.dialog_retry_title))
-                            .setMessage(String.format(activity.getString(R.string.dialog_retry_message), requestInfo.path))
-                            .setPositiveButton(activity.getString(R.string.dialog_retry_yes), dialogClickListener)
-                            .setNeutralButton(activity.getString(R.string.dialog_retry_no), dialogClickListener)
-                            .setNegativeButton(activity.getString(R.string.dialog_retry_never), dialogClickListener)
-                            .setCancelable(false).show();
-                } catch (WindowManager.BadTokenException ignored) {}
-            }
-        });
+        // Every answer releases the waiting request thread; only "retry" goes on to download.
+        Runnable skip = () -> {
+            cancelled.set(true);
+            retryReady.countDown();
+        };
+        boolean shown = activity.showMessageDialog(new MessageDialog(
+                activity.getString(R.string.dialog_retry_title),
+                String.format(activity.getString(R.string.dialog_retry_message), requestInfo.path),
+                new DialogButton(activity.getString(R.string.dialog_retry_yes), retryReady::countDown),
+                new DialogButton(activity.getString(R.string.dialog_retry_no), skip),
+                new DialogButton(activity.getString(R.string.dialog_retry_never), () -> {
+                    sharedPref.edit().putBoolean(PREF_DOWNLOAD_RETRY, false).apply();
+                    skip.run();
+                })));
+        if (!shown) return null;
 
         try {
-            retryReady.await();
+            // The dialog goes away with the activity without an answer, so stop
+            // waiting once the activity is gone instead of blocking this thread forever.
+            while (!retryReady.await(1, TimeUnit.SECONDS)) {
+                if (activity.isDestroyed()) return null;
+            }
         } catch (InterruptedException e) {
             return null;
         }

@@ -57,6 +57,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -121,13 +122,16 @@ import com.antest1.gotobrowser.Notification.ScreenshotNotification
 import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils
 import com.antest1.gotobrowser.ui.component.ControlLayout
+import com.antest1.gotobrowser.ui.component.DialogButton
+import com.antest1.gotobrowser.ui.component.MessageDialog
+import com.antest1.gotobrowser.ui.component.MessageDialogHost
 import com.antest1.gotobrowser.ui.component.floatingToolbarEdgeMargin
 import com.antest1.gotobrowser.ui.component.RefreshOption
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
 import com.antest1.gotobrowser.ui.component.rememberToolbarTooltipPositionProvider
 import com.antest1.gotobrowser.ui.component.glassyStyle
 import com.antest1.gotobrowser.ui.theme.GotobrowserTheme
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.antest1.gotobrowser.ui.theme.SettingsTheme
 import java.util.Locale
 import java.util.concurrent.Executors
 
@@ -155,6 +159,7 @@ class BrowserActivity : ComponentActivity() {
     private val settingsSheetVisible = mutableStateOf(false)
     private val refreshPromptVisible = mutableStateOf(false)
     private val refreshOption = mutableStateOf(RefreshOption.QUICK)
+    private val messageDialogs = mutableStateListOf<MessageDialog>()
     private val subtitleFontSize = mutableStateOf(DEFAULT_SUBTITLE_FONT_SIZE)
     private val subtitleLoader = Executors.newSingleThreadExecutor()
 
@@ -273,7 +278,7 @@ class BrowserActivity : ComponentActivity() {
         }
         composeView.setContent {
             GotobrowserTheme {
-                LaunchedEffect(settingsSheetVisible.value, refreshPromptVisible.value) {
+                LaunchedEffect(settingsSheetVisible.value, refreshPromptVisible.value, messageDialogs.size) {
                     hideSystemBars()
                 }
 
@@ -362,15 +367,20 @@ class BrowserActivity : ComponentActivity() {
                     }
 
                     if (refreshPromptVisible.value) {
-                        SettingsRefreshDialog(
-                            onRefreshNow = {
-                                refreshPromptVisible.value = false
-                                settingsSheetVisible.value = false
-                                refreshPageOrFinish(RefreshOption.FULL)
-                            },
-                            onChangeWithoutRefresh = { refreshPromptVisible.value = false }
-                        )
+                        // Same palette as the sheet it is asked from.
+                        SettingsTheme {
+                            SettingsRefreshDialog(
+                                onRefreshNow = {
+                                    refreshPromptVisible.value = false
+                                    settingsSheetVisible.value = false
+                                    refreshPageOrFinish(RefreshOption.FULL)
+                                },
+                                onChangeWithoutRefresh = { refreshPromptVisible.value = false }
+                            )
+                        }
                     }
+
+                    MessageDialogHost(messageDialogs)
                 }
             }
         }
@@ -563,24 +573,39 @@ class BrowserActivity : ComponentActivity() {
         super.onDestroy()
     }
 
+    /**
+     * Shows [dialog] as a Material 3 dialog over the game, in the settings sheet's
+     * theme. Safe to call from any thread; ignored once the activity is finishing.
+     *
+     * @return false if the dialog will not be shown, so callers waiting on an
+     *         answer can stop waiting
+     */
+    fun showMessageDialog(dialog: MessageDialog): Boolean {
+        if (isFinishing || isDestroyed) return false
+        runOnUiThread { if (!isFinishing && !isDestroyed) messageDialogs.add(dialog) }
+        return true
+    }
+
     fun showWebkitErrorDialog(errorCode: Int, description: String, failingUrl: String) {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(KcUtils.getWebkitErrorCodeText(errorCode))
-            .setCancelable(false)
-            .setMessage((description + "\n\n" + failingUrl).trim { it <= ' ' })
-            .setPositiveButton("Reload") { _, _ -> refreshPageOrFinish(RefreshOption.FULL) }
-            .setNegativeButton("Close") { dialog, _ -> dialog.cancel() }
-            .show()
+        showMessageDialog(
+            MessageDialog(
+                title = KcUtils.getWebkitErrorCodeText(errorCode),
+                message = (description + "\n\n" + failingUrl).trim { it <= ' ' },
+                confirm = DialogButton("Reload") { refreshPageOrFinish(RefreshOption.FULL) },
+                dismiss = DialogButton("Close")
+            )
+        )
     }
 
     fun showSslErrorDialog(handler: SslErrorHandler, error: SslError) {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(KcUtils.getSslErrorCodeTitle(error.primaryError))
-            .setCancelable(false)
-            .setMessage((KcUtils.getSslErrorCodeDescription(error.primaryError) + "\n\nurl: " + error.url).trim { it <= ' ' })
-            .setPositiveButton("Close") { _, _ -> handler.cancel() }
-            .setNegativeButton("Proceed") { _, _ -> handler.proceed() }
-            .show()
+        showMessageDialog(
+            MessageDialog(
+                title = KcUtils.getSslErrorCodeTitle(error.primaryError),
+                message = (KcUtils.getSslErrorCodeDescription(error.primaryError) + "\n\nurl: " + error.url).trim { it <= ' ' },
+                confirm = DialogButton("Close") { handler.cancel() },
+                dismiss = DialogButton("Proceed") { handler.proceed() }
+            )
+        )
     }
 
     private fun refreshPageOrFinish(option: RefreshOption = refreshOption.value) {
@@ -641,33 +666,29 @@ class BrowserActivity : ComponentActivity() {
                 RefreshOption.FULL -> R.string.menu_full_refresh to R.string.refresh_full_msg
             }
             mContentView?.pauseTimers()
-            MaterialAlertDialogBuilder(this)
-                .setTitle(getString(titleRes))
-                .setCancelable(false)
-                .setMessage(getString(messageRes))
-                .setPositiveButton(R.string.action_ok) { _, _ -> refreshPageOrFinish(option) }
-                .setNegativeButton(R.string.action_cancel) { dialog, _ ->
-                    dialog.cancel()
-                    mContentView?.resumeTimers()
-                }
-                .show()
+            showMessageDialog(
+                MessageDialog(
+                    title = getString(titleRes),
+                    message = getString(messageRes),
+                    confirm = DialogButton(getString(R.string.action_ok)) { refreshPageOrFinish(option) },
+                    dismiss = DialogButton(getString(R.string.action_cancel)) { mContentView?.resumeTimers() }
+                )
+            )
         }
     }
 
     fun showLogoutDialog() {
         mContentView?.pauseTimers()
-        MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.app_name))
-            .setCancelable(false)
-            .setMessage(getString(R.string.logout_msg))
-            .setPositiveButton(R.string.action_ok) { _, _ ->
-                mContentView?.let { manager?.logoutGame(it) }
-            }
-            .setNegativeButton(R.string.action_cancel) { dialog, _ ->
-                dialog.cancel()
-                mContentView?.resumeTimers()
-            }
-            .show()
+        showMessageDialog(
+            MessageDialog(
+                title = getString(R.string.app_name),
+                message = getString(R.string.logout_msg),
+                confirm = DialogButton(getString(R.string.action_ok)) {
+                    mContentView?.let { manager?.logoutGame(it) }
+                },
+                dismiss = DialogButton(getString(R.string.action_cancel)) { mContentView?.resumeTimers() }
+            )
+        )
     }
 
     fun showScreenshotNotification(bitmap: Bitmap, uri: Uri) {
@@ -684,23 +705,21 @@ class BrowserActivity : ComponentActivity() {
         val broadcastEnabled = viewModel.sharedPref.getBoolean(PREF_BROADCAST, true)
         if (broadcastEnabled || !KcUtils.isKcanotifyInstalled(this)) return
 
-        MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.kcanotify_broadcast_dialog_title))
-            .setCancelable(false)
-            .setMessage(
-                String.format(
+        showMessageDialog(
+            MessageDialog(
+                title = getString(R.string.kcanotify_broadcast_dialog_title),
+                message = String.format(
                     Locale.US,
                     getString(R.string.kcanotify_broadcast_dialog_message),
                     getString(R.string.mode_broadcast),
                     getString(R.string.action_ok)
-                )
+                ),
+                confirm = DialogButton(getString(R.string.action_ok)) {
+                    viewModel.sharedPref.edit().putBoolean(PREF_BROADCAST, true).apply()
+                },
+                dismiss = DialogButton(getString(R.string.action_cancel))
             )
-            .setPositiveButton(R.string.action_ok) { dialog, _ ->
-                viewModel.sharedPref.edit().putBoolean(PREF_BROADCAST, true).apply()
-                dialog.dismiss()
-            }
-            .setNegativeButton(R.string.action_cancel) { dialog, _ -> dialog.cancel() }
-            .show()
+        )
     }
 
     private fun checkStoragePermissionGrated(): Boolean {
@@ -713,15 +732,16 @@ class BrowserActivity : ComponentActivity() {
 
     private fun showStoragePermissionDialog() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            MaterialAlertDialogBuilder(this)
-                .setTitle(getString(R.string.app_name))
-                .setCancelable(false)
-                .setMessage(getString(R.string.noti_screenshot_permission_message))
-                .setPositiveButton(R.string.action_ok) { _, _ ->
-                    ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATION_PERMISSION)
-                }
-                .setNegativeButton(R.string.action_cancel) { dialog, _ -> dialog.cancel() }
-                .show()
+            showMessageDialog(
+                MessageDialog(
+                    title = getString(R.string.app_name),
+                    message = getString(R.string.noti_screenshot_permission_message),
+                    confirm = DialogButton(getString(R.string.action_ok)) {
+                        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATION_PERMISSION)
+                    },
+                    dismiss = DialogButton(getString(R.string.action_cancel))
+                )
+            )
         }
     }
 
