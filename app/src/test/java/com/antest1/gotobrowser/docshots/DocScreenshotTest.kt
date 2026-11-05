@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
@@ -273,8 +274,9 @@ class DocScreenshotTest(private val locale: String) {
     @Test
     fun refreshMenu() = shoot("ui_refresh_menu", action = {
         compose.onNodeWithContentDescription(str(R.string.menu_tooltip_refresh)).performTouchInput {
+            // The node is the icon, so move by a fixed distance: one menu item (~56dp) up.
             down(center)
-            moveBy(Offset(0f, -height * 1.1f))
+            moveBy(Offset(0f, -64.dp.toPx()))
         }
         settle(800)
     }) { Browser() }
