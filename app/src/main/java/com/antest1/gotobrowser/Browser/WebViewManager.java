@@ -353,16 +353,30 @@ public class WebViewManager {
         }
     }
 
+    // Last proxy state applied to the process-wide ProxyController (null endpoint = cleared).
+    // Lets refreshes skip the async round trip when nothing has changed.
+    private static volatile boolean isProxyStateKnown = false;
+    private static volatile String appliedProxyEndpoint = null;
+
     // Proxy changes are asynchronous: load pages only after a listener has run.
     public static void setKcCacheProxy(String endpoint, Runnable onSuccessListener, Runnable onFailureListener) {
         if (WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
+            if (isProxyStateKnown && endpoint.equals(appliedProxyEndpoint)) {
+                onSuccessListener.run();
+                return;
+            }
             ProxyConfig proxyConfig = new ProxyConfig.Builder()
                     .addProxyRule(endpoint)
                     .addBypassRule("*com").addBypassRule("*jp")
                     .addDirect().build();
             Executor executor = Runnable::run;
+            isProxyStateKnown = false;
             try {
-                ProxyController.getInstance().setProxyOverride(proxyConfig, executor, onSuccessListener);
+                ProxyController.getInstance().setProxyOverride(proxyConfig, executor, () -> {
+                    appliedProxyEndpoint = endpoint;
+                    isProxyStateKnown = true;
+                    onSuccessListener.run();
+                });
             } catch (IllegalArgumentException exception) {
                 onFailureListener.run();
             }
@@ -373,8 +387,17 @@ public class WebViewManager {
 
     public static void clearKcCacheProxy(Runnable onCompleteListener) {
         if (WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
+            if (isProxyStateKnown && appliedProxyEndpoint == null) {
+                onCompleteListener.run();
+                return;
+            }
             Executor executor = Runnable::run;
-            ProxyController.getInstance().clearProxyOverride(executor, onCompleteListener);
+            isProxyStateKnown = false;
+            ProxyController.getInstance().clearProxyOverride(executor, () -> {
+                appliedProxyEndpoint = null;
+                isProxyStateKnown = true;
+                onCompleteListener.run();
+            });
         } else {
             onCompleteListener.run();
         }
