@@ -1,29 +1,54 @@
 ## Browser UI
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@40,400,0,0&icon_names=close,closed_caption,logout,photo_camera,refresh,screen_lock_rotation,volume_off,wb_iridescent" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@40,400,0,0&icon_names=closed_caption,crop_free,frame_reload,light_mode,photo_camera,refresh,screen_lock_rotation,settings,volume_off" />
 
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/game_screen.png"  width="840" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/game_screen.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
-You can use various functions such as refreshing the game or taking a screenshot through the left panel.
+You can use various functions such as refreshing the game or taking a screenshot through the toolbar at the edge of the game screen.
+- In portrait mode it appears horizontally at the bottom of the screen, and in landscape mode vertically on the left.
+- Long-press a button to see its name.
 
-##### Show/Hide Panel
-- Here are the ways to make the panel appear:
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/game_screen_portrait.webp"  width="300" style="max-width: 100%;" class="mb-3"/>
+
+##### Show/Hide Toolbar
+- Here are the ways to make the toolbar appear:
   - Touch the black margin outside the game screen (recommended)
-  - Swipe from the left edge of the device screen to the right
-  - check "Show Control Panel on Start" before startup
-- Conversely, here are the ways to make the panel disappear:
-  - Press the X button at the bottom of the panel
-  - Touch the black margin outside the game screen
-  - Swipe to the left after pressing the blank area inside the panel
+  - Swipe inward from the edge where the toolbar is hidden (portrait: bottom, landscape: left)
+  - Press the back button
+  - Turn on "Show Control Panel on Start" in Settings → Controls to show it on startup
+- Conversely, here are the ways to make the toolbar disappear:
+  - Touch the black margin outside the game screen again
+  - Swipe the toolbar toward the edge of the screen
 
-##### Panel Button Description
+##### Refresh
+The refresh button at the end of the toolbar offers two methods.
+
 |  | Button | Description |
 | --- | --- | --- |
-| <span class="material-symbols-outlined">refresh</span>   | Refresh Browser | Refreshes the current page (game) in the browser. <br/>Use this when you don't want to restart the app (e.g. connection error occurs) |
-| <span class="material-symbols-outlined">volume_off</span>  | Mute Browser | Mute the whole sound playing in your browser. The audio file will continue to load.<br/>(Use this when you want to see subtitles without sound, etc.) |
-| <span class="material-symbols-outlined">photo_camera</span> | Show Screenshot Button | Show or hide the screenshot button in the top right of the screen. |
-| <span class="material-symbols-outlined">screen_lock_rotation</span> | Fix screen rotation | Prevents the screen from rotating regardless of device settings. |
-| <span class="material-symbols-outlined">wb_iridescent</span> | Disable Screen Timeout | Set the screen to not turn off in idle state. |
-| <span class="material-symbols-outlined">closed_caption</span> | Show Subtitles | Shows or hides in-game subtitles at the bottom of the screen. |
-| <span class="material-symbols-outlined">logout</span> | Logout | Log out of the game and return to main screen. |
-| <span class="material-symbols-outlined">close</span> | Close Panel | Hides the panel from the screen. |
+| <span class="material-symbols-outlined">frame_reload</span> | Quick Refresh | Reloads only the game frame instead of the full web page.<br/>It is fast but may not always succeed. If a network error occurs, use Full Refresh. |
+| <span class="material-symbols-outlined">refresh</span> | Full Refresh | Reloads the full web page.<br/>This is the most reliable way to refresh, but it takes longer than Quick Refresh. |
+
+- Press and hold the button and drag upward to choose the other method. The last method used is remembered as the default action of the button.
+- The confirmation dialog shown before refreshing can be disabled in Settings → Controls → "Disable Refresh Warning Dialog".
+- If you chose "Change Settings Without Reload" in the "Reload Required" dialog after changing a setting, refreshing with this button also applies the change.
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
+##### Toolbar Button Description
+|  | Button | Description |
+| --- | --- | --- |
+| <span class="material-symbols-outlined">volume_off</span>  | Mute Audio | Mutes the whole sound playing in the browser. The audio files will continue to load.<br/>(Use this when you want to see subtitles without sound, etc.) |
+| <span class="material-symbols-outlined">photo_camera</span> | Screenshot Mode | Turns screenshot mode on or off. When on, the screenshot button appears below the settings button in the top right of the screen. |
+| <span class="material-symbols-outlined">screen_lock_rotation</span> | Auto-Rotate Lock | Prevents the screen from rotating regardless of device settings. |
+| <span class="material-symbols-outlined">light_mode</span> | Screen Always-On | Keeps the screen from turning off in idle state. |
+| <span class="material-symbols-outlined">closed_caption</span> | Subtitle | Shows or hides in-game subtitles at the bottom of the screen. Touching the subtitle hides it until the next line. |
+
+##### Top Right Buttons
+|  | Button | Description |
+| --- | --- | --- |
+| <span class="material-symbols-outlined">settings</span> | Settings | Opens the <span class="link" data-move="settings">settings screen</span>. The game keeps running behind it. |
+| <span class="material-symbols-outlined">crop_free</span> | Screenshot | Saves the current game screen. Shown only while screenshot mode is on. (See <span class="link" data-move="screenshot">Saving Screenshots</span>) |
+
+##### Logout
+- You can log out from Settings → Login and Connection → Logout.
+- After logging out, the login page of the connector opens again.

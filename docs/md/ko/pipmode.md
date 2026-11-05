@@ -1,6 +1,6 @@
 ## PIP/멀티윈도우
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/pip_multiwindow.png"  width="550" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/pip_multiwindow.webp"  width="550" style="max-width: 100%;" class="mb-3"/>
 
 고토브라우저는 PIP 모드 및 멀티윈도우 기능을 지원합니다. (안드로이드 8.0 이상, 삼성 갤럭시의 경우 7.0 이상)  
 이 기능을 활용하여 기기 내에서 다른 작업을 하며 칸코레를 동시에 플레이할 수 있습니다.
@@ -8,8 +8,12 @@
 ##### PIP 모드
 - PIP 모드에서는 현재 게임 화면의 확인만 가능하며, 실제로 플레이하기 위해서는 PIP 모드를 종료해야 합니다.
   - PIP 화면에서 X를 누르는 경우 종료되지 않고 백그라운드 상태로 전환됩니다.
-- 설정에서 "PIP 모드 활성화"를 켠 경우, 홈 버튼을 눌렀을 때 백그라운드로 이동하는 대신 PIP 모드로 전환됩니다.
+- 설정 → 화면 표시에서 "PIP 모드 활성화"를 켠 경우, 다음과 같은 방법으로 PIP 모드에 들어갈 수 있습니다.
+  - 홈 버튼을 누르거나 위로 스와이프하여 홈 화면으로 나가기
+  - 게임 화면을 두 손가락으로 모으기 (핀치 축소)
+- "PIP 모드 활성화"가 꺼져 있으면 홈 화면으로 나갈 때 백그라운드 상태로 전환됩니다.
 
 ##### 멀티윈도우 모드
 - 멀티윈도우(분할/팝업) 상태에서는 정상적인 게임 플레이가 가능합니다.
-- 패널 호출 및 숨기기는 <span class="link" data-move="browserui">기존과 동일한 방법</span>으로 사용 가능합니다. (여백 터치 혹은 스와이프)
+- 툴바 호출 및 숨기기는 <span class="link" data-move="browserui">기존과 동일한 방법</span>으로 사용 가능합니다. (여백 터치 혹은 스와이프)
+- 게임 화면이 분할 바에 바로 붙어 나오는 경우 설정 → 화면 표시 → "[멀티윈도우] 분할 바로부터 여백 추가"를 켜세요.

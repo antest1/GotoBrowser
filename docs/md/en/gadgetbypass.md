@@ -6,17 +6,20 @@ Since February 2020, KanColle gadget server is blocking all non-Japanese IP addr
 
 When IP block is detected, the following notification will appear when you start the game.
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/bypass_required.png"  width="480" style="max-width: 100%;"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/bypass_required.webp"  width="480" style="max-width: 100%;"/>
 
 ##### Instruction
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/gadget_options.png"  width="480" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/gadget_options.webp"  width="600" style="max-width: 100%;" class="mb-3"/>
 
-1. Activate the "Gadget Server Bypass" option in Settings.   
-   (Turned on by default if the device locale is not Japanese at the time of installation.)
-2. Set the bypass method/endpoint server to "URL Replacement" and one of the two urls below. Be careful of typos!
+1. Turn on the "Gadget Block Bypass" option under the "Gadget Block Bypass" section in Settings → Login and Connection.
+2. Set the bypass method to "URL Replacement" and the endpoint server to the URL below. Be careful of typos!
+3. When the "Reload Required" dialog appears, press "Reload Now" to reload the game.
 
 | Endpoint Server URL | Notes |
 | --- | --- |
 | `https://kcwiki.github.io/cache/` | default |
-| `https://luckyjervis.com/` | | 
+
+##### Notes
+- If the block is found to be lifted while the bypass is on, the bypass option is turned off automatically.
+- Conversely, if a block is detected while the bypass is off, the notification above is shown again.

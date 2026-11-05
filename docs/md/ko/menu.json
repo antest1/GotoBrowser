@@ -1,5 +1,5 @@
 {
-    "version": "1.0.3",
+    "version": "2.0.0",
     "text": {
         "nav_app_brand": "고토브라우저",
         "sidebar_group_getstarted": "시작하기",
@@ -8,7 +8,7 @@
         "sidebar_group_others": "기타",
         "sidebar_page_index": "소개",
         "sidebar_page_installation": "설치 방법",
-        "sidebar_page_entrance": "메인 화면",
+        "sidebar_page_entrance": "게임 시작",
         "sidebar_page_browserui": "브라우저 UI",
         "sidebar_page_settings": "설정",
         "sidebar_page_screenshot": "스크린샷 저장",

@@ -6,17 +6,20 @@
 
 海外IPブロックが確認された場合は、ゲーム開始時に以下のような通知が表示されます。
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/bypass_required.png"  width="480" style="max-width: 100%;"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/bypass_required.webp"  width="480" style="max-width: 100%;"/>
 
 ##### 設定方法
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/gadget_options.png"  width="480" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/gadget_options.webp"  width="600" style="max-width: 100%;" class="mb-3"/>
 
-1. 設定で「国外ブロックのバイパス」オプションを有効にします。  
-  （初期インストール時に日本語以外の言語に設定されている場合はデフォルトでオンになります）
-2. バイパス方式は「URL置換」を、エンドポイントサーバーは以下の2つのURLのいずれかに設定してください。誤字に注意！
+1. 設定 → ログインと接続の「国外ブロックのバイパス」項目で、「国外ブロックのバイパス」オプションを有効にします。
+2. バイパス方式は「URL置換」を、エンドポイントサーバーは以下のURLに設定してください。誤字に注意！
+3. 「再読み込みが必要です」ダイアログが表示されたら、「今すぐ再読み込み」を押してゲームを再読み込みします。
 
 | エンドポイントサーバー URL | 備考 |
 | --- | --- |
 | `https://kcwiki.github.io/cache/` | デフォルト |
-| `https://luckyjervis.com/` | | 
+
+##### 参考
+- バイパスが有効な状態でブロックが解除されたことが確認されると、バイパスのオプションは自動的に無効になります。
+- 逆にバイパスが無効な状態でブロックが検出されると、上記の通知が再び表示されます。

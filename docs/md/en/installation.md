@@ -2,8 +2,8 @@
 
 ##### Requirements
 
-- Minimum: Android 5.0 (Lollipop)
-- Recommended: Android 8.0 (Oreo) or later
+- Minimum: Android 7.0 (Nougat)
+- Recommended: Android 12 or later
 
 
 ##### Download APK File
@@ -15,6 +15,6 @@ You can download and install the latest version of the installation file (APK) f
 - [MEGA](https://mega.nz/folder/JZUTGJYR#py5vd_39d_Emn0FSr9Rj4g)
 - [Github Release](https://github.com/antest1/GotoBrowser/releases)
 
-Please refer to the [Notices   Page](https://luckyjervis.com/GotoBrowser/notice) for changes in the latest version and previous update history.
+Please refer to the [Notices Page](https://luckyjervis.com/GotoBrowser/notice) for changes in the latest version and previous update history.
 
 If you need to install an older version, you can find and download it on [Github](https://github.com/antest1/GotoBrowser/tags).

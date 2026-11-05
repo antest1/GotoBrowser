@@ -1,33 +1,41 @@
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@40,400,0,0&icon_names=help,settings" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0&icon_names=help,settings" />
 
+## Starting the Game
 
-## Main Screen
+When you launch the app, the start page of the connector (default: DMM direct) opens right away. There is no separate main screen.  
+Everything that used to be on the main screen before version 4.0 has moved to the <span class="link" data-move="settings">settings screen</span>.
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/main_screen.png" height="550px"/>
+##### Startup Flow
+1. The start page of the connector opens. On the login page, the account information saved in the settings is filled in automatically.
+2. After logging in, the game screen is fitted to your device screen. (Settings → Display → Auto Layout Adjustment)
+3. Touch the black margin outside the game screen to show the <span class="link" data-move="browserui">toolbar</span>. The settings button (<span class="material-symbols-outlined inline-icon">settings</span>) in the top right opens the settings screen.
 
-##### Select Connector Site
-- In general, you do not need to change the value set to DMM DIRECT.
-- If you want to use an OOI-based connector, you can change it by clicking on the corresponding area. ([ooi.moe](https://ooi.moe/) or [kancolle.moe](https://kancolle.moe/))
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/first_launch.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
-##### Login Autocompletion
-- You can set the ID and password to be entered when starting the browser.
+##### Selecting a Connector
+- In general, you do not need to change the default value, DMM direct.
+- If you want to use an OOI-based connector ([ooi.moe](https://ooi.moe/) or [kancolle.moe](https://kancolle.moe/)), change it in Settings → Login and Connection → Select Login Method.
+  - When you select an unofficial connector for the first time, a notice that game resources may differ from the original ones is shown.
+- Changing the connector takes effect after a reload.
+
+##### Login Autocomplete
+- You can save the ID and password to be entered in the login form in Settings → Login and Connection → Login Autocomplete.
 - The account information is only stored within the device and not used for purposes other than autocompletion.
 
-##### Startup Settings List
-| Option | Description |
+##### Dialogs That May Appear on Startup
+| Dialog | Description |
 | --- | --- |
-| Start with Audio OFF | Set the in-game BGM/SE/VOICE volume to 0 when starting the browser.<br/>(Same as the official application function) |
-| Broadcast Mode | Send the KanColle-related communication to the other applications such as Kcanotify. <br/>Must be turned on to use with Kcanotify. |
-| Gadget Server Bypass | Bypasses non-Japan IP blocking to make the game loads normally. |
-| Show Control Panel on Start | The panel starts with/hidden when the browser starts. |
-| Enable Keyboard Input | Sets the keyboard input to be available/disabled when the browser starts. |
+| Update available | Asks whether to download a new version if one exists. (Same as Settings → App Information → Check Update) |
+| Kcanotify Detected | Shown when Kcanotify is installed but Broadcast Mode is turned off. Press OK to turn it on. (See <span class="link" data-move="kcanotify">Using with Kcanotify</span>) |
+| Foreign IP Block Detected | Shown when a foreign IP block is detected while Gadget Block Bypass is turned off. (See <span class="link" data-move="gadgetbypass">IP Block Bypass (Non-Japan)</span>) |
 
-##### Clear cache
-- Delete cache information in the browser.
-- If the game does not load properly or you see a DMM country restriction error, clear the cache multiple times and restart the application.
-
-##### Top Menu
-| | Function | Description |
-| --- | --- | --- |
-| <span class="material-symbols-outlined">help</span> | Manual Website | Opens the manual website. |
-| <span class="material-symbols-outlined">settings</span> | Settings Menu | Opens the <span class="link" data-move="settings">settings menu</span>. |
+##### Changes from Previous Versions
+| Previous versions (main screen) | 4.0 and later |
+| --- | --- |
+| Select Connector Site | Settings → Login and Connection → Select Login Method |
+| Login Autocompletion | Settings → Login and Connection → Login Autocomplete |
+| Start with Audio OFF / Broadcast Mode / Gadget Server Bypass | Settings → Login and Connection |
+| Show Control Panel on Start / Enable Keyboard Input | Settings → Controls |
+| Clear Cache | Settings → Asset Caching → Clear Cache |
+| Manual Website (<span class="material-symbols-outlined inline-icon">help</span>) | Help button at the top of the settings screen |
+| Settings Menu (<span class="material-symbols-outlined inline-icon">settings</span>) | Settings button in the top right of the game screen |
