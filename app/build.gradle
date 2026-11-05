@@ -46,8 +46,8 @@ android {
                 systemProperty 'roborazzi.test.record', 'true'
                 systemProperty 'robolectric.graphicsMode', 'NATIVE'
                 systemProperty 'robolectric.pixelCopyRenderMode', 'hardware'
-                systemProperty 'docshots.outDir', rootProject.file('docs/screenshots/out').absolutePath
-                systemProperty 'docshots.inputDir', rootProject.file('docs/screenshots/input').absolutePath
+                systemProperty 'docshots.outDir', rootProject.file('tools/docshots/out').absolutePath
+                systemProperty 'docshots.inputDir', rootProject.file('tools/docshots/input').absolutePath
                 maxHeapSize = '2g'
             }
         }

@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
@@ -78,8 +79,8 @@ import java.io.File
  * Renders the app's Compose UI into images for the manual (docs/).
  *
  * Not a regression test: each case records one PNG per locale into
- * `docs/screenshots/out/<locale>/`. The game area is a WebView and cannot be
- * rendered here, so it is filled with `docs/screenshots/input/game_bg.*`
+ * `tools/docshots/out/<locale>/`. The game area is a WebView and cannot be
+ * rendered here, so it is filled with `tools/docshots/input/game_bg.*`
  * (a 5:3 capture of the game only) when that file exists.
  *
  * Run: gradlew :app:testDebugUnitTest --tests "*DocScreenshotTest*" -Pdocshots
@@ -98,6 +99,9 @@ class DocScreenshotTest(private val locale: String) {
         // 3120x1440 Galaxy at its default 560dpi (3.5x), as in the device captures
         private const val LANDSCAPE = "w891dp-h411dp-land-560dpi"
         private const val PORTRAIT = "w411dp-h891dp-port-560dpi"
+
+        /** Regular / bold doc typefaces per locale, shared by every case (see applyDocTypeface). */
+        private val docTypefaces = mutableMapOf<String, Pair<Typeface, Typeface>>()
     }
 
     @get:Rule
@@ -122,15 +126,19 @@ class DocScreenshotTest(private val locale: String) {
         fun font(name: String, weight: Int, ttcIndex: Int = 0) =
             Font.Builder(File(fontDir, name)).setWeight(weight).setTtcIndex(ttcIndex).build()
 
-        val latin = FontFamily.Builder(font("Roboto-Medium.ttf", 400))
-            .addFont(font("Roboto-Bold.ttf", 700)).build()
-        val cjk = FontFamily.Builder(font("NotoSansCJK-Medium.ttc", 400, cjkIndex))
-            .addFont(font("NotoSansCJK-Bold.ttc", 700, cjkIndex)).build()
-        val regular = Typeface.CustomFallbackBuilder(latin)
-            .addCustomFallback(cjk)
-            .setSystemFallback("sans-serif")
-            .build()
-        val bold = Typeface.create(regular, 700, false)
+        // Built once per locale: each build maps the CJK collections (~18MB each) again,
+        // and doing that for every case crashed the test JVM after ~70 renders.
+        val (regular, bold) = docTypefaces.getOrPut(locale) {
+            val latin = FontFamily.Builder(font("Roboto-Medium.ttf", 400))
+                .addFont(font("Roboto-Bold.ttf", 700)).build()
+            val cjk = FontFamily.Builder(font("NotoSansCJK-Medium.ttc", 400, cjkIndex))
+                .addFont(font("NotoSansCJK-Bold.ttc", 700, cjkIndex)).build()
+            val regular = Typeface.CustomFallbackBuilder(latin)
+                .addCustomFallback(cjk)
+                .setSystemFallback("sans-serif")
+                .build()
+            regular to Typeface.create(regular, 700, false)
+        }
 
         // Compose resolves FontFamily.Default through Typeface.DEFAULT; point the shared
         // instances at the new native typeface rather than replacing the (final) fields.
@@ -273,8 +281,9 @@ class DocScreenshotTest(private val locale: String) {
     @Test
     fun refreshMenu() = shoot("ui_refresh_menu", action = {
         compose.onNodeWithContentDescription(str(R.string.menu_tooltip_refresh)).performTouchInput {
+            // The node is the icon, so move by a fixed distance: one menu item (~56dp) up.
             down(center)
-            moveBy(Offset(0f, -height * 1.1f))
+            moveBy(Offset(0f, -64.dp.toPx()))
         }
         settle(800)
     }) { Browser() }
@@ -328,6 +337,13 @@ class DocScreenshotTest(private val locale: String) {
 
     @Test
     fun settingsConnection() = shoot("settings_connection", action = openPage(R.string.settings_connection_login_label)) { Sheet() }
+
+    /** Scrolled to broadcast mode, for the Kcanotify page. */
+    @Test
+    fun settingsBroadcast() = shoot(
+        "settings_broadcast",
+        action = openPage(R.string.settings_connection_login_label, scrollTo = R.string.mode_broadcast)
+    ) { Sheet() }
 
     @Test
     fun settingsGadget() = shoot(
