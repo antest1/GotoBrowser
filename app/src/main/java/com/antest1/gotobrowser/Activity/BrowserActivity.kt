@@ -592,15 +592,29 @@ class BrowserActivity : ComponentActivity() {
         viewModel.connectorInfo = WebViewManager.getDefaultPage(this)
         val info = viewModel.connectorInfo
         if (manager != null && info != null && info.size == 2) {
-            mContentView?.let {
-                when (option) {
-                    RefreshOption.QUICK -> manager?.refreshGameFrame(it)
-                    RefreshOption.FULL -> manager?.refreshPage(it)
+            reloadSettings {
+                mContentView?.let {
+                    when (option) {
+                        RefreshOption.QUICK -> manager?.refreshGameFrame(it)
+                        RefreshOption.FULL -> manager?.refreshPage(it)
+                    }
                 }
             }
         } else {
             finish()
         }
+    }
+
+    /**
+     * Re-applies the settings that are only read on page load (see refreshSettings).
+     * [onReady] runs once it is safe to load the page.
+     */
+    private fun reloadSettings(onReady: () -> Unit) {
+        viewModel.k3dPatcher.pause()
+        viewModel.prepareModPatchers()
+        viewModel.k3dPatcher.resume()
+        loadSubtitleData()
+        onReady()
     }
 
     fun showRefreshDialog(option: RefreshOption = refreshOption.value) {

@@ -63,6 +63,12 @@ public class BrowserViewModel extends AndroidViewModel {
         isKeepMode.setValue(sharedPref.getBoolean(PREF_KEEPMODE, false));
         isNoRefreshPopupMode.setValue(sharedPref.getBoolean(PREF_DISABLE_REFRESH_DIALOG, false));
         
+        prepareModPatchers();
+    }
+
+    /** Re-reads the mod settings; main.js is patched with this state on the next load. */
+    public void prepareModPatchers() {
+        Application application = getApplication();
         k3dPatcher.prepare(application);
         kenPatcher.prepare(application);
         critPatcher.prepare(application);
