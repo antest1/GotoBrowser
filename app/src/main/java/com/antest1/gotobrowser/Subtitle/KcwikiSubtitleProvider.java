@@ -331,6 +331,7 @@ public class KcwikiSubtitleProvider implements SubtitleProvider  {
                     fos.close();
                     versionTable.putVersionValue(subtitle_path, data.get("version").getAsString());
                     host.setSubtitleUpdateStatus(host.getString(R.string.setting_latest_version), false);
+                    host.onSubtitleDataUpdated();
                 } else {
                     message = "No data to write: quotes_".concat(locale_code).concat(".json");
                     KcUtils.showToast(context, message);

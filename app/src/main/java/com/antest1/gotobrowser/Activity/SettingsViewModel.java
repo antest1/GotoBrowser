@@ -406,6 +406,14 @@ public class SettingsViewModel extends AndroidViewModel {
         public void setPatchGithubInfo(int titleResId, String url) {
             SettingsViewModel.this.setPatchGithubInfo(titleResId, url);
         }
+
+        @Override
+        public void onSubtitleDataUpdated() {
+            Activity activity = dialogActivity();
+            if (activity instanceof BrowserActivity) {
+                ((BrowserActivity) activity).loadSubtitleData();
+            }
+        }
     };
 
     public static String formatSubtitleExample(Context context, int size) {

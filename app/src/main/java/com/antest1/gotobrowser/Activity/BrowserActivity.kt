@@ -129,6 +129,7 @@ import com.antest1.gotobrowser.ui.component.glassyStyle
 import com.antest1.gotobrowser.ui.theme.GotobrowserTheme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.Locale
+import java.util.concurrent.Executors
 
 class BrowserActivity : ComponentActivity() {
     companion object {
@@ -155,6 +156,7 @@ class BrowserActivity : ComponentActivity() {
     private val refreshPromptVisible = mutableStateOf(false)
     private val refreshOption = mutableStateOf(RefreshOption.QUICK)
     private val subtitleFontSize = mutableStateOf(DEFAULT_SUBTITLE_FONT_SIZE)
+    private val subtitleLoader = Executors.newSingleThreadExecutor()
 
     // Settings applied immediately without reloading the page.
     private val liveSettings = setOf(
@@ -436,12 +438,13 @@ class BrowserActivity : ComponentActivity() {
         }
     }
 
-    private fun loadSubtitleData() {
+    fun loadSubtitleData() {
         // Loaded off the main thread:
         // The result is only consumed later when a voice line plays.
+        // A single-thread executor keeps loads in order, so the latest locale wins.
         val subtitleLocale = viewModel.sharedPref.getString(PREF_SUBTITLE_LOCALE, "en") ?: "en"
         val appContext = applicationContext
-        Thread {
+        subtitleLoader.execute {
             val loaded = SubtitleProviderUtils.getSubtitleProvider(subtitleLocale)
                 .loadQuoteData(appContext, subtitleLocale)
             runOnUiThread {
@@ -449,7 +452,7 @@ class BrowserActivity : ComponentActivity() {
                     viewModel.isSubtitleLoaded = loaded
                 }
             }
-        }.start()
+        }
     }
 
     fun setStartedFlag() {
@@ -559,6 +562,7 @@ class BrowserActivity : ComponentActivity() {
 
     override fun onDestroy() {
         settingsViewModel.clearHostActivity(this)
+        subtitleLoader.shutdown()
         mContentView?.removeAllViews()
         mContentView?.destroy()
         super.onDestroy()

@@ -25,4 +25,7 @@ interface SettingsStatusHost {
 
     /** Point the KCCP "About" row at the currently selected patch repository. */
     fun setPatchGithubInfo(titleResId: Int, url: String)
+
+    /** Called after new subtitle data is saved, so the browser can reload it. */
+    fun onSubtitleDataUpdated()
 }
