@@ -30,13 +30,13 @@ function pageOrder() {
 
 function pageTitle(page) {
     const el = document.querySelector(".nav-page[data-page='" + page + "']");
-    return el ? el.innerText : page;
+    return el ? el.textContent.trim() : page;  // textContent: the drawer may be hidden
 }
 
 function groupTitle(page) {
     const el = document.querySelector(".nav-page[data-page='" + page + "']");
     const title = el && el.closest(".nav-group").querySelector(".nav-group-title");
-    return title ? title.innerText : "";
+    return title ? title.textContent.trim() : "";
 }
 
 /** Post-process the rendered markdown: tables, images, links and the page outline. */
