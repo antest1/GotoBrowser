@@ -7,6 +7,7 @@ import android.os.Build
 import android.util.Rational
 import android.view.ScaleGestureDetector
 import android.webkit.WebView
+import androidx.annotation.RequiresApi
 import com.antest1.gotobrowser.Constants.PREF_PIP_MODE
 
 class PipController(
@@ -15,33 +16,35 @@ class PipController(
     private val onPipModeChanged: (Boolean) -> Unit,
     private val hideSystemBars: () -> Unit
 ) {
+    private var layoutListenerAdded = false
+
     fun setupSmoothPipAnimation() {
-        val pipEnabled = activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_PIP_MODE, false)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && activity.supportsPiPMode() && pipEnabled) {
-            val sourceRectHint = Rect()
-            mContentView.getGlobalVisibleRect(sourceRectHint)
-            activity.setPictureInPictureParams(
-                PictureInPictureParams.Builder()
-                    .setSeamlessResizeEnabled(false)
-                    .setSourceRectHint(sourceRectHint)
-                    .setAutoEnterEnabled(true)
-                    .setAspectRatio(Rational(1200, 720))
-                    .build()
-            )
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !activity.supportsPiPMode()) return
+        updatePipParams()
+        // Register once; the listener re-reads the setting, so turning PiP off also disables auto-enter.
+        if (!layoutListenerAdded) {
+            layoutListenerAdded = true
             mContentView.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
                 if (left != oldLeft || right != oldRight || top != oldTop || bottom != oldBottom) {
-                    mContentView.getGlobalVisibleRect(sourceRectHint)
-                    activity.setPictureInPictureParams(
-                        PictureInPictureParams.Builder()
-                            .setSeamlessResizeEnabled(false)
-                            .setSourceRectHint(sourceRectHint)
-                            .setAutoEnterEnabled(true)
-                            .setAspectRatio(Rational(1200, 720))
-                            .build()
-                    )
+                    updatePipParams()
                 }
             }
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun updatePipParams() {
+        val pipEnabled = activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_PIP_MODE, false)
+        val sourceRectHint = Rect()
+        mContentView.getGlobalVisibleRect(sourceRectHint)
+        activity.setPictureInPictureParams(
+            PictureInPictureParams.Builder()
+                .setSeamlessResizeEnabled(false)
+                .setSourceRectHint(sourceRectHint)
+                .setAutoEnterEnabled(pipEnabled)
+                .setAspectRatio(Rational(1200, 720))
+                .build()
+        )
     }
 
     fun onUserLeaveHint() {
