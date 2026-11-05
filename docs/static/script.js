@@ -1,4 +1,4 @@
-const lang_list = ["ko", "ja", "en"];
+const lang_list = ["ko", "ja", "en", "zh-cn", "zh-tw"];
 
 const queryString = location.search;
 const urlParams = new URLSearchParams(queryString);
@@ -6,6 +6,7 @@ const urlParams = new URLSearchParams(queryString);
 var menu_data = {};
 var currentPage = urlParams.has("page") ? urlParams.get("page") : "index";
 var currentLang = urlParams.has("hl") ? urlParams.get("hl") : get_default_language();
+if (currentLang) currentLang = currentLang.toLowerCase();
 if (!lang_list.includes(currentLang)) currentLang = "en";
 
 var fromApp = (urlParams.has("from_app") && urlParams.get("from_app") == "true");
@@ -15,13 +16,19 @@ const UI_TEXT = {
     ko: { toc: "이 페이지에서", prev: "이전", next: "다음" },
     ja: { toc: "このページの内容", prev: "前へ", next: "次へ" },
     en: { toc: "On this page", prev: "Previous", next: "Next" },
+    "zh-cn": { toc: "本页内容", prev: "上一页", next: "下一页" },
+    "zh-tw": { toc: "本頁內容", prev: "上一頁", next: "下一頁" },
 };
 
 function get_default_language() {
-    const navLang = navigator.language;
-    if (navLang.includes("ko-KR") || navLang.includes("ko")) return "ko";
-    else if (navLang.includes("ja-JP") || navLang.includes("ja")) return "ja";
-    else return "en";
+    const navLang = (navigator.language || "").toLowerCase();
+    if (navLang.startsWith("ko")) return "ko";
+    if (navLang.startsWith("ja")) return "ja";
+    if (navLang.startsWith("zh")) {
+        // Traditional for zh-Hant and the regions that use it (same split as the app's resources)
+        return /hant|-tw|-hk|-mo/.test(navLang) ? "zh-tw" : "zh-cn";
+    }
+    return "en";
 }
 
 function pageOrder() {

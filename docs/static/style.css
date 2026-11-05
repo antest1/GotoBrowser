@@ -53,6 +53,15 @@ html:lang(ja) body {
     font-family: "Pretendard JP Variable", "Pretendard Variable", -apple-system, BlinkMacSystemFont,
         system-ui, "Hiragino Sans", "Yu Gothic UI", sans-serif;
 }
+/* Pretendard has no Chinese glyphs: Latin from Pretendard, Hanzi from the system / Noto Sans SC·TC */
+html:lang(zh-cn) body {
+    font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont, "PingFang SC",
+        "Microsoft YaHei", "Noto Sans SC", "Noto Sans CJK SC", sans-serif;
+}
+html:lang(zh-tw) body {
+    font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont, "PingFang TC",
+        "Microsoft JhengHei", "Noto Sans TC", "Noto Sans CJK TC", sans-serif;
+}
 
 .page-scroll {
     flex: 1 1 auto;
