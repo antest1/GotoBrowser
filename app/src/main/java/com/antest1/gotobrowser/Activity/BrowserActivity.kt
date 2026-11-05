@@ -68,6 +68,12 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -153,7 +159,6 @@ class BrowserActivity : ComponentActivity() {
 
     val isInPictureInPictureModeState = mutableStateOf(false)
     private val errorText = mutableStateOf("")
-    private val subtitleTextValue = mutableStateOf("")
     private val closeButtonVisible = mutableStateOf(false)
     private val toolbarVisible = mutableStateOf(false)
     private val settingsSheetVisible = mutableStateOf(false)
@@ -222,6 +227,11 @@ class BrowserActivity : ComponentActivity() {
         toolbarVisible.value = viewModel.sharedPref.getBoolean(PREF_PANELSTART, true)
         refreshOption.value = if (viewModel.isQuickGameReload) RefreshOption.QUICK else RefreshOption.FULL
         subtitleFontSize.value = settingsViewModel.getSubtitleFontSize()
+        // Hint shown only on first launch (not on rotation), until the first voice line or a tap.
+        if (!viewModel.isSubtitleHintShown) {
+            viewModel.isSubtitleHintShown = true
+            viewModel.setSubtitleText(getString(R.string.subtitle_default))
+        }
 
         manager = WebViewManager(this)
         manager?.setDataDirectorySuffix()
@@ -290,7 +300,6 @@ class BrowserActivity : ComponentActivity() {
                     BrowserOverlayContent(
                         viewModel = viewModel,
                         errorText = errorText,
-                        subtitleTextValue = subtitleTextValue,
                         closeButtonVisible = closeButtonVisible,
                         subtitleFontSize = subtitleFontSize,
                         activity = this@BrowserActivity,
@@ -465,7 +474,7 @@ class BrowserActivity : ComponentActivity() {
     }
 
     fun setErrorText(text: String) { errorText.value = text }
-    fun setSubtitleText(text: String) { subtitleTextValue.value = text }
+    fun setSubtitleText(text: String) { viewModel.setSubtitleText(text) }
     fun setCloseButtonVisible(visible: Boolean) { closeButtonVisible.value = visible }
 
     private fun onSettingChanged(key: String) {
@@ -854,11 +863,32 @@ private fun SettingsRefreshDialog(
     )
 }
 
+// White bold text with a black outline and drop shadow, so it stays readable over any game scene.
+@Composable
+private fun SubtitleText(text: String, fontSize: Int, modifier: Modifier = Modifier) {
+    val baseStyle = TextStyle(
+        fontWeight = FontWeight.Bold,
+        fontSize = fontSize.sp,
+        textAlign = TextAlign.Center
+    )
+    val outlineWidth = with(LocalDensity.current) { 3.dp.toPx() }
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Text(
+            text = text,
+            style = baseStyle.copy(
+                color = Color.Black,
+                drawStyle = Stroke(width = outlineWidth, join = StrokeJoin.Round),
+                shadow = Shadow(color = Color.Black, offset = Offset(2f, 2f), blurRadius = 4f)
+            )
+        )
+        Text(text = text, style = baseStyle.copy(color = Color.White))
+    }
+}
+
 @Composable
 fun BrowserOverlayLayer(
     showSubtitle: Boolean,
     subtitleText: String,
-    subtitleVisible: Boolean,
     subtitleFontSize: Int,
     isCapture: Boolean,
     closeButtonVisible: Boolean,
@@ -869,16 +899,13 @@ fun BrowserOverlayLayer(
     containerHeight: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-        if (showSubtitle && subtitleVisible) {
+        if (showSubtitle && subtitleText.isNotEmpty()) {
             androidx.compose.ui.layout.Layout(
                 modifier = Modifier.fillMaxSize(),
                 content = {
-                    Text(
-                        text = subtitleText.ifEmpty { stringResource(id = R.string.subtitle_default) },
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = subtitleFontSize.sp,
-                        textAlign = TextAlign.Center,
+                    SubtitleText(
+                        text = subtitleText,
+                        fontSize = subtitleFontSize,
                         modifier = Modifier
                             .clickable { onSubtitleTap() }
                             .padding(horizontal = 8.dp)
@@ -952,7 +979,6 @@ fun BrowserOverlayLayer(
 fun BrowserOverlayContent(
     viewModel: BrowserViewModel,
     errorText: MutableState<String>,
-    subtitleTextValue: MutableState<String>,
     closeButtonVisible: MutableState<Boolean>,
     subtitleFontSize: MutableState<Int>,
     activity: BrowserActivity,
@@ -960,17 +986,10 @@ fun BrowserOverlayContent(
     onClose: () -> Unit
 ) {
     val isCaption by viewModel.isCaptionMode.observeAsState(false)
+    val subtitleText by viewModel.subtitleText.observeAsState("")
     val isCapture by viewModel.isCaptureMode.observeAsState(false)
     val isKeep by viewModel.isKeepMode.observeAsState(false)
     val showFlash = remember { mutableStateOf(false) }
-
-    val currentSubtitle = subtitleTextValue.value
-    val subtitleVisible = remember { mutableStateOf(true) }
-    LaunchedEffect(currentSubtitle) {
-        if (currentSubtitle.isNotEmpty()) {
-            subtitleVisible.value = true
-        }
-    }
 
     LaunchedEffect(isKeep) {
         if (isKeep) activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -1005,12 +1024,12 @@ fun BrowserOverlayContent(
             if (!activity.isInPictureInPictureModeState.value) {
                 BrowserOverlayLayer(
                     showSubtitle = isCaption,
-                    subtitleText = subtitleTextValue.value,
-                    subtitleVisible = subtitleVisible.value,
+                    subtitleText = subtitleText,
                     subtitleFontSize = subtitleFontSize.value,
                     isCapture = isCapture,
                     closeButtonVisible = closeButtonVisible.value,
-                    onSubtitleTap = { subtitleVisible.value = false },
+                    // Clear rather than hide, so the next voice line (even the same one) shows again.
+                    onSubtitleTap = { viewModel.setSubtitleText("") },
                     onCaptureClick = {
                         onCapture()
                         showFlash.value = true
@@ -1057,7 +1076,6 @@ fun ControlPreviewContent() {
         BrowserOverlayLayer(
             showSubtitle = true,
             subtitleText = "Sample subtitle text",
-            subtitleVisible = true,
             subtitleFontSize = 18,
             isCapture = true,
             closeButtonVisible = false,

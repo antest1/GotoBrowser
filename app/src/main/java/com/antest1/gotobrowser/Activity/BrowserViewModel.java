@@ -148,6 +148,16 @@ public class BrowserViewModel extends AndroidViewModel {
     public String getSubtitleRequestKey() { return subtitleRequestKey; }
     public void setSubtitleRequestKey(String key) { subtitleRequestKey = key; }
 
+    /** Currently displayed subtitle text (empty = hidden); kept across configuration changes. */
+    private final MutableLiveData<String> subtitleText = new MutableLiveData<>("");
+    public LiveData<String> getSubtitleText() { return subtitleText; }
+    public void setSubtitleText(String text) { subtitleText.setValue(text); }
+
+    /** Whether the subtitle area hint was already shown; kept across configuration changes. */
+    private boolean subtitleHintShown = false;
+    public boolean isSubtitleHintShown() { return subtitleHintShown; }
+    public void setSubtitleHintShown(boolean value) { subtitleHintShown = value; }
+
     public boolean isAppUpdateCheckStarted() { return appUpdateCheckStarted; }
     public void setAppUpdateCheckStarted(boolean value) { appUpdateCheckStarted = value; }
 }
