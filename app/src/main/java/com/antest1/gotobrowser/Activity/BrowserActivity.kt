@@ -13,6 +13,7 @@ import android.net.http.SslError
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.Surface
 import android.view.View
 import android.view.ViewGroup
@@ -84,23 +85,35 @@ import com.antest1.gotobrowser.BuildConfig
 import com.antest1.gotobrowser.Constants.CONN_DMM
 import com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL
 import com.antest1.gotobrowser.Constants.DEFAULT_SUBTITLE_FONT_SIZE
+import com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT
 import com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT
 import com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET
 import com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD
 import com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY
 import com.antest1.gotobrowser.Constants.PREF_BROADCAST
 import com.antest1.gotobrowser.Constants.PREF_CONNECTOR
+import com.antest1.gotobrowser.Constants.PREF_CURSOR_MODE
 import com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG
 import com.antest1.gotobrowser.Constants.PREF_DISABLE_REFRESH_DIALOG
+import com.antest1.gotobrowser.Constants.PREF_DMM_ID
 import com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY
+import com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH
 import com.antest1.gotobrowser.Constants.PREF_FPS_LIMIT
 import com.antest1.gotobrowser.Constants.PREF_KEYBOARD
 import com.antest1.gotobrowser.Constants.PREF_LANDSCAPE
+import com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER
+import com.antest1.gotobrowser.Constants.PREF_MOD_CRIT
+import com.antest1.gotobrowser.Constants.PREF_MOD_FPS
+import com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D
+import com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH
+import com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_NAME
 import com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN
 import com.antest1.gotobrowser.Constants.PREF_PANELSTART
 import com.antest1.gotobrowser.Constants.PREF_PIP_MODE
+import com.antest1.gotobrowser.Constants.PREF_SILENT
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE
+import com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE
 import com.antest1.gotobrowser.Constants.REQUEST_NOTIFICATION_PERMISSION
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler
 import com.antest1.gotobrowser.Helpers.KcUtils
@@ -143,6 +156,7 @@ class BrowserActivity : ComponentActivity() {
     private val refreshOption = mutableStateOf(RefreshOption.QUICK)
     private val subtitleFontSize = mutableStateOf(DEFAULT_SUBTITLE_FONT_SIZE)
 
+    // Settings applied immediately without reloading the page.
     private val liveSettings = setOf(
         PREF_LANDSCAPE,
         PREF_MULTIWIN_MARGIN,
@@ -152,7 +166,30 @@ class BrowserActivity : ComponentActivity() {
         PREF_PANELSTART,
         PREF_DISABLE_REFRESH_DIALOG,
         PREF_DEVTOOLS_DEBUG,
-        PREF_FPS_LIMIT
+        PREF_FPS_LIMIT,
+        PREF_KEYBOARD,
+        PREF_SUBTITLE_LOCALE
+    )
+
+    // Settings that only take effect on page load; they must be re-read on refresh.
+    private val refreshSettings = setOf(
+        PREF_ADJUSTMENT,
+        PREF_SILENT,
+        PREF_BROADCAST,
+        PREF_FONT_PREFETCH,
+        PREF_DMM_ID,
+        PREF_USE_EXTCACHE,
+        PREF_CONNECTOR,
+        PREF_CURSOR_MODE,
+        PREF_LEGACY_RENDERER,
+        PREF_ALTER_GADGET,
+        PREF_ALTER_METHOD,
+        PREF_ALTER_ENDPOINT,
+        PREF_MOD_FPS,
+        PREF_MOD_CRIT,
+        PREF_MOD_KANTAI3D,
+        PREF_MOD_KCCP_LANG_PATCH,
+        PREF_MOD_KCCP_LANG_PATCH_NAME
     )
 
     @SuppressLint("SourceLockedOrientationActivity", "ClickableViewAccessibility")
@@ -332,13 +369,7 @@ class BrowserActivity : ComponentActivity() {
                                 showLogoutDialog()
                             },
                             onHelpClick = { openManual(this@BrowserActivity) },
-                            onSettingChanged = { key ->
-                                if (key in liveSettings) {
-                                    applyLiveSetting(key)
-                                } else {
-                                    refreshPromptVisible.value = true
-                                }
-                            }
+                            onSettingChanged = { key -> onSettingChanged(key) }
                         )
                     }
 
@@ -429,6 +460,18 @@ class BrowserActivity : ComponentActivity() {
     fun setSubtitleText(text: String) { subtitleTextValue.value = text }
     fun setCloseButtonVisible(visible: Boolean) { closeButtonVisible.value = visible }
 
+    private fun onSettingChanged(key: String) {
+        when (key) {
+            in liveSettings -> applyLiveSetting(key)
+            in refreshSettings -> refreshPromptVisible.value = true
+            else -> {
+                // Unclassified keys fall back to a refresh prompt.
+                if (BuildConfig.DEBUG) Log.w("GOTO", "unclassified setting key: $key")
+                refreshPromptVisible.value = true
+            }
+        }
+    }
+
     private fun applyLiveSetting(key: String) {
         when (key) {
             PREF_LANDSCAPE -> displayController.updateOrientationLock()
@@ -436,6 +479,7 @@ class BrowserActivity : ComponentActivity() {
             PREF_SUBTITLE_FONTSIZE -> subtitleFontSize.value = settingsViewModel.getSubtitleFontSize()
             PREF_PIP_MODE -> pipController.setupSmoothPipAnimation()
             PREF_KEYBOARD -> displayController.applyKeyboardSetting()
+            PREF_SUBTITLE_LOCALE -> loadSubtitleData()
             PREF_DEVTOOLS_DEBUG -> WebViewManager.setWebViewDebugging(viewModel.sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false))
             PREF_DISABLE_REFRESH_DIALOG -> viewModel.setNoRefreshPopupMode(viewModel.sharedPref.getBoolean(PREF_DISABLE_REFRESH_DIALOG, false))
             PREF_FPS_LIMIT -> displayController.applyFpsLimit()
