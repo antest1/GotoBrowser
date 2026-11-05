@@ -170,14 +170,14 @@ class BrowserActivity : ComponentActivity() {
         PREF_DEVTOOLS_DEBUG,
         PREF_FPS_LIMIT,
         PREF_KEYBOARD,
-        PREF_SUBTITLE_LOCALE
+        PREF_SUBTITLE_LOCALE,
+        PREF_BROADCAST
     )
 
     // Settings that only take effect on page load; they must be re-read on refresh.
     private val refreshSettings = setOf(
         PREF_ADJUSTMENT,
         PREF_SILENT,
-        PREF_BROADCAST,
         PREF_FONT_PREFETCH,
         PREF_DMM_ID,
         PREF_USE_EXTCACHE,
