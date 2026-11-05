@@ -29,7 +29,8 @@ import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.Browser.ResourceProcess;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.R;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.antest1.gotobrowser.ui.component.DialogButton;
+import com.antest1.gotobrowser.ui.component.MessageDialog;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -479,26 +480,21 @@ public class KcUtils {
 
     private static void showAppUpdateDownloadDialog(Activity ac, String tag, String latest_file,
                                                     MessageCallback onMessage) {
-        if (!ac.isFinishing() && !ac.isDestroyed()) {
-            MaterialAlertDialogBuilder alertDialogBuilder = new MaterialAlertDialogBuilder(ac);
-            alertDialogBuilder.setTitle(ac.getString(R.string.app_name));
-            alertDialogBuilder
-                    .setCancelable(false)
-                    .setMessage(String.format(Locale.US, ac.getString(R.string.setting_latest_download), tag))
-                    .setPositiveButton(R.string.action_ok,
-                            (dialog, id) -> {
-                                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(latest_file));
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                ac.startActivity(intent);
-                                dialog.dismiss();
-                                // The sheet stays open behind the dialog, so tell it
-                                // to close now that the user is leaving to download.
-                                if (onMessage != null) onMessage.onMessage(null);
-                            })
-                    .setNegativeButton(R.string.action_cancel,
-                            (dialog, id) -> dialog.cancel());
-            alertDialogBuilder.show();
-        }
+        // Drawn by the browser's Compose layer so it follows the settings theme.
+        // BrowserActivity is the only activity, so nothing else can host it.
+        if (!(ac instanceof BrowserActivity)) return;
+        ((BrowserActivity) ac).showMessageDialog(new MessageDialog(
+                ac.getString(R.string.app_name),
+                String.format(Locale.US, ac.getString(R.string.setting_latest_download), tag),
+                new DialogButton(ac.getString(R.string.action_ok), () -> {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(latest_file));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    ac.startActivity(intent);
+                    // The sheet stays open behind the dialog, so tell it
+                    // to close now that the user is leaving to download.
+                    if (onMessage != null) onMessage.onMessage(null);
+                }),
+                new DialogButton(ac.getString(R.string.action_cancel))));
     }
 
     public static void processDataUriImage(ExecutorService executor,
