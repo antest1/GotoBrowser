@@ -147,7 +147,7 @@
     <string name="dialog_retry_message">게임 클라이언트에서 리소스 파일을 다운로드하는 중 네트워크 문제가 발생합니다. \n다운로드를 다시 시도하시겠습니까?\n%s</string>
 
     <string name="dialog_ipblock_title">해외 IP 차단이 감지됨</string>
-    <string name="dialog_ipblock_message" formatted="false">메인 화면에서 「%s」 옵션을 켜주세요.\n(설정에서도 활성화 가능)</string>
+    <string name="dialog_ipblock_message" formatted="false">설정 → 로그인 및 접속에서 「%s」 옵션을 켜주세요.</string>
     <string name="kcanotify_broadcast_dialog_title">시제 깡들리티 설치 감지됨</string>
     <string name="kcanotify_broadcast_dialog_message" formatted="false">고토브라우저를 깡들리티와 함께 사용하기 위해서는 「%s」가 켜져 있어야 합니다. %s을 눌러 활성화하시겠습니까?</string>
     <string name="settings_menu_tooltip">설정</string>

@@ -82,7 +82,7 @@
     <string name="menu_tooltip_camera">スクリーンショット</string>
     <string name="menu_tooltip_lock">回転ロック</string>
     <string name="menu_tooltip_brighton">常時画面オン</string>
-    <string name="menu_tooltip_cc">ロケール</string>
+    <string name="menu_tooltip_cc">字幕</string>
     <string name="menu_tooltip_logout">ログアウト</string>
 
     <string name="settings_legacy_renderer_summary">PixiJSゲームエンジンにWebGLレンダラーの代わりにCanvasレンダラーを使用するように強制します。 ほとんどのディスプレイの不具合は解決する可能性がありますが、パフォーマンスは低下します。</string>
@@ -145,7 +145,7 @@
     <string name="dialog_retry_message">ゲームクライアントがアセットファイルをダウンロードすると、ネットワークの問題が発生します。\nダウンロードを再試行しますか？\n%s</string>
 
     <string name="dialog_ipblock_title">国外IPアクセス制限が検出されました</string>
-    <string name="dialog_ipblock_message" formatted="false">メイン画面で「%s」オプションを有効にしてください。（設定でも有効にできます）</string>
+    <string name="dialog_ipblock_message" formatted="false">設定 → ログインと接続で「%s」オプションを有効にしてください。</string>
     <string name="kcanotify_broadcast_dialog_title">Kcanotifyが検出されました</string>
     <string name="kcanotify_broadcast_dialog_message" formatted="false">GotoBrowserをKcanotifyと一緒に使用するには、「%s」を有効にする必要があります。%sをクリックして有効にしますか?</string>
     <string name="settings_menu_tooltip">設定</string>
