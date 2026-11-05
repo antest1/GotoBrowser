@@ -78,8 +78,8 @@ import java.io.File
  * Renders the app's Compose UI into images for the manual (docs/).
  *
  * Not a regression test: each case records one PNG per locale into
- * `docs/screenshots/out/<locale>/`. The game area is a WebView and cannot be
- * rendered here, so it is filled with `docs/screenshots/input/game_bg.*`
+ * `tools/docshots/out/<locale>/`. The game area is a WebView and cannot be
+ * rendered here, so it is filled with `tools/docshots/input/game_bg.*`
  * (a 5:3 capture of the game only) when that file exists.
  *
  * Run: gradlew :app:testDebugUnitTest --tests "*DocScreenshotTest*" -Pdocshots
