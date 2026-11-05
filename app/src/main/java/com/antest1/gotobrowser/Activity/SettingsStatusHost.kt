@@ -23,6 +23,12 @@ interface SettingsStatusHost {
     /** Update the "Download Subtitle Data" row while subtitle data is checked / downloaded. */
     fun setSubtitleUpdateStatus(summary: String, enabled: Boolean)
 
+    /** Show, update or (with [PatchDownloadState.Idle]) hide the patch download progress dialog. */
+    fun setPatchDownloadState(state: PatchDownloadState)
+
+    /** Show a short result message (download finished / failed, patch deleted) in the settings sheet. */
+    fun showPatchMessage(message: String)
+
     /** Point the KCCP "About" row at the currently selected patch repository. */
     fun setPatchGithubInfo(titleResId: Int, url: String)
 

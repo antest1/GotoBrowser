@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
@@ -32,10 +33,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -44,6 +48,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -71,14 +76,17 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.antest1.gotobrowser.Activity.PatchDownloadState
 import com.antest1.gotobrowser.Activity.SettingsViewModel
 import com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT
 import com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT
@@ -340,6 +348,32 @@ private fun SettingsBottomSheetContent(
                 )
             }
         }
+
+        // Hosted at the sheet root (inside SettingsTheme) rather than in ModsSection,
+        // so the dialog and result messages survive screen switches inside the sheet.
+        if (viewModel != null) {
+            PatchDownloadHost(viewModel, snackbarHostState)
+        }
+    }
+}
+
+/**
+ * Renders the KCCP patch download progress published by [SettingsViewModel] and
+ * shows the download / delete result messages in the sheet's snackbar.
+ */
+@Composable
+private fun PatchDownloadHost(viewModel: SettingsViewModel, snackbarHostState: SnackbarHostState) {
+    val downloadState by viewModel.patchDownloadState.observeAsState(PatchDownloadState.Idle)
+    (downloadState as? PatchDownloadState.Running)?.let { PatchDownloadDialog(it) }
+
+    val message by viewModel.patchMessage.observeAsState()
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(message) {
+        val text = message ?: return@LaunchedEffect
+        // Consume first so the message is shown once; the snackbar runs in its own
+        // coroutine because clearing the message restarts this effect.
+        viewModel.consumePatchMessage()
+        scope.launch { snackbarHostState.showSnackbar(text) }
     }
 }
 
@@ -772,12 +806,22 @@ private fun ModsSection(
         enabled = patchEnabled && patchEnabledState,
         onClick = { if (!isPreview) viewModel.requestPatchUpdate() }
     )
+    var showPatchDeleteDialog by remember { mutableStateOf(false) }
     ClickRow(
         title = R.string.settings_mod_kantaien_delete,
         summary = R.string.settings_mod_kantaien_delete_summary,
         enabled = patchEnabled,
-        onClick = { if (!isPreview) viewModel.requestPatchDelete() }
+        onClick = { showPatchDeleteDialog = true }
     )
+    if (showPatchDeleteDialog) {
+        PatchDeleteDialog(
+            onConfirm = {
+                showPatchDeleteDialog = false
+                if (!isPreview) viewModel.deletePatch()
+            },
+            onDismiss = { showPatchDeleteDialog = false }
+        )
+    }
     ClickRow(
         title = patchTitle,
         summaryText = patchUrl,
@@ -1099,6 +1143,73 @@ private fun SubtitleSizeDialog(
             TextButton(onClick = onDismiss) {
                 Text(text = stringResource(id = R.string.text_cancel))
             }
+        }
+    )
+}
+
+/**
+ * Non-dismissable progress dialog for the KCCP patch download. Replaces the old
+ * framework ProgressDialog so it follows the settings sheet's Material 3 theme.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PatchDownloadDialog(state: PatchDownloadState.Running) {
+    // BasicAlertDialog instead of AlertDialog: there are no buttons, and AlertDialog
+    // keeps padding for its (empty) button row, leaving a blank band at the bottom.
+    BasicAlertDialog(
+        // The download cannot be cancelled midway, same as before.
+        onDismissRequest = {},
+        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+    ) {
+        Surface(
+            shape = AlertDialogDefaults.shape,
+            color = AlertDialogDefaults.containerColor,
+            tonalElevation = AlertDialogDefaults.TonalElevation
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Text(
+                    text = stringResource(R.string.settings_mod_kantaien_download),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = AlertDialogDefaults.titleContentColor
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                val progress = state.progress
+                if (progress != null) {
+                    val animatedProgress by animateFloatAsState(progress, label = "PatchDownloadProgress")
+                    LinearProgressIndicator(progress = { animatedProgress }, modifier = Modifier.fillMaxWidth())
+                } else {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = state.message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = AlertDialogDefaults.textContentColor,
+                    // Zip progress is 2 lines and per-file progress 4; reserving 2 keeps the
+                    // dialog steady within a stage without leaving blank lines.
+                    minLines = 2,
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PatchDeleteDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_mod_kantaien_delete)) },
+        text = { Text(stringResource(R.string.settings_mod_kantaien_delete_summary)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_ok)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         }
     )
 }

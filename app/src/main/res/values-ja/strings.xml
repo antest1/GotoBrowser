@@ -101,6 +101,14 @@
     <string name="settings_mod_kantaien_delete">パッチデータ削除</string>
     <string name="settings_mod_kantaien_delete_summary">パッチが予期しない動作を示している場合、またはダウンロード中に問題が発生した場合は、この設定を使用します。</string>
     <string name="settings_mod_kantaien_about">KanColle English Patchについて</string>
+    <string name="patch_download_checking">変更を確認中…</string>
+    <string name="patch_download_archive">パッチアーカイブをダウンロード中…</string>
+    <string name="patch_download_extracting">ファイルを展開中…</string>
+    <string name="patch_download_updated">パッチを更新しました</string>
+    <string name="patch_download_failed">更新に失敗しました</string>
+    <string name="patch_download_error">ダウンロード中にエラーが発生しました</string>
+    <string name="patch_download_zip_not_deleted">ダウンロードは完了しましたが、zipファイルを削除できませんでした</string>
+    <string name="patch_deleted">パッチデータを削除しました</string>
     <string name="settings_mod_kantaiid_about">KanColle Indonesia Patchについて</string>
 
     <string name="settings_mod_kccp">KanColle Language Patch (KCCP)</string>
