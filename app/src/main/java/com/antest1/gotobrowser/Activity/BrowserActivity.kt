@@ -77,6 +77,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
@@ -895,8 +896,8 @@ fun BrowserOverlayLayer(
     onSubtitleTap: () -> Unit,
     onCaptureClick: () -> Unit,
     onCloseClick: () -> Unit,
-    webViewHeight: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified,
-    containerHeight: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified
+    gameWidth: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified,
+    gameHeight: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (showSubtitle && subtitleText.isNotEmpty()) {
@@ -912,24 +913,24 @@ fun BrowserOverlayLayer(
                     )
                 }
             ) { measurables, constraints ->
-                val placeable = measurables.first().measure(constraints.copy(minWidth = 0, minHeight = 0))
+                // The game is centered in this layer (as GameAreaLayout does). The
+                // subtitle wraps to the game width so it never spills into the side
+                // letterbox, and sits just below the game, clamped to the screen bottom.
+                val gameW = if (gameWidth.isSpecified) gameWidth.roundToPx().coerceIn(1, constraints.maxWidth) else constraints.maxWidth
+                val gameH = if (gameHeight.isSpecified) gameHeight.roundToPx().coerceIn(0, constraints.maxHeight) else constraints.maxHeight
+                val gameBottom = (constraints.maxHeight + gameH) / 2
 
-                val webViewBottomPx = if (webViewHeight != androidx.compose.ui.unit.Dp.Unspecified && containerHeight != androidx.compose.ui.unit.Dp.Unspecified) {
-                    ((containerHeight + webViewHeight) / 2f).toPx()
-                } else {
-                    constraints.maxHeight.toFloat()
-                }
+                val placeable = measurables.first().measure(
+                    constraints.copy(minWidth = 0, minHeight = 0, maxWidth = gameW)
+                )
 
-                val paddingPx = 12.dp.toPx()
-                var y = webViewBottomPx + paddingPx
-                if (y + placeable.height > constraints.maxHeight - paddingPx) {
-                    y = constraints.maxHeight - paddingPx - placeable.height
-                }
+                val paddingPx = 12.dp.roundToPx()
+                val y = minOf(gameBottom + paddingPx, constraints.maxHeight - paddingPx - placeable.height)
 
                 layout(constraints.maxWidth, constraints.maxHeight) {
                     placeable.placeRelative(
                         x = (constraints.maxWidth - placeable.width) / 2,
-                        y = y.toInt()
+                        y = y
                     )
                 }
             }
@@ -1003,7 +1004,9 @@ fun BrowserOverlayContent(
             val ratio = 1200f / 720f
             val containerWidth = maxWidth.value
             val containerHeight = maxHeight.value
-            val finalHeight = if (containerWidth / containerHeight > ratio) maxHeight else maxWidth / ratio
+            val fitHeight = containerWidth / containerHeight > ratio
+            val gameWidth = if (fitHeight) maxHeight * ratio else maxWidth
+            val gameHeight = if (fitHeight) maxHeight else maxWidth / ratio
 
             if (errorText.value.isNotEmpty()) {
                 Text(
@@ -1035,8 +1038,8 @@ fun BrowserOverlayContent(
                         showFlash.value = true
                     },
                     onCloseClick = onClose,
-                    webViewHeight = finalHeight,
-                    containerHeight = maxHeight
+                    gameWidth = gameWidth,
+                    gameHeight = gameHeight
                 )
             }
         }
