@@ -109,10 +109,12 @@ public class KcEnUtils {
 
     }
 
-    public void setPatchLanguage(String preference) {
-        KenPatcher.PatchLanguage language =
-                KenPatcher.getCurrentPatchLanguage(preference);
-        KenPatcher.setPatchLanguage(language);
+    // Language targeted by patch update / download / delete from the settings sheet.
+    // Kept apart from KenPatcher's active language, which only changes on browser refresh.
+    private static KenPatcher.PatchLanguage targetLanguage = KenPatcher.PatchLanguage.EN;
+
+    public void setTargetLanguage(String preference) {
+        targetLanguage = KenPatcher.getCurrentPatchLanguage(preference);
     }
 
     public static String getPatchedCachePath() {
@@ -126,9 +128,9 @@ public class KcEnUtils {
     }
 
     public static String getLanguageSymbol(){
-        if (KenPatcher.getPatchLanguage() == KenPatcher.PatchLanguage.EN)
+        if (targetLanguage == KenPatcher.PatchLanguage.EN)
             return "EN";
-        else if (KenPatcher.getPatchLanguage() == KenPatcher.PatchLanguage.ID) {
+        else if (targetLanguage == KenPatcher.PatchLanguage.ID) {
             return "ID";
         }
         // fallback
@@ -136,9 +138,9 @@ public class KcEnUtils {
     }
 
     public static String getGitHubNameRootPath() {
-        if (KenPatcher.getPatchLanguage() == KenPatcher.PatchLanguage.EN)
+        if (targetLanguage == KenPatcher.PatchLanguage.EN)
             return "Oradimi/KanColle-English-Patch-KCCP/";
-        else if (KenPatcher.getPatchLanguage() == KenPatcher.PatchLanguage.ID) {
+        else if (targetLanguage == KenPatcher.PatchLanguage.ID) {
             return "SLAVUSworks/KanColle-Indonesia-Patch-KCCP/";
         }
         // fallback
@@ -146,9 +148,9 @@ public class KcEnUtils {
     }
 
     public static String getRootPath() {
-        if (KenPatcher.getPatchLanguage() == KenPatcher.PatchLanguage.EN)
+        if (targetLanguage == KenPatcher.PatchLanguage.EN)
             return "KanColle-English-Patch-KCCP-master/";
-        else if (KenPatcher.getPatchLanguage() == KenPatcher.PatchLanguage.ID) {
+        else if (targetLanguage == KenPatcher.PatchLanguage.ID) {
             return "KanColle-Indonesia-Patch-KCCP-master/";
         }
         // fallback

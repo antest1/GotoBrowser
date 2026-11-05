@@ -44,10 +44,6 @@ public class KenPatcher {
         return patchLanguage;
     }
 
-    public static void setPatchLanguage(PatchLanguage language) {
-        patchLanguage = language;
-    }
-
     public static PatchLanguage getCurrentPatchLanguage(String pref) {
         if (PREF_MOD_KCCP_LANG_PATCH_EN.equals(pref)) {
             return PatchLanguage.EN;

@@ -234,7 +234,7 @@ public class SettingsViewModel extends AndroidViewModel {
         }
 
         if (sharedPref.getBoolean(PREF_MOD_KCCP_LANG_PATCH, false)) {
-            enUtils.setPatchLanguage(lang);
+            enUtils.setTargetLanguage(lang);
             enUtils.checkKantaiEnUpdate(host);
         } else {
             setPatchUpdateStatus("Mod disabled.", false);
