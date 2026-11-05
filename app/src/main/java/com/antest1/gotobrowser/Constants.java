@@ -94,6 +94,7 @@ public class Constants {
     public static final String AUTOCOMPLETE_DMM = "function v(e,t){let o=Object.getOwnPropertyDescriptor(e,\"value\").set,s=Object.getPrototypeOf(e),l=Object.getOwnPropertyDescriptor(s,\"value\").set;o&&o!==l?l.call(e,t):o.call(e,t)}if(document.forms.loginForm!=undefined){v(document.forms.loginForm.elements.login_id,\"%s\"),document.forms.loginForm.elements.login_id.dispatchEvent(new Event(\"input\",{bubbles:!0})),v(document.forms.loginForm.elements.password,\"%s\"),document.forms.loginForm.elements.password.dispatchEvent(new Event(\"input\",{bubbles:!0}));}";
     public static final String AUTOCOMPLETE_OOI = "$('input[name=\"login_id\"]').val(\"%s\");$('input[name=\"password\"]').val(\"%s\");";
 
+    public static final String GITHUB_ROOT = "https://github.com/";
     public static final String GITHUBAPI_ROOT = "https://api.github.com/";
     public static final String SUBTITLE_ROOT = "https://raw.githubusercontent.com/";
     public static final String SUBTITLE_SIZE_PATH = "src/data/quotes_size.json";

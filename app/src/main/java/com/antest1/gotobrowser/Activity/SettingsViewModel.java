@@ -31,7 +31,7 @@ import java.util.Locale;
 
 import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.DEFAULT_SUBTITLE_FONT_SIZE;
-import static com.antest1.gotobrowser.Constants.GITHUBAPI_ROOT;
+import static com.antest1.gotobrowser.Constants.GITHUB_ROOT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY;
@@ -104,7 +104,7 @@ public class SettingsViewModel extends AndroidViewModel {
         Context context = application.getApplicationContext();
         sharedPref = context.getSharedPreferences(context.getString(R.string.preference_key), Context.MODE_PRIVATE);
         versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
-        appCheck = getRetrofitAdapter(context, GITHUBAPI_ROOT).create(GotoVersionCheck.class);
+        appCheck = getRetrofitAdapter(context, GITHUB_ROOT, false).create(GotoVersionCheck.class);
 
         patchAboutUrl.setValue(context.getString(R.string.settings_mod_kccp_patch_en_link));
     }
