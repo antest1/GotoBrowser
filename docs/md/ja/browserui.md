@@ -32,7 +32,7 @@
 - リフレッシュ前の確認ダイアログは、設定 → 操作 → 「再読み込み確認を無効にする」で無効にできます。
 - 設定を変更した後の「再読み込みが必要です」ダイアログで「再読み込みせずに設定を変更」を選んだ場合も、このボタンでリフレッシュすると変更した設定が反映されます。
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/refresh_menu.webp"  width="380" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
 ##### ツールバーボタンの説明
 |  | 機能 | 説明 |

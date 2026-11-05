@@ -32,7 +32,7 @@
 - 새로고침 전 확인 창은 설정 → 조작 → "새로고침 확인 비활성화"로 끌 수 있습니다.
 - 설정 변경 후 "새로고침 필요" 안내에서 "새로고침 없이 설정 변경"을 선택한 경우에도, 이 버튼으로 새로고침하면 변경한 설정이 적용됩니다.
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/refresh_menu.webp"  width="380" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
 ##### 툴바 버튼 설명
 |  | 기능 | 설명 |
