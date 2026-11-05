@@ -353,6 +353,7 @@ public class WebViewManager {
         }
     }
 
+    // Proxy changes are asynchronous: load pages only after a listener has run.
     public static void setKcCacheProxy(String endpoint, Runnable onSuccessListener, Runnable onFailureListener) {
         if (WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
             ProxyConfig proxyConfig = new ProxyConfig.Builder()
@@ -365,14 +366,17 @@ public class WebViewManager {
             } catch (IllegalArgumentException exception) {
                 onFailureListener.run();
             }
+        } else {
+            onFailureListener.run();
         }
     }
 
-    public static void clearKcCacheProxy() {
+    public static void clearKcCacheProxy(Runnable onCompleteListener) {
         if (WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
-            Executor executor = command -> { };
-            Runnable listener = () -> { };
-            ProxyController.getInstance().clearProxyOverride(executor, listener);
+            Executor executor = Runnable::run;
+            ProxyController.getInstance().clearProxyOverride(executor, onCompleteListener);
+        } else {
+            onCompleteListener.run();
         }
     }
 

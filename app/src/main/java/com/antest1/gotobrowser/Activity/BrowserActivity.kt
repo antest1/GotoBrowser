@@ -218,22 +218,8 @@ class BrowserActivity : ComponentActivity() {
         refreshOption.value = if (viewModel.isQuickGameReload) RefreshOption.QUICK else RefreshOption.FULL
         subtitleFontSize.value = settingsViewModel.getSubtitleFontSize()
 
-        loadSubtitleData()
-
         manager = WebViewManager(this)
         manager?.setDataDirectorySuffix()
-
-        val prefAlterGadget = viewModel.sharedPref.getBoolean(PREF_ALTER_GADGET, false)
-        val isProxyMethod = PREF_ALTER_METHOD_PROXY == viewModel.sharedPref.getString(PREF_ALTER_METHOD, "")
-        val alterEndpoint = viewModel.sharedPref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL)
-        val prefConnector = viewModel.sharedPref.getString(PREF_CONNECTOR, CONN_DMM)
-        if (prefAlterGadget && isProxyMethod && CONN_DMM == prefConnector) {
-            WebViewManager.setKcCacheProxy(alterEndpoint, {}, {
-                KcUtils.showToast(applicationContext, R.string.setting_alter_method_proxy_error_toast)
-            })
-        } else {
-            WebViewManager.clearKcCacheProxy()
-        }
 
         if (isAppLaunch) {
             window.decorView.post {
@@ -421,7 +407,7 @@ class BrowserActivity : ComponentActivity() {
             WebViewManager.enableBrowserCookie(webView)
             manager?.setWebViewClient(this, webView)
             manager?.setPopupView(webView)
-            manager?.openPage(webView, info)
+            reloadSettings { manager?.openPage(webView, info) }
         }
         webView.setBackgroundColor(android.graphics.Color.BLACK)
         return webView
@@ -615,7 +601,26 @@ class BrowserActivity : ComponentActivity() {
         viewModel.k3dPatcher.resume()
         mContentView?.let { manager?.applyRendererSetting(it) }
         loadSubtitleData()
-        onReady()
+        applyGadgetProxy(onReady)
+    }
+
+    private fun applyGadgetProxy(onReady: () -> Unit) {
+        val pref = viewModel.sharedPref
+        val useProxy = pref.getBoolean(PREF_ALTER_GADGET, false) &&
+                PREF_ALTER_METHOD_PROXY == pref.getString(PREF_ALTER_METHOD, "") &&
+                CONN_DMM == pref.getString(PREF_CONNECTOR, CONN_DMM)
+        val proceed = Runnable {
+            runOnUiThread { if (!isFinishing && !isDestroyed) onReady() }
+        }
+        if (useProxy) {
+            val endpoint = pref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL)
+            WebViewManager.setKcCacheProxy(endpoint, proceed) {
+                KcUtils.showToast(applicationContext, R.string.setting_alter_method_proxy_error_toast)
+                proceed.run()
+            }
+        } else {
+            WebViewManager.clearKcCacheProxy(proceed)
+        }
     }
 
     fun showRefreshDialog(option: RefreshOption = refreshOption.value) {
