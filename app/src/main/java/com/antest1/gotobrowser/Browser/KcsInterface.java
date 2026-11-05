@@ -33,23 +33,29 @@ public class KcsInterface {
     private final KcaPacketStore packetTable;
     private final Handler handler = new Handler();
     ExecutorService executorService = Executors.newFixedThreadPool(30);
-    private final boolean broadcast_mode;
-    private final boolean use_devtools;
+    private final SharedPreferences sharedPref;
 
     public KcsInterface(BrowserActivity ac) {
         activity = ac;
         packetTable = new KcaPacketStore(ac.getApplicationContext(), null, PACKETSTORE_VERSION);
-        SharedPreferences sharedPref = activity.getSharedPreferences(
+        sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
-        broadcast_mode = sharedPref.getBoolean(PREF_BROADCAST, true);
-        use_devtools = sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
+    }
+
+    // Read on every call so that toggling these settings applies immediately.
+    private boolean isBroadcastMode() {
+        return sharedPref.getBoolean(PREF_BROADCAST, true);
+    }
+
+    private boolean isDevtoolsEnabled() {
+        return sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
     }
 
     @JavascriptInterface
     public void kcs_xhr_intercept(String host, String url, String requestHeader, String responseRaw) {
         if (host != null && (host.endsWith(".kancolle-server.com") || host.equals("ooi.moe"))) {
             if (url.contains("kcsapi") && responseRaw.contains("svdata=")) {
-                Log.e("GOTO-XHR", host + " " + url + " - " + use_devtools);
+                Log.e("GOTO-XHR", host + " " + url + " - " + isDevtoolsEnabled());
                 handler.post(() -> processXHR(url, requestHeader, responseRaw));
             }
         }
@@ -79,7 +85,7 @@ public class KcsInterface {
             if (url.contains("api_start2") && response_obj != null) {
                 JsonObject api_data = response_obj.getAsJsonObject("api_data");
                 if (api_data != null && api_data.has("api_mst_shipgraph")) {
-                    SubtitleProviderUtils.getCurrentSubtitleProvider().loadKcApiData(api_data);
+                    SubtitleProviderUtils.loadKcApiData(api_data);
                 }
             }
 
@@ -98,7 +104,7 @@ public class KcsInterface {
         }
 
         try {
-            if (broadcast_mode) sendBroadcast(url, request, response);
+            if (isBroadcastMode()) sendBroadcast(url, request, response);
         } catch (SQLiteFullException e) {
             activity.runOnUiThread(() -> {
                 String text = "[error] broadcast failed: database or disk is full";
@@ -130,7 +136,7 @@ public class KcsInterface {
             bundle.putBoolean("gzipped", false);
         }
         bundle.putByteArray("response", responseBytes);
-        bundle.putBoolean("use_devtools", use_devtools);
+        bundle.putBoolean("use_devtools", isDevtoolsEnabled());
 
         intent.putExtras(bundle);
         Log.e("GOTO", "broadcast sent: " + url);

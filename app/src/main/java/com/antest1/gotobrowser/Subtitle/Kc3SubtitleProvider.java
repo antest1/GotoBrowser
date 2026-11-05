@@ -546,6 +546,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                     fos.close();
                     versionTable.putVersionValue(subtitle_path, commit);
                     host.setSubtitleUpdateStatus(host.getString(R.string.setting_latest_version), false);
+                    host.onSubtitleDataUpdated();
                 } else {
                     message = "No data to write: quotes_".concat(locale_code).concat(".json");
                     KcUtils.showToast(context, message);

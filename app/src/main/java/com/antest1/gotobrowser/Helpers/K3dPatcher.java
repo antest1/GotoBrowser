@@ -89,8 +89,7 @@ public class K3dPatcher implements SensorEventListener {
     }
 
     public void prepare(Context context) {
-        // Only update the enable status when opening the browser view
-        // Require reopening the browser after switching the MOD on or off
+        // Called on browser start and again before each page refresh
         SharedPreferences sharedPref = context.getSharedPreferences(
                 context.getString(R.string.preference_key), Context.MODE_PRIVATE);
 
@@ -98,7 +97,7 @@ public class K3dPatcher implements SensorEventListener {
         isPatcherEnabled = sharedPref.getBoolean(PREF_MOD_KANTAI3D, false) &&
                 !sharedPref.getBoolean(PREF_LEGACY_RENDERER, false);
 
-        if (isPatcherEnabled) {
+        if (isPatcherEnabled && mSensorManager == null) {
             mSensorManager = (SensorManager)context.getSystemService(SENSOR_SERVICE);
             if (mSensorManager != null) {
                 mGyroscope = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
@@ -107,7 +106,8 @@ public class K3dPatcher implements SensorEventListener {
     }
 
     public void pause() {
-        if (isPatcherEnabled && mSensorManager != null) {
+        // Unregister regardless of the current state, as it may have been disabled since resume()
+        if (mSensorManager != null) {
             mSensorManager.unregisterListener(this);
         }
     }

@@ -75,10 +75,11 @@ class DisplayController(
     }
 
     fun applyKeyboardSetting() {
-        if (activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_KEYBOARD, true)) return
-        mContentView.isFocusableInTouchMode = false
-        mContentView.isFocusable = false
-        mContentView.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+        val enabled = activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_KEYBOARD, true)
+        mContentView.isFocusableInTouchMode = enabled
+        mContentView.isFocusable = enabled
+        mContentView.descendantFocusability =
+            if (enabled) ViewGroup.FOCUS_AFTER_DESCENDANTS else ViewGroup.FOCUS_BLOCK_DESCENDANTS
     }
 
     fun applyFpsLimit() {

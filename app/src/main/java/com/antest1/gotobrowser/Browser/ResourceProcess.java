@@ -57,7 +57,6 @@ import static com.antest1.gotobrowser.Constants.PREF_CURSOR_MODE;
 import static com.antest1.gotobrowser.Constants.PREF_CURSOR_MODE_TOUCH;
 import static com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY;
 import static com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH;
-import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH;
 import static com.antest1.gotobrowser.Constants.PREF_SILENT;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
 import static com.antest1.gotobrowser.Constants.REQUEST_BLOCK_RULES;
@@ -132,23 +131,26 @@ public class ResourceProcess {
     private final Handler shipVoiceHandler = new Handler();
     private final Handler clearSubHandler = new Handler();
 
-    boolean prefAlterGadget, prefModKantaiEn, isGadgetUrlReplaceMode, isCursorTouchMode;
-    String alterEndpoint;
-
     ResourceProcess(BrowserActivity activity) {
         this.activity = activity;
         context = activity.getApplicationContext();
         versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
         sharedPref = activity.getSharedPreferences(
                 activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
-        prefAlterGadget = sharedPref.getBoolean(PREF_ALTER_GADGET, false);
-        isGadgetUrlReplaceMode = sharedPref.getString(PREF_ALTER_METHOD, PREF_ALTER_METHOD_URL)
-                .equals(PREF_ALTER_METHOD_URL);
-        isCursorTouchMode = sharedPref.getString(PREF_CURSOR_MODE, PREF_CURSOR_MODE_TOUCH)
-                .equals(PREF_CURSOR_MODE_TOUCH);
-        alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL);
-        prefModKantaiEn = sharedPref.getBoolean(PREF_MOD_KCCP_LANG_PATCH, false);
         clearSubtitle = () -> activity.setSubtitleText("");
+    }
+
+    // Preferences are read on every use (not cached) so that changes apply on the next page load.
+    private boolean isAlterGadgetEnabled() {
+        return sharedPref.getBoolean(PREF_ALTER_GADGET, false);
+    }
+
+    private boolean isGadgetUrlReplaceMode() {
+        return PREF_ALTER_METHOD_URL.equals(sharedPref.getString(PREF_ALTER_METHOD, PREF_ALTER_METHOD_URL));
+    }
+
+    private boolean isCursorTouchMode() {
+        return PREF_CURSOR_MODE_TOUCH.equals(sharedPref.getString(PREF_CURSOR_MODE, PREF_CURSOR_MODE_TOUCH));
     }
 
     public static String getUserAgent() {
@@ -211,9 +213,10 @@ public class ResourceProcess {
 
         if (url.contains("gadget_html5/js/kcs_cda.js")) {
             boolean ip_banned = getIpBannedStatus(url);
-            if (prefAlterGadget && !ip_banned) {
+            boolean alterGadget = isAlterGadgetEnabled();
+            if (alterGadget && !ip_banned) {
                 sharedPref.edit().putBoolean(PREF_ALTER_GADGET, false).commit();
-            } else if (!prefAlterGadget && ip_banned) {
+            } else if (!alterGadget && ip_banned) {
                 showGadgetIpServerBlockedDialog();
             }
             return getInjectedKcaCdaJs();
@@ -470,7 +473,8 @@ public class ResourceProcess {
     private WebResourceResponse processScriptFile(ResourceRequestInfo requestInfo) throws IOException {
         boolean silent_mode = sharedPref.getBoolean(PREF_SILENT, false);
         String url = requestInfo.url;
-        if (prefAlterGadget && isGadgetUrlReplaceMode && url.contains("gadget_html5")) {
+        if (isAlterGadgetEnabled() && isGadgetUrlReplaceMode() && url.contains("gadget_html5")) {
+            String alterEndpoint = sharedPref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL);
             url = WebViewManager.replaceEndpoint(url, alterEndpoint);
             byte[] byteArray = KcUtils.downloadDataFromURL(url);
             InputStream is = new ByteArrayInputStream(byteArray);
@@ -501,7 +505,7 @@ public class ResourceProcess {
                 byteArray = KcUtils.downloadDataFromURL(url);
             }
 
-            String main_js = ResourcePatcher.INSTANCE.patchMainScript(context, activity, new String(byteArray, StandardCharsets.UTF_8), silent_mode, isCursorTouchMode, getTouchEventPatchJs());
+            String main_js = ResourcePatcher.INSTANCE.patchMainScript(context, activity, new String(byteArray, StandardCharsets.UTF_8), silent_mode, isCursorTouchMode(), getTouchEventPatchJs());
             InputStream is = new ByteArrayInputStream(main_js.getBytes());
             return new WebResourceResponse("application/javascript", "utf-8", is);
         }

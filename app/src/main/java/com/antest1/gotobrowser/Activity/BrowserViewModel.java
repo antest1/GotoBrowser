@@ -63,6 +63,12 @@ public class BrowserViewModel extends AndroidViewModel {
         isKeepMode.setValue(sharedPref.getBoolean(PREF_KEEPMODE, false));
         isNoRefreshPopupMode.setValue(sharedPref.getBoolean(PREF_DISABLE_REFRESH_DIALOG, false));
         
+        prepareModPatchers();
+    }
+
+    /** Re-reads the mod settings; main.js is patched with this state on the next load. */
+    public void prepareModPatchers() {
+        Application application = getApplication();
         k3dPatcher.prepare(application);
         kenPatcher.prepare(application);
         critPatcher.prepare(application);
@@ -136,6 +142,11 @@ public class BrowserViewModel extends AndroidViewModel {
 
     public boolean isSubtitleLoaded() { return Boolean.TRUE.equals(isSubtitleLoaded.getValue()); }
     public void setSubtitleLoaded(boolean value) { isSubtitleLoaded.setValue(value); }
+
+    /** Locale + storage of the last requested subtitle load, used to skip redundant reloads. */
+    private String subtitleRequestKey = null;
+    public String getSubtitleRequestKey() { return subtitleRequestKey; }
+    public void setSubtitleRequestKey(String key) { subtitleRequestKey = key; }
 
     public boolean isAppUpdateCheckStarted() { return appUpdateCheckStarted; }
     public void setAppUpdateCheckStarted(boolean value) { appUpdateCheckStarted = value; }

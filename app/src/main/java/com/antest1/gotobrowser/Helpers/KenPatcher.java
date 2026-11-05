@@ -44,10 +44,6 @@ public class KenPatcher {
         return patchLanguage;
     }
 
-    public static void setPatchLanguage(PatchLanguage language) {
-        patchLanguage = language;
-    }
-
     public static PatchLanguage getCurrentPatchLanguage(String pref) {
         if (PREF_MOD_KCCP_LANG_PATCH_EN.equals(pref)) {
             return PatchLanguage.EN;
@@ -59,8 +55,7 @@ public class KenPatcher {
     }
 
     public void prepare(Context context) {
-        // Only update the enable status when opening the browser view
-        // Require reopening the browser after switching the MOD on or off
+        // Called on browser start and again before each page refresh
         SharedPreferences sharedPref = context.getSharedPreferences(
                 context.getString(R.string.preference_key), Context.MODE_PRIVATE);
         if (sharedPref.getBoolean(PREF_MOD_KCCP_LANG_PATCH, false)) {

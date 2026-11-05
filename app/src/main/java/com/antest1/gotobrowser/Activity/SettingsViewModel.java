@@ -234,7 +234,7 @@ public class SettingsViewModel extends AndroidViewModel {
         }
 
         if (sharedPref.getBoolean(PREF_MOD_KCCP_LANG_PATCH, false)) {
-            enUtils.setPatchLanguage(lang);
+            enUtils.setTargetLanguage(lang);
             enUtils.checkKantaiEnUpdate(host);
         } else {
             setPatchUpdateStatus("Mod disabled.", false);
@@ -405,6 +405,14 @@ public class SettingsViewModel extends AndroidViewModel {
         @Override
         public void setPatchGithubInfo(int titleResId, String url) {
             SettingsViewModel.this.setPatchGithubInfo(titleResId, url);
+        }
+
+        @Override
+        public void onSubtitleDataUpdated() {
+            Activity activity = dialogActivity();
+            if (activity instanceof BrowserActivity) {
+                ((BrowserActivity) activity).loadSubtitleData(true);
+            }
         }
     };
 

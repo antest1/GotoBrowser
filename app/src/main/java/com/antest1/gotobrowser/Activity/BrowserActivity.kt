@@ -13,6 +13,7 @@ import android.net.http.SslError
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.Surface
 import android.view.View
 import android.view.ViewGroup
@@ -84,23 +85,35 @@ import com.antest1.gotobrowser.BuildConfig
 import com.antest1.gotobrowser.Constants.CONN_DMM
 import com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL
 import com.antest1.gotobrowser.Constants.DEFAULT_SUBTITLE_FONT_SIZE
+import com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT
 import com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT
 import com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET
 import com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD
 import com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY
 import com.antest1.gotobrowser.Constants.PREF_BROADCAST
 import com.antest1.gotobrowser.Constants.PREF_CONNECTOR
+import com.antest1.gotobrowser.Constants.PREF_CURSOR_MODE
 import com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG
 import com.antest1.gotobrowser.Constants.PREF_DISABLE_REFRESH_DIALOG
+import com.antest1.gotobrowser.Constants.PREF_DMM_ID
 import com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY
+import com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH
 import com.antest1.gotobrowser.Constants.PREF_FPS_LIMIT
 import com.antest1.gotobrowser.Constants.PREF_KEYBOARD
 import com.antest1.gotobrowser.Constants.PREF_LANDSCAPE
+import com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER
+import com.antest1.gotobrowser.Constants.PREF_MOD_CRIT
+import com.antest1.gotobrowser.Constants.PREF_MOD_FPS
+import com.antest1.gotobrowser.Constants.PREF_MOD_KANTAI3D
+import com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH
+import com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_NAME
 import com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN
 import com.antest1.gotobrowser.Constants.PREF_PANELSTART
 import com.antest1.gotobrowser.Constants.PREF_PIP_MODE
+import com.antest1.gotobrowser.Constants.PREF_SILENT
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE
+import com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE
 import com.antest1.gotobrowser.Constants.REQUEST_NOTIFICATION_PERMISSION
 import com.antest1.gotobrowser.Helpers.BackPressCloseHandler
 import com.antest1.gotobrowser.Helpers.KcUtils
@@ -116,6 +129,7 @@ import com.antest1.gotobrowser.ui.component.glassyStyle
 import com.antest1.gotobrowser.ui.theme.GotobrowserTheme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.Locale
+import java.util.concurrent.Executors
 
 class BrowserActivity : ComponentActivity() {
     companion object {
@@ -142,7 +156,9 @@ class BrowserActivity : ComponentActivity() {
     private val refreshPromptVisible = mutableStateOf(false)
     private val refreshOption = mutableStateOf(RefreshOption.QUICK)
     private val subtitleFontSize = mutableStateOf(DEFAULT_SUBTITLE_FONT_SIZE)
+    private val subtitleLoader = Executors.newSingleThreadExecutor()
 
+    // Settings applied immediately without reloading the page.
     private val liveSettings = setOf(
         PREF_LANDSCAPE,
         PREF_MULTIWIN_MARGIN,
@@ -152,7 +168,30 @@ class BrowserActivity : ComponentActivity() {
         PREF_PANELSTART,
         PREF_DISABLE_REFRESH_DIALOG,
         PREF_DEVTOOLS_DEBUG,
-        PREF_FPS_LIMIT
+        PREF_FPS_LIMIT,
+        PREF_KEYBOARD,
+        PREF_SUBTITLE_LOCALE,
+        PREF_BROADCAST
+    )
+
+    // Settings that only take effect on page load; they must be re-read on refresh.
+    private val refreshSettings = setOf(
+        PREF_ADJUSTMENT,
+        PREF_SILENT,
+        PREF_FONT_PREFETCH,
+        PREF_DMM_ID,
+        PREF_USE_EXTCACHE,
+        PREF_CONNECTOR,
+        PREF_CURSOR_MODE,
+        PREF_LEGACY_RENDERER,
+        PREF_ALTER_GADGET,
+        PREF_ALTER_METHOD,
+        PREF_ALTER_ENDPOINT,
+        PREF_MOD_FPS,
+        PREF_MOD_CRIT,
+        PREF_MOD_KANTAI3D,
+        PREF_MOD_KCCP_LANG_PATCH,
+        PREF_MOD_KCCP_LANG_PATCH_NAME
     )
 
     @SuppressLint("SourceLockedOrientationActivity", "ClickableViewAccessibility")
@@ -179,22 +218,8 @@ class BrowserActivity : ComponentActivity() {
         refreshOption.value = if (viewModel.isQuickGameReload) RefreshOption.QUICK else RefreshOption.FULL
         subtitleFontSize.value = settingsViewModel.getSubtitleFontSize()
 
-        loadSubtitleData()
-
         manager = WebViewManager(this)
         manager?.setDataDirectorySuffix()
-
-        val prefAlterGadget = viewModel.sharedPref.getBoolean(PREF_ALTER_GADGET, false)
-        val isProxyMethod = PREF_ALTER_METHOD_PROXY == viewModel.sharedPref.getString(PREF_ALTER_METHOD, "")
-        val alterEndpoint = viewModel.sharedPref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL)
-        val prefConnector = viewModel.sharedPref.getString(PREF_CONNECTOR, CONN_DMM)
-        if (prefAlterGadget && isProxyMethod && CONN_DMM == prefConnector) {
-            WebViewManager.setKcCacheProxy(alterEndpoint, {}, {
-                KcUtils.showToast(applicationContext, R.string.setting_alter_method_proxy_error_toast)
-            })
-        } else {
-            WebViewManager.clearKcCacheProxy()
-        }
 
         if (isAppLaunch) {
             window.decorView.post {
@@ -332,13 +357,7 @@ class BrowserActivity : ComponentActivity() {
                                 showLogoutDialog()
                             },
                             onHelpClick = { openManual(this@BrowserActivity) },
-                            onSettingChanged = { key ->
-                                if (key in liveSettings) {
-                                    applyLiveSetting(key)
-                                } else {
-                                    refreshPromptVisible.value = true
-                                }
-                            }
+                            onSettingChanged = { key -> onSettingChanged(key) }
                         )
                     }
 
@@ -388,7 +407,7 @@ class BrowserActivity : ComponentActivity() {
             WebViewManager.enableBrowserCookie(webView)
             manager?.setWebViewClient(this, webView)
             manager?.setPopupView(webView)
-            manager?.openPage(webView, info)
+            reloadSettings { manager?.openPage(webView, info) }
         }
         webView.setBackgroundColor(android.graphics.Color.BLACK)
         return webView
@@ -405,20 +424,30 @@ class BrowserActivity : ComponentActivity() {
         }
     }
 
-    private fun loadSubtitleData() {
+    /** @param force reload even if the same locale/storage was already loaded (e.g. new data downloaded) */
+    fun loadSubtitleData(force: Boolean = false) {
         // Loaded off the main thread:
         // The result is only consumed later when a voice line plays.
+        // A single-thread executor keeps loads in order, so the latest locale wins.
         val subtitleLocale = viewModel.sharedPref.getString(PREF_SUBTITLE_LOCALE, "en") ?: "en"
+        val requestKey = "$subtitleLocale|${viewModel.sharedPref.getBoolean(PREF_USE_EXTCACHE, false)}"
+        if (!force && requestKey == viewModel.subtitleRequestKey) return
+        viewModel.subtitleRequestKey = requestKey
+
         val appContext = applicationContext
-        Thread {
+        subtitleLoader.execute {
             val loaded = SubtitleProviderUtils.getSubtitleProvider(subtitleLocale)
                 .loadQuoteData(appContext, subtitleLocale)
             runOnUiThread {
                 if (!isFinishing && !isDestroyed) {
                     viewModel.isSubtitleLoaded = loaded
+                    // Allow a retry on the next refresh if loading failed
+                    if (!loaded && viewModel.subtitleRequestKey == requestKey) {
+                        viewModel.subtitleRequestKey = null
+                    }
                 }
             }
-        }.start()
+        }
     }
 
     fun setStartedFlag() {
@@ -429,6 +458,18 @@ class BrowserActivity : ComponentActivity() {
     fun setSubtitleText(text: String) { subtitleTextValue.value = text }
     fun setCloseButtonVisible(visible: Boolean) { closeButtonVisible.value = visible }
 
+    private fun onSettingChanged(key: String) {
+        when (key) {
+            in liveSettings -> applyLiveSetting(key)
+            in refreshSettings -> refreshPromptVisible.value = true
+            else -> {
+                // Unclassified keys fall back to a refresh prompt.
+                if (BuildConfig.DEBUG) Log.w("GOTO", "unclassified setting key: $key")
+                refreshPromptVisible.value = true
+            }
+        }
+    }
+
     private fun applyLiveSetting(key: String) {
         when (key) {
             PREF_LANDSCAPE -> displayController.updateOrientationLock()
@@ -436,6 +477,7 @@ class BrowserActivity : ComponentActivity() {
             PREF_SUBTITLE_FONTSIZE -> subtitleFontSize.value = settingsViewModel.getSubtitleFontSize()
             PREF_PIP_MODE -> pipController.setupSmoothPipAnimation()
             PREF_KEYBOARD -> displayController.applyKeyboardSetting()
+            PREF_SUBTITLE_LOCALE -> loadSubtitleData()
             PREF_DEVTOOLS_DEBUG -> WebViewManager.setWebViewDebugging(viewModel.sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false))
             PREF_DISABLE_REFRESH_DIALOG -> viewModel.setNoRefreshPopupMode(viewModel.sharedPref.getBoolean(PREF_DISABLE_REFRESH_DIALOG, false))
             PREF_FPS_LIMIT -> displayController.applyFpsLimit()
@@ -515,6 +557,7 @@ class BrowserActivity : ComponentActivity() {
 
     override fun onDestroy() {
         settingsViewModel.clearHostActivity(this)
+        subtitleLoader.shutdown()
         mContentView?.removeAllViews()
         mContentView?.destroy()
         super.onDestroy()
@@ -544,14 +587,48 @@ class BrowserActivity : ComponentActivity() {
         viewModel.connectorInfo = WebViewManager.getDefaultPage(this)
         val info = viewModel.connectorInfo
         if (manager != null && info != null && info.size == 2) {
-            mContentView?.let {
-                when (option) {
-                    RefreshOption.QUICK -> manager?.refreshGameFrame(it)
-                    RefreshOption.FULL -> manager?.refreshPage(it)
+            reloadSettings {
+                mContentView?.let {
+                    when (option) {
+                        RefreshOption.QUICK -> manager?.refreshGameFrame(it)
+                        RefreshOption.FULL -> manager?.refreshPage(it)
+                    }
                 }
             }
         } else {
             finish()
+        }
+    }
+
+    /**
+     * Re-applies the settings that are only read on page load (see refreshSettings).
+     * [onReady] runs once it is safe to load the page.
+     */
+    private fun reloadSettings(onReady: () -> Unit) {
+        viewModel.k3dPatcher.pause()
+        viewModel.prepareModPatchers()
+        viewModel.k3dPatcher.resume()
+        mContentView?.let { manager?.applyRendererSetting(it) }
+        loadSubtitleData()
+        applyGadgetProxy(onReady)
+    }
+
+    private fun applyGadgetProxy(onReady: () -> Unit) {
+        val pref = viewModel.sharedPref
+        val useProxy = pref.getBoolean(PREF_ALTER_GADGET, false) &&
+                PREF_ALTER_METHOD_PROXY == pref.getString(PREF_ALTER_METHOD, "") &&
+                CONN_DMM == pref.getString(PREF_CONNECTOR, CONN_DMM)
+        val proceed = Runnable {
+            runOnUiThread { if (!isFinishing && !isDestroyed) onReady() }
+        }
+        if (useProxy) {
+            val endpoint = pref.getString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL)
+            WebViewManager.setKcCacheProxy(endpoint, proceed) {
+                KcUtils.showToast(applicationContext, R.string.setting_alter_method_proxy_error_toast)
+                proceed.run()
+            }
+        } else {
+            WebViewManager.clearKcCacheProxy(proceed)
         }
     }
 
