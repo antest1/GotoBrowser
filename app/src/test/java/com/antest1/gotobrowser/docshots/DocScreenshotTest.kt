@@ -173,7 +173,6 @@ class DocScreenshotTest(private val locale: String) {
             BrowserOverlayLayer(
                 showSubtitle = subtitle.isNotEmpty(),
                 subtitleText = subtitle,
-                subtitleVisible = true,
                 subtitleFontSize = 18,
                 isCapture = true,
                 closeButtonVisible = false,
