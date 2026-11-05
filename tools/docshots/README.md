@@ -1,7 +1,7 @@
 # Doc screenshots
 
 Renders the app's Compose UI (toolbar, settings sheet, dialogs) for the manual,
-in every locale (ko / en / ja), without a device.
+in every locale (ko / en / ja / zh-cn / zh-tw), without a device.
 
 ```
 gradlew :app:testDebugUnitTest --tests "*DocScreenshotTest*" -Pdocshots

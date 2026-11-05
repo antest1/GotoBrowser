@@ -79,7 +79,7 @@ import java.io.File
  * Renders the app's Compose UI into images for the manual (docs/).
  *
  * Not a regression test: each case records one PNG per locale into
- * `tools/docshots/out/<locale>/`. The game area is a WebView and cannot be
+ * `tools/docshots/out/<locale>/` (ko, en, ja, zh-cn, zh-tw). The game area is a WebView and cannot be
  * rendered here, so it is filled with `tools/docshots/input/game_bg.*`
  * (a 5:3 capture of the game only) when that file exists.
  *
@@ -94,7 +94,10 @@ class DocScreenshotTest(private val locale: String) {
     companion object {
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}")
-        fun locales() = listOf("ko", "en", "ja")
+        fun locales() = listOf("ko", "en", "ja", "zh-cn", "zh-tw")
+
+        /** Resource qualifier for each docs locale (the app's zh-HK / MO / SG share zh-TW's text). */
+        private val QUALIFIER = mapOf("zh-cn" to "zh-rCN", "zh-tw" to "zh-rTW")
 
         // 3120x1440 Galaxy at its default 560dpi (3.5x), as in the device captures
         private const val LANDSCAPE = "w891dp-h411dp-land-560dpi"
@@ -121,7 +124,12 @@ class DocScreenshotTest(private val locale: String) {
     private fun applyDocTypeface() {
         val fontDir = System.getProperty("robolectric.nativeruntime.fontdir")?.let(::File) ?: return
         // Noto Sans CJK collection order: 0 = ja, 1 = ko, 2 = zh-Hans, 3 = zh-Hant
-        val cjkIndex = if (locale == "ja") 0 else 1
+        val cjkIndex = when (locale) {
+            "ja" -> 0
+            "zh-cn" -> 2
+            "zh-tw" -> 3
+            else -> 1
+        }
 
         fun font(name: String, weight: Int, ttcIndex: Int = 0) =
             Font.Builder(File(fontDir, name)).setWeight(weight).setTtcIndex(ttcIndex).build()
@@ -168,7 +176,7 @@ class DocScreenshotTest(private val locale: String) {
         action: () -> Unit = {},
         content: @Composable () -> Unit
     ) {
-        RuntimeEnvironment.setQualifiers("+${locale}-$device")
+        RuntimeEnvironment.setQualifiers("+${QUALIFIER[locale] ?: locale}-$device")
         applyDocTypeface()
         scenario = ActivityScenario.launch(ComponentActivity::class.java).also { s ->
             s.onActivity { a ->
@@ -303,7 +311,7 @@ class DocScreenshotTest(private val locale: String) {
             .putBoolean(PREF_ALTER_GADGET, true)
             .putString(PREF_ALTER_METHOD, PREF_ALTER_METHOD_URL)
             .putString(PREF_ALTER_ENDPOINT, DEFAULT_ALTER_GADGET_URL)
-            .putString(PREF_SUBTITLE_LOCALE, mapOf("ko" to "kr", "ja" to "jp").getOrDefault(locale, "en"))
+            .putString(PREF_SUBTITLE_LOCALE, mapOf("ko" to "kr", "ja" to "jp", "zh-cn" to "zh-cn", "zh-tw" to "zh-tw").getOrDefault(locale, "en"))
             .commit()
         // KcUtils grabs Crashlytics in its static initializer; give it a local, offline app.
         if (FirebaseApp.getApps(activity).isEmpty()) {
