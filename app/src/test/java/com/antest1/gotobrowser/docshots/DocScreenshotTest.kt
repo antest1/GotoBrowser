@@ -3,6 +3,9 @@ package com.antest1.gotobrowser.docshots
 import android.app.Application
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.graphics.Typeface
+import android.graphics.fonts.Font
+import android.graphics.fonts.FontFamily
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -92,9 +95,9 @@ class DocScreenshotTest(private val locale: String) {
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}")
         fun locales() = listOf("ko", "en", "ja")
 
-        // 3120x1440 phone (xxhdpi = 3x)
-        private const val LANDSCAPE = "w1040dp-h480dp-land-xxhdpi"
-        private const val PORTRAIT = "w480dp-h1040dp-port-xxhdpi"
+        // 3120x1440 Galaxy at its default 560dpi (3.5x), as in the device captures
+        private const val LANDSCAPE = "w891dp-h411dp-land-560dpi"
+        private const val PORTRAIT = "w411dp-h891dp-port-560dpi"
     }
 
     @get:Rule
@@ -105,6 +108,40 @@ class DocScreenshotTest(private val locale: String) {
 
     private val outDir = File(System.getProperty("docshots.outDir") ?: "build/docshots")
     private val inputDir = File(System.getProperty("docshots.inputDir") ?: "docshots-input")
+
+    /**
+     * Draws regular text one step heavier (Medium) and bold text as Bold, for Latin
+     * (Roboto) and CJK (Noto Sans CJK) alike: at docs size, the default Regular looks
+     * thinner than device captures. Everything else falls back to the system fonts.
+     */
+    private fun applyDocTypeface() {
+        val fontDir = System.getProperty("robolectric.nativeruntime.fontdir")?.let(::File) ?: return
+        // Noto Sans CJK collection order: 0 = ja, 1 = ko, 2 = zh-Hans, 3 = zh-Hant
+        val cjkIndex = if (locale == "ja") 0 else 1
+
+        fun font(name: String, weight: Int, ttcIndex: Int = 0) =
+            Font.Builder(File(fontDir, name)).setWeight(weight).setTtcIndex(ttcIndex).build()
+
+        val latin = FontFamily.Builder(font("Roboto-Medium.ttf", 400))
+            .addFont(font("Roboto-Bold.ttf", 700)).build()
+        val cjk = FontFamily.Builder(font("NotoSansCJK-Medium.ttc", 400, cjkIndex))
+            .addFont(font("NotoSansCJK-Bold.ttc", 700, cjkIndex)).build()
+        val regular = Typeface.CustomFallbackBuilder(latin)
+            .addCustomFallback(cjk)
+            .setSystemFallback("sans-serif")
+            .build()
+        val bold = Typeface.create(regular, 700, false)
+
+        // Compose resolves FontFamily.Default through Typeface.DEFAULT; point the shared
+        // instances at the new native typeface rather than replacing the (final) fields.
+        val native = Typeface::class.java.getDeclaredField("native_instance").apply { isAccessible = true }
+        listOf(Typeface.DEFAULT, Typeface.SANS_SERIF).forEach { native.setLong(it, native.getLong(regular)) }
+        native.setLong(Typeface.DEFAULT_BOLD, native.getLong(bold))
+        @Suppress("UNCHECKED_CAST")
+        val systemFonts = Typeface::class.java.getDeclaredField("sSystemFontMap")
+            .apply { isAccessible = true }.get(null) as MutableMap<String, Typeface>
+        systemFonts["sans-serif"] = regular
+    }
 
     @After
     fun tearDown() {
@@ -124,6 +161,7 @@ class DocScreenshotTest(private val locale: String) {
         content: @Composable () -> Unit
     ) {
         RuntimeEnvironment.setQualifiers("+${locale}-$device")
+        applyDocTypeface()
         scenario = ActivityScenario.launch(ComponentActivity::class.java).also { s ->
             s.onActivity { a ->
                 activity = a
