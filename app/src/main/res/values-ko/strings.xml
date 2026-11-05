@@ -105,11 +105,11 @@
     <string name="patch_download_checking">변경 사항 확인 중…</string>
     <string name="patch_download_archive">패치 압축 파일 다운로드 중…</string>
     <string name="patch_download_extracting">파일 압축 해제 중…</string>
-    <string name="patch_download_updated">패치가 업데이트되었습니다</string>
+    <string name="patch_download_updated">패치가 업데이트되었습니다. 게임을 새로고침해주세요.</string>
     <string name="patch_download_failed">업데이트에 실패했습니다</string>
     <string name="patch_download_error">다운로드 중 오류가 발생했습니다</string>
     <string name="patch_download_zip_not_deleted">다운로드는 완료되었지만 zip 파일을 삭제하지 못했습니다</string>
-    <string name="patch_deleted">패치 데이터가 삭제되었습니다</string>
+    <string name="patch_deleted">패치 데이터가 삭제되었습니다. 게임을 새로고침해주세요.</string>
     <string name="settings_mod_kantaiid_about">KanColle Indonesia Patch에 대해</string>
 
     <string name="settings_mod_kccp">KanColle Language Patch (KCCP)</string>
@@ -133,8 +133,8 @@
     <string name="en_unzip_start">압축을 푸는 중… 잠시만 기다려 주세요…</string>
     <string name="en_unzip_done">패치 압축 해제 완료!</string>
     <string name="en_update_done">패치 업데이트 완료!</string>
-    <string name="en_install_done_notification">영문패치가 설치되었습니다! 게임을 다시 시작해주세요.</string>
-    <string name="en_update_done_notification">영문패치가 업데이트되었습니다! 게임을 다시 시작해주세요.</string>
+    <string name="en_install_done_notification">패치가 설치되었습니다. 게임을 새로고침해주세요.</string>
+    <string name="en_update_done_notification">패치가 업데이트되었습니다. 게임을 새로고침해주세요.</string>
 
     <string name="browser_ui_hint_text">« 게임 화면 외의 공간을 눌러 패널을 여세요 »</string>
 

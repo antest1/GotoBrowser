@@ -103,11 +103,11 @@
     <string name="patch_download_checking">正在检查更新内容…</string>
     <string name="patch_download_archive">正在下载补丁压缩包…</string>
     <string name="patch_download_extracting">正在解压文件…</string>
-    <string name="patch_download_updated">补丁已更新</string>
+    <string name="patch_download_updated">补丁已更新，请重新加载游戏。</string>
     <string name="patch_download_failed">更新失败</string>
     <string name="patch_download_error">下载时发生错误</string>
     <string name="patch_download_zip_not_deleted">下载完成，但无法删除 zip 文件</string>
-    <string name="patch_deleted">补丁资料已删除</string>
+    <string name="patch_deleted">补丁资料已删除，请重新加载游戏。</string>
     <string name="settings_mod_kantaiid_about">KanColle Indonesia Patch关于</string>
 
     <string name="settings_mod_kccp">KanColle Language Patch (KCCP)</string>
@@ -131,8 +131,8 @@
     <string name="en_unzip_start">正在解压缩……请稍候……</string>
     <string name="en_unzip_done">Patch解压缩完成！</string>
     <string name="en_update_done">Patch更新完成！</string>
-    <string name="en_install_done_notification">已安装Patch！ 请重新开始游戏。</string>
-    <string name="en_update_done_notification">Patch已更新！ 请重新开始游戏。</string>
+    <string name="en_install_done_notification">补丁已安装，请重新加载游戏。</string>
+    <string name="en_update_done_notification">补丁已更新，请重新加载游戏。</string>
 
     <string name="browser_ui_hint_text">« 点选外侧任意位置开启面板 »</string>
 

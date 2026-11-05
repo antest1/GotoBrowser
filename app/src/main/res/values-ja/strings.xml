@@ -104,11 +104,11 @@
     <string name="patch_download_checking">変更を確認中…</string>
     <string name="patch_download_archive">パッチアーカイブをダウンロード中…</string>
     <string name="patch_download_extracting">ファイルを展開中…</string>
-    <string name="patch_download_updated">パッチを更新しました</string>
+    <string name="patch_download_updated">パッチを更新しました。ゲームを再読み込みしてください。</string>
     <string name="patch_download_failed">更新に失敗しました</string>
     <string name="patch_download_error">ダウンロード中にエラーが発生しました</string>
     <string name="patch_download_zip_not_deleted">ダウンロードは完了しましたが、zipファイルを削除できませんでした</string>
-    <string name="patch_deleted">パッチデータを削除しました</string>
+    <string name="patch_deleted">パッチデータを削除しました。ゲームを再読み込みしてください。</string>
     <string name="settings_mod_kantaiid_about">KanColle Indonesia Patchについて</string>
 
     <string name="settings_mod_kccp">KanColle Language Patch (KCCP)</string>
@@ -132,8 +132,8 @@
     <string name="en_unzip_start">解凍中…お待ちください…</string>
     <string name="en_unzip_done">パッチ解凍完了！</string>
     <string name="en_update_done">パッチアップデート完了！</string>
-    <string name="en_install_done_notification">パッチ搭載！ ゲームを再起動してください。</string>
-    <string name="en_update_done_notification">パッチ更新！ ゲームを再起動してください。</string>
+    <string name="en_install_done_notification">パッチをインストールしました。ゲームを再読み込みしてください。</string>
+    <string name="en_update_done_notification">パッチを更新しました。ゲームを再読み込みしてください。</string>
 
     <string name="browser_ui_hint_text">« 外側をクリックしてパネルを開く »</string>
     <string name="settings_retry_enable">ゲームアセットのダウンロードの再試行</string>

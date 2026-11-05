@@ -117,11 +117,11 @@
     <string name="patch_download_checking">Checking for changes…</string>
     <string name="patch_download_archive">Downloading patch archive…</string>
     <string name="patch_download_extracting">Extracting files…</string>
-    <string name="patch_download_updated">Patch updated</string>
+    <string name="patch_download_updated">Patch updated. Please reload the game.</string>
     <string name="patch_download_failed">Update failed</string>
     <string name="patch_download_error">Error occurred while downloading</string>
     <string name="patch_download_zip_not_deleted">Download finished, but the zip file could not be deleted</string>
-    <string name="patch_deleted">Patch deleted</string>
+    <string name="patch_deleted">Patch deleted. Please reload the game.</string>
     <string name="settings_mod_kantaiid_about">About KanColle Indonesia Patch</string>
 
     <string name="settings_mod_kccp">KanColle Language Patch (KCCP)</string>
@@ -147,8 +147,8 @@
     <string name="en_unzip_start">Unzipping… Please wait…</string>
     <string name="en_unzip_done">Patch unzip complete!</string>
     <string name="en_update_done">Patch update complete!</string>
-    <string name="en_install_done_notification">Patch installed! Please restart the game.</string>
-    <string name="en_update_done_notification">Patch updated! Please restart the game.</string>
+    <string name="en_install_done_notification">Patch installed. Please reload the game.</string>
+    <string name="en_update_done_notification">Patch updated. Please reload the game.</string>
 
     <string name="browser_ui_hint_text">« click any outside area to open the panel »</string>
 
