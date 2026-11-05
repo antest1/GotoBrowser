@@ -99,6 +99,9 @@ class DocScreenshotTest(private val locale: String) {
         // 3120x1440 Galaxy at its default 560dpi (3.5x), as in the device captures
         private const val LANDSCAPE = "w891dp-h411dp-land-560dpi"
         private const val PORTRAIT = "w411dp-h891dp-port-560dpi"
+
+        /** Regular / bold doc typefaces per locale, shared by every case (see applyDocTypeface). */
+        private val docTypefaces = mutableMapOf<String, Pair<Typeface, Typeface>>()
     }
 
     @get:Rule
@@ -123,15 +126,19 @@ class DocScreenshotTest(private val locale: String) {
         fun font(name: String, weight: Int, ttcIndex: Int = 0) =
             Font.Builder(File(fontDir, name)).setWeight(weight).setTtcIndex(ttcIndex).build()
 
-        val latin = FontFamily.Builder(font("Roboto-Medium.ttf", 400))
-            .addFont(font("Roboto-Bold.ttf", 700)).build()
-        val cjk = FontFamily.Builder(font("NotoSansCJK-Medium.ttc", 400, cjkIndex))
-            .addFont(font("NotoSansCJK-Bold.ttc", 700, cjkIndex)).build()
-        val regular = Typeface.CustomFallbackBuilder(latin)
-            .addCustomFallback(cjk)
-            .setSystemFallback("sans-serif")
-            .build()
-        val bold = Typeface.create(regular, 700, false)
+        // Built once per locale: each build maps the CJK collections (~18MB each) again,
+        // and doing that for every case crashed the test JVM after ~70 renders.
+        val (regular, bold) = docTypefaces.getOrPut(locale) {
+            val latin = FontFamily.Builder(font("Roboto-Medium.ttf", 400))
+                .addFont(font("Roboto-Bold.ttf", 700)).build()
+            val cjk = FontFamily.Builder(font("NotoSansCJK-Medium.ttc", 400, cjkIndex))
+                .addFont(font("NotoSansCJK-Bold.ttc", 700, cjkIndex)).build()
+            val regular = Typeface.CustomFallbackBuilder(latin)
+                .addCustomFallback(cjk)
+                .setSystemFallback("sans-serif")
+                .build()
+            regular to Typeface.create(regular, 700, false)
+        }
 
         // Compose resolves FontFamily.Default through Typeface.DEFAULT; point the shared
         // instances at the new native typeface rather than replacing the (final) fields.
@@ -330,6 +337,13 @@ class DocScreenshotTest(private val locale: String) {
 
     @Test
     fun settingsConnection() = shoot("settings_connection", action = openPage(R.string.settings_connection_login_label)) { Sheet() }
+
+    /** Scrolled to broadcast mode, for the Kcanotify page. */
+    @Test
+    fun settingsBroadcast() = shoot(
+        "settings_broadcast",
+        action = openPage(R.string.settings_connection_login_label, scrollTo = R.string.mode_broadcast)
+    ) { Sheet() }
 
     @Test
     fun settingsGadget() = shoot(
