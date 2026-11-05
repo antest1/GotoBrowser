@@ -2,7 +2,7 @@
 
 ## 인게임 대사 자막
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/subtitle.png"  width="840" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/subtitle.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
 게임 보이스가 켜져 있는 경우 번역된 자막을 화면 하단에 표시합니다.  
 - 브라우저 툴바의 자막 버튼(<span class="material-symbols-outlined inline-icon">closed_caption</span>)을 활성화하면 자막 영역이 표시됩니다.

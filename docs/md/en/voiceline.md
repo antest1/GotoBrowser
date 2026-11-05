@@ -2,7 +2,7 @@
 
 ## Game Voiceline Subtitle
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/subtitle.png"  width="840" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/subtitle.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
 When the game voice is played, (translated) subtitles are displayed at the bottom of the screen.  
 - If you activate the Subtitle button (<span class="material-symbols-outlined inline-icon">closed_caption</span>) on the browser toolbar, the subtitle area will be displayed.

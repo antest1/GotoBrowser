@@ -2,7 +2,7 @@
 
 ## ゲームボイス字幕
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/subtitle.png"  width="840" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/subtitle.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
 艦娘の音声が再生されると、画面下部に（翻訳された）字幕が表示されます。
 - ブラウザのツールバーの字幕ボタン(<span class="material-symbols-outlined inline-icon">closed_caption</span>)を有効にすると、字幕領域が表示されます。

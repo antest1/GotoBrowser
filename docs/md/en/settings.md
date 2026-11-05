@@ -8,12 +8,16 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 - Drag the handle at the top downward or press the back button to close it.
 - The help button (<span class="material-symbols-outlined inline-icon">help</span>) in the top right of the settings screen opens this manual.
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/settings_main.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
 ##### How Settings Are Applied
 
 | Applies | Description |
 | --- | --- |
 | Immediately | Applied as soon as the value is changed. |
 | After reload | The "Reload Required" dialog is shown. "Reload Now" applies the change after a full refresh, and "Change Settings Without Reload" applies it on the next refresh. |
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/settings_refresh_required.webp"  width="480" style="max-width: 100%;" class="mb-3"/>
 
 ##### Login and Connection
 

@@ -10,6 +10,8 @@
 2. ログインすると、ゲーム画面がデバイスの画面に合わせて表示されます。（設定 → 表示 → レイアウト自動調整）
 3. ゲーム画面の外側の黒い部分をタッチすると<span class="link" data-move="browserui">ツールバー</span>が表示され、右上の設定ボタン（<span class="material-symbols-outlined inline-icon">settings</span>）から設定画面を開けます。
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/first_launch.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
+
 ##### 接続方式の選択
 - ほとんどの場合、デフォルトの「DMM direct」を変更する必要はありません。
 - OOIベースのコネクタ（[ooi.moe](https://ooi.moe/)または[kancolle.moe](https://kancolle.moe/)）を使用したい場合は、設定 → ログインと接続 → 接続方式選択で変更できます。

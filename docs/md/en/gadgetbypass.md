@@ -6,11 +6,11 @@ Since February 2020, KanColle gadget server is blocking all non-Japanese IP addr
 
 When IP block is detected, the following notification will appear when you start the game.
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/bypass_required.png"  width="480" style="max-width: 100%;"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/bypass_required.webp"  width="480" style="max-width: 100%;"/>
 
 ##### Instruction
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/gadget_options.png"  width="480" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/gadget_options.webp"  width="600" style="max-width: 100%;" class="mb-3"/>
 
 1. Turn on the "Gadget Block Bypass" option under the "Gadget Block Bypass" section in Settings → Login and Connection.
 2. Set the bypass method to "URL Replacement" and the endpoint server to one of the two URLs below. Be careful of typos!

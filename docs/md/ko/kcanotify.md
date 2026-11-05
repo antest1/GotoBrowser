@@ -2,7 +2,7 @@
 
 고토브라우저를 [시제 깡들리티](https://github.com/antest1/kcanotify)와 함께 사용하기 위한 설정 방법입니다.
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/kcanotify_settings.png"  width="840" style="max-width: 100%;"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/kcanotify_settings.webp"  width="840" style="max-width: 100%;"/>
 
 ##### 고토브라우저 설정
 

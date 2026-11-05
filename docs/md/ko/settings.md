@@ -8,12 +8,16 @@
 - 상단의 손잡이를 아래로 끌거나 뒤로 가기 버튼을 누르면 닫힙니다.
 - 상단 오른쪽의 도움말 버튼(<span class="material-symbols-outlined inline-icon">help</span>)을 누르면 이 매뉴얼이 열립니다.
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/settings_main.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
 ##### 설정 반영 방식
 
 | 반영 | 설명 |
 | --- | --- |
 | 즉시 | 값을 바꾸면 바로 적용됩니다. |
 | 새로고침 | "새로고침 필요" 안내가 표시됩니다. "지금 새로고침"을 누르면 전체 새로고침 후 적용되고, "새로고침 없이 설정 변경"을 누르면 다음 새로고침 때 적용됩니다. |
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/settings_refresh_required.webp"  width="480" style="max-width: 100%;" class="mb-3"/>
 
 ##### 로그인 및 접속
 

@@ -7,11 +7,11 @@
 
 IP 차단이 확인된 경우에는 게임 시작 시 아래와 같은 알림이 나타납니다.
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/bypass_required.png"  width="480" style="max-width: 100%;"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/bypass_required.webp"  width="480" style="max-width: 100%;"/>
 
 ##### 설정 방법
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/gadget_options.png"  width="480" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/gadget_options.webp"  width="600" style="max-width: 100%;" class="mb-3"/>
 
 1. 설정 → 로그인 및 접속의 "Gadget 서버 우회" 항목에서 "Gadget 서버 우회 활성화" 옵션을 활성화합니다.
 2. 우회 방식은 "URL 교체"를, Endpoint 서버는 아래의 두 서버 중 하나로 설정하시면 됩니다. (오탈자 유의!)

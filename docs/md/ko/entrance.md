@@ -10,6 +10,8 @@
 2. 로그인하면 게임 화면이 기기 화면에 맞춰 표시됩니다. (설정 → 화면 표시 → 레이아웃 자동 조정)
 3. 게임 화면 바깥의 검은색 여백을 터치하면 <span class="link" data-move="browserui">툴바</span>가 나타나고, 우측 상단의 설정 버튼(<span class="material-symbols-outlined inline-icon">settings</span>)으로 설정 화면을 열 수 있습니다.
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/first_launch.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
+
 ##### 접속기 선택
 - 일반적인 경우 DMM direct로 설정된 값을 바꾸지 않아도 됩니다.
 - OOI 기반 접속기([ooi.moe](https://ooi.moe/) 혹은 [kancolle.moe](https://kancolle.moe/))를 사용하고자 하는 경우 설정 → 로그인 및 접속 → 접속기 선택에서 변경할 수 있습니다.

@@ -10,6 +10,8 @@ Everything that used to be on the main screen before version 4.0 has moved to th
 2. After logging in, the game screen is fitted to your device screen. (Settings → Display → Auto Layout Adjustment)
 3. Touch the black margin outside the game screen to show the <span class="link" data-move="browserui">toolbar</span>. The settings button (<span class="material-symbols-outlined inline-icon">settings</span>) in the top right opens the settings screen.
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/first_launch.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
+
 ##### Selecting a Connector
 - In general, you do not need to change the default value, DMM direct.
 - If you want to use an OOI-based connector ([ooi.moe](https://ooi.moe/) or [kancolle.moe](https://kancolle.moe/)), change it in Settings → Login and Connection → Select Login Method.

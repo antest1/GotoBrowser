@@ -1,6 +1,6 @@
 ## PIP/マルチウィンドウ
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/pip_multiwindow.png"  width="550" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/pip_multiwindow.webp"  width="550" style="max-width: 100%;" class="mb-3"/>
 
 GotoBrowserはPIPモードとマルチウィンドウに対応しています。 (Android 8.0以上、Samsung Galaxyの場合7.0以上)  
 この機能を活用して、デバイス内で別の作業を行い、艦これを同時にプレイすることができます。

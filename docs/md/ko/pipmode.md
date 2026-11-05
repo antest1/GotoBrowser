@@ -1,6 +1,6 @@
 ## PIP/멀티윈도우
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/pip_multiwindow.png"  width="550" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/pip_multiwindow.webp"  width="550" style="max-width: 100%;" class="mb-3"/>
 
 고토브라우저는 PIP 모드 및 멀티윈도우 기능을 지원합니다. (안드로이드 8.0 이상, 삼성 갤럭시의 경우 7.0 이상)  
 이 기능을 활용하여 기기 내에서 다른 작업을 하며 칸코레를 동시에 플레이할 수 있습니다.

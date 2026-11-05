@@ -2,11 +2,13 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@40,400,0,0&icon_names=closed_caption,crop_free,frame_reload,light_mode,photo_camera,refresh,screen_lock_rotation,settings,volume_off" />
 
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/game_screen.png"  width="840" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/game_screen.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
 게임 화면 가장자리의 툴바를 통해 브라우저 상에서의 새로고침이나 스크린샷 등 다양한 기능을 수행할 수 있습니다.  
 - 세로 모드에서는 화면 하단에 가로로, 가로 모드에서는 화면 왼쪽에 세로로 표시됩니다.
 - 버튼을 길게 누르면 버튼의 이름이 표시됩니다.
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/game_screen_portrait.webp"  width="300" style="max-width: 100%;" class="mb-3"/>
 
 ##### 툴바 보이기/숨기기
 - 툴바를 나타나게 하기 위한 방법은 다음과 같습니다.
@@ -29,6 +31,8 @@
 - 버튼을 누른 채로 위쪽으로 끌면 다른 방식을 선택할 수 있습니다. 마지막에 사용한 방식이 버튼의 기본 동작으로 기억됩니다.
 - 새로고침 전 확인 창은 설정 → 조작 → "새로고침 확인 비활성화"로 끌 수 있습니다.
 - 설정 변경 후 "새로고침 필요" 안내에서 "새로고침 없이 설정 변경"을 선택한 경우에도, 이 버튼으로 새로고침하면 변경한 설정이 적용됩니다.
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/refresh_menu.webp"  width="380" style="max-width: 100%;" class="mb-3"/>
 
 ##### 툴바 버튼 설명
 |  | 기능 | 설명 |

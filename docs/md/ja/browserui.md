@@ -2,11 +2,13 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@40,400,0,0&icon_names=closed_caption,crop_free,frame_reload,light_mode,photo_camera,refresh,screen_lock_rotation,settings,volume_off" />
 
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/game_screen.png"  width="840" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/game_screen.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
 ゲーム画面の端にあるツールバーを使用すると、ブラウザでさまざまな機能を利用できます。（ページの再読み込みやスクリーンショットなど）
 - 縦向きでは画面下部に横向きに、横向きでは画面左側に縦向きに表示されます。
 - ボタンを長押しすると、ボタンの名前が表示されます。
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/game_screen_portrait.webp"  width="300" style="max-width: 100%;" class="mb-3"/>
 
 ##### ツールバーを表示/非表示
 - ツールバーを表示するには、次の方法があります。
@@ -29,6 +31,8 @@
 - ボタンを押したまま上にドラッグすると、もう一方の方式を選択できます。最後に使用した方式がボタンのデフォルト動作として記憶されます。
 - リフレッシュ前の確認ダイアログは、設定 → 操作 → 「再読み込み確認を無効にする」で無効にできます。
 - 設定を変更した後の「再読み込みが必要です」ダイアログで「再読み込みせずに設定を変更」を選んだ場合も、このボタンでリフレッシュすると変更した設定が反映されます。
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/refresh_menu.webp"  width="380" style="max-width: 100%;" class="mb-3"/>
 
 ##### ツールバーボタンの説明
 |  | 機能 | 説明 |

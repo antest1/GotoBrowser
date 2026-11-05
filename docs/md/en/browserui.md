@@ -2,11 +2,13 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@40,400,0,0&icon_names=closed_caption,crop_free,frame_reload,light_mode,photo_camera,refresh,screen_lock_rotation,settings,volume_off" />
 
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/game_screen.png"  width="840" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/game_screen.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
 You can use various functions such as refreshing the game or taking a screenshot through the toolbar at the edge of the game screen.
 - In portrait mode it appears horizontally at the bottom of the screen, and in landscape mode vertically on the left.
 - Long-press a button to see its name.
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/game_screen_portrait.webp"  width="300" style="max-width: 100%;" class="mb-3"/>
 
 ##### Show/Hide Toolbar
 - Here are the ways to make the toolbar appear:
@@ -29,6 +31,8 @@ The refresh button at the end of the toolbar offers two methods.
 - Press and hold the button and drag upward to choose the other method. The last method used is remembered as the default action of the button.
 - The confirmation dialog shown before refreshing can be disabled in Settings → Controls → "Disable Refresh Warning Dialog".
 - If you chose "Change Settings Without Reload" in the "Reload Required" dialog after changing a setting, refreshing with this button also applies the change.
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/refresh_menu.webp"  width="380" style="max-width: 100%;" class="mb-3"/>
 
 ##### Toolbar Button Description
 |  | Button | Description |

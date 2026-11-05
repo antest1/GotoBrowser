@@ -8,12 +8,16 @@
 - 上部のハンドルを下にドラッグするか、戻るボタンを押すと閉じます。
 - 右上のヘルプボタン(<span class="material-symbols-outlined inline-icon">help</span>)を押すと、このマニュアルが開きます。
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/settings_main.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
 ##### 設定の反映方式
 
 | 反映 | 説明 |
 | --- | --- |
 | 即時 | 値を変更するとすぐに反映されます。 |
 | 再読み込み | 「再読み込みが必要です」ダイアログが表示されます。「今すぐ再読み込み」を押すとフルリフレッシュ後に反映され、「再読み込みせずに設定を変更」を押すと次の再読み込み時に反映されます。 |
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/settings_refresh_required.webp"  width="480" style="max-width: 100%;" class="mb-3"/>
 
 ##### ログインと接続
 

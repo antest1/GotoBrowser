@@ -2,7 +2,7 @@
 
 Here's how to set up GotoBrowser to use with [Kcanotify](https://github.com/antest1/kcanotify).
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/kcanotify_settings.png"  width="840" style="max-width: 100%;"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/kcanotify_settings.webp"  width="840" style="max-width: 100%;"/>
 
 ##### GotoBrowser Settings
 

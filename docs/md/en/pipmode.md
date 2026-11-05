@@ -1,6 +1,6 @@
 ## PIP/Multi-window
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/pip_multiwindow.png" width="550" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/pip_multiwindow.webp" width="550" style="max-width: 100%;" class="mb-3"/>
 
 GotoBrowser supports PIP mode and multiwindow functions. (Android 8.0 or higher, Samsung Galaxy: 7.0 or higher)
 
