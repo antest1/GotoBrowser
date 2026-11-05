@@ -842,7 +842,7 @@ fun PanelButton(
 }
 
 @Composable
-private fun SettingsRefreshDialog(
+internal fun SettingsRefreshDialog(
     onRefreshNow: () -> Unit,
     onChangeWithoutRefresh: () -> Unit
 ) {

@@ -32,6 +32,26 @@ android {
         compose true
     }
     namespace 'com.antest1.gotobrowser'
+
+    // Doc screenshots: renders the Compose UI on the JVM (Robolectric + Roborazzi).
+    // Run with: gradlew :app:testDebugUnitTest --tests "*DocScreenshotTest*" -Pdocshots
+    // -Pdocshots matches the debug app id to the dummy src/debug/google-services.json.
+    if (project.hasProperty('docshots')) {
+        buildTypes { debug { applicationIdSuffix '.debug' } }
+    }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            all {
+                systemProperty 'roborazzi.test.record', 'true'
+                systemProperty 'robolectric.graphicsMode', 'NATIVE'
+                systemProperty 'robolectric.pixelCopyRenderMode', 'hardware'
+                systemProperty 'docshots.outDir', rootProject.file('docs/screenshots/out').absolutePath
+                systemProperty 'docshots.inputDir', rootProject.file('docs/screenshots/input').absolutePath
+                maxHeapSize = '2g'
+            }
+        }
+    }
 }
 
 dependencies {
@@ -66,6 +86,15 @@ dependencies {
     implementation 'androidx.compose.runtime:runtime-livedata'
     implementation 'androidx.activity:activity-compose:1.12.4'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0'
+
+    // Doc screenshots (JVM only, not shipped)
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.17'
+    testImplementation 'io.github.takahirom.roborazzi:roborazzi:1.77.0'
+    testImplementation 'io.github.takahirom.roborazzi:roborazzi-compose:1.77.0'
+    testImplementation composeBom
+    testImplementation 'androidx.compose.ui:ui-test-junit4'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
 }
 
 kotlin {

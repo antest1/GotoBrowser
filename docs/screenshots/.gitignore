@@ -1,0 +1,3 @@
+# Inputs (game captures) and rendered images stay local; finished images go to S3.
+input/
+out/
