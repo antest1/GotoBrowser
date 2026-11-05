@@ -100,6 +100,14 @@
     <string name="settings_mod_kantaien_delete">刪除補丁資料</string>
     <string name="settings_mod_kantaien_delete_summary">如果修補程式出現預期外行為，或者在下載過程中出現問題，請使用此設定。</string>
     <string name="settings_mod_kantaien_about">KanColle English Patch關於</string>
+    <string name="patch_download_checking">正在檢查更新內容…</string>
+    <string name="patch_download_archive">正在下載補丁壓縮檔…</string>
+    <string name="patch_download_extracting">正在解壓縮檔案…</string>
+    <string name="patch_download_updated">補丁已更新</string>
+    <string name="patch_download_failed">更新失敗</string>
+    <string name="patch_download_error">下載時發生錯誤</string>
+    <string name="patch_download_zip_not_deleted">下載完成，但無法刪除 zip 檔案</string>
+    <string name="patch_deleted">補丁資料已刪除</string>
     <string name="settings_mod_kantaiid_about">KanColle Indonesia Patch關於</string>
 
     <string name="settings_mod_kccp">KanColle Language Patch (KCCP)</string>

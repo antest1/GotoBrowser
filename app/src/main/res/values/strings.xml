@@ -114,6 +114,14 @@
     <string name="settings_mod_kantaien_delete">Delete Patch Data</string>
     <string name="settings_mod_kantaien_delete_summary">Use this setting if the patch is presenting unexpected behaviour, or if something went wrong during download.</string>
     <string name="settings_mod_kantaien_about">About KanColle English Patch</string>
+    <string name="patch_download_checking">Checking for changes…</string>
+    <string name="patch_download_archive">Downloading patch archive…</string>
+    <string name="patch_download_extracting">Extracting files…</string>
+    <string name="patch_download_updated">Patch updated</string>
+    <string name="patch_download_failed">Update failed</string>
+    <string name="patch_download_error">Error occurred while downloading</string>
+    <string name="patch_download_zip_not_deleted">Download finished, but the zip file could not be deleted</string>
+    <string name="patch_deleted">Patch deleted</string>
     <string name="settings_mod_kantaiid_about">About KanColle Indonesia Patch</string>
 
     <string name="settings_mod_kccp">KanColle Language Patch (KCCP)</string>

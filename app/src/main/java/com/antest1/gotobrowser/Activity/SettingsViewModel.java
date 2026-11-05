@@ -94,6 +94,10 @@ public class SettingsViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> subtitleUpdateEnabled = new MutableLiveData<>(false);
     private final MutableLiveData<Integer> patchAboutTitleRes = new MutableLiveData<>(R.string.settings_mod_kantaien_about);
     private final MutableLiveData<String> patchAboutUrl = new MutableLiveData<>();
+    private final MutableLiveData<PatchDownloadState> patchDownloadState =
+            new MutableLiveData<>(PatchDownloadState.Idle.INSTANCE);
+    /** One-shot message for the settings snackbar; cleared by {@link #consumePatchMessage()}. */
+    private final MutableLiveData<String> patchMessage = new MutableLiveData<>(null);
 
     public SettingsViewModel(@NonNull Application application) {
         super(application);
@@ -171,6 +175,18 @@ public class SettingsViewModel extends AndroidViewModel {
 
     public LiveData<String> getPatchAboutUrl() {
         return patchAboutUrl;
+    }
+
+    public LiveData<PatchDownloadState> getPatchDownloadState() {
+        return patchDownloadState;
+    }
+
+    public LiveData<String> getPatchMessage() {
+        return patchMessage;
+    }
+
+    public void consumePatchMessage() {
+        patchMessage.setValue(null);
     }
 
     public void setPatchUpdateStatus(String summary, boolean enabled) {
@@ -309,8 +325,9 @@ public class SettingsViewModel extends AndroidViewModel {
         }
     }
 
-    public void requestPatchDelete() {
-        enUtils.requestPatchDelete(host);
+    /** Deletes the downloaded patch data; the confirmation dialog lives in the settings sheet. */
+    public void deletePatch() {
+        enUtils.deletePatch(host);
     }
 
     public void onSubtitleLocaleChanged(String localeCode) {
@@ -400,6 +417,16 @@ public class SettingsViewModel extends AndroidViewModel {
         @Override
         public void setSubtitleUpdateStatus(String summary, boolean enabled) {
             SettingsViewModel.this.setSubtitleUpdateStatus(summary, enabled);
+        }
+
+        @Override
+        public void setPatchDownloadState(@NonNull PatchDownloadState state) {
+            patchDownloadState.setValue(state);
+        }
+
+        @Override
+        public void showPatchMessage(@NonNull String message) {
+            patchMessage.setValue(message);
         }
 
         @Override
