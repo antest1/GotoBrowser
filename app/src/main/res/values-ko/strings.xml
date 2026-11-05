@@ -105,11 +105,11 @@
     <string name="patch_download_checking">변경 사항 확인 중…</string>
     <string name="patch_download_archive">패치 압축 파일 다운로드 중…</string>
     <string name="patch_download_extracting">파일 압축 해제 중…</string>
-    <string name="patch_download_updated">패치가 업데이트되었습니다</string>
+    <string name="patch_download_updated">패치가 업데이트되었습니다. 게임을 새로고침해주세요.</string>
     <string name="patch_download_failed">업데이트에 실패했습니다</string>
     <string name="patch_download_error">다운로드 중 오류가 발생했습니다</string>
     <string name="patch_download_zip_not_deleted">다운로드는 완료되었지만 zip 파일을 삭제하지 못했습니다</string>
-    <string name="patch_deleted">패치 데이터가 삭제되었습니다</string>
+    <string name="patch_deleted">패치 데이터가 삭제되었습니다. 게임을 새로고침해주세요.</string>
     <string name="settings_mod_kantaiid_about">KanColle Indonesia Patch에 대해</string>
 
     <string name="settings_mod_kccp">KanColle Language Patch (KCCP)</string>
@@ -133,8 +133,8 @@
     <string name="en_unzip_start">압축을 푸는 중… 잠시만 기다려 주세요…</string>
     <string name="en_unzip_done">패치 압축 해제 완료!</string>
     <string name="en_update_done">패치 업데이트 완료!</string>
-    <string name="en_install_done_notification">영문패치가 설치되었습니다! 게임을 다시 시작해주세요.</string>
-    <string name="en_update_done_notification">영문패치가 업데이트되었습니다! 게임을 다시 시작해주세요.</string>
+    <string name="en_install_done_notification">패치가 설치되었습니다. 게임을 새로고침해주세요.</string>
+    <string name="en_update_done_notification">패치가 업데이트되었습니다. 게임을 새로고침해주세요.</string>
 
     <string name="browser_ui_hint_text">« 게임 화면 외의 공간을 눌러 패널을 여세요 »</string>
 
@@ -147,7 +147,7 @@
     <string name="dialog_retry_message">게임 클라이언트에서 리소스 파일을 다운로드하는 중 네트워크 문제가 발생합니다. \n다운로드를 다시 시도하시겠습니까?\n%s</string>
 
     <string name="dialog_ipblock_title">해외 IP 차단이 감지됨</string>
-    <string name="dialog_ipblock_message" formatted="false">메인 화면에서 「%s」 옵션을 켜주세요.\n(설정에서도 활성화 가능)</string>
+    <string name="dialog_ipblock_message" formatted="false">설정 → 로그인 및 접속에서 「%s」 옵션을 켜주세요.</string>
     <string name="kcanotify_broadcast_dialog_title">시제 깡들리티 설치 감지됨</string>
     <string name="kcanotify_broadcast_dialog_message" formatted="false">고토브라우저를 깡들리티와 함께 사용하기 위해서는 「%s」가 켜져 있어야 합니다. %s을 눌러 활성화하시겠습니까?</string>
     <string name="settings_menu_tooltip">설정</string>
