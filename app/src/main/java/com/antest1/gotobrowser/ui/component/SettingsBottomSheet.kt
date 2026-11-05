@@ -1153,7 +1153,7 @@ private fun SubtitleSizeDialog(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PatchDownloadDialog(state: PatchDownloadState.Running) {
+internal fun PatchDownloadDialog(state: PatchDownloadState.Running) {
     // BasicAlertDialog instead of AlertDialog: there are no buttons, and AlertDialog
     // keeps padding for its (empty) button row, leaving a blank band at the bottom.
     BasicAlertDialog(
@@ -1197,7 +1197,7 @@ private fun PatchDownloadDialog(state: PatchDownloadState.Running) {
 }
 
 @Composable
-private fun PatchDeleteDialog(
+internal fun PatchDeleteDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -1223,7 +1223,7 @@ private fun PatchDeleteDialog(
  * connector, since other connectors may serve modified game resources.
  */
 @Composable
-private fun ThirdPartyConnectorDialog(
+internal fun ThirdPartyConnectorDialog(
     onAccept: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -1245,7 +1245,7 @@ private fun ThirdPartyConnectorDialog(
  * because Kcanotify needs it to follow the game state.
  */
 @Composable
-private fun KcanotifyBroadcastDialog(
+internal fun KcanotifyBroadcastDialog(
     onAccept: () -> Unit,
     onDismiss: () -> Unit
 ) {
