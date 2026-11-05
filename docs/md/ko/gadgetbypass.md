@@ -13,11 +13,15 @@ IP 차단이 확인된 경우에는 게임 시작 시 아래와 같은 알림이
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/gadget_options.png"  width="480" style="max-width: 100%;" class="mb-3"/>
 
-1. 설정에서 "Gadget 서버 우회 활성화" 옵션을 활성화합니다.  
-   (초기 설치 시 일본어 이외의 언어로 설정된 경우 기본적으로 켜져 있습니다)
+1. 설정 → 로그인 및 접속의 "Gadget 서버 우회" 항목에서 "Gadget 서버 우회 활성화" 옵션을 활성화합니다.
 2. 우회 방식은 "URL 교체"를, Endpoint 서버는 아래의 두 서버 중 하나로 설정하시면 됩니다. (오탈자 유의!)
+3. "새로고침 필요" 안내가 표시되면 "지금 새로고침"을 눌러 게임을 다시 불러옵니다.
 
 | Endpoint 서버 주소 | 비고 |
 | --- | --- |
 | `https://kcwiki.github.io/cache/` | 기본값 |
 | `https://luckyjervis.com/` | | 
+
+##### 참고
+- 우회가 켜진 상태에서 차단이 해제된 것이 확인되면 우회 옵션이 자동으로 꺼집니다.
+- 반대로 우회가 꺼진 상태에서 차단이 감지되면 위의 알림이 다시 표시됩니다.

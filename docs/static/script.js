@@ -24,14 +24,14 @@ marked.setOptions({ renderer: renderer });
 function get_default_language() {
     const navLang = navigator.language;
     if (navLang.includes("ko-KR") || navLang.includes("ko")) return "ko";
-    else if (navLang.includes("ja-JP") || navLang.includes("ja")) return "jp";
+    else if (navLang.includes("ja-JP") || navLang.includes("ja")) return "ja";
     else return "en";
 }
 
 function setPage(lang, page, isNext) {
     // language settings
     if (!menu_data.hasOwnProperty(lang)) {
-        const menu_url = location.origin + location.pathname + "md/" + currentLang + "/menu.json";
+        const menu_url = location.origin + location.pathname + "md/" + lang + "/menu.json";
         fetch(menu_url)
             .then((response) => response.json())
             .then((json) => {

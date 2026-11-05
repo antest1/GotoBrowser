@@ -8,9 +8,13 @@ You can use this function to play KanColle while doing other tasks on your devic
 
 ##### PIP mode
 - In PIP mode, you can only watch the current game screen, and you must exit PIP mode to actually play.
-- If you press X on the PIP screen, it will not exit but will go to the background.
-- If you turn on "Picture-in-picture mode" in the settings, pressing the home button will switch to PIP mode instead of going to the background.
+  - If you press X on the PIP screen, it will not exit but will go to the background.
+- If you turn on "Picture-in-picture mode" in Settings → Display, you can enter PIP mode in the following ways:
+  - Press the home button or swipe up to go to the home screen
+  - Pinch the game screen with two fingers (pinch-zoom out)
+- If "Picture-in-picture mode" is off, the app goes to the background when you leave for the home screen.
 
 ##### Multi-window mode
 - Normal game play is possible in multi-window (split/pop-up) mode.
-- Calling and hiding panel can be done in the <span class="link" data-move="browserui">same way as normal</span>. (touch black margin or swipe)
+- Showing and hiding the toolbar can be done in the <span class="link" data-move="browserui">same way as normal</span>. (touch black margin or swipe)
+- If the game screen sticks to the divider, turn on "[Multi-Window] Add Margin from Divider" in Settings → Display.
