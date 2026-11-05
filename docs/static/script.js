@@ -168,7 +168,7 @@ function setPage(lang, page, isNext) {
             renderPager(page);
         })
         .catch((error) => console.log(error));
-    window.scrollTo({ top: 0, behavior: "instant" });
+    document.getElementById("page-scroll").scrollTo({ top: 0, behavior: "instant" });
 
     const state = { "hl": lang, "page": page };
     const url = location.pathname + "?hl=" + lang + "&page=" + page;

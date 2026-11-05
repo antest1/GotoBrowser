@@ -32,20 +32,40 @@
     --bs-body-bg: #17181f;
 }
 
-html {
-    scroll-padding-top: calc(var(--app-bar-h) + 16px);
+html,
+body {
+    height: 100%;
 }
 
+/* The app bar stays put and only .page-scroll scrolls, so its scrollbar starts under the bar. */
 body {
-    font-family: "Noto Sans KR", "Noto Sans JP", sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+        "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
     background: var(--bs-body-bg);
     -webkit-text-size-adjust: 100%;
+}
+html:lang(ja) body {
+    font-family: "Pretendard JP Variable", "Pretendard Variable", -apple-system, BlinkMacSystemFont,
+        system-ui, "Hiragino Sans", "Yu Gothic UI", sans-serif;
+}
+
+.page-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scroll-padding-top: 16px;
+    overscroll-behavior-y: contain;
 }
 
 /* ---------- App bar ---------- */
 .app-bar {
-    position: sticky;
-    top: 0;
+    flex: none;
+    position: relative;
     z-index: 1030;
     height: var(--app-bar-h);
     background: var(--brand);
@@ -146,8 +166,9 @@ body {
 @media (min-width: 992px) {
     .sidebar {
         position: sticky;
-        top: var(--app-bar-h);
+        top: 0;
         height: calc(100vh - var(--app-bar-h));
+        height: calc(100dvh - var(--app-bar-h));
         overflow-y: auto;
         border-right: 1px solid var(--line);
         padding: 20px 14px 32px;
@@ -423,7 +444,7 @@ body {
 }
 .toc-inner {
     position: sticky;
-    top: calc(var(--app-bar-h) + 28px);
+    top: 28px;
     border-left: 1px solid var(--line);
     padding-left: 14px;
 }
