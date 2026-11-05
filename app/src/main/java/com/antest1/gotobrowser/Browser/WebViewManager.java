@@ -92,7 +92,7 @@ public class WebViewManager {
         view.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         view.getSettings().setSupportMultipleWindows(true);
         view.getSettings().setSupportZoom(false);
-        setWebViewRendererSetting(view);
+        applyRendererSetting(view);
         view.setScrollbarFadingEnabled(true);
         view.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         // Leave Chromium's default rendering path; the WebView is already hardware accelerated.
@@ -136,7 +136,7 @@ public class WebViewManager {
                     view.loadUrl(url);
                     return true;
                 } else if (url.startsWith(URL_DMM)) {
-                    setWebViewUserAgent(view, FLAG_UA_DEFAULT);
+                    setWebViewUserAgent(view, getDefaultUserAgentFlag());
                     view.loadUrl(url);
                     return true;
                 }
@@ -434,11 +434,14 @@ public class WebViewManager {
         } else if ((flags & FLAG_UA_MOBILE) != 0) {
             userAgentString = USER_AGENT_MOBILE;
         }
-        view.getSettings().setUserAgentString(userAgentString);
+        // Changing the UA while a page is loading restarts the load, so skip no-op updates.
+        if (!userAgentString.equals(view.getSettings().getUserAgentString())) {
+            view.getSettings().setUserAgentString(userAgentString);
+        }
         ResourceProcess.setUserAgent(view.getSettings().getUserAgentString());
     }
 
-    private void setWebViewRendererSetting(WebView view) {
+    public void applyRendererSetting(WebView view) {
         // Setting the user agent to change PIXI renderer type:
         // It is the easiest way to improve compatibility,
         // without extra patching to the game client or PixiJS library
@@ -458,7 +461,12 @@ public class WebViewManager {
         // Indeed, Kancolle game client has a hardcoded logic for iOS devices
         // if user agent is iOS device, KC will set forceCanvas:true when init the PIXI Application
 
+        setWebViewUserAgent(view, getDefaultUserAgentFlag());
+    }
+
+    // The legacy (Canvas) renderer relies on the iOS user agent, so every default UA goes through here.
+    private int getDefaultUserAgentFlag() {
         boolean useCanvas = sharedPref.getBoolean(PREF_LEGACY_RENDERER, false);
-        setWebViewUserAgent(view, useCanvas ? FLAG_UA_IOS : FLAG_UA_DEFAULT);
+        return useCanvas ? FLAG_UA_IOS : FLAG_UA_DEFAULT;
     }
 }

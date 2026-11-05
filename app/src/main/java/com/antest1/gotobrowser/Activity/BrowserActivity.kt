@@ -613,6 +613,7 @@ class BrowserActivity : ComponentActivity() {
         viewModel.k3dPatcher.pause()
         viewModel.prepareModPatchers()
         viewModel.k3dPatcher.resume()
+        mContentView?.let { manager?.applyRendererSetting(it) }
         loadSubtitleData()
         onReady()
     }
