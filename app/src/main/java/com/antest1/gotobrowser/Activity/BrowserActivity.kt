@@ -424,11 +424,16 @@ class BrowserActivity : ComponentActivity() {
         }
     }
 
-    fun loadSubtitleData() {
+    /** @param force reload even if the same locale/storage was already loaded (e.g. new data downloaded) */
+    fun loadSubtitleData(force: Boolean = false) {
         // Loaded off the main thread:
         // The result is only consumed later when a voice line plays.
         // A single-thread executor keeps loads in order, so the latest locale wins.
         val subtitleLocale = viewModel.sharedPref.getString(PREF_SUBTITLE_LOCALE, "en") ?: "en"
+        val requestKey = "$subtitleLocale|${viewModel.sharedPref.getBoolean(PREF_USE_EXTCACHE, false)}"
+        if (!force && requestKey == viewModel.subtitleRequestKey) return
+        viewModel.subtitleRequestKey = requestKey
+
         val appContext = applicationContext
         subtitleLoader.execute {
             val loaded = SubtitleProviderUtils.getSubtitleProvider(subtitleLocale)
@@ -436,6 +441,10 @@ class BrowserActivity : ComponentActivity() {
             runOnUiThread {
                 if (!isFinishing && !isDestroyed) {
                     viewModel.isSubtitleLoaded = loaded
+                    // Allow a retry on the next refresh if loading failed
+                    if (!loaded && viewModel.subtitleRequestKey == requestKey) {
+                        viewModel.subtitleRequestKey = null
+                    }
                 }
             }
         }

@@ -411,7 +411,7 @@ public class SettingsViewModel extends AndroidViewModel {
         public void onSubtitleDataUpdated() {
             Activity activity = dialogActivity();
             if (activity instanceof BrowserActivity) {
-                ((BrowserActivity) activity).loadSubtitleData();
+                ((BrowserActivity) activity).loadSubtitleData(true);
             }
         }
     };
