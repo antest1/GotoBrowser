@@ -113,4 +113,32 @@ document.querySelector(".page-name").addEventListener('click', (event) => {
     ["bi-chevron-down", "bi-chevron-up"].forEach(x => document.querySelector(".page-show-icon").classList.toggle(x));
 })
 
+function applyTheme(theme) {
+    document.documentElement.setAttribute("data-bs-theme", theme);
+    // The language menu sits in the always-dark navbar; let it follow the page theme.
+    document.getElementById("lang-dropdown").setAttribute("data-bs-theme", theme);
+    document.querySelector("#theme-toggle i").className = theme === "dark" ? "bi bi-sun" : "bi bi-moon-stars";
+}
+
+function savedTheme() {
+    try { return localStorage.getItem("theme"); } catch (e) { return null; }
+}
+
+applyTheme(document.documentElement.getAttribute("data-bs-theme"));
+
+document.getElementById("theme-toggle").addEventListener("click", (event) => {
+    event.preventDefault();
+    const next = document.documentElement.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
+    try { localStorage.setItem("theme", next); } catch (e) {}
+    applyTheme(next);
+});
+
+// Follow system changes until the visitor picks a theme.
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+    const saved = savedTheme();
+    if (saved !== "light" && saved !== "dark" && !urlParams.has("theme")) {
+        applyTheme(event.matches ? "dark" : "light");
+    }
+});
+
 setPage(currentLang, currentPage, false);

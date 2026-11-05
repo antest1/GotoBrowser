@@ -3,6 +3,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <title>GotoBrowser</title>
+    <script>
+        // Apply the color theme before the page paints: ?theme= (e.g. from the app),
+        // then the visitor's choice, then the system setting.
+        (function () {
+            var theme = new URLSearchParams(location.search).get("theme");
+            if (theme !== "light" && theme !== "dark") {
+                try { theme = localStorage.getItem("theme"); } catch (e) { theme = null; }
+            }
+            if (theme !== "light" && theme !== "dark") {
+                theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            }
+            document.documentElement.setAttribute("data-bs-theme", theme);
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
@@ -18,7 +32,12 @@
                     <a class="navbar-brand" href="#"><span data-text="nav_app_brand"></span></a>
                     <div class="collapse navbar-collapse">
                         <ul class="navbar-nav ms-auto">
-                            <li class="nav-item dropdown" data-bs-theme="light">
+                            <li class="nav-item">
+                                <a class="nav-link px-2" href="#" id="theme-toggle" role="button" aria-label="Toggle dark mode">
+                                    <i class="bi bi-moon-stars"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown" id="lang-dropdown" data-bs-theme="light">
                               <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-globe2 me-2"></i><span id="lang-code"></span>
                               </a>
