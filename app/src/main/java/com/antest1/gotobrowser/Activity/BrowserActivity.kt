@@ -137,6 +137,8 @@ import com.antest1.gotobrowser.ui.component.floatingToolbarEdgeMargin
 import com.antest1.gotobrowser.ui.component.RefreshOption
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
 import com.antest1.gotobrowser.ui.component.rememberLoadingSnapshot
+import com.antest1.gotobrowser.ui.component.refreshAttentionColor
+import com.antest1.gotobrowser.ui.component.requiresFullRefresh
 import com.antest1.gotobrowser.ui.component.rememberToolbarTooltipPositionProvider
 import com.antest1.gotobrowser.ui.component.glassyStyle
 import com.antest1.gotobrowser.ui.theme.GotobrowserTheme
@@ -297,6 +299,13 @@ class BrowserActivity : ComponentActivity() {
                 }
 
                 val loadState by rememberLoadingSnapshot(loadingTracker)
+                val refreshAttention = refreshAttentionColor(loadState)
+                // The guidance points at the refresh FAB, so bring the toolbar (and the FAB) on screen.
+                LaunchedEffect(refreshAttention != null) {
+                    if (refreshAttention != null && !isInPictureInPictureModeState.value) {
+                        toolbarVisible.value = true
+                    }
+                }
 
                 // Insets are NOT applied at this root on purpose: the floating toolbar
                 // slides off the physical screen edge, so it needs unpadded coordinates
@@ -325,7 +334,9 @@ class BrowserActivity : ComponentActivity() {
                             refreshOption.value = option
                             viewModel.setQuickGameReload(option == RefreshOption.QUICK)
                         },
-                        onSettingsClick = { settingsSheetVisible.value = true }
+                        onSettingsClick = { settingsSheetVisible.value = true },
+                        refreshAttention = refreshAttention,
+                        forceFullRefresh = requiresFullRefresh(loadState)
                     ) {
                         val isMute by viewModel.isMuteMode.observeAsState(false)
                         val isCapture by viewModel.isCaptureMode.observeAsState(false)

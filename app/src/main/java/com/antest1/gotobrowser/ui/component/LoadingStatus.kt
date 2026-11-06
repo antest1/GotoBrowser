@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import com.antest1.gotobrowser.Activity.LoadingTracker
 import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.ui.theme.SettingsTheme
+import com.antest1.gotobrowser.ui.theme.StatusErrorColor
 import com.antest1.gotobrowser.ui.theme.StatusWarningColor
 import kotlinx.coroutines.delay
 
@@ -65,10 +66,21 @@ fun rememberLoadingSnapshot(tracker: LoadingTracker): State<LoadingTracker.Snaps
         }
     }
 
+/** Ring color for the refresh FAB, or null when nothing needs the user's attention. */
+fun refreshAttentionColor(snapshot: LoadingTracker.Snapshot): Color? = when {
+    snapshot.failure != null -> StatusErrorColor
+    snapshot.stalledSeconds > 0 -> StatusWarningColor
+    else -> null
+}
+
+/** Quick refresh cannot recover a failed page load. */
+fun requiresFullRefresh(snapshot: LoadingTracker.Snapshot): Boolean =
+    snapshot.failure != null
+
 /**
  * Loading / stalled / failed status, drawn inside the game area. Appears only after
  * [SHOW_DELAY_MILLIS] so fast loads never flash it. Guidance only: the action is the
- * existing refresh FAB.
+ * existing refresh FAB, which [refreshAttentionColor] highlights.
  */
 @Composable
 fun LoadingStatusOverlay(snapshot: LoadingTracker.Snapshot, modifier: Modifier = Modifier) {
