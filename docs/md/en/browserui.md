@@ -31,6 +31,7 @@ The refresh button at the end of the toolbar offers two methods.
 - Press and hold the button and drag upward to choose the other method. The last method used is remembered as the default action of the button.
 - The confirmation dialog shown before refreshing can be disabled in Settings → Controls → "Disable Refresh Warning Dialog".
 - If you chose "Change Settings Without Reload" in the "Reload Required" dialog after changing a setting, refreshing with this button also applies the change.
+- After a connection error while loading or a server error during play, the button runs a Full Refresh regardless of the saved method, and "Full Refresh" is shown next to it. The saved method does not change.
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
@@ -48,6 +49,20 @@ The refresh button at the end of the toolbar offers two methods.
 | --- | --- | --- |
 | <span class="material-symbols-outlined">settings</span> | Settings | Opens the <span class="link" data-move="settings">settings screen</span>. The game keeps running behind it. |
 | <span class="material-symbols-outlined">crop_free</span> | Screenshot | Saves the current game screen. Shown only while screenshot mode is on. (See <span class="link" data-move="screenshot">Saving Screenshots</span>) |
+
+##### Error Notices During Play
+If communication with the server fails during play, a notice is shown at the top of the game screen, where it does not cover the game's own error message.
+
+| Notice | Description |
+| --- | --- |
+| Connection error | The connection dropped or the server did not respond. Check your connection, then refresh. |
+| Server response error | The server answered with an HTTP error. Refresh after a moment. |
+| Server error | The server rejected the request (api_result). Quick Refresh cannot recover from it, so the refresh button runs a Full Refresh automatically. |
+
+- Tap the notice to close it.
+- Long-press the notice to copy its code, API and message. Include them when you report a problem.
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/game_notice.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
 ##### Logout
 - You can log out from Settings → Login and Connection → Logout.

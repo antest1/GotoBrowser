@@ -8,9 +8,27 @@
 ##### 起動の流れ
 1. コネクタのスタートページが開きます。ログインページでは、設定に保存したアカウント情報が自動で入力されます。
 2. ログインすると、ゲーム画面がデバイスの画面に合わせて表示されます。（設定 → 表示 → レイアウト自動調整）
-3. ゲーム画面の外側の黒い部分をタッチすると<span class="link" data-move="browserui">ツールバー</span>が表示され、右上の設定ボタン（<span class="material-symbols-outlined inline-icon">settings</span>）から設定画面を開けます。
+3. ゲームを読み込んでいる間、ゲーム画面に読み込みの案内が表示されます。ゲームが始まると消えます。（下の「読み込みの案内」を参照）
+4. ゲーム画面の外側の黒い部分をタッチすると<span class="link" data-move="browserui">ツールバー</span>が表示され、右上の設定ボタン（<span class="material-symbols-outlined inline-icon">settings</span>）から設定画面を開けます。
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/first_launch.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
+
+##### 読み込みの案内
+ゲームを読み込んでいる間、ゲーム画面の中央に進行状況が表示されます。すぐに読み込みが終わった場合は表示されません。
+- 準備 → サーバーに接続 → リソースのダウンロードの順に進み、右上に現在の段階（1/3〜3/3）が表示されます。
+- リソースをダウンロードしている間は、ゲーム自体の読み込み画面を隠さないよう、画面下部に小さく表示されます。
+- ログインページなど通常のウェブページの上には表示されません。
+
+| 状態 | 説明 | 対処方法 |
+| --- | --- | --- |
+| 進行中 | 現在の段階と進行状況を表示します。 | そのままお待ちください。 |
+| 応答なし（黄色） | 20秒以上応答がない場合に表示されます。 | 黄色で強調されたリフレッシュボタンで再試行してください。 |
+| 接続エラー（赤色） | ページを読み込めなかった場合に、原因とともに表示されます。下にエラーコードとホストが表示されます。 | インターネット接続を確認してから、リフレッシュボタンを押してください。自動的にフルリフレッシュが行われます。 |
+
+- ツールバーが非表示だった場合は、リフレッシュボタンが見えるように自動で表示されます。
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/loading_status.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/loading_error.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
 ##### 接続方式の選択
 - ほとんどの場合、デフォルトの「DMM direct」を変更する必要はありません。

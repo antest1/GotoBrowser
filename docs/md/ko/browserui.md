@@ -31,6 +31,7 @@
 - 버튼을 누른 채로 위쪽으로 끌면 다른 방식을 선택할 수 있습니다. 마지막에 사용한 방식이 버튼의 기본 동작으로 기억됩니다.
 - 새로고침 전 확인 창은 설정 → 조작 → "새로고침 확인 비활성화"로 끌 수 있습니다.
 - 설정 변경 후 "새로고침 필요" 안내에서 "새로고침 없이 설정 변경"을 선택한 경우에도, 이 버튼으로 새로고침하면 변경한 설정이 적용됩니다.
+- 로딩 중 연결 오류나 게임 중 서버 오류가 발생한 뒤에는, 저장된 방식과 상관없이 버튼이 전체 새로고침으로 동작하며 버튼 옆에 "전체 새로고침"이 표시됩니다. 저장된 방식은 바뀌지 않습니다.
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
@@ -48,6 +49,20 @@
 | --- | --- | --- |
 | <span class="material-symbols-outlined">settings</span> | 설정 | <span class="link" data-move="settings">설정 화면</span>을 엽니다. 게임은 설정 화면 뒤에서 계속 실행됩니다. |
 | <span class="material-symbols-outlined">crop_free</span> | 스크린샷 | 현재 게임 화면을 저장합니다. 스크린샷 모드가 켜져 있을 때만 표시됩니다. (<span class="link" data-move="screenshot">스크린샷 저장</span> 참고) |
+
+##### 게임 중 오류 안내
+게임 중 서버와의 통신에 문제가 생기면 게임 화면 상단에 안내가 표시됩니다. 게임 자체의 오류 표시를 가리지 않는 위치입니다.
+
+| 안내 | 설명 |
+| --- | --- |
+| 통신 오류 | 연결이 끊기거나 응답이 없을 때 표시됩니다. 연결을 확인한 뒤 새로고침하세요. |
+| 서버 응답 오류 | 서버가 HTTP 오류로 응답했을 때 표시됩니다. 잠시 후 새로고침하세요. |
+| 서버 오류 | 서버가 요청을 거부했을 때(api_result) 표시됩니다. 빠른 새로고침으로는 복구되지 않으므로 새로고침 버튼이 자동으로 전체 새로고침으로 동작합니다. |
+
+- 안내를 터치하면 닫힙니다.
+- 안내를 길게 누르면 코드·API·메시지가 복사됩니다. 문의할 때 함께 보내 주세요.
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/game_notice.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
 ##### 로그아웃
 - 로그아웃은 설정 → 로그인 및 접속 → 로그아웃에서 할 수 있습니다.
