@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Typeface
 import android.graphics.fonts.Font
 import android.graphics.fonts.FontFamily
+import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -37,6 +39,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ActivityScenario
 import com.antest1.gotobrowser.Activity.BrowserOverlayLayer
+import com.antest1.gotobrowser.Activity.LoadingTracker
 import com.antest1.gotobrowser.Activity.PanelButton
 import com.antest1.gotobrowser.Activity.PatchDownloadState
 import com.antest1.gotobrowser.Activity.SettingsRefreshDialog
@@ -52,13 +55,18 @@ import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.ui.component.ControlLayout
 import com.antest1.gotobrowser.ui.component.DialogButton
 import com.antest1.gotobrowser.ui.component.KcanotifyBroadcastDialog
+import com.antest1.gotobrowser.ui.component.LoadingStatusOverlay
 import com.antest1.gotobrowser.ui.component.MessageDialog
 import com.antest1.gotobrowser.ui.component.MessageDialogHost
 import com.antest1.gotobrowser.ui.component.PatchDeleteDialog
 import com.antest1.gotobrowser.ui.component.PatchDownloadDialog
 import com.antest1.gotobrowser.ui.component.RefreshOption
+import com.antest1.gotobrowser.ui.component.ServerNotice
+import com.antest1.gotobrowser.ui.component.ServerNoticeSnackbar
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
 import com.antest1.gotobrowser.ui.component.ThirdPartyConnectorDialog
+import com.antest1.gotobrowser.ui.component.refreshAttentionColor
+import com.antest1.gotobrowser.ui.component.requiresFullRefresh
 import com.antest1.gotobrowser.ui.theme.GotobrowserTheme
 import com.antest1.gotobrowser.ui.theme.SettingsTheme
 import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
@@ -73,7 +81,9 @@ import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import org.robolectric.shadows.ShadowLooper
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 /**
  * Renders the app's Compose UI into images for the manual (docs/).
@@ -295,6 +305,78 @@ class DocScreenshotTest(private val locale: String) {
         }
         settle(800)
     }) { Browser() }
+
+    // ------------------------------------------------------------------
+    // Loading and error notices
+    // ------------------------------------------------------------------
+
+    /**
+     * Game area with the loading card / in-game notice drawn inside it, and the toolbar
+     * pointing at the refresh button as the browser does for that state.
+     */
+    @Composable
+    private fun Status(state: LoadingTracker.Snapshot, notice: ServerNotice? = null, background: String = "none") {
+        GotobrowserTheme {
+            GameArea(background)
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                val wide = maxWidth / maxHeight > 1200f / 720f
+                Box(
+                    Modifier.align(Alignment.Center)
+                        .then(if (wide) Modifier.fillMaxHeight() else Modifier.fillMaxWidth())
+                        .aspectRatio(1200f / 720f)
+                ) {
+                    LoadingStatusOverlay(state)
+                    ServerNoticeSnackbar(notice, onDismiss = {}, modifier = Modifier.align(Alignment.TopCenter).padding(12.dp))
+                }
+            }
+            ControlLayout(
+                visible = true,
+                onVisibleChange = {},
+                onRefreshClick = {},
+                onSettingsClick = {},
+                refreshAttention = refreshAttentionColor(state, notice != null),
+                forceFullRefresh = requiresFullRefresh(state, notice)
+            ) {
+                PanelButton(id = R.drawable.volume_off, tooltip = stringResource(R.string.menu_tooltip_mute), active = true, onClick = {})
+                PanelButton(id = R.drawable.camera_icon, tooltip = stringResource(R.string.menu_tooltip_camera), active = true, onClick = {})
+                PanelButton(id = R.drawable.screen_lock, tooltip = stringResource(R.string.menu_tooltip_lock), onClick = {})
+                PanelButton(id = R.drawable.light_mode, tooltip = stringResource(R.string.menu_tooltip_brighton), onClick = {})
+                PanelButton(id = R.drawable.caption_icon, tooltip = stringResource(R.string.menu_tooltip_cc), active = true, onClick = {})
+            }
+        }
+    }
+
+    /** The card fades in after a delay() on the main Looper, which the compose clock does not advance. */
+    private val showStatus: () -> Unit = {
+        ShadowLooper.idleMainLooper(1, TimeUnit.SECONDS)
+        settle(3_000)
+    }
+
+    @Test
+    fun loadingStatus() = shoot("ui_loading_status", action = showStatus) {
+        Status(LoadingTracker.Snapshot(stage = LoadingTracker.Stage.CONNECTING, progress = 62))
+    }
+
+    @Test
+    fun loadingError() = shoot("ui_loading_error", action = showStatus) {
+        Status(
+            LoadingTracker.Snapshot(
+                stage = LoadingTracker.Stage.CONNECTING,
+                failure = LoadingTracker.Failure.Network(
+                    WebViewClient.ERROR_HOST_LOOKUP, "net::ERR_NAME_NOT_RESOLVED", "https://play.games.dmm.com/game/kancolle"
+                )
+            )
+        )
+    }
+
+    @Test
+    fun gameNotice() = shoot("ui_game_notice", action = showStatus) {
+        Status(
+            LoadingTracker.Snapshot(stage = LoadingTracker.Stage.READY),
+            ServerNotice(ServerNotice.Kind.NETWORK, "ERR_NETWORK", "api_req_hokyu/charge", "Network Error"),
+            background = "game_bg"
+        )
+    }
 
     // ------------------------------------------------------------------
     // Settings sheet
