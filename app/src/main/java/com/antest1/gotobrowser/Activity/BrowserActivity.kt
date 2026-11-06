@@ -130,11 +130,13 @@ import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils
 import com.antest1.gotobrowser.ui.component.ControlLayout
 import com.antest1.gotobrowser.ui.component.DialogButton
+import com.antest1.gotobrowser.ui.component.LoadingStatusOverlay
 import com.antest1.gotobrowser.ui.component.MessageDialog
 import com.antest1.gotobrowser.ui.component.MessageDialogHost
 import com.antest1.gotobrowser.ui.component.floatingToolbarEdgeMargin
 import com.antest1.gotobrowser.ui.component.RefreshOption
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
+import com.antest1.gotobrowser.ui.component.rememberLoadingSnapshot
 import com.antest1.gotobrowser.ui.component.rememberToolbarTooltipPositionProvider
 import com.antest1.gotobrowser.ui.component.glassyStyle
 import com.antest1.gotobrowser.ui.theme.GotobrowserTheme
@@ -159,6 +161,7 @@ class BrowserActivity : ComponentActivity() {
     private lateinit var displayController: DisplayController
 
     val isInPictureInPictureModeState = mutableStateOf(false)
+    val loadingTracker = LoadingTracker()
     private val errorText = mutableStateOf("")
     private val closeButtonVisible = mutableStateOf(false)
     private val toolbarVisible = mutableStateOf(false)
@@ -293,6 +296,8 @@ class BrowserActivity : ComponentActivity() {
                     hideSystemBars()
                 }
 
+                val loadState by rememberLoadingSnapshot(loadingTracker)
+
                 // Insets are NOT applied at this root on purpose: the floating toolbar
                 // slides off the physical screen edge, so it needs unpadded coordinates
                 // and handles the cutout itself. Each overlay applies safeOverlayInsets()
@@ -300,6 +305,7 @@ class BrowserActivity : ComponentActivity() {
                 Box(modifier = Modifier.fillMaxSize()) {
                     BrowserOverlayContent(
                         viewModel = viewModel,
+                        loadState = loadState,
                         errorText = errorText,
                         closeButtonVisible = closeButtonVisible,
                         subtitleFontSize = subtitleFontSize,
@@ -427,6 +433,7 @@ class BrowserActivity : ComponentActivity() {
             WebViewManager.enableBrowserCookie(webView)
             manager?.setWebViewClient(this, webView)
             manager?.setPopupView(webView)
+            loadingTracker.start()
             reloadSettings { manager?.openPage(webView, info) }
         }
         webView.setBackgroundColor(android.graphics.Color.BLACK)
@@ -607,6 +614,22 @@ class BrowserActivity : ComponentActivity() {
         )
     }
 
+    /**
+     * A main-frame load failed. While the first screen is loading it is shown in the
+     * loading card (which stays, unlike a dialog that leaves a black screen once closed).
+     *
+     * @return true if handled there; otherwise the caller shows the error dialog
+     */
+    fun onMainFrameLoadError(errorCode: Int, description: String?, failingUrl: String?): Boolean =
+        loadingTracker.onFailure(
+            LoadingTracker.Failure.Network(errorCode, description.orEmpty(), failingUrl)
+        )
+
+    /** A main-frame HTTP error (4xx/5xx), shown in the loading card while loading. */
+    fun onMainFrameHttpError(statusCode: Int, url: String?) {
+        loadingTracker.onFailure(LoadingTracker.Failure.Http(statusCode, "HTTP $statusCode", url))
+    }
+
     fun showSslErrorDialog(handler: SslErrorHandler, error: SslError) {
         showMessageDialog(
             MessageDialog(
@@ -622,10 +645,14 @@ class BrowserActivity : ComponentActivity() {
         viewModel.connectorInfo = WebViewManager.getDefaultPage(this)
         val info = viewModel.connectorInfo
         if (manager != null && info != null && info.size == 2) {
+            loadingTracker.start()
             reloadSettings {
                 mContentView?.let {
                     when (option) {
-                        RefreshOption.QUICK -> manager?.refreshGameFrame(it)
+                        RefreshOption.QUICK -> {
+                            loadingTracker.onGameFrameReload()
+                            manager?.refreshGameFrame(it)
+                        }
                         RefreshOption.FULL -> manager?.refreshPage(it)
                     }
                 }
@@ -979,6 +1006,7 @@ fun BrowserOverlayLayer(
 @Composable
 fun BrowserOverlayContent(
     viewModel: BrowserViewModel,
+    loadState: LoadingTracker.Snapshot,
     errorText: MutableState<String>,
     closeButtonVisible: MutableState<Boolean>,
     subtitleFontSize: MutableState<Int>,
@@ -1025,6 +1053,12 @@ fun BrowserOverlayContent(
             }
 
             if (!activity.isInPictureInPictureModeState.value) {
+                // Status sits within the game area: loading card centered, or at the bottom
+                // while the game draws its own loading screen.
+                Box(modifier = Modifier.align(Alignment.Center).size(gameWidth, gameHeight)) {
+                    LoadingStatusOverlay(loadState)
+                }
+
                 BrowserOverlayLayer(
                     showSubtitle = isCaption,
                     subtitleText = subtitleText,

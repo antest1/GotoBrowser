@@ -153,4 +153,25 @@
     <string name="settings_refresh_required_msg">設定已儲存。需要重新載入遊戲才能生效。你想現在重新載入嗎？</string>
     <string name="settings_refresh_now">現在重新載入</string>
     <string name="settings_refresh_later">暫不重新載入</string>
+    <!-- First-screen loading status and server errors -->
+    <string name="loading_preparing_title">正在套用設定</string>
+    <string name="loading_preparing_desc">正在準備代理伺服器與修補設定</string>
+    <string name="loading_connecting_title">正在連線至伺服器</string>
+    <string name="loading_connecting_desc">正在載入遊戲頁面</string>
+    <string name="loading_resources_title">正在下載遊戲資源</string>
+    <string name="loading_resources_count">%1$d 個</string>
+    <string name="loading_stalled_title">已 %1$d 秒沒有回應</string>
+    <string name="loading_stalled_desc">請使用重新整理按鈕再試一次</string>
+    <string name="loading_error_connect_title">無法連線至伺服器</string>
+    <string name="loading_error_connect_desc">請檢查網路連線，然後使用重新整理按鈕進行完全重新整理</string>
+    <string name="loading_error_timeout_title">伺服器回應逾時</string>
+    <string name="loading_error_timeout_desc">請稍候，然後使用重新整理按鈕進行完全重新整理</string>
+    <string name="loading_error_forbidden_title">存取遭拒 (HTTP %1$d)</string>
+    <string name="loading_error_forbidden_desc">可能受到地區限制。請檢查登入方式或代理伺服器設定，然後進行完全重新整理</string>
+    <string name="loading_error_server_title">伺服器錯誤 (HTTP %1$d)</string>
+    <string name="loading_error_server_desc">伺服器可能正在維護。請稍後使用重新整理按鈕進行完全重新整理</string>
+    <string name="loading_error_generic_title">無法載入頁面</string>
+    <string name="loading_error_generic_desc">請使用重新整理按鈕進行完全重新整理</string>
+    <string name="detail_code">代碼</string>
+    <string name="detail_host">主機</string>
 </resources>

@@ -153,4 +153,25 @@
     <string name="settings_refresh_required_msg">設定が保存されました。効果を有効にするにはゲームの再読み込みが必要です。今すぐ再読み込みしますか？</string>
     <string name="settings_refresh_now">今すぐ再読み込み</string>
     <string name="settings_refresh_later">再読み込みせずに設定を変更</string>
+    <!-- First-screen loading status and server errors -->
+    <string name="loading_preparing_title">設定を適用中</string>
+    <string name="loading_preparing_desc">プロキシとパッチの設定を準備しています</string>
+    <string name="loading_connecting_title">サーバーに接続中</string>
+    <string name="loading_connecting_desc">ゲームページを読み込んでいます</string>
+    <string name="loading_resources_title">ゲームリソースをダウンロード中</string>
+    <string name="loading_resources_count">%1$d件</string>
+    <string name="loading_stalled_title">%1$d秒間応答がありません</string>
+    <string name="loading_stalled_desc">リフレッシュボタンでもう一度お試しください</string>
+    <string name="loading_error_connect_title">サーバーに接続できません</string>
+    <string name="loading_error_connect_desc">インターネット接続を確認してから、リフレッシュボタンでフルリフレッシュしてください</string>
+    <string name="loading_error_timeout_title">サーバーの応答がタイムアウトしました</string>
+    <string name="loading_error_timeout_desc">しばらく待ってから、リフレッシュボタンでフルリフレッシュしてください</string>
+    <string name="loading_error_forbidden_title">アクセスが拒否されました (HTTP %1$d)</string>
+    <string name="loading_error_forbidden_desc">地域制限の可能性があります。接続方式またはプロキシの設定を確認してから、フルリフレッシュしてください</string>
+    <string name="loading_error_server_title">サーバーエラー (HTTP %1$d)</string>
+    <string name="loading_error_server_desc">サーバーがメンテナンス中の可能性があります。しばらくしてからリフレッシュボタンでフルリフレッシュしてください</string>
+    <string name="loading_error_generic_title">ページを読み込めませんでした</string>
+    <string name="loading_error_generic_desc">リフレッシュボタンでフルリフレッシュしてください</string>
+    <string name="detail_code">コード</string>
+    <string name="detail_host">ホスト</string>
 </resources>
