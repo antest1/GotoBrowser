@@ -7,9 +7,9 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// Color schemes for the settings sheet and the in-game loading card (always dark).
-// The game controls (toolbar, FAB, glassy buttons) keep the neutral GotobrowserTheme
-// so they stay unobtrusive over the game.
+// Color schemes for the settings sheet and the in-game status overlay (loading card and
+// server-error snackbar, always dark). The game controls (toolbar, FAB, glassy buttons)
+// keep the neutral GotobrowserTheme so they stay unobtrusive over the game.
 //
 // Generated from seed #005FAC (the seed ReVanced Manager derives its palette from) with
 // the Material "tonal spot" variant, the same way Material Theme Builder / Material You

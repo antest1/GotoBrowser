@@ -171,6 +171,12 @@
     <string name="loading_error_server_desc">伺服器可能正在維護。請稍後使用重新整理按鈕進行完全重新整理</string>
     <string name="loading_error_generic_title">無法載入頁面</string>
     <string name="loading_error_generic_desc">請使用重新整理按鈕進行完全重新整理</string>
+    <string name="server_notice_title">伺服器錯誤 — 請使用重新整理按鈕進行完全重新整理</string>
+    <string name="notice_copied">已複製</string>
+    <string name="notice_network_title">通訊錯誤 — 請檢查網路連線，然後使用重新整理按鈕重新整理</string>
+    <string name="notice_http_title">伺服器回應錯誤 — 請稍後使用重新整理按鈕重新整理</string>
     <string name="detail_code">代碼</string>
     <string name="detail_host">主機</string>
+    <string name="detail_api">API</string>
+    <string name="detail_message">訊息</string>
 </resources>

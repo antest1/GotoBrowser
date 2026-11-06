@@ -1,11 +1,19 @@
 package com.antest1.gotobrowser.ui.component
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.os.Build
 import android.webkit.WebViewClient
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +33,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -38,23 +48,44 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.antest1.gotobrowser.Activity.LoadingTracker
+import com.antest1.gotobrowser.Helpers.KcUtils
 import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.ui.theme.SettingsTheme
 import com.antest1.gotobrowser.ui.theme.StatusErrorColor
 import com.antest1.gotobrowser.ui.theme.StatusWarningColor
 import kotlinx.coroutines.delay
 
+/** A kcsapi call that went wrong during play, shown once at the top of the game area. */
+data class ServerNotice(val kind: Kind, val code: String, val api: String, val message: String) {
+    enum class Kind {
+        /** api_result is not 1: only a full refresh recovers. */
+        REJECTED,
+        /** No response: the connection dropped or timed out. */
+        NETWORK,
+        /** The server answered with an HTTP error. */
+        HTTP
+    }
+
+    /** One line for bug reports (long-press copies it). */
+    val detail: String get() = listOf(code, api, message).filter { it.isNotBlank() }.joinToString(" · ")
+}
+
 private const val SHOW_DELAY_MILLIS = 500L
 private const val POLL_MILLIS = 500L
 private const val STEP_COUNT = 3
+
+// The snackbar sits on inverseSurface (light), so its icon uses the light scheme's error tone.
+private val SnackbarErrorColor = Color(0xFFBA1A1A)
 
 /** Polls [tracker]; equal snapshots do not recompose, so this is idle once loading ends. */
 @Composable
@@ -67,15 +98,15 @@ fun rememberLoadingSnapshot(tracker: LoadingTracker): State<LoadingTracker.Snaps
     }
 
 /** Ring color for the refresh FAB, or null when nothing needs the user's attention. */
-fun refreshAttentionColor(snapshot: LoadingTracker.Snapshot): Color? = when {
-    snapshot.failure != null -> StatusErrorColor
+fun refreshAttentionColor(snapshot: LoadingTracker.Snapshot, hasServerNotice: Boolean): Color? = when {
+    hasServerNotice || snapshot.failure != null -> StatusErrorColor
     snapshot.stalledSeconds > 0 -> StatusWarningColor
     else -> null
 }
 
-/** Quick refresh cannot recover a failed page load. */
-fun requiresFullRefresh(snapshot: LoadingTracker.Snapshot): Boolean =
-    snapshot.failure != null
+/** Quick refresh cannot recover a failed page load or a rejected kcsapi call. */
+fun requiresFullRefresh(snapshot: LoadingTracker.Snapshot, notice: ServerNotice?): Boolean =
+    notice?.kind == ServerNotice.Kind.REJECTED || snapshot.failure != null
 
 /**
  * Loading / stalled / failed status, drawn inside the game area. Appears only after
@@ -323,5 +354,70 @@ private fun ErrorBadge(color: Color, onColor: Color) {
         contentAlignment = Alignment.Center
     ) {
         Text("!", color = onColor, fontSize = 13.sp, fontWeight = FontWeight.Black, lineHeight = 13.sp)
+    }
+}
+
+/**
+ * Top-of-game M3 snackbar for a rejected kcsapi call. No action button: tap to dismiss,
+ * long-press to copy the detail line (code · api · server message) for bug reports.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ServerNoticeSnackbar(notice: ServerNotice?, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+    var shown by remember { mutableStateOf(notice) }
+    SideEffect { if (notice != null) shown = notice }
+
+    AnimatedVisibility(
+        visible = notice != null,
+        enter = slideInVertically { -it } + fadeIn(),
+        exit = slideOutVertically { -it } + fadeOut(),
+        modifier = modifier
+    ) {
+        val current = notice ?: shown ?: return@AnimatedVisibility
+        SettingsTheme(darkTheme = true) {
+            val context = LocalContext.current
+            Snackbar(
+                modifier = Modifier
+                    .widthIn(max = 600.dp)
+                    .clip(SnackbarDefaults.shape)
+                    .combinedClickable(
+                        onClick = onDismiss,
+                        onLongClick = { copyToClipboard(context, current.detail) }
+                    )
+            ) {
+                val title = when (current.kind) {
+                    ServerNotice.Kind.REJECTED -> R.string.server_notice_title
+                    ServerNotice.Kind.NETWORK -> R.string.notice_network_title
+                    ServerNotice.Kind.HTTP -> R.string.notice_http_title
+                }
+                val content = LocalContentColor.current
+                Row(verticalAlignment = Alignment.Top) {
+                    ErrorBadge(color = SnackbarErrorColor, onColor = Color.White)
+                    Spacer(Modifier.width(12.dp))
+                    Column {
+                        Text(stringResource(title), style = MaterialTheme.typography.bodyMedium)
+                        DetailBlock(
+                            rows = listOf(
+                                stringResource(R.string.detail_code) to current.code,
+                                stringResource(R.string.detail_api) to current.api,
+                                stringResource(R.string.detail_message) to current.message
+                            ),
+                            dividerColor = content.copy(alpha = 0.2f),
+                            labelColor = content.copy(alpha = 0.65f),
+                            valueColor = content.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun copyToClipboard(context: Context, text: String) {
+    val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
+    clipboard.setPrimaryClip(ClipData.newPlainText("GotoBrowser", text))
+    // Android 13+ shows its own confirmation.
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        KcUtils.showToast(context, R.string.notice_copied)
     }
 }

@@ -133,6 +133,8 @@ import com.antest1.gotobrowser.ui.component.DialogButton
 import com.antest1.gotobrowser.ui.component.LoadingStatusOverlay
 import com.antest1.gotobrowser.ui.component.MessageDialog
 import com.antest1.gotobrowser.ui.component.MessageDialogHost
+import com.antest1.gotobrowser.ui.component.ServerNotice
+import com.antest1.gotobrowser.ui.component.ServerNoticeSnackbar
 import com.antest1.gotobrowser.ui.component.floatingToolbarEdgeMargin
 import com.antest1.gotobrowser.ui.component.RefreshOption
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
@@ -164,6 +166,7 @@ class BrowserActivity : ComponentActivity() {
 
     val isInPictureInPictureModeState = mutableStateOf(false)
     val loadingTracker = LoadingTracker()
+    private val serverNotice = mutableStateOf<ServerNotice?>(null)
     private val errorText = mutableStateOf("")
     private val closeButtonVisible = mutableStateOf(false)
     private val toolbarVisible = mutableStateOf(false)
@@ -299,7 +302,8 @@ class BrowserActivity : ComponentActivity() {
                 }
 
                 val loadState by rememberLoadingSnapshot(loadingTracker)
-                val refreshAttention = refreshAttentionColor(loadState)
+                val notice = serverNotice.value
+                val refreshAttention = refreshAttentionColor(loadState, notice != null)
                 // The guidance points at the refresh FAB, so bring the toolbar (and the FAB) on screen.
                 LaunchedEffect(refreshAttention != null) {
                     if (refreshAttention != null && !isInPictureInPictureModeState.value) {
@@ -315,6 +319,8 @@ class BrowserActivity : ComponentActivity() {
                     BrowserOverlayContent(
                         viewModel = viewModel,
                         loadState = loadState,
+                        serverNotice = notice,
+                        onDismissServerNotice = { serverNotice.value = null },
                         errorText = errorText,
                         closeButtonVisible = closeButtonVisible,
                         subtitleFontSize = subtitleFontSize,
@@ -336,7 +342,7 @@ class BrowserActivity : ComponentActivity() {
                         },
                         onSettingsClick = { settingsSheetVisible.value = true },
                         refreshAttention = refreshAttention,
-                        forceFullRefresh = requiresFullRefresh(loadState)
+                        forceFullRefresh = requiresFullRefresh(loadState, notice)
                     ) {
                         val isMute by viewModel.isMuteMode.observeAsState(false)
                         val isCapture by viewModel.isCaptureMode.observeAsState(false)
@@ -641,6 +647,34 @@ class BrowserActivity : ComponentActivity() {
         loadingTracker.onFailure(LoadingTracker.Failure.Http(statusCode, "HTTP $statusCode", url))
     }
 
+    /** A kcsapi call returned api_result != 1. Safe to call from any thread. */
+    fun showServerNotice(code: Int, url: String, message: String) {
+        postServerNotice(ServerNotice(ServerNotice.Kind.REJECTED, code.toString(), apiOf(url), message), replace = true)
+    }
+
+    /**
+     * A kcsapi call got no usable response: no network, a timeout ([status] 0) or an HTTP
+     * error. Safe to call from any thread. Several calls usually fail together when the
+     * connection drops, so the first notice stays until it is dismissed.
+     */
+    fun showRequestFailure(url: String, status: Int, code: String, message: String) {
+        val notice = if (status > 0) {
+            ServerNotice(ServerNotice.Kind.HTTP, "HTTP $status", apiOf(url), message)
+        } else {
+            ServerNotice(ServerNotice.Kind.NETWORK, code, apiOf(url), message)
+        }
+        postServerNotice(notice, replace = false)
+    }
+
+    private fun postServerNotice(notice: ServerNotice, replace: Boolean) {
+        runOnUiThread {
+            if (isFinishing || isDestroyed) return@runOnUiThread
+            if (replace || serverNotice.value == null) serverNotice.value = notice
+        }
+    }
+
+    private fun apiOf(url: String): String = url.substringAfter("/kcsapi/", url).substringBefore('?')
+
     fun showSslErrorDialog(handler: SslErrorHandler, error: SslError) {
         showMessageDialog(
             MessageDialog(
@@ -657,6 +691,8 @@ class BrowserActivity : ComponentActivity() {
         val info = viewModel.connectorInfo
         if (manager != null && info != null && info.size == 2) {
             loadingTracker.start()
+            serverNotice.value = null
+            errorText.value = ""
             reloadSettings {
                 mContentView?.let {
                     when (option) {
@@ -1018,6 +1054,8 @@ fun BrowserOverlayLayer(
 fun BrowserOverlayContent(
     viewModel: BrowserViewModel,
     loadState: LoadingTracker.Snapshot,
+    serverNotice: ServerNotice?,
+    onDismissServerNotice: () -> Unit,
     errorText: MutableState<String>,
     closeButtonVisible: MutableState<Boolean>,
     subtitleFontSize: MutableState<Int>,
@@ -1064,10 +1102,16 @@ fun BrowserOverlayContent(
             }
 
             if (!activity.isInPictureInPictureModeState.value) {
-                // Status sits within the game area: loading card centered, or at the bottom
-                // while the game draws its own loading screen.
+                // Status sits within the game area: loading card centered (or at the bottom
+                // while the game draws its own loading screen), server errors at the top so
+                // they never cover the game's own error message in the middle.
                 Box(modifier = Modifier.align(Alignment.Center).size(gameWidth, gameHeight)) {
                     LoadingStatusOverlay(loadState)
+                    ServerNoticeSnackbar(
+                        notice = serverNotice,
+                        onDismiss = onDismissServerNotice,
+                        modifier = Modifier.align(Alignment.TopCenter).padding(12.dp)
+                    )
                 }
 
                 BrowserOverlayLayer(

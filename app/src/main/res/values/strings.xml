@@ -186,6 +186,12 @@
     <string name="loading_error_server_desc">The server may be under maintenance. Use Full Refresh on the refresh button later</string>
     <string name="loading_error_generic_title">Couldn\'t load the page</string>
     <string name="loading_error_generic_desc">Use Full Refresh on the refresh button to try again</string>
+    <string name="server_notice_title">Server error — use Full Refresh on the refresh button</string>
+    <string name="notice_copied">Copied</string>
+    <string name="notice_network_title">Connection error — check your internet connection, then use the refresh button</string>
+    <string name="notice_http_title">Server response error — use the refresh button in a moment</string>
     <string name="detail_code">Code</string>
     <string name="detail_host">Host</string>
+    <string name="detail_api">API</string>
+    <string name="detail_message">Message</string>
 </resources>
