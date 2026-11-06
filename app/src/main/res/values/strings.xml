@@ -167,4 +167,31 @@
     <string name="channel_description" translatable="false">gotobrowser_channel_description</string>
     <string name="kcanotify_broadcast_dialog_title">Kcanotify Detected</string>
     <string name="kcanotify_broadcast_dialog_message" formatted="false">To use GotoBrowser with Kcanotify, 「%s」 must be turned on. Do you want to enable it by clicking %s?</string>
+    <!-- First-screen loading status and server errors -->
+    <string name="loading_preparing_title">Applying settings</string>
+    <string name="loading_preparing_desc">Preparing proxy and patch settings</string>
+    <string name="loading_connecting_title">Connecting to server</string>
+    <string name="loading_connecting_desc">Loading the game page</string>
+    <string name="loading_resources_title">Downloading game resources</string>
+    <string name="loading_resources_count">%1$d files</string>
+    <string name="loading_stalled_title">No response for %1$d s</string>
+    <string name="loading_stalled_desc">Try again with the refresh button</string>
+    <string name="loading_error_connect_title">Can\'t reach the server</string>
+    <string name="loading_error_connect_desc">Check your internet connection, then use Full Refresh on the refresh button</string>
+    <string name="loading_error_timeout_title">The server took too long to respond</string>
+    <string name="loading_error_timeout_desc">Wait a moment, then use Full Refresh on the refresh button</string>
+    <string name="loading_error_forbidden_title">Access denied (HTTP %1$d)</string>
+    <string name="loading_error_forbidden_desc">This may be a regional restriction. Check the login method or proxy settings, then use Full Refresh</string>
+    <string name="loading_error_server_title">Server error (HTTP %1$d)</string>
+    <string name="loading_error_server_desc">The server may be under maintenance. Use Full Refresh on the refresh button later</string>
+    <string name="loading_error_generic_title">Couldn\'t load the page</string>
+    <string name="loading_error_generic_desc">Use Full Refresh on the refresh button to try again</string>
+    <string name="server_notice_title">Server error — use Full Refresh on the refresh button</string>
+    <string name="notice_copied">Copied</string>
+    <string name="notice_network_title">Connection error — check your internet connection, then use the refresh button</string>
+    <string name="notice_http_title">Server response error — use the refresh button in a moment</string>
+    <string name="detail_code">Code</string>
+    <string name="detail_host">Host</string>
+    <string name="detail_api">API</string>
+    <string name="detail_message">Message</string>
 </resources>

@@ -17,7 +17,6 @@ import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,7 +27,10 @@ import static com.antest1.gotobrowser.ContentProvider.KcaPacketStore.PACKETSTORE
 
 public class KcsInterface {
     public static final String GOTO_ANDROID = "GotoBrowser";
-    public static final String AXIOS_INTERCEPT_SCRIPT = "axios.interceptors.response.use(function(response){if(response.config.url.includes(\"kcsapi\")){var url=response.config.url;var request=response.config.data;var host=window.location.hostname;var data=response.data;GotoBrowser.kcs_xhr_intercept(host,url,request,data);}return response;},function(error){return Promise.reject(error);});";
+    // Responses go to kcs_xhr_intercept; a kcsapi call that fails (no network, timeout, HTTP error)
+    // goes to kcs_axios_error. The error branch hooks axios itself, so it does not depend on how
+    // main.js is obfuscated.
+    public static final String AXIOS_INTERCEPT_SCRIPT = "axios.interceptors.response.use(function(response){if(response.config.url.includes(\"kcsapi\")){var url=response.config.url;var request=response.config.data;var host=window.location.hostname;var data=response.data;GotoBrowser.kcs_xhr_intercept(host,url,request,data);}return response;},function(error){try{var c=error&&error.config;if(c&&c.url&&c.url.includes(\"kcsapi\")){var r=error.response;GotoBrowser.kcs_axios_error(window.location.hostname,c.url,r?r.status:0,String(error.code||\"\"),String(error.message||\"\"));}}catch(e){}return Promise.reject(error);});";
     // Holds kcsapi requests while the page is hidden and sends them once it is visible again.
     // A request started in the background can fail (cached app freezer, Android 15 background
     // network restriction) and the game shows a connection error. The request is only delayed,
@@ -56,9 +58,13 @@ public class KcsInterface {
         return sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
     }
 
+    private static boolean isGameHost(String host) {
+        return host != null && (host.endsWith(".kancolle-server.com") || host.equals("ooi.moe"));
+    }
+
     @JavascriptInterface
     public void kcs_xhr_intercept(String host, String url, String requestHeader, String responseRaw) {
-        if (host != null && (host.endsWith(".kancolle-server.com") || host.equals("ooi.moe"))) {
+        if (isGameHost(host)) {
             if (url.contains("kcsapi") && responseRaw.contains("svdata=")) {
                 Log.e("GOTO-XHR", host + " " + url + " - " + isDevtoolsEnabled());
                 handler.post(() -> processXHR(url, requestHeader, responseRaw));
@@ -74,12 +80,15 @@ public class KcsInterface {
         }
     }
 
+    /**
+     * A kcsapi call failed without a usable response (see AXIOS_INTERCEPT_SCRIPT).
+     * @param status HTTP status, or 0 when no response arrived (network error, timeout)
+     */
     @JavascriptInterface
-    public void kcs_axios_error(String error) {
-        activity.runOnUiThread(() -> {
-            String text = String.format(Locale.US, "[Error] %s", error);
-            activity.setErrorText(text);
-        });
+    public void kcs_axios_error(String host, String url, int status, String code, String message) {
+        if (!isGameHost(host) || url == null) return;
+        Log.e("GOTO-XHR", "kcsapi failed: " + url + " " + status + " " + code + " " + message);
+        activity.showRequestFailure(url, status, code, message);
     }
 
     public void processXHR(String url, String request, String response) {
@@ -94,15 +103,15 @@ public class KcsInterface {
                 }
             }
 
-            String finalResponse = response;
-            activity.runOnUiThread(() -> {
-                if (response_obj != null) {
-                    int result = response_obj.get("api_result").getAsInt();
-                    String message = response_obj.get("api_result_msg").getAsString();
-                    String text = (result == 1) ? "" : String.format(Locale.US, "[%d] %s\n%s (%d)", result, message, url, finalResponse.length());
-                    activity.setErrorText(text);
+            // A rejected call is reported once, at the top of the game area; success leaves
+            // other messages (e.g. a failed broadcast) untouched.
+            if (response_obj != null && response_obj.has("api_result")) {
+                int result = response_obj.get("api_result").getAsInt();
+                if (result != 1) {
+                    String message = response_obj.has("api_result_msg") ? response_obj.get("api_result_msg").getAsString() : "";
+                    activity.showServerNotice(result, url, message);
                 }
-            });
+            }
         } catch (Exception e) {
             e.printStackTrace();
             KcUtils.reportException(e);

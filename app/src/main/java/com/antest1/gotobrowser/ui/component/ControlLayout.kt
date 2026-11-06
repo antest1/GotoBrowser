@@ -1,9 +1,11 @@
 package com.antest1.gotobrowser.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -33,6 +35,7 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,7 +43,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -68,6 +73,10 @@ fun ControlLayout(
     selectedRefreshOption: RefreshOption = RefreshOption.QUICK,
     onRefreshOptionChange: (RefreshOption) -> Unit = {},
     onSettingsClick: () -> Unit,
+    /** Ring drawn around the refresh FAB to point the user at it (warning / error), or null. */
+    refreshAttention: Color? = null,
+    /** Tapping the FAB runs a full refresh, without changing the saved option. */
+    forceFullRefresh: Boolean = false,
     toolbarContent: @Composable () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -81,12 +90,16 @@ fun ControlLayout(
             barSize = panelBarSize,
             contentInset = (panelBarSize - panelButtonSize) / 2,
             fab = {
-                OneTouchRefreshFab(
-                    selectedOption = selectedRefreshOption,
-                    onSelectedOptionChange = onRefreshOptionChange,
-                    onQuickRefreshClick = onQuickRefreshClick,
-                    onFullRefreshClick = onFullRefreshClick
-                )
+                FullRefreshHintTooltip(visible = forceFullRefresh && visible) {
+                    OneTouchRefreshFab(
+                        selectedOption = selectedRefreshOption,
+                        onSelectedOptionChange = onRefreshOptionChange,
+                        onQuickRefreshClick = onQuickRefreshClick,
+                        onFullRefreshClick = onFullRefreshClick,
+                        attention = refreshAttention,
+                        forceFullRefresh = forceFullRefresh
+                    )
+                }
             },
             content = toolbarContent
         )
@@ -158,12 +171,34 @@ private fun GlassyCircleButton(
     }
 }
 
+/**
+ * Persistent "Full Refresh" tooltip next to the FAB while only a full refresh can recover.
+ * User input is off so the tooltip's own long-press never competes with the FAB's gesture.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FullRefreshHintTooltip(visible: Boolean, content: @Composable () -> Unit) {
+    val state = rememberTooltipState(isPersistent = true)
+    LaunchedEffect(visible) {
+        if (visible) state.show() else state.dismiss()
+    }
+    TooltipBox(
+        positionProvider = rememberToolbarTooltipPositionProvider(TooltipAnchorPosition.End),
+        tooltip = { PlainTooltip { Text(stringResource(R.string.menu_full_refresh)) } },
+        state = state,
+        enableUserInput = false,
+        content = content
+    )
+}
+
 @Composable
 private fun OneTouchRefreshFab(
     selectedOption: RefreshOption,
     onSelectedOptionChange: (RefreshOption) -> Unit,
     onQuickRefreshClick: () -> Unit,
     onFullRefreshClick: () -> Unit,
+    attention: Color?,
+    forceFullRefresh: Boolean,
     modifier: Modifier = Modifier
 ) {
     var isTouching by remember { mutableStateOf(false) }
@@ -178,8 +213,10 @@ private fun OneTouchRefreshFab(
     val itemStepPx = with(density) { itemStepDp.toPx() }
     val fabSizePx = with(density) { fabSizeDp.toPx() }
 
-    val bottomOption = selectedOption
-    val topOption = if (selectedOption == RefreshOption.QUICK) RefreshOption.FULL else RefreshOption.QUICK
+    // While forced, FULL takes the tap position but the saved choice stays as it is.
+    val tapOption = if (forceFullRefresh) RefreshOption.FULL else selectedOption
+    val bottomOption = tapOption
+    val topOption = if (tapOption == RefreshOption.QUICK) RefreshOption.FULL else RefreshOption.QUICK
 
     fun calculateHoveredOption(localY: Float): RefreshOption? {
         val topYStart = -itemStepPx
@@ -204,15 +241,15 @@ private fun OneTouchRefreshFab(
     Box(
         modifier = modifier
             .wrapContentSize(align = Alignment.TopStart, unbounded = true)
-            .pointerInput(selectedOption) {
+            .pointerInput(tapOption, forceFullRefresh) {
                 awaitPointerEventScope {
                     while (true) {
                         awaitFirstDown(requireUnconsumed = false)
                         isTouching = true
-                        hoveredOption = selectedOption
+                        hoveredOption = tapOption
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
 
-                        var currentHover: RefreshOption? = selectedOption
+                        var currentHover: RefreshOption? = tapOption
 
                         do {
                             val event = awaitPointerEvent()
@@ -235,7 +272,9 @@ private fun OneTouchRefreshFab(
                         hoveredOption = null
 
                         if (finalOption != null) {
-                            onSelectedOptionChange(finalOption)
+                            if (!(forceFullRefresh && finalOption == RefreshOption.FULL)) {
+                                onSelectedOptionChange(finalOption)
+                            }
                             when (finalOption) {
                                 RefreshOption.QUICK -> onQuickRefreshClick()
                                 RefreshOption.FULL -> onFullRefreshClick()
@@ -250,12 +289,13 @@ private fun OneTouchRefreshFab(
         Box(
             modifier = Modifier
                 .size(fabSizeDp)
+                .attentionRing(attention)
                 .glassyStyle(CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = painterResource(
-                    id = if (selectedOption == RefreshOption.QUICK) R.drawable.quick_refresh_icon else R.drawable.refresh_icon
+                    id = if (tapOption == RefreshOption.QUICK) R.drawable.quick_refresh_icon else R.drawable.refresh_icon
                 ),
                 contentDescription = stringResource(R.string.menu_tooltip_refresh),
                 tint = Color.White,
@@ -292,6 +332,33 @@ private fun OneTouchRefreshFab(
                 }
             }
         }
+    }
+}
+
+/**
+ * Ring outside the FAB that pulses three times and then stays, so guidance text can point
+ * at the existing button instead of adding a new one. Drawn outside the bounds, unclipped.
+ */
+@Composable
+private fun Modifier.attentionRing(color: Color?): Modifier {
+    val pulse = remember { Animatable(0f) }
+    LaunchedEffect(color) {
+        pulse.snapTo(0f)
+        if (color == null) return@LaunchedEffect
+        repeat(3) {
+            pulse.animateTo(1f, tween(350))
+            pulse.animateTo(0.35f, tween(450))
+        }
+        pulse.animateTo(1f, tween(350))
+    }
+    if (color == null) return this
+    return drawBehind {
+        val alpha = pulse.value
+        val ringWidth = 3.dp.toPx()
+        val ringRadius = size.minDimension / 2f + 1.dp.toPx() + ringWidth / 2f
+        val haloWidth = 8.dp.toPx()
+        drawCircle(color.copy(alpha = 0.22f * alpha), radius = ringRadius + ringWidth / 2f + haloWidth / 2f, style = Stroke(haloWidth))
+        drawCircle(color.copy(alpha = alpha), radius = ringRadius, style = Stroke(ringWidth))
     }
 }
 

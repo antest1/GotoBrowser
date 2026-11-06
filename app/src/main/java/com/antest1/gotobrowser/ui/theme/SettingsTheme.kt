@@ -7,8 +7,9 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// Color schemes for the settings sheet only. The in-game overlay (toolbar, FAB, glassy
-// buttons) keeps the neutral GotobrowserTheme so it stays unobtrusive over the game.
+// Color schemes for the settings sheet and the in-game status overlay (loading card and
+// server-error snackbar, always dark). The game controls (toolbar, FAB, glassy buttons)
+// keep the neutral GotobrowserTheme so they stay unobtrusive over the game.
 //
 // Generated from seed #005FAC (the seed ReVanced Manager derives its palette from) with
 // the Material "tonal spot" variant, the same way Material Theme Builder / Material You
@@ -16,6 +17,12 @@ import androidx.compose.ui.graphics.Color
 // are tinted consistently; leaving roles unset falls back to the purple Material baseline.
 //
 // Regenerate with material-color-utilities if the seed changes; do not hand-edit tones.
+
+// Warning accent of the status overlay. M3 has no warning role, so this is a custom color
+// in HCT: the hue of #FFC400 at tone 80 like the dark roles below, with the chroma of the
+// dark error (#FFB4AB, chroma 29.4) so the two status colors read at the same strength.
+// It is not harmonized toward the seed, which would shift it to olive.
+val StatusWarningColor = Color(0xFFE2C37E)
 
 private val SettingsDarkColorScheme = darkColorScheme(
     primary = Color(0xFFA5C9FE),
@@ -94,6 +101,9 @@ private val SettingsLightColorScheme = lightColorScheme(
     surfaceContainerLow = Color(0xFFF2F3FA),
     surfaceContainerLowest = Color(0xFFFFFFFF)
 )
+
+/** The dark scheme's error, for status accents drawn outside a SettingsTheme (the refresh FAB ring). */
+val StatusErrorColor: Color get() = SettingsDarkColorScheme.error
 
 /** Wraps the settings sheet in the blue palette, overriding [GotobrowserTheme] beneath it. */
 @Composable

@@ -153,4 +153,31 @@
     <string name="settings_refresh_required_msg">设置已保存。需要重新加载游戏才能生效。你想现在重新加载吗？</string>
     <string name="settings_refresh_now">现在重新加载</string>
     <string name="settings_refresh_later">暂不重新加载</string>
+    <!-- First-screen loading status and server errors -->
+    <string name="loading_preparing_title">正在应用设置</string>
+    <string name="loading_preparing_desc">正在准备代理和补丁设置</string>
+    <string name="loading_connecting_title">正在连接服务器</string>
+    <string name="loading_connecting_desc">正在加载游戏页面</string>
+    <string name="loading_resources_title">正在下载游戏资源</string>
+    <string name="loading_resources_count">%1$d 个</string>
+    <string name="loading_stalled_title">已 %1$d 秒无响应</string>
+    <string name="loading_stalled_desc">请使用刷新按钮重试</string>
+    <string name="loading_error_connect_title">无法连接到服务器</string>
+    <string name="loading_error_connect_desc">请检查网络连接，然后使用刷新按钮进行完全刷新</string>
+    <string name="loading_error_timeout_title">服务器响应超时</string>
+    <string name="loading_error_timeout_desc">请稍候，然后使用刷新按钮进行完全刷新</string>
+    <string name="loading_error_forbidden_title">访问被拒绝 (HTTP %1$d)</string>
+    <string name="loading_error_forbidden_desc">可能受到地区限制。请检查登入方式或代理设置，然后进行完全刷新</string>
+    <string name="loading_error_server_title">服务器错误 (HTTP %1$d)</string>
+    <string name="loading_error_server_desc">服务器可能正在维护。请稍后使用刷新按钮进行完全刷新</string>
+    <string name="loading_error_generic_title">无法加载页面</string>
+    <string name="loading_error_generic_desc">请使用刷新按钮进行完全刷新</string>
+    <string name="server_notice_title">服务器错误 — 请使用刷新按钮进行完全刷新</string>
+    <string name="notice_copied">已复制</string>
+    <string name="notice_network_title">通信错误 — 请检查网络连接，然后使用刷新按钮刷新</string>
+    <string name="notice_http_title">服务器响应错误 — 请稍后使用刷新按钮刷新</string>
+    <string name="detail_code">代码</string>
+    <string name="detail_host">主机</string>
+    <string name="detail_api">API</string>
+    <string name="detail_message">消息</string>
 </resources>

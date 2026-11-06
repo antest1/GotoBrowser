@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
@@ -105,7 +106,21 @@ public class WebViewManager {
     public void setWebViewClient(BrowserActivity activity, WebViewL webview) {
         webview.addJavascriptInterface(new KcsInterface(activity), GOTO_ANDROID);
         webview.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                activity.getLoadingTracker().onPageStarted(url, isAccountPage(url));
+                super.onPageStarted(view, url, favicon);
+            }
+
+            // Also runs for the final URL of a redirect (e.g. game page -> login form).
+            @Override
+            public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
+                activity.getLoadingTracker().onPageShown(url, isGameUrl(url));
+                super.doUpdateVisitedHistory(view, url, isReload);
+            }
+
             public void onPageFinished(WebView view, String url) {
+                activity.getLoadingTracker().onPageShown(url, isGameUrl(url));
                 if (logoutFlag && !url.contains("about:blank")) {
                     logoutFlag = false;
                     refreshPage(webview);
@@ -143,18 +158,30 @@ public class WebViewManager {
                 return false;
             }
 
+            // Main frame only (the default onReceivedError(WebResourceRequest, ...) forwards just those).
             @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
                 try {
                     view.stopLoading();
                 } catch (Exception ignored) { }
-                activity.showWebkitErrorDialog(errorCode, description, failingUrl);
+                if (!activity.onMainFrameLoadError(errorCode, description, failingUrl)) {
+                    activity.showWebkitErrorDialog(errorCode, description, failingUrl);
+                }
                 super.onReceivedError(view, errorCode, description, failingUrl);
+            }
+
+            @Override
+            public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+                if (request.isForMainFrame() && errorResponse.getStatusCode() >= 400) {
+                    activity.onMainFrameHttpError(errorResponse.getStatusCode(), request.getUrl().toString());
+                }
+                super.onReceivedHttpError(view, request, errorResponse);
             }
 
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 Uri source = request.getUrl();
+                activity.getLoadingTracker().onRequest(source.toString());
                 WebResourceResponse response = resourceProcess.processWebRequest(source);
                 Log.e("GOTO", "shouldInterceptRequest " + source + " " + (response == null));
                 if (response != null) return response;
@@ -171,6 +198,28 @@ public class WebViewManager {
                 }
             }
         });
+    }
+
+    /**
+     * The game page itself, matched on host and path: a login URL can carry the game
+     * URL as its return parameter, so a substring match is not enough here.
+     */
+    private static boolean isGameUrl(String url) {
+        if (url == null) return false;
+        Uri uri = Uri.parse(url);
+        String host = uri.getHost();
+        String path = uri.getPath();
+        if (host == null || path == null) return false;
+        return (host.equals("play.games.dmm.com") && path.startsWith("/game/kancolle"))
+                || ((host.equals("ooi.moe") || host.equals("kancolle.moe")) && path.startsWith("/kancolle"));
+    }
+
+    /** Login, logout and region pages: ordinary pages the user reads and fills in. */
+    private static boolean isAccountPage(String url) {
+        if (url == null) return false;
+        return url.contains(URL_DMM_LOGIN) || url.contains(URL_DMM_LOGIN_2)
+                || url.contains(URL_DMM_FOREIGN) || url.contains(URL_DMM_FOREIGN_2)
+                || url.startsWith(URL_OOI_LOGOUT) || url.startsWith(URL_KANMOE_LOGOUT);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -192,6 +241,12 @@ public class WebViewManager {
 
     public void setPopupView(WebViewL webview) {
         webview.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                activity.getLoadingTracker().onProgressChanged(newProgress);
+                super.onProgressChanged(view, newProgress);
+            }
+
             @Override
             public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
                 KcUtils.showToast(activity.getApplicationContext(), message);
