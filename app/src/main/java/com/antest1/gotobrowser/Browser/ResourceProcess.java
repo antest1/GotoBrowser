@@ -9,6 +9,8 @@ import android.os.Handler;
 import android.util.Log;
 import android.webkit.WebResourceResponse;
 
+import androidx.lifecycle.Lifecycle;
+
 import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.KenPatcher;
@@ -415,6 +417,9 @@ public class ResourceProcess {
     private WebResourceResponse promptForRetry(ResourceRequestInfo requestInfo, int resource_type) {
         boolean isRetryPromptEnabled = sharedPref.getBoolean(PREF_DOWNLOAD_RETRY, true);
         if (!isRetryPromptEnabled) return null;
+        // In the background nobody can answer the dialog, so the request thread would stay
+        // blocked until the user returns. Let the WebView fetch the resource itself instead.
+        if (!activity.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) return null;
         final AtomicReference<Boolean> cancelled = new AtomicReference<>(false);
         final CountDownLatch retryReady = new CountDownLatch(1);
         // Every answer releases the waiting request thread; only "retry" goes on to download.

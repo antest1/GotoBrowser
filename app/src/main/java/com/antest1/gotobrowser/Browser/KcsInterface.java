@@ -29,6 +29,11 @@ import static com.antest1.gotobrowser.ContentProvider.KcaPacketStore.PACKETSTORE
 public class KcsInterface {
     public static final String GOTO_ANDROID = "GotoBrowser";
     public static final String AXIOS_INTERCEPT_SCRIPT = "axios.interceptors.response.use(function(response){if(response.config.url.includes(\"kcsapi\")){var url=response.config.url;var request=response.config.data;var host=window.location.hostname;var data=response.data;GotoBrowser.kcs_xhr_intercept(host,url,request,data);}return response;},function(error){return Promise.reject(error);});";
+    // Holds kcsapi requests while the page is hidden and sends them once it is visible again.
+    // A request started in the background can fail (cached app freezer, Android 15 background
+    // network restriction) and the game shows a connection error. The request is only delayed,
+    // never modified or re-sent; axios starts its timeout when the request is actually sent.
+    public static final String AXIOS_HOLD_HIDDEN_SCRIPT = "axios.interceptors.request.use(function(config){if(!config.url||!config.url.includes(\"kcsapi\")||document.visibilityState!==\"hidden\")return config;console.log(\"[GOTO] kcsapi held while hidden: \"+config.url);return new Promise(function(resolve){function onVisible(){if(document.visibilityState===\"hidden\")return;document.removeEventListener(\"visibilitychange\",onVisible);console.log(\"[GOTO] kcsapi released: \"+config.url);resolve(config);}document.addEventListener(\"visibilitychange\",onVisible);});});";
     private final BrowserActivity activity;
     private final KcaPacketStore packetTable;
     private final Handler handler = new Handler();
