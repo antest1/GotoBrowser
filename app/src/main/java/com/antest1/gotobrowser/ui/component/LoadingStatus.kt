@@ -262,11 +262,14 @@ private fun DetailBlock(rows: List<Pair<String, String>>, dividerColor: Color, l
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         shown.forEach { (label, value) ->
             Row {
+                // Wide enough for the longest label ("メッセージ") on one line.
                 Text(
                     text = label,
                     style = MaterialTheme.typography.labelSmall,
                     color = labelColor,
-                    modifier = Modifier.width(56.dp).padding(top = 1.dp)
+                    maxLines = 1,
+                    softWrap = false,
+                    modifier = Modifier.width(72.dp).padding(top = 1.dp)
                 )
                 Text(
                     text = value,
