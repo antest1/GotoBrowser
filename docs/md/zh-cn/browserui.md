@@ -31,6 +31,7 @@
 - 按住按钮并向上拖动，可选择另一种方式。最后使用的方式会被记住，作为按钮的默认操作。
 - 刷新前的确认对话框可通过设置 → 操作 → “禁用重新加载确认”关闭。
 - 更改设置后，即使在“需要重新加载”提示中选择了“暂不重新加载”，使用此按钮刷新后更改的设置也会生效。
+- 加载中出现连接错误或游戏中出现服务器错误后，无论保存的方式如何，按钮都会以完全刷新执行，并在按钮旁显示“完全刷新”。保存的方式不会改变。
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
@@ -48,6 +49,20 @@
 | --- | --- | --- |
 | <span class="material-symbols-outlined">settings</span> | 设置 | 打开<span class="link" data-move="settings">设置界面</span>。游戏会在设置界面后方继续运行。 |
 | <span class="material-symbols-outlined">crop_free</span> | 截图 | 保存当前游戏画面。仅在截图模式开启时显示。（参见<span class="link" data-move="screenshot">保存截图</span>） |
+
+##### 游戏中的错误提示
+游戏中与服务器通信出现问题时，游戏画面上方会显示提示，不会遮挡游戏自身的错误显示。
+
+| 提示 | 说明 |
+| --- | --- |
+| 通信错误 | 连接中断或服务器无响应时显示。请检查连接后刷新。 |
+| 服务器响应错误 | 服务器返回 HTTP 错误时显示。请稍后刷新。 |
+| 服务器错误 | 服务器拒绝请求（api_result）时显示。快速刷新无法恢复，因此刷新按钮会自动以完全刷新执行。 |
+
+- 轻触提示即可关闭。
+- 长按提示会复制代码、API 和消息。反馈问题时请一并附上。
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/game_notice.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
 ##### 登出
 - 可在设置 → 登录与连接 → 登出中登出。

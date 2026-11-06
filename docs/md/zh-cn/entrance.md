@@ -8,9 +8,27 @@
 ##### 启动流程
 1. 打开登入方式的起始页面。在登录页面中，会自动填入设置中保存的账号信息。
 2. 登录后，游戏画面会按设备屏幕调整显示。（设置 → 显示 → 自动调整佈局）
-3. 轻触游戏画面外的黑色空白区域即可显示<span class="link" data-move="browserui">工具栏</span>，点击右上角的设置按钮（<span class="material-symbols-outlined inline-icon">settings</span>）可打开设置界面。
+3. 加载游戏期间，游戏画面上会显示加载提示，游戏开始后即消失。（参见下方“加载提示”）
+4. 轻触游戏画面外的黑色空白区域即可显示<span class="link" data-move="browserui">工具栏</span>，点击右上角的设置按钮（<span class="material-symbols-outlined inline-icon">settings</span>）可打开设置界面。
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/first_launch.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
+
+##### 加载提示
+加载游戏期间，游戏画面中央会显示进度。加载很快完成时不会显示。
+- 依次经过 准备 → 连接服务器 → 下载资源，右上角显示当前阶段（1/3～3/3）。
+- 下载资源期间会缩小显示在画面下方，以免遮挡游戏自身的加载画面。
+- 不会显示在登录页面等普通网页之上。
+
+| 状态 | 说明 | 处理方法 |
+| --- | --- | --- |
+| 进行中 | 显示当前阶段和进度。 | 请稍候。 |
+| 无响应（黄色） | 20 秒以上没有任何响应时显示。 | 使用以黄色突出显示的刷新按钮重试。 |
+| 连接错误（红色） | 无法加载页面时显示原因，下方列出错误代码和主机。 | 检查网络连接后按刷新按钮，此时会自动进行完全刷新。 |
+
+- 如果工具栏处于隐藏状态，会自动显示，以便看到刷新按钮。
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/loading_status.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/loading_error.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
 ##### 选择登入方式
 - 一般情况下，无需更改默认值 DMM direct。
