@@ -160,7 +160,9 @@ private fun StatusCard(snapshot: LoadingTracker.Snapshot, compact: Boolean) {
         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
             Column(
                 Modifier
-                    .widthIn(max = if (compact) 280.dp else 320.dp)
+                    // Same width when compact: a long title ("ゲームリソースをダウンロード中")
+                    // plus the request count must still fit on one line.
+                    .widthIn(max = 320.dp)
                     .fillMaxWidth()
                     .shadow(3.dp, shape)
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh, shape)
