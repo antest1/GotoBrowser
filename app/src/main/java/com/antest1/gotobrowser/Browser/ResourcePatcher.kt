@@ -89,7 +89,8 @@ object ResourcePatcher {
             patchedJs += touchEventPatchJs
         }
 
-        patchedJs = patchedJs + MUTE_LISTEN + CAPTURE_LISTEN + "\n" + KcsInterface.AXIOS_INTERCEPT_SCRIPT
+        patchedJs = patchedJs + MUTE_LISTEN + CAPTURE_LISTEN + "\n" + KcsInterface.AXIOS_INTERCEPT_SCRIPT +
+                "\n" + KcsInterface.AXIOS_HOLD_HIDDEN_SCRIPT
 
         return patchedJs
     }
