@@ -27,8 +27,8 @@
 
 - ツールバーが非表示だった場合は、リフレッシュボタンが見えるように自動で表示されます。
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/loading_status.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/loading_error.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/loading_status.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/loading_error.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
 ##### 接続方式の選択
 - ほとんどの場合、デフォルトの「DMM direct」を変更する必要はありません。

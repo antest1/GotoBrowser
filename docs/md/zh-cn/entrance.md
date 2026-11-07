@@ -27,8 +27,8 @@
 
 - 如果工具栏处于隐藏状态，会自动显示，以便看到刷新按钮。
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/loading_status.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/loading_error.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/loading_status.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/loading_error.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
 ##### 选择登入方式
 - 一般情况下，无需更改默认值 DMM direct。

@@ -27,8 +27,8 @@
 
 - 若工具列為隱藏狀態，會自動顯示，讓重新整理按鈕可見。
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-tw/loading_status.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-tw/loading_error.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-tw/loading_status.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-tw/loading_error.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
 ##### 選擇登入方式
 - 一般情況下，不需要變更預設的 DMM direct。
