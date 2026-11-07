@@ -1,0 +1,22 @@
+{
+    "version": "2.0.0",
+    "text": {
+        "nav_app_brand": "GotoBrowser",
+        "sidebar_group_getstarted": "開始使用",
+        "sidebar_group_manual": "使用方法",
+        "sidebar_group_functions": "功能詳細說明",
+        "sidebar_group_others": "其他",
+        "sidebar_page_index": "簡介",
+        "sidebar_page_installation": "安裝方法",
+        "sidebar_page_entrance": "開始遊戲",
+        "sidebar_page_browserui": "瀏覽器介面",
+        "sidebar_page_settings": "設定",
+        "sidebar_page_screenshot": "儲存螢幕截圖",
+        "sidebar_page_voiceline": "遊戲內台詞字幕",
+        "sidebar_page_gadgetbypass": "繞過海外 IP 封鎖",
+        "sidebar_page_kcanotify": "搭配 Kcanotify 使用",
+        "sidebar_page_pipmode": "PIP/多視窗",
+        "sidebar_page_knownissue": "已知問題",
+        "sidebar_page_privacy": "隱私權政策"
+    }
+}

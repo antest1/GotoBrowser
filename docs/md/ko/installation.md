@@ -2,8 +2,8 @@
 
 ##### 요구 사양
 
-- 최소: Android 5.0 (Lollipop)
-- 권장: Android 8.0 (Oreo) 이상
+- 최소: Android 7.0 (Nougat)
+- 권장: Android 12 이상
 
 
 ##### 설치 파일 다운로드

@@ -1,5 +1,5 @@
 {
-    "version": "1.0.3",
+    "version": "2.0.0",
     "text": {
         "nav_app_brand": "GotoBrowser",
         "sidebar_group_getstarted": "ようこそ",
@@ -8,7 +8,7 @@
         "sidebar_group_others": "その他",
         "sidebar_page_index": "アプリ紹介",
         "sidebar_page_installation": "インストール",
-        "sidebar_page_entrance": "メイン画面",
+        "sidebar_page_entrance": "ゲームの開始",
         "sidebar_page_browserui": "ブラウザUI",
         "sidebar_page_settings": "設定",
         "sidebar_page_screenshot": "スクリーンショット保存",
@@ -16,6 +16,7 @@
         "sidebar_page_gadgetbypass": "海外IPブロックバイパス",
         "sidebar_page_kcanotify": "Kcanotifyとの連動",
         "sidebar_page_pipmode": "PIP/マルチウィンドウ",
-        "sidebar_page_knownissue": "既知の問題"
+        "sidebar_page_knownissue": "既知の問題",
+        "sidebar_page_privacy": "プライバシーポリシー"
     }
 }

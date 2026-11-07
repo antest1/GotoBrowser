@@ -20,6 +20,8 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_NAME;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,10 +44,6 @@ public class KenPatcher {
         return patchLanguage;
     }
 
-    public static void setPatchLanguage(PatchLanguage language) {
-        patchLanguage = language;
-    }
-
     public static PatchLanguage getCurrentPatchLanguage(String pref) {
         if (PREF_MOD_KCCP_LANG_PATCH_EN.equals(pref)) {
             return PatchLanguage.EN;
@@ -56,11 +54,10 @@ public class KenPatcher {
         }
     }
 
-    public void prepare(Activity activity) {
-        // Only update the enable status when opening the browser view
-        // Require reopening the browser after switching the MOD on or off
-        SharedPreferences sharedPref = activity.getSharedPreferences(
-                activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
+    public void prepare(Context context) {
+        // Called on browser start and again before each page refresh
+        SharedPreferences sharedPref = context.getSharedPreferences(
+                context.getString(R.string.preference_key), Context.MODE_PRIVATE);
         if (sharedPref.getBoolean(PREF_MOD_KCCP_LANG_PATCH, false)) {
             patchLanguage = getCurrentPatchLanguage(
                     sharedPref.getString(PREF_MOD_KCCP_LANG_PATCH_NAME, "")
@@ -70,7 +67,7 @@ public class KenPatcher {
         }
     }
 
-    public static String patchKantaiEn(String main_js, Activity activity) {
+    public static String patchKantaiEn(String main_js, Context context) {
         if (!isPatcherEnabled()) {
             return main_js;
         }
@@ -81,16 +78,16 @@ public class KenPatcher {
         JsonObject translations = new JsonObject();
         StringBuilder regex = new StringBuilder("[");
         String rawText = KcEnUtils.getAssetPath() + "/kcs2/js/main.js/ignore-raw_text_translations";
-        String patcherPath = activity.getExternalFilesDir(null).getAbsolutePath()
+        String patcherPath = context.getExternalFilesDir(null).getAbsolutePath()
                 + "/" + KcEnUtils.getAssetPath() + "/kcs2/js/main.js/ignore-patcher_contents.js";
 
         String patcherContents = loadExternalText(patcherPath);
 
-        listExternalFiles(rawText, translationFiles, activity);
-        listExternalFiles(rawText + "_regex", regexFiles, activity);
+        listExternalFiles(rawText, translationFiles, context);
+        listExternalFiles(rawText + "_regex", regexFiles, context);
 
         for (String file : translationFiles) {
-            JsonElement json = loadExternalJSON(file, activity);
+            JsonElement json = loadExternalJSON(file, context);
             if (!(json instanceof JsonObject)) {
                 continue;
             }
@@ -100,7 +97,7 @@ public class KenPatcher {
         }
 
         for (String file : regexFiles) {
-            JsonElement json = loadExternalJSON(file, activity);
+            JsonElement json = loadExternalJSON(file, context);
             if (!(json instanceof JsonObject)) {
                 continue;
             }
@@ -225,8 +222,8 @@ public class KenPatcher {
                 patcherContents;
     }
 
-    private static boolean listExternalFiles(String path, List<String> fileList, Activity activity) {
-        String absolutePath = activity.getExternalFilesDir(null).getAbsolutePath();
+    private static boolean listExternalFiles(String path, List<String> fileList, Context context) {
+        String absolutePath = context.getExternalFilesDir(null).getAbsolutePath();
         File[] files = new File(absolutePath + "/" + path).listFiles();
         if (files != null) {
             for (File file : files) {
@@ -242,15 +239,9 @@ public class KenPatcher {
         return false;
     }
 
-    public static JsonElement loadExternalJSON(String filename, Activity activity) {
-        try {
-            File file = new File(filename);
-            FileInputStream stream = new FileInputStream(file);
-            byte[] buffer = new byte[stream.available()];
-            stream.read(buffer);
-            stream.close();
-            return new JsonParser().parse(new String(buffer, "UTF-8"));
-
+    public static JsonElement loadExternalJSON(String filename, Context context) {
+        try (InputStreamReader reader = new InputStreamReader(new FileInputStream(filename), StandardCharsets.UTF_8)) {
+            return JsonParser.parseReader(reader);
         } catch (IOException | JsonSyntaxException ex) {
             Log.e("GOTO", KcUtils.getStringFromException(ex));
         }

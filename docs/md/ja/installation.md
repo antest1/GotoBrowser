@@ -2,8 +2,8 @@
 
 ##### 要求仕様
 
-- 最小: Android 5.0 (Lollipop)
-- 推奨: Android 8.0 (Oreo) 以上
+- 最小: Android 7.0 (Nougat)
+- 推奨: Android 12 以上
 
 
 ##### APKファイルのダウンロード

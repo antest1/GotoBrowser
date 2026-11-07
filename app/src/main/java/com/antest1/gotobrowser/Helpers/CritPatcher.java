@@ -2,7 +2,6 @@ package com.antest1.gotobrowser.Helpers;
 
 import static com.antest1.gotobrowser.Constants.PREF_MOD_CRIT;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -16,11 +15,10 @@ import java.util.regex.Pattern;
 public class CritPatcher {
     private static boolean isPatcherEnabled = false;
 
-    public void prepare(Activity activity) {
-        // Only update the enable status when opening the browser view
-        // Require reopening the browser after switching the MOD on or off
-        SharedPreferences sharedPref = activity.getSharedPreferences(
-                activity.getString(R.string.preference_key), Context.MODE_PRIVATE);
+    public void prepare(Context context) {
+        // Called on browser start and again before each page refresh
+        SharedPreferences sharedPref = context.getSharedPreferences(
+                context.getString(R.string.preference_key), Context.MODE_PRIVATE);
         isPatcherEnabled = sharedPref.getBoolean(PREF_MOD_CRIT, false);
     }
 

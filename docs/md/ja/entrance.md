@@ -1,33 +1,59 @@
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@40,400,0,0&icon_names=help,settings" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0&icon_names=help,settings" />
 
+## ゲームの開始
 
-## メイン画面
+アプリを起動すると、メイン画面を経由せずにコネクタ（デフォルト: DMM direct）のスタートページがすぐに開きます。  
+4.0より前のバージョンでメイン画面にあった項目は、すべて<span class="link" data-move="settings">設定画面</span>に移動しました。
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/main_screen.png" height="550px"/>
+##### 起動の流れ
+1. コネクタのスタートページが開きます。ログインページでは、設定に保存したアカウント情報が自動で入力されます。
+2. ログインすると、ゲーム画面がデバイスの画面に合わせて表示されます。（設定 → 表示 → レイアウト自動調整）
+3. ゲームを読み込んでいる間、ゲーム画面に読み込みの案内が表示されます。ゲームが始まると消えます。（下の「読み込みの案内」を参照）
+4. ゲーム画面の外側の黒い部分をタッチすると<span class="link" data-move="browserui">ツールバー</span>が表示され、右上の設定ボタン（<span class="material-symbols-outlined inline-icon">settings</span>）から設定画面を開けます。
 
-##### 接続サイトの選択
-- ほとんどの場合、「DMM DIRECT」の設定を変更する必要はありません。
-- OOIベースのコネクタを使用したい場合は、この領域をタップして変更できます。([ooi.moe](https://ooi.moe/)または[kancolle.moe](https://kancolle.moe/))
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/first_launch.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
+
+##### 読み込みの案内
+ゲームを読み込んでいる間、ゲーム画面の中央に進行状況が表示されます。すぐに読み込みが終わった場合は表示されません。
+- 準備 → サーバーに接続 → リソースのダウンロードの順に進み、右上に現在の段階（1/3〜3/3）が表示されます。
+- リソースをダウンロードしている間は、ゲーム自体の読み込み画面を隠さないよう、画面下部に小さく表示されます。
+- ログインページなど通常のウェブページの上には表示されません。
+
+| 状態 | 説明 | 対処方法 |
+| --- | --- | --- |
+| 進行中 | 現在の段階と進行状況を表示します。 | そのままお待ちください。 |
+| 応答なし（黄色） | 20秒以上応答がない場合に表示されます。 | 黄色で強調されたリフレッシュボタンで再試行してください。 |
+| 接続エラー（赤色） | ページを読み込めなかった場合に、原因とともに表示されます。下にエラーコードとホストが表示されます。 | インターネット接続を確認してから、リフレッシュボタンを押してください。自動的にフルリフレッシュが行われます。 |
+
+- ツールバーが非表示だった場合は、リフレッシュボタンが見えるように自動で表示されます。
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/loading_status.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/loading_error.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
+
+##### 接続方式の選択
+- ほとんどの場合、デフォルトの「DMM direct」を変更する必要はありません。
+- OOIベースのコネクタ（[ooi.moe](https://ooi.moe/)または[kancolle.moe](https://kancolle.moe/)）を使用したい場合は、設定 → ログインと接続 → 接続方式選択で変更できます。
+  - 非公式のコネクタを初めて選択すると、ゲームリソースが本来のものと異なる場合があるという案内が表示されます。
+- 接続方式を変更すると、再読み込み後に反映されます。
 
 ##### ログインオートコンプリート（自動入力）
-- ブラウザ起動時に入力するIDとパスワードを設定できます。
+- 設定 → ログインと接続 → ログインオートコンプリートで、ログインフォームに入力するIDとパスワードを保存できます。
 - 入力した情報はデバイス内にのみ保存され、自動入力機能以外の目的には使用されません。
 
-##### 起動設定一覧
-| 設定 | 説明 |
+##### 起動時に表示されることがある案内
+| 案内 | 説明 |
 | --- | --- |
-| 音量OFFでスタート | ブラウザ起動時にゲーム内のBGM/SE/VOICE音量を0に設定します。 (公式アプリ機能と同じ) |
-| ブロードキャストモード | 艦これ関連の通信内容をKcanotifyなど他のアプリケーションで使用可能に設定します。<br/>Kcanotifyと連動するためには必ずオンにしておく必要があります。 |
-| 国外ブロックのバイパス | 海外でIPブロックの問題が発生した場合は、それを迂回してゲームがロードされるようにします。 |
-| 起動時にパネルを表示 | ブラウザ起動時にパネルを表示/非表示状態に設定します。 |
-| キーボード入力を有効に | ブラウザ起動時にキーボード入力を有効/無効に設定します。 |
+| アップデートの案内 | 新しいバージョンがある場合、ダウンロードするかを確認します。（設定 → アプリケーション情報 → 更新の確認と同じ） |
+| Kcanotifyが検出されました | Kcanotifyがインストールされているのにブロードキャストモードが無効の場合に表示されます。「確認」を押すとブロードキャストモードが有効になります。（<span class="link" data-move="kcanotify">Kcanotifyとの連動</span>を参照） |
+| 国外IPアクセス制限が検出されました | 国外ブロックのバイパスが無効の状態で海外IPブロックが確認された場合に表示されます。（<span class="link" data-move="gadgetbypass">海外IPブロックバイパス</span>を参照） |
 
-##### キャッシュの消去
-- ブラウザ内のキャッシュ情報を消去します。
-- ゲームが正しく動作しない場合、またはDMMの地域制限関連メッセージが表示される場合はキャッシュを空にしてアプリを再起動してください。
-
-##### トップメニュー
-|  | 機能 | 説明 |
-| --- | --- | --- |
-| <span class="material-symbols-outlined">help</span>   | マニュアルサイト | マニュアルサイトを開きます。 |
-| <span class="material-symbols-outlined">settings</span>  | 設定画面 | <span class="link" data-move="settings">設定画面</span>を開きます。 |
+##### 以前のバージョンとの違い
+| 以前のバージョン（メイン画面） | 4.0以降 |
+| --- | --- |
+| 接続サイトの選択 | 設定 → ログインと接続 → 接続方式選択 |
+| ログインオートコンプリート | 設定 → ログインと接続 → ログインオートコンプリート |
+| 音量OFFでスタート / ブロードキャストモード / 国外ブロックのバイパス | 設定 → ログインと接続 |
+| 起動時にパネルを表示 / キーボード入力を有効に | 設定 → 操作 |
+| キャッシュ削除 | 設定 → キャッシュ → キャッシュ削除 |
+| マニュアルサイト（<span class="material-symbols-outlined inline-icon">help</span>） | 設定画面上部のヘルプボタン |
+| 設定画面（<span class="material-symbols-outlined inline-icon">settings</span>） | ゲーム画面右上の設定ボタン |

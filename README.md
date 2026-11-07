@@ -1,5 +1,5 @@
 # GotoBrowser
-<img src="https://i.ibb.co/SKHWSwS/gotobrowser-icon.png" width=250/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/common/icon_256.png" width=256/>
 Android Browser for KanColle 2nd Phase (HTML5)
 
 About Project
@@ -10,8 +10,8 @@ This application does not modify any incoming/outgoing packet when communicating
 
 Requirement
 -------
-- Minimum: Android 5.0 (Lollipop)
-- Recommended: Android 8.0 (Oreo) or later
+- Minimum: Android 7.0 (Nougat)
+- Recommended: Android 12 or later
 
 Download
 -------
@@ -63,11 +63,11 @@ License
 -------
 [GNU General Public License version 3](http://www.gnu.org/licenses/gpl.txt)
 
-Copyright (c) 2019-2025 antest1(IE10)
+Copyright (c) 2019-2026 antest1(IE10)
 
 All rights reserved
 
 
 Privacy Policy
 -------
-will be available soon.
+See [privacy_policy.md](privacy_policy.md).

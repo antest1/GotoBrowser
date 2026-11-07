@@ -1,12 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="entrance_menu_button_size">56dp</dimen>
-    <dimen name="browser_panel_button_size">60dp</dimen>
-    <dimen name="browser_panel_button_icon_size">32dp</dimen>
-    <dimen name="browser_panel_button_padding">12dp</dimen>
-    <dimen name="browser_panel_width">84dp</dimen>
-    <dimen name="browser_panel_padding">30dp</dimen>
-    <dimen name="browser_camera_margin">36dp</dimen>
-    <dimen name="browser_camera_padding">24dp</dimen>
+    <!--
+        Overlay button sizes. 7-8 inch tablets (sw600dp, 1.2x of the phone tier).
+        Ratios are kept across tiers: corner buttons (refresh / settings / capture) are
+        1.4x the panel buttons, the bar is the panel button plus an 8dp inset on each side.
+    -->
 
+    <!-- Left floating toolbar (PanelButton) -->
+    <dimen name="browser_panel_button_size">48dp</dimen>
+    <dimen name="browser_panel_button_icon_size">24dp</dimen>
+    <!-- Cross-axis size of the toolbar pill: panel button + 8dp on each side -->
+    <dimen name="browser_panel_bar_size">64dp</dimen>
+
+    <!-- Bottom-left one-touch refresh FAB (ControlLayout) -->
+    <dimen name="refresh_fab_size">68dp</dimen>
+    <dimen name="refresh_fab_icon_size">30dp</dimen>
+
+    <!-- Top-right settings button (ControlLayout).
+         Kept identical to the refresh FAB so the two corner buttons read as one set. -->
+    <dimen name="top_menu_button_size">@dimen/refresh_fab_size</dimen>
+    <dimen name="top_menu_icon_size">@dimen/refresh_fab_icon_size</dimen>
+    <dimen name="top_menu_padding">20dp</dimen>
+    <!-- Vertical gap between the settings button and the capture button -->
+    <dimen name="top_menu_gap">20dp</dimen>
+
+    <!-- Screenshot (capture) button (BrowserOverlayLayer).
+         Same footprint as the settings button above it so the right column has one width. -->
+    <dimen name="browser_camera_size">@dimen/refresh_fab_size</dimen>
+    <dimen name="browser_camera_icon_size">34dp</dimen>
 </resources>

@@ -1,5 +1,7 @@
 package com.antest1.gotobrowser.Subtitle;
 
+import com.google.gson.JsonObject;
+
 public class SubtitleProviderUtils {
     private final static Kc3SubtitleProvider kc3SubtitleProvider = new Kc3SubtitleProvider();
 
@@ -11,18 +13,22 @@ public class SubtitleProviderUtils {
         return currentProvider;
     }
 
+    // Feed every provider, so switching the subtitle locale mid-session keeps the ship mapping.
+    public static void loadKcApiData(JsonObject api_data) {
+        kc3SubtitleProvider.loadKcApiData(api_data);
+        kcwikiSubtitleProvider.loadKcApiData(api_data);
+    }
+
     public static SubtitleProvider getSubtitleProvider(String subtitleLocale) {
-        switch (subtitleLocale) {
-            default:
-            case "en":
-            case "kr":
-            case "jp":
-                currentProvider = kc3SubtitleProvider;
-                return kc3SubtitleProvider;
-            case "zh-tw":
-            case "zh-cn":
+        return switch (subtitleLocale) {
+            case "zh-tw", "zh-cn" -> {
                 currentProvider = kcwikiSubtitleProvider;
-                return kcwikiSubtitleProvider;
-        }
+                yield kcwikiSubtitleProvider;
+            }
+            default -> {
+                currentProvider = kc3SubtitleProvider;
+                yield kc3SubtitleProvider;
+            }
+        };
     }
 }

@@ -1,54 +1,101 @@
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0&icon_names=settings" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0&icon_names=help,settings" />
 
 ## Settings 
 
-You can enter the settings by clicking the gear icon (<span class="material-symbols-outlined inline-icon">settings</span>) in the top right of the main screen.
+You can enter the settings by clicking the gear icon (<span class="material-symbols-outlined inline-icon">settings</span>) in the top right of the game screen while the toolbar is shown.
 
-##### Browser Settings
+- The settings screen is shown on top of the game screen, and the game keeps running behind it.
+- Drag the handle at the top downward or press the back button to close it.
+- The help button (<span class="material-symbols-outlined inline-icon">help</span>) in the top right of the settings screen opens this manual.
 
-| Name | Description | 
-| --- | -- |
-| Landscape Mode | Whether to always play in landscape mode regardless of device orientation |
-| Prefetch Font Assets | Use built-in font files instead of loading file from the game server (slightly speeds up startup) |
-| External Storage for Resource Caching | Use external storage instead of internal storage when caching game resources<br/>(allows access of image/voice resources via PC) |
-| Input Mode | Choose input method when playing the game (Screen Touch or Using Mouse) |
-| Disable Refresh Warning Dialog | Game screen will be refreshed immediately without a confirmation dialog |
-| Picture-in-picture mode | Display game on small screen when switching to other app or home screen (Android 8.0+)|
-| [Multi-Window] Add Margin from Divider | Added margins to prevent the screen from sticking to the bar when using the multi-window function (Samsung Galaxy/Android 7.0 only) |
-| Legacy Renderer< | Force PixiJS game engine to use Canvas renderer instead of WebGL renderer. (recommended to disable if no graphic related issues occur) | 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/settings_main.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
-##### Subtitle Settings
+##### How Settings Are Applied
 
-| Name | Description |
+| Applies | Description |
 | --- | --- |
-| Subtitle language | Select the language to use for subtitles. |
-| Font Size | Adjust the font size of voice subtitle on screen (default: 18) |
-| Download subtitle data | You can download the subtitle data when update available. |
+| Immediately | Applied as soon as the value is changed. |
+| After reload | The "Reload Required" dialog is shown. "Reload Now" applies the change after a full refresh, and "Change Settings Without Reload" applies it on the next refresh. |
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/settings_refresh_required.webp"  width="480" style="max-width: 100%;" class="mb-3"/>
+
+##### Login and Connection
+
+| Name | Description | Applies |
+| --- | --- | --- |
+| Login Autocomplete | ID and password to be filled into the login form automatically. Stored only within the device | After reload |
+| Logout | Logs out of the game and returns to the login page of the connector | |
+| Select Login Method | DMM direct (default) / kancolle.moe / ooi.moe<br/>A notice about game resources is shown when an unofficial connector is selected for the first time | After reload |
+| Start with Audio OFF | Sets the in-game BGM/SE/VOICE volume to 0 when the game starts (same as the official application function)<br/>Available only with DMM direct | After reload |
+| Broadcast Mode | Sends the KanColle-related communication to other applications such as Kcanotify (on by default)<br/>Must be turned on to use with Kcanotify | Immediately |
+| Gadget Block Bypass | Turn on if you are experiencing the foreign IP block issue (infinite black screen) | After reload |
+| Bypass Method | Select URL Replacement or KCCacheProxy (remote) (use "URL Replacement" in most cases) | After reload |
+| Bypass Endpoint Server | Server URL to use for bypass<br/>`https://kcwiki.github.io/cache/` (default) | After reload |
+
+For related information, refer to the <span class="link" data-move="gadgetbypass">IP Block Bypass (Non-Japan)</span> page. Bypass Method and Bypass Endpoint Server cannot be selected while Gadget Block Bypass is turned off.
+
+##### Display
+
+| Name | Description | Applies |
+| --- | --- | --- |
+| Only Landscape | Always play in landscape mode regardless of device orientation (on by default) | Immediately |
+| Auto Layout Adjustment | Automatically scales the game screen to fit the device screen (recommended, on by default) | After reload |
+| Picture-in-picture mode | Shows the game in a small floating window when you leave for the home screen or pinch-zoom out on the game screen | Immediately |
+| [Multi-Window] Add Margin from Divider | Adds a margin to prevent the screen from sticking to the divider when using the multi-window function | Immediately |
+| Legacy Renderer | Force PixiJS game engine to use Canvas renderer instead of WebGL renderer (recommended to disable if no graphic related issues occur)<br/>Kantai3D cannot be used while this is on | After reload |
+
+For PIP/multi-window information, refer to the <span class="link" data-move="pipmode">PIP/Multi-window</span> page.
+
+##### Controls
+
+| Name | Description | Applies |
+| --- | --- | --- |
+| Enable Keyboard Input | Whether keyboard input is available on the game screen (on by default) | Immediately |
+| Optimize Pointer Device | Choose the input method when playing the game (Touch Screen or Mouse or Trackpad) | After reload |
+| Disable Refresh Warning Dialog | The game screen is refreshed immediately without a confirmation dialog | Immediately |
+| Show Control Panel on Start | Starts with the toolbar shown when the app starts (on by default) | Next launch |
+
+##### Asset Caching
+
+| Name | Description | Applies |
+| --- | --- | --- |
+| External Storage for Resource Caching | Use external storage instead of internal storage when caching game resources (recommended)<br/>(allows access to image/voice resources via PC) | After reload |
+| Prefetch Font Assets | Use built-in font files instead of loading them from the game server (recommended, on by default) | After reload |
+| Retry Game Asset Download | Prompts a dialog asking whether to retry when the client fails to download a sound or image asset<br/>Can sometimes avoid catbombs caused by poor network. Does not apply to game data API errors | Immediately |
+| Clear Cache | Deletes the browser cache. Use this when images or audio are not loading correctly, or to switch between login methods<br/>You may need to log in again afterwards | Immediately |
+
+##### Subtitle
+
+| Name | Description | Applies |
+| --- | --- | --- |
+| Current Language | Select from English / 한국어 / 日本語 (KC3改), 简中 / 繁中 (kcwiki) | Immediately |
+| Font Size | Adjust the font size of voice subtitles on screen (12 to 24, default: 18) | Immediately |
+| Download Subtitle Data | You can download the subtitle data when an update is available. Applied right after the download | Immediately |
 
 For information about the function, refer to the <span class="link" data-move="voiceline">Game Voiceline Subtitle</span> page.
 
-##### Connection Settings
-
-| Name | Description | 
-| --- | --- |
-| Gadget Block Bypass | Activate if you are experiencing issues with overseas IP blocking. |
-| Bypass Method | Select URL replacement or KCCacheProxy (use "URL replacement" in most cases)|
-| Bypass Endpoint Server | Server URL to use for bypass<br/>Use `https://kcwiki.github.io/cache/` or `https://luckyjervis.com/` |
-
-For related information, refer to the <span class="link" data-move="gadgetbypass">IP Block Bypass (Non-Japan)</span> page.
-
 ##### Third Party Mods
 
-| Name | Description | Author |
-| --- | --- | --- |
-| Remove 60 FPS limit | Enables smooth animations on devices supporting high screen refresh rates (120hz). | [@laplamgor](https://x.com/laplamgor) |
-| Kantai3D v4.0 | Add 3D-like visual effects and jiggle physics to some of your secretaries. | [@laplamgor](https://x.com/laplamgor) | 
-| True Critical Hits | Removes some hard-coded obfuscation for hits. Only a critical hit (CL2) will be displayed as such, etc. | [@Oradimi](https://x.com/oradimi) |
-| KanColle English Patch | Apply translation patch to in-game resources ([English](https://github.com/Oradimi/KanColle-English-Patch-KCCP), [Indonesian](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP)). | [@Oradimi](https://x.com/oradimi) |
+<span class="text-danger">Use third party mods at your own risk.</span>
+
+| Group | Name | Description | Applies | Author |
+| --- | --- | --- | --- | --- |
+| General Mods | FPS Rendering Mod | Use VSYNC rendering for smoother performance and better efficiency than the original game (supports high refresh rate devices) | After reload | [@laplamgor](https://x.com/laplamgor) |
+| General Mods | FPS Limit | Select Default (Max Rate) or one of the refresh rates supported by the device. Lowering the target FPS saves battery life and reduces heating | Immediately | |
+| General Mods | True Critical Hits | Removes some hard-coded obfuscation for hits. Only a critical hit (CL2) will be displayed as such | After reload | [@Oradimi](https://x.com/oradimi) |
+| Kantai3D Mod | Kantai3D v4.0 | Add 3D-like visual effects and jiggle physics to some of your secretaries. Cannot be selected while Legacy Renderer is on | After reload | [@laplamgor](https://x.com/laplamgor) |
+| Kantai3D Mod | About Kantai3D | Opens the [Kantai3D GitHub page](https://github.com/laplamgor/kantai3d) | | |
+| Language Patch (KCCP) | KanColle Language Patch (KCCP) | Apply a translation patch to in-game text | After reload | [@Oradimi](https://x.com/oradimi) |
+| Language Patch (KCCP) | Language Patch to Apply | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP) (@Oradimi) or [KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP) (@SLAVUSworks) | After reload | |
+| Language Patch (KCCP) | Download Patch Data | Downloads or updates the data of the selected patch. Refresh the game after it finishes to apply | After reload | |
+| Language Patch (KCCP) | Delete Patch Data | Use this if the patch is presenting unexpected behaviour, or if something went wrong during download | After reload | |
+| Language Patch (KCCP) | About KanColle English/Indonesia Patch | Opens the GitHub page of the selected patch | | |
 
 ##### App Information
 
-| Name | Description | 
-| --- | --- |
-| Check Update | Show download page if new version is available | 
-| Enable DevTools Debugging | Enable [remote debugging](https://developer.chrome.com/docs/devtools/remote-debugging?hl=en) in browsers such as Chrome (chrome://inspect) |
+| Name | Description | Applies |
+| --- | --- | --- |
+| Current Version | Installed app version | |
+| Check Update | Shows the download page if a new version is available | |
+| Source Code | Opens the [GitHub repository](https://github.com/antest1/GotoBrowser/) | |
+| Enable DevTools Debugging | Enable [remote debugging](https://developer.chrome.com/docs/devtools/remote-debugging?hl=en) in browsers such as Chrome (chrome://inspect) | Immediately |
