@@ -23,6 +23,7 @@ import android.view.WindowManager
 import android.webkit.SslErrorHandler
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.RequiresApi
 import androidx.browser.customtabs.CustomTabColorSchemeParams
@@ -66,6 +67,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -265,11 +267,14 @@ class BrowserActivity : ComponentActivity() {
         // Keep the game area clear of the display cutout. Since targetSdk 35 the
         // window always extends into the cutout, so on 16:10 tablets the WebView
         // could otherwise be partially covered. Insets are passed through, not consumed.
-        // Must stay in sync with safeOverlayInsets() below.
+        // Must stay in sync with safeOverlayInsets() below (system bars in multi-window only).
         ViewCompat.setOnApplyWindowInsetsListener(gameArea) { v, insets ->
-            val safe = insets.getInsets(
+            val types = if (isInMultiWindowMode) {
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
+            } else {
+                WindowInsetsCompat.Type.displayCutout()
+            }
+            val safe = insets.getInsets(types)
             v.setPadding(safe.left, safe.top, safe.right, safe.bottom)
             insets
         }
@@ -892,14 +897,21 @@ class BrowserActivity : ComponentActivity() {
 }
 
 /**
- * System bars + display cutout. IME is intentionally excluded so overlays do
- * not jump when the keyboard opens on the login page. While the bars are
- * hidden their insets report 0, so in normal fullscreen play this is
- * effectively cutout-only.
+ * Display cutout, plus the system bars in multi-window mode only. IME is
+ * intentionally excluded so overlays do not jump when the keyboard opens on the login page.
+ *
+ * In fullscreen the bars are always hidden (immersive), so they are left out: closing a
+ * dialog window (e.g. the settings sheet) while the bars are swiped in briefly reports them
+ * as visible to the activity, which made overlays jump inward and back.
  */
 @Composable
-fun safeOverlayInsets(): WindowInsets =
-    WindowInsets.systemBars.union(WindowInsets.displayCutout)
+fun safeOverlayInsets(): WindowInsets {
+    val activity = LocalActivity.current
+    // Entering or leaving multi-window comes with a configuration change (window size).
+    val multiWindow = remember(LocalConfiguration.current) { activity?.isInMultiWindowMode == true }
+    return if (multiWindow) WindowInsets.systemBars.union(WindowInsets.displayCutout)
+    else WindowInsets.displayCutout
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

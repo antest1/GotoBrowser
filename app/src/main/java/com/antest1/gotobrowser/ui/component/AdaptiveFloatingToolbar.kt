@@ -13,10 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.displayCutout
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,6 +46,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.antest1.gotobrowser.Activity.safeOverlayInsets
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -124,7 +121,7 @@ fun AdaptiveFloatingToolbar(
     // the hidden state is really off-screen; the docked state is pushed in by
     // the inset so it does not sit under the camera hole.
     val layoutDirection = LocalLayoutDirection.current
-    val safeInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout)
+    val safeInsets = safeOverlayInsets()
     val insetLeftPx = safeInsets.getLeft(density, layoutDirection).toFloat()
     val insetTopPx = safeInsets.getTop(density).toFloat()
     val insetRightPx = safeInsets.getRight(density, layoutDirection).toFloat()
