@@ -27,8 +27,8 @@ While the game loads, its progress is shown in the middle of the game screen. It
 
 - If the toolbar was hidden, it opens automatically so that the refresh button is visible.
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/loading_status.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/loading_error.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/loading_status.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/loading_error.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
 ##### Selecting a Connector
 - In general, you do not need to change the default value, DMM direct.

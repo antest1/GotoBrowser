@@ -27,8 +27,8 @@
 
 - 툴바가 숨겨져 있었다면 새로고침 버튼이 보이도록 툴바가 자동으로 나타납니다.
 
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/loading_status.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
-<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/loading_error.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/loading_status.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/loading_error.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
 ##### 접속기 선택
 - 일반적인 경우 DMM direct로 설정된 값을 바꾸지 않아도 됩니다.
