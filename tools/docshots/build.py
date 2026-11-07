@@ -114,8 +114,7 @@ def fab_box(path, pad=20):
     return [FAB_RING[0], FAB_RING[1], max(FAB_RING[2], right), FAB_RING[3]]
 
 
-CARD = (39, 42, 47)  # SettingsTheme dark surfaceContainerHigh (loading card)
-NOTICE = (225, 226, 233)  # SettingsTheme dark inverseSurface (in-game error notice card)
+CARD = (39, 42, 47)  # SettingsTheme dark surfaceContainerHigh (loading and in-game notice cards)
 
 
 def per_locale(name, fn, *args):
@@ -241,14 +240,13 @@ SPECS = [
              "label": L("새로고침", "Refresh", "リフレッシュ")},
         ],
     },
-    # browserui: error notice below the game's error message during play
+    # browserui: error notice card below the game's error message during play
     {
         "name": "game_notice", "src": render("ui_game_notice"), "display": 840, "out_width": 1560,
         "items": [
-            {"box": per_locale("ui_game_notice", color_box, NOTICE), "radius": 24, "side": "right",
+            {"box": per_locale("ui_game_notice", color_box, CARD), "radius": 24, "side": "right",
              "label": L("오류 안내", "Error notice", "エラー案内")},
-            # the notice card fills the right of the button, so the label goes above it
-            {"box": FAB_RING, "radius": "round", "side": "top", "align": "start",
+            {"box": FAB_RING, "radius": "round", "side": "right",
              "label": L("새로고침", "Refresh", "リフレッシュ")},
         ],
     },
