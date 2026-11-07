@@ -363,7 +363,8 @@ private fun ErrorBadge(color: Color, onColor: Color) {
 }
 
 /**
- * Top-of-game M3 snackbar for a rejected kcsapi call. No action button: tap to dismiss,
+ * M3 snackbar at the bottom of the game area for a failed kcsapi call (the game's own
+ * error screen keeps its message at the top). No action button: tap to dismiss,
  * long-press to copy the detail line (code · api · server message) for bug reports.
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -374,8 +375,8 @@ fun ServerNoticeSnackbar(notice: ServerNotice?, onDismiss: () -> Unit, modifier:
 
     AnimatedVisibility(
         visible = notice != null,
-        enter = slideInVertically { -it } + fadeIn(),
-        exit = slideOutVertically { -it } + fadeOut(),
+        enter = slideInVertically { it } + fadeIn(),
+        exit = slideOutVertically { it } + fadeOut(),
         modifier = modifier
     ) {
         val current = notice ?: shown ?: return@AnimatedVisibility

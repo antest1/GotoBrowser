@@ -51,7 +51,7 @@ The refresh button at the end of the toolbar offers two methods.
 | <span class="material-symbols-outlined">crop_free</span> | Screenshot | Saves the current game screen. Shown only while screenshot mode is on. (See <span class="link" data-move="screenshot">Saving Screenshots</span>) |
 
 ##### Error Notices During Play
-If communication with the server fails during play, a notice is shown at the top of the game screen, where it does not cover the game's own error message.
+If communication with the server fails during play, a notice is shown at the bottom of the game screen, where it does not cover the game's own error message.
 
 | Notice | Description |
 | --- | --- |

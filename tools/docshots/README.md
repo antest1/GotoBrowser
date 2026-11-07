@@ -12,5 +12,7 @@ gradlew :app:testDebugUnitTest --tests "*DocScreenshotTest*" -Pdocshots
 - The game area is a WebView and cannot be rendered. Put a 5:3 capture of the
   game only (no toolbar, no subtitle) at `tools/docshots/input/game_bg.jpg`
   to use it as the background; otherwise the area is left dark.
+  `ui_game_notice` uses `tools/docshots/input/error_screen.png` instead: a capture
+  of the game's own connection error screen.
 - Use JDK 17-21 (e.g. Android Studio's JBR 21). `-Pdocshots` gives the debug build
   the `.debug` id that `app/src/debug/google-services.json` expects.

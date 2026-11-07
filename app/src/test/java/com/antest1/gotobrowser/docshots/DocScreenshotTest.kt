@@ -326,7 +326,7 @@ class DocScreenshotTest(private val locale: String) {
                         .aspectRatio(1200f / 720f)
                 ) {
                     LoadingStatusOverlay(state)
-                    ServerNoticeSnackbar(notice, onDismiss = {}, modifier = Modifier.align(Alignment.TopCenter).padding(12.dp))
+                    ServerNoticeSnackbar(notice, onDismiss = {}, modifier = Modifier.align(Alignment.BottomCenter).padding(12.dp))
                 }
             }
             ControlLayout(
@@ -369,12 +369,13 @@ class DocScreenshotTest(private val locale: String) {
         )
     }
 
+    /** Over the game's own connection error screen, which the notice must not cover. */
     @Test
     fun gameNotice() = shoot("ui_game_notice", action = showStatus) {
         Status(
             LoadingTracker.Snapshot(stage = LoadingTracker.Stage.READY),
             ServerNotice(ServerNotice.Kind.NETWORK, "ERR_NETWORK", "api_req_hokyu/charge", "Network Error"),
-            background = "game_bg"
+            background = "error_screen"
         )
     }
 

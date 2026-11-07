@@ -1103,14 +1103,14 @@ fun BrowserOverlayContent(
 
             if (!activity.isInPictureInPictureModeState.value) {
                 // Status sits within the game area: loading card centered (or at the bottom
-                // while the game draws its own loading screen), server errors at the top so
-                // they never cover the game's own error message in the middle.
+                // while the game draws its own loading screen), server errors at the bottom:
+                // the game's own connection error screen has its message at the top.
                 Box(modifier = Modifier.align(Alignment.Center).size(gameWidth, gameHeight)) {
                     LoadingStatusOverlay(loadState)
                     ServerNoticeSnackbar(
                         notice = serverNotice,
                         onDismiss = onDismissServerNotice,
-                        modifier = Modifier.align(Alignment.TopCenter).padding(12.dp)
+                        modifier = Modifier.align(Alignment.BottomCenter).padding(12.dp)
                     )
                 }
 
