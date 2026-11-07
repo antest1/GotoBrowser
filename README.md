@@ -70,4 +70,4 @@ All rights reserved
 
 Privacy Policy
 -------
-will be available soon.
+See [privacy_policy.md](privacy_policy.md) (Korean, English, Japanese).
