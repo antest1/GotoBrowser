@@ -14,6 +14,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.Surface
 import android.view.View
 import android.view.ViewGroup
@@ -171,6 +173,8 @@ class BrowserActivity : ComponentActivity() {
     private val errorText = mutableStateOf("")
     private val closeButtonVisible = mutableStateOf(false)
     private val toolbarVisible = mutableStateOf(false)
+    /** False when the game fills the screen, leaving no margin to tap and no edge to swipe from. */
+    private var toolbarRevealAvailable = true
     private val settingsSheetVisible = mutableStateOf(false)
     private val refreshPromptVisible = mutableStateOf(false)
     private val refreshOption = mutableStateOf(RefreshOption.QUICK)
@@ -272,8 +276,16 @@ class BrowserActivity : ComponentActivity() {
         displayController = DisplayController(this, webView) { gameArea.marginDp = it }
 
         val backgroundTapView = View(this).apply {
-            isClickable = true
             setOnClickListener { toolbarVisible.value = !toolbarVisible.value }
+            // A plain click also fires after a drag that stays inside this full-screen view,
+            // so an edge swipe that brings up the system bars toggled the toolbar.
+            // Only a real tap (within touch slop, not cancelled) counts as a click.
+            val tapDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+                override fun onDown(e: MotionEvent) = true
+                override fun onSingleTapUp(e: MotionEvent) = this@apply.performClick()
+            })
+            tapDetector.setOnDoubleTapListener(null)
+            setOnTouchListener { _, event -> tapDetector.onTouchEvent(event); true }
         }
         val rootLayout = FrameLayout(this).apply {
             setBackgroundColor(android.graphics.Color.BLACK)
@@ -333,6 +345,7 @@ class BrowserActivity : ComponentActivity() {
                     ControlLayout(
                         visible = toolbarVisible.value,
                         onVisibleChange = { toolbarVisible.value = it },
+                        onRevealAvailableChange = { toolbarRevealAvailable = it },
                         onRefreshClick = { showRefreshDialog(refreshOption.value) },
                         onQuickRefreshClick = { showRefreshDialog(RefreshOption.QUICK) },
                         onFullRefreshClick = { showRefreshDialog(RefreshOption.FULL) },
@@ -538,7 +551,13 @@ class BrowserActivity : ComponentActivity() {
             settingsSheetVisible.value = false
             return
         }
-        toolbarVisible.value = true
+        // Back only runs the exit flow: the back gesture shares the screen edge with the
+        // system bar reveal, so it must not toggle the toolbar too. The exception is a screen
+        // with no margin and no reveal strip, where back is the only way to bring it up.
+        if (!toolbarVisible.value && !toolbarRevealAvailable) {
+            toolbarVisible.value = true
+            return
+        }
         backPressCloseHandler.handleOnBackPressed()
     }
 

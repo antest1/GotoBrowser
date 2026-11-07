@@ -67,6 +67,8 @@ enum class RefreshOption { QUICK, FULL }
 fun ControlLayout(
     visible: Boolean,
     onVisibleChange: (Boolean) -> Unit,
+    /** Whether the toolbar can be revealed by a margin tap or an edge swipe. */
+    onRevealAvailableChange: (Boolean) -> Unit = {},
     onRefreshClick: () -> Unit,
     onQuickRefreshClick: () -> Unit = onRefreshClick,
     onFullRefreshClick: () -> Unit = onRefreshClick,
@@ -87,6 +89,7 @@ fun ControlLayout(
         AdaptiveFloatingToolbar(
             visible = visible,
             onVisibleChange = onVisibleChange,
+            onRevealAvailableChange = onRevealAvailableChange,
             barSize = panelBarSize,
             contentInset = (panelBarSize - panelButtonSize) / 2,
             fab = {
