@@ -101,7 +101,6 @@ import com.antest1.gotobrowser.Constants.PREF_CURSOR_MODE
 import com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG
 import com.antest1.gotobrowser.Constants.PREF_DISABLE_REFRESH_DIALOG
 import com.antest1.gotobrowser.Constants.PREF_DMM_ID
-import com.antest1.gotobrowser.Constants.PREF_DMM_PASS
 import com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY
 import com.antest1.gotobrowser.Constants.DEFAULT_FPS_LIMIT
 import com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH
@@ -608,11 +607,13 @@ private fun ConnectionLoginSection(
     if (showLoginForm) {
         LoginFormDialog(
             initialId = if (isPreview) "" else viewModel.getString(PREF_DMM_ID, ""),
-            initialPassword = if (isPreview) "" else viewModel.getString(PREF_DMM_PASS, ""),
+            initialPassword = if (isPreview) "" else viewModel.getLoginPassword(),
             onSave = { loginId, loginPassword ->
                 if (!isPreview) {
                     viewModel.setString(PREF_DMM_ID, loginId)
-                    viewModel.setString(PREF_DMM_PASS, loginPassword)
+                    if (!viewModel.setLoginPassword(loginPassword)) {
+                        KcUtils.showToast(context.applicationContext, R.string.autocomplete_save_failed)
+                    }
                 }
                 showLoginForm = false
                 onSettingChanged(PREF_DMM_ID)

@@ -32,6 +32,7 @@ import androidx.webkit.WebViewFeature;
 import com.antest1.gotobrowser.Activity.BrowserActivity;
 import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Constants;
+import com.antest1.gotobrowser.Helpers.CredentialStore;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.R;
 
@@ -298,7 +299,7 @@ public class WebViewManager {
 
     public void runLoginLogoutScript(WebViewL webview, String url) {
         String login_id = sharedPref.getString(PREF_DMM_ID, ""); // intent.getStringExtra("login_id");
-        String login_password = sharedPref.getString(PREF_DMM_PASS, "");
+        String login_password = CredentialStore.getPassword(sharedPref);
 
         String cookie = getDmmCookie();
         // Login
@@ -383,7 +384,7 @@ public class WebViewManager {
 
     public void openPage(WebViewL webview, List<String> connector_info) {
         String login_id = sharedPref.getString(PREF_DMM_ID, ""); // intent.getStringExtra("login_id");
-        String login_password = sharedPref.getString(PREF_DMM_PASS, "");
+        String login_password = CredentialStore.getPassword(sharedPref);
         if (connector_info == null || connector_info.size() != 2) return;
 
         String connector_url_default = connector_info.get(0);

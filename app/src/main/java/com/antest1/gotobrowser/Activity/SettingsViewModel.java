@@ -15,6 +15,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.antest1.gotobrowser.BuildConfig;
+import com.antest1.gotobrowser.Helpers.CredentialStore;
 import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
 import com.antest1.gotobrowser.Helpers.KcEnUtils;
 import com.antest1.gotobrowser.Helpers.KcUtils;
@@ -143,6 +144,15 @@ public class SettingsViewModel extends AndroidViewModel {
 
     public void setString(String key, String value) {
         sharedPref.edit().putString(key, value).apply();
+    }
+
+    public String getLoginPassword() {
+        return CredentialStore.getPassword(sharedPref);
+    }
+
+    /** Returns false if the password could not be encrypted and was not saved. */
+    public boolean setLoginPassword(String password) {
+        return CredentialStore.setPassword(sharedPref, password);
     }
 
     public void setInt(String key, int value) {

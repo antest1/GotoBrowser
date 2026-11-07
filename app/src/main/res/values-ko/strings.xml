@@ -28,6 +28,7 @@
     <string name="subtitle_default">자막 영역 / 터치하여 숨기기</string>
     <string name="autocomplete_title">로그인 자동완성</string>
     <string name="autocomplete_msg">로그인 폼에 입력할 계정 정보를 입력하세요.</string>
+    <string name="autocomplete_save_failed">비밀번호를 안전하게 저장하지 못했습니다. 다시 시도해 주세요.</string>
     <string name="settings_version_label">현재 버전</string>
     <string name="settings_version_check">업데이트 확인</string>
     <string name="settings_recommended_summary">권장</string>
