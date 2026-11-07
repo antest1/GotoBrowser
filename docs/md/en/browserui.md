@@ -14,7 +14,6 @@ You can use various functions such as refreshing the game or taking a screenshot
 - Here are the ways to make the toolbar appear:
   - Touch the black margin outside the game screen (recommended)
   - Swipe inward from the edge where the toolbar is hidden (portrait: bottom, landscape: left)
-  - Press the back button (only when the game fills the screen with no margin around it)
   - Turn on "Show Control Panel on Start" in Settings → Controls to show it on startup
 - Conversely, here are the ways to make the toolbar disappear:
   - Touch the black margin outside the game screen again
