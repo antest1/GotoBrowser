@@ -342,6 +342,9 @@ public class WebViewManager {
      * the login form.
      */
     public void logoutGame(WebViewL webview) {
+        // The logout dialog pauses timers; while paused the logout redirect never
+        // finishes loading, so onPageFinished() (and the login autocomplete) never runs.
+        webview.resumeTimers();
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         switch (pref_connector) {
             case CONN_DMM -> webview.loadUrl(URL_DMM_LOGOUT);
