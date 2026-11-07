@@ -28,6 +28,7 @@
     <string name="subtitle_default">字幕表示エリア/タッチして非表示</string>
     <string name="autocomplete_title">ログインオートコンプリート</string>
     <string name="autocomplete_msg">ログインフォームに入力するアカウント情報を入力してください。</string>
+    <string name="autocomplete_save_failed">パスワードを安全に保存できませんでした。もう一度お試しください。</string>
     <string name="settings_version_label">現在のバージョン</string>
     <string name="settings_version_check">更新の確認</string>
     <string name="settings_recommended_summary">おすすめ</string>

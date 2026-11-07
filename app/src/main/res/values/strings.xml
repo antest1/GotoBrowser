@@ -31,6 +31,7 @@
     <string name="subtitle_default">SUBTITLE AREA / TOUCH TO HIDE</string>
     <string name="autocomplete_title">Login Autocomplete</string>
     <string name="autocomplete_msg">This information will only be used to fill the login form</string>
+    <string name="autocomplete_save_failed">Could not save the password securely. Please try again.</string>
     <string name="settings_version_label">Current Version</string>
     <string name="settings_version_check">Check Update</string>
     <string name="settings_recommended_summary">Recommended</string>
