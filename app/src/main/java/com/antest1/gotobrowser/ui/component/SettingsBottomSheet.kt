@@ -1,8 +1,11 @@
 package com.antest1.gotobrowser.ui.component
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.view.MotionEvent
+import android.view.View
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.SizeTransform
@@ -43,6 +46,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
@@ -58,6 +62,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -67,6 +72,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -171,6 +177,38 @@ enum class SettingsScreen {
     APP_INFO
 }
 
+/** Minimum width of the screen edge band where a touch is taken as a system bar swipe. */
+private const val EDGE_SWIPE_BAND_DP = 24
+
+/**
+ * Calls [onOutsideTouch] when a touch is released, unless it started in the screen edge band:
+ * the area where hidden system bars would be, the system gesture areas, or at least
+ * [EDGE_SWIPE_BAND_DP]. Cancelled touches (taken by a system gesture) are ignored.
+ */
+@SuppressLint("ClickableViewAccessibility")
+private fun outsideTouchListener(onOutsideTouch: () -> Unit): View.OnTouchListener {
+    var startedAtEdge = false
+    return View.OnTouchListener { view, event ->
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> startedAtEdge = isAtScreenEdge(view, event.x, event.y)
+            MotionEvent.ACTION_UP -> if (!startedAtEdge) onOutsideTouch()
+        }
+        true
+    }
+}
+
+private fun isAtScreenEdge(view: View, x: Float, y: Float): Boolean {
+    val insets = ViewCompat.getRootWindowInsets(view)
+    val bars = insets?.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars())
+    val gestures = insets?.getInsets(WindowInsetsCompat.Type.systemGestures())
+    val minBand = EDGE_SWIPE_BAND_DP * view.resources.displayMetrics.density
+    fun band(bar: Int?, gesture: Int?) = maxOf(minBand, (bar ?: 0).toFloat(), (gesture ?: 0).toFloat())
+    return x < band(bars?.left, gestures?.left) ||
+        x > view.width - band(bars?.right, gestures?.right) ||
+        y < band(bars?.top, gestures?.top) ||
+        y > view.height - band(bars?.bottom, gestures?.bottom)
+}
+
 private fun hideSystemBarsOf(window: android.view.Window) {
     val controller = WindowCompat.getInsetsController(window, window.decorView)
     controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -231,10 +269,20 @@ private fun SettingsBottomSheetContent(
         onDispose { activity?.window?.let(::hideSystemBarsOf) }
     }
 
+    // Same animated close as the sheet's own scrim tap.
+    val scope = rememberCoroutineScope()
+    val dismissAnimated: () -> Unit = {
+        scope.launch { sheetState.hide() }.invokeOnCompletion {
+            if (!sheetState.isVisible) onDismissRequest()
+        }
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+        // Outside touches are handled below instead, to skip edge swipes.
+        properties = ModalBottomSheetProperties(shouldDismissOnClickOutside = false)
     ) {
         // ModalBottomSheet renders in its own dialog window. When that window gains focus
         // the system bars come back unless the dialog window hides them too, which also
@@ -255,6 +303,18 @@ private fun SettingsBottomSheetContent(
                     immersiveApplied.value = true
                 }
             }
+        }
+
+        // Touches the sheet does not consume (the scrim area) fall through to the dialog's
+        // decor view. Close the sheet on release, as the built-in scrim does, except for a
+        // touch that started at the screen edge: that is a swipe bringing up the system bars,
+        // and closing the sheet then would move focus back to the activity window, which makes
+        // the system hide the bars again right away.
+        val currentDismissAnimated by rememberUpdatedState(dismissAnimated)
+        DisposableEffect(dialogWindow) {
+            val decorView = dialogWindow?.decorView
+            decorView?.setOnTouchListener(outsideTouchListener { currentDismissAnimated() })
+            onDispose { decorView?.setOnTouchListener(null) }
         }
 
         Row(

@@ -13,10 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.displayCutout
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -37,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
@@ -48,6 +46,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.antest1.gotobrowser.Activity.safeOverlayInsets
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -67,10 +66,36 @@ fun floatingToolbarEdgeMargin(): Dp {
     return if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 24.dp else 16.dp
 }
 
+/** Android honors at most this much system gesture exclusion per screen edge. */
+private val MaxGestureExclusionLength = 200.dp
+
+/**
+ * Keeps the system back gesture off the part of a landscape reveal strip next to where the
+ * bar docks, so the swipe reaches the strip. The rest of the edge still works as back.
+ * A full-height strip excludes its center; split strips (above/below the game) share the
+ * budget and exclude the end nearest the screen center.
+ */
+private fun Modifier.revealGestureExclusion(id: String, maxLengthPx: Float): Modifier =
+    systemGestureExclusion { coords ->
+        val width = coords.size.width.toFloat()
+        val height = coords.size.height.toFloat()
+        val parentHeight = coords.parentLayoutCoordinates?.size?.height?.toFloat() ?: height
+        val fullHeight = height >= parentHeight - 1f
+        val length = minOf(height, if (fullHeight) maxLengthPx else maxLengthPx / 2f)
+        val top = when {
+            fullHeight -> (height - length) / 2f
+            id == RevealStrip1LayoutId -> height - length
+            else -> 0f
+        }
+        Rect(0f, top, width, top + length)
+    }
+
 @Composable
 fun AdaptiveFloatingToolbar(
     visible: Boolean,
     onVisibleChange: (Boolean) -> Unit,
+    /** Reports whether a reveal strip has room on screen (the game leaves a margin to swipe from). */
+    onRevealAvailableChange: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
     barSize: Dp = 56.dp,
     barLengthFraction: Float = 0.7f,
@@ -96,7 +121,7 @@ fun AdaptiveFloatingToolbar(
     // the hidden state is really off-screen; the docked state is pushed in by
     // the inset so it does not sit under the camera hole.
     val layoutDirection = LocalLayoutDirection.current
-    val safeInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout)
+    val safeInsets = safeOverlayInsets()
     val insetLeftPx = safeInsets.getLeft(density, layoutDirection).toFloat()
     val insetTopPx = safeInsets.getTop(density).toFloat()
     val insetRightPx = safeInsets.getRight(density, layoutDirection).toFloat()
@@ -112,6 +137,8 @@ fun AdaptiveFloatingToolbar(
 
     val currentVisible by rememberUpdatedState(visible)
     val currentOnVisibleChange by rememberUpdatedState(onVisibleChange)
+    val currentOnRevealAvailableChange by rememberUpdatedState(onRevealAvailableChange)
+    val gestureExclusionMaxPx = with(density) { MaxGestureExclusionLength.toPx() }
 
     val offsetAnim = remember { Animatable(if (visible) dockedOffset else hiddenOffset) }
 
@@ -157,6 +184,9 @@ fun AdaptiveFloatingToolbar(
                                 if (isLandscape) Modifier.width(revealSize).fillMaxHeight()
                                 else Modifier.fillMaxWidth().height(revealSize)
                             )
+                            // The left edge is also the system back gesture area. The bottom
+                            // edge (portrait) is the home gesture, which cannot be excluded.
+                            .then(if (isLandscape) Modifier.revealGestureExclusion(id, gestureExclusionMaxPx) else Modifier)
                             .pointerInput(isLandscape) {
                                 if (isLandscape) {
                                     detectHorizontalDragGestures(
@@ -296,6 +326,12 @@ fun AdaptiveFloatingToolbar(
         val wvb = wvt + wvh
 
         val revealSizePx = with(density) { revealSize.toPx() }
+        // Mirrors the strip sizing below: a full-length strip along the edge when the game
+        // leaves a margin there, otherwise strips in the margins on either side of the game.
+        currentOnRevealAvailableChange(
+            if (isLandscape) wvl >= revealSizePx || maxOf(wvt, containerHeight - wvb) >= revealSizePx
+            else containerHeight - wvb >= revealSizePx || maxOf(wvl, containerWidth - wvr) >= revealSizePx
+        )
         val fabSpacingPx = with(density) { 16.dp.toPx() }
         val barSizePx = with(density) { barSize.toPx() }
 

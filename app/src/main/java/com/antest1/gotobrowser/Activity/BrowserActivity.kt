@@ -14,6 +14,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.Surface
 import android.view.View
 import android.view.ViewGroup
@@ -21,6 +23,7 @@ import android.view.WindowManager
 import android.webkit.SslErrorHandler
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.RequiresApi
 import androidx.browser.customtabs.CustomTabColorSchemeParams
@@ -64,6 +67,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -171,6 +175,8 @@ class BrowserActivity : ComponentActivity() {
     private val errorText = mutableStateOf("")
     private val closeButtonVisible = mutableStateOf(false)
     private val toolbarVisible = mutableStateOf(false)
+    /** False when the game fills the screen, leaving no margin to tap and no edge to swipe from. */
+    private var toolbarRevealAvailable = true
     private val settingsSheetVisible = mutableStateOf(false)
     private val refreshPromptVisible = mutableStateOf(false)
     private val refreshOption = mutableStateOf(RefreshOption.QUICK)
@@ -261,19 +267,30 @@ class BrowserActivity : ComponentActivity() {
         // Keep the game area clear of the display cutout. Since targetSdk 35 the
         // window always extends into the cutout, so on 16:10 tablets the WebView
         // could otherwise be partially covered. Insets are passed through, not consumed.
-        // Must stay in sync with safeOverlayInsets() below.
+        // Must stay in sync with safeOverlayInsets() below (system bars in multi-window only).
         ViewCompat.setOnApplyWindowInsetsListener(gameArea) { v, insets ->
-            val safe = insets.getInsets(
+            val types = if (isInMultiWindowMode) {
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
+            } else {
+                WindowInsetsCompat.Type.displayCutout()
+            }
+            val safe = insets.getInsets(types)
             v.setPadding(safe.left, safe.top, safe.right, safe.bottom)
             insets
         }
         displayController = DisplayController(this, webView) { gameArea.marginDp = it }
 
         val backgroundTapView = View(this).apply {
-            isClickable = true
             setOnClickListener { toolbarVisible.value = !toolbarVisible.value }
+            // A plain click also fires after a drag that stays inside this full-screen view,
+            // so an edge swipe that brings up the system bars toggled the toolbar.
+            // Only a real tap (within touch slop, not cancelled) counts as a click.
+            val tapDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+                override fun onDown(e: MotionEvent) = true
+                override fun onSingleTapUp(e: MotionEvent) = this@apply.performClick()
+            })
+            tapDetector.setOnDoubleTapListener(null)
+            setOnTouchListener { _, event -> tapDetector.onTouchEvent(event); true }
         }
         val rootLayout = FrameLayout(this).apply {
             setBackgroundColor(android.graphics.Color.BLACK)
@@ -333,6 +350,7 @@ class BrowserActivity : ComponentActivity() {
                     ControlLayout(
                         visible = toolbarVisible.value,
                         onVisibleChange = { toolbarVisible.value = it },
+                        onRevealAvailableChange = { toolbarRevealAvailable = it },
                         onRefreshClick = { showRefreshDialog(refreshOption.value) },
                         onQuickRefreshClick = { showRefreshDialog(RefreshOption.QUICK) },
                         onFullRefreshClick = { showRefreshDialog(RefreshOption.FULL) },
@@ -538,7 +556,13 @@ class BrowserActivity : ComponentActivity() {
             settingsSheetVisible.value = false
             return
         }
-        toolbarVisible.value = true
+        // Back only runs the exit flow: the back gesture shares the screen edge with the
+        // system bar reveal, so it must not toggle the toolbar too. The exception is a screen
+        // with no margin and no reveal strip, where back is the only way to bring it up.
+        if (!toolbarVisible.value && !toolbarRevealAvailable) {
+            toolbarVisible.value = true
+            return
+        }
         backPressCloseHandler.handleOnBackPressed()
     }
 
@@ -873,14 +897,21 @@ class BrowserActivity : ComponentActivity() {
 }
 
 /**
- * System bars + display cutout. IME is intentionally excluded so overlays do
- * not jump when the keyboard opens on the login page. While the bars are
- * hidden their insets report 0, so in normal fullscreen play this is
- * effectively cutout-only.
+ * Display cutout, plus the system bars in multi-window mode only. IME is
+ * intentionally excluded so overlays do not jump when the keyboard opens on the login page.
+ *
+ * In fullscreen the bars are always hidden (immersive), so they are left out: closing a
+ * dialog window (e.g. the settings sheet) while the bars are swiped in briefly reports them
+ * as visible to the activity, which made overlays jump inward and back.
  */
 @Composable
-fun safeOverlayInsets(): WindowInsets =
-    WindowInsets.systemBars.union(WindowInsets.displayCutout)
+fun safeOverlayInsets(): WindowInsets {
+    val activity = LocalActivity.current
+    // Entering or leaving multi-window comes with a configuration change (window size).
+    val multiWindow = remember(LocalConfiguration.current) { activity?.isInMultiWindowMode == true }
+    return if (multiWindow) WindowInsets.systemBars.union(WindowInsets.displayCutout)
+    else WindowInsets.displayCutout
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
