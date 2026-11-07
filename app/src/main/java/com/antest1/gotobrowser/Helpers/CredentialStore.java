@@ -107,7 +107,9 @@ public class CredentialStore {
         return (SecretKey) keyStore.getKey(KEY_ALIAS, null);
     }
 
-    private static SecretKey getOrCreateKey() throws Exception {
+    // Synchronized so that two callers never both generate a key: the second one
+    // would replace the first, and a password encrypted with it could not be read.
+    private static synchronized SecretKey getOrCreateKey() throws Exception {
         SecretKey key = getKey();
         if (key != null) return key;
 
