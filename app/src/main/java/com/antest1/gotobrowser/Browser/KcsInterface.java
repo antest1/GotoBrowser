@@ -4,8 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteFullException;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
@@ -36,6 +38,8 @@ public class KcsInterface {
     // network restriction) and the game shows a connection error. The request is only delayed,
     // never modified or re-sent; axios starts its timeout when the request is actually sent.
     public static final String AXIOS_HOLD_HIDDEN_SCRIPT = "axios.interceptors.request.use(function(config){if(!config.url||!config.url.includes(\"kcsapi\")||document.visibilityState!==\"hidden\")return config;console.log(\"[GOTO] kcsapi held while hidden: \"+config.url);return new Promise(function(resolve){function onVisible(){if(document.visibilityState===\"hidden\")return;document.removeEventListener(\"visibilitychange\",onVisible);console.log(\"[GOTO] kcsapi released: \"+config.url);resolve(config);}document.addEventListener(\"visibilitychange\",onVisible);});});";
+    private static final String API_TOKEN_KEY = "api_token";
+    private static final String API_TOKEN_DUMMY = "0000000000000000000000000000000000000000";
     private final BrowserActivity activity;
     private final KcaPacketStore packetTable;
     private final Handler handler = new Handler();
@@ -127,8 +131,24 @@ public class KcsInterface {
         }
     }
 
+    // The broadcast reaches other apps on the device, so the session token is replaced
+    // with a dummy value. Kcanotify reads only the other parameters.
+    static String maskApiToken(String request) {
+        if (request == null || request.isEmpty()) return request;
+        String[] params = request.split("&", -1);
+        for (int i = 0; i < params.length; i++) {
+            int eq = params[i].indexOf('=');
+            String key = eq < 0 ? params[i] : params[i].substring(0, eq);
+            if (API_TOKEN_KEY.equals(Uri.decode(key))) {
+                params[i] = key + "=" + API_TOKEN_DUMMY;
+            }
+        }
+        return TextUtils.join("&", params);
+    }
+
     public void sendBroadcast(String url, String request, String response) {
         url = url.replace("/kcsapi", "");
+        request = maskApiToken(request);
         packetTable.record(url, request, response);
         Intent intent = new Intent();
         intent.setAction(BROADCAST_ACTION);
