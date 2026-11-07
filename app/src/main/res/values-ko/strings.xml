@@ -174,10 +174,13 @@
     <string name="loading_error_server_desc">서버 점검 중일 수 있습니다. 잠시 후 새로고침 버튼으로 전체 새로고침해 주세요</string>
     <string name="loading_error_generic_title">페이지를 불러오지 못했습니다</string>
     <string name="loading_error_generic_desc">새로고침 버튼으로 전체 새로고침해 주세요</string>
-    <string name="server_notice_title">서버 오류 — 새로고침 버튼으로 전체 새로고침해 주세요</string>
+    <string name="server_notice_title">서버 오류</string>
+    <string name="server_notice_desc">새로고침 버튼으로 전체 새로고침해 주세요</string>
     <string name="notice_copied">복사했습니다</string>
-    <string name="notice_network_title">통신 오류 — 인터넷 연결을 확인한 뒤 새로고침 버튼으로 새로고침해 주세요</string>
-    <string name="notice_http_title">서버 응답 오류 — 잠시 후 새로고침 버튼으로 새로고침해 주세요</string>
+    <string name="notice_network_title">통신 오류</string>
+    <string name="notice_network_desc">인터넷 연결을 확인한 뒤 새로고침 버튼으로 새로고침해 주세요</string>
+    <string name="notice_http_title">서버 응답 오류</string>
+    <string name="notice_http_desc">잠시 후 새로고침 버튼으로 새로고침해 주세요</string>
     <string name="detail_code">코드</string>
     <string name="detail_host">주소</string>
     <string name="detail_api">API</string>

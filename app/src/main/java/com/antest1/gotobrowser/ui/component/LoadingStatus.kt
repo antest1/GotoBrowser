@@ -9,8 +9,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -33,8 +33,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -47,6 +45,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -83,9 +82,6 @@ data class ServerNotice(val kind: Kind, val code: String, val api: String, val m
 private const val SHOW_DELAY_MILLIS = 500L
 private const val POLL_MILLIS = 500L
 private const val STEP_COUNT = 3
-
-// The snackbar sits on inverseSurface (light), so its icon uses the light scheme's error tone.
-private val SnackbarErrorColor = Color(0xFFBA1A1A)
 
 /** Polls [tracker]; equal snapshots do not recompose, so this is idle once loading ends. */
 @Composable
@@ -363,56 +359,70 @@ private fun ErrorBadge(color: Color, onColor: Color) {
 }
 
 /**
- * M3 snackbar at the bottom of the game area for a failed kcsapi call (the game's own
- * error screen keeps its message at the top). No action button: tap to dismiss,
- * long-press to copy the detail line (code · api · server message) for bug reports.
+ * Where [ServerNoticeCard] sits in the game area: a little below the middle, so the card
+ * starts under the message at the top of the game's own connection error screen.
+ */
+val ServerNoticeAlignment: Alignment = BiasAlignment(0f, 0.4f)
+
+/**
+ * A failed kcsapi call, as a card in the middle of the game area: the same look as a load
+ * error, and clear of the game's own error message, which sits at the top of its error
+ * screen. No action button: tap to dismiss, long-press to copy the detail line
+ * (code · api · server message) for bug reports.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ServerNoticeSnackbar(notice: ServerNotice?, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+fun ServerNoticeCard(notice: ServerNotice?, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
     var shown by remember { mutableStateOf(notice) }
     SideEffect { if (notice != null) shown = notice }
 
     AnimatedVisibility(
         visible = notice != null,
-        enter = slideInVertically { it } + fadeIn(),
-        exit = slideOutVertically { it } + fadeOut(),
+        enter = fadeIn(tween(250)) + scaleIn(tween(250), initialScale = 0.96f),
+        exit = fadeOut(tween(200)) + scaleOut(tween(200), targetScale = 0.96f),
         modifier = modifier
     ) {
         val current = notice ?: shown ?: return@AnimatedVisibility
+        val (title, description) = when (current.kind) {
+            ServerNotice.Kind.REJECTED -> R.string.server_notice_title to R.string.server_notice_desc
+            ServerNotice.Kind.NETWORK -> R.string.notice_network_title to R.string.notice_network_desc
+            ServerNotice.Kind.HTTP -> R.string.notice_http_title to R.string.notice_http_desc
+        }
         SettingsTheme(darkTheme = true) {
             val context = LocalContext.current
-            Snackbar(
-                modifier = Modifier
-                    .widthIn(max = 600.dp)
-                    .clip(SnackbarDefaults.shape)
-                    .combinedClickable(
-                        onClick = onDismiss,
-                        onLongClick = { copyToClipboard(context, current.detail) }
-                    )
-            ) {
-                val title = when (current.kind) {
-                    ServerNotice.Kind.REJECTED -> R.string.server_notice_title
-                    ServerNotice.Kind.NETWORK -> R.string.notice_network_title
-                    ServerNotice.Kind.HTTP -> R.string.notice_http_title
-                }
-                val content = LocalContentColor.current
-                Row(verticalAlignment = Alignment.Top) {
-                    ErrorBadge(color = SnackbarErrorColor, onColor = Color.White)
-                    Spacer(Modifier.width(12.dp))
-                    Column {
-                        Text(stringResource(title), style = MaterialTheme.typography.bodyMedium)
-                        DetailBlock(
-                            rows = listOf(
-                                stringResource(R.string.detail_code) to current.code,
-                                stringResource(R.string.detail_api) to current.api,
-                                stringResource(R.string.detail_message) to current.message
-                            ),
-                            dividerColor = content.copy(alpha = 0.2f),
-                            labelColor = content.copy(alpha = 0.65f),
-                            valueColor = content.copy(alpha = 0.8f)
+            val shape = MaterialTheme.shapes.large
+            val error = MaterialTheme.colorScheme.error
+            CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
+                Column(
+                    Modifier
+                        .widthIn(max = 320.dp)
+                        .fillMaxWidth()
+                        .shadow(3.dp, shape)
+                        .clip(shape)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                        .combinedClickable(
+                            onClick = onDismiss,
+                            onLongClick = { copyToClipboard(context, current.detail) }
                         )
-                    }
+                        .padding(16.dp)
+                ) {
+                    Header(
+                        stringResource(title),
+                        trailing = null,
+                        titleColor = error,
+                        leading = { ErrorBadge(color = error, onColor = MaterialTheme.colorScheme.onError) }
+                    )
+                    Supporting(stringResource(description), topPadding = 8.dp)
+                    DetailBlock(
+                        rows = listOf(
+                            stringResource(R.string.detail_code) to current.code,
+                            stringResource(R.string.detail_api) to current.api,
+                            stringResource(R.string.detail_message) to current.message
+                        ),
+                        dividerColor = MaterialTheme.colorScheme.outlineVariant,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        valueColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }

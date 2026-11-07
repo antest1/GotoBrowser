@@ -62,7 +62,8 @@ import com.antest1.gotobrowser.ui.component.PatchDeleteDialog
 import com.antest1.gotobrowser.ui.component.PatchDownloadDialog
 import com.antest1.gotobrowser.ui.component.RefreshOption
 import com.antest1.gotobrowser.ui.component.ServerNotice
-import com.antest1.gotobrowser.ui.component.ServerNoticeSnackbar
+import com.antest1.gotobrowser.ui.component.ServerNoticeAlignment
+import com.antest1.gotobrowser.ui.component.ServerNoticeCard
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
 import com.antest1.gotobrowser.ui.component.ThirdPartyConnectorDialog
 import com.antest1.gotobrowser.ui.component.refreshAttentionColor
@@ -326,7 +327,7 @@ class DocScreenshotTest(private val locale: String) {
                         .aspectRatio(1200f / 720f)
                 ) {
                     LoadingStatusOverlay(state)
-                    ServerNoticeSnackbar(notice, onDismiss = {}, modifier = Modifier.align(Alignment.BottomCenter).padding(12.dp))
+                    ServerNoticeCard(notice, onDismiss = {}, modifier = Modifier.align(ServerNoticeAlignment).padding(16.dp))
                 }
             }
             ControlLayout(

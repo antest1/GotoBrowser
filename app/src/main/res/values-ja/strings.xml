@@ -172,10 +172,13 @@
     <string name="loading_error_server_desc">サーバーがメンテナンス中の可能性があります。しばらくしてからリフレッシュボタンでフルリフレッシュしてください</string>
     <string name="loading_error_generic_title">ページを読み込めませんでした</string>
     <string name="loading_error_generic_desc">リフレッシュボタンでフルリフレッシュしてください</string>
-    <string name="server_notice_title">サーバーエラー — リフレッシュボタンでフルリフレッシュしてください</string>
+    <string name="server_notice_title">サーバーエラー</string>
+    <string name="server_notice_desc">リフレッシュボタンでフルリフレッシュしてください</string>
     <string name="notice_copied">コピーしました</string>
-    <string name="notice_network_title">通信エラー — インターネット接続を確認してから、リフレッシュボタンでリフレッシュしてください</string>
-    <string name="notice_http_title">サーバー応答エラー — しばらくしてからリフレッシュボタンでリフレッシュしてください</string>
+    <string name="notice_network_title">通信エラー</string>
+    <string name="notice_network_desc">インターネット接続を確認してから、リフレッシュボタンでリフレッシュしてください</string>
+    <string name="notice_http_title">サーバー応答エラー</string>
+    <string name="notice_http_desc">しばらくしてからリフレッシュボタンでリフレッシュしてください</string>
     <string name="detail_code">コード</string>
     <string name="detail_host">ホスト</string>
     <string name="detail_api">API</string>

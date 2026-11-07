@@ -172,10 +172,13 @@
     <string name="loading_error_server_desc">服务器可能正在维护。请稍后使用刷新按钮进行完全刷新</string>
     <string name="loading_error_generic_title">无法加载页面</string>
     <string name="loading_error_generic_desc">请使用刷新按钮进行完全刷新</string>
-    <string name="server_notice_title">服务器错误 — 请使用刷新按钮进行完全刷新</string>
+    <string name="server_notice_title">服务器错误</string>
+    <string name="server_notice_desc">请使用刷新按钮进行完全刷新</string>
     <string name="notice_copied">已复制</string>
-    <string name="notice_network_title">通信错误 — 请检查网络连接，然后使用刷新按钮刷新</string>
-    <string name="notice_http_title">服务器响应错误 — 请稍后使用刷新按钮刷新</string>
+    <string name="notice_network_title">通信错误</string>
+    <string name="notice_network_desc">请检查网络连接，然后使用刷新按钮刷新</string>
+    <string name="notice_http_title">服务器响应错误</string>
+    <string name="notice_http_desc">请稍后使用刷新按钮刷新</string>
     <string name="detail_code">代码</string>
     <string name="detail_host">主机</string>
     <string name="detail_api">API</string>

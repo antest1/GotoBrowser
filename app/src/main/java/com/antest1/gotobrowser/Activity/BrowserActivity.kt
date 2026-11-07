@@ -134,7 +134,8 @@ import com.antest1.gotobrowser.ui.component.LoadingStatusOverlay
 import com.antest1.gotobrowser.ui.component.MessageDialog
 import com.antest1.gotobrowser.ui.component.MessageDialogHost
 import com.antest1.gotobrowser.ui.component.ServerNotice
-import com.antest1.gotobrowser.ui.component.ServerNoticeSnackbar
+import com.antest1.gotobrowser.ui.component.ServerNoticeAlignment
+import com.antest1.gotobrowser.ui.component.ServerNoticeCard
 import com.antest1.gotobrowser.ui.component.floatingToolbarEdgeMargin
 import com.antest1.gotobrowser.ui.component.RefreshOption
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
@@ -1103,14 +1104,14 @@ fun BrowserOverlayContent(
 
             if (!activity.isInPictureInPictureModeState.value) {
                 // Status sits within the game area: loading card centered (or at the bottom
-                // while the game draws its own loading screen), server errors at the bottom:
-                // the game's own connection error screen has its message at the top.
+                // while the game draws its own loading screen), server errors centered as well,
+                // below the message at the top of the game's own connection error screen.
                 Box(modifier = Modifier.align(Alignment.Center).size(gameWidth, gameHeight)) {
                     LoadingStatusOverlay(loadState)
-                    ServerNoticeSnackbar(
+                    ServerNoticeCard(
                         notice = serverNotice,
                         onDismiss = onDismissServerNotice,
-                        modifier = Modifier.align(Alignment.BottomCenter).padding(12.dp)
+                        modifier = Modifier.align(ServerNoticeAlignment).padding(16.dp)
                     )
                 }
 
