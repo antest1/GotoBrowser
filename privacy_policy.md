@@ -10,14 +10,14 @@ GotoBrowser(이하 "앱")는 Android 기기에서 칸코레(HTML5)를 플레이�
    - 앱 설정값
    - 로그인 자동 입력 정보(ID/비밀번호): 사용자가 설정에서 직접 입력한 경우에만 저장되며, 로그인 페이지의 자동 입력에만 사용됩니다. 비밀번호는 Android 키스토어의 키로 암호화하여 저장합니다. 이 키는 기기 밖으로 나가지 않으므로, 앱 데이터 백업을 다른 기기에 복원하면 비밀번호를 읽을 수 없으며 저장된 비밀번호는 삭제됩니다.
    - 쿠키 및 로그인 세션, 게임 리소스 캐시
-   - 스크린샷: 사용자가 촬영한 경우 기기의 `Pictures/GotoBrowser` 폴더에 저장됩니다.
-   - Kcanotify 연동용 게임 통신 데이터: 최근 통신 내역 최대 10건이 저장되며, 인증 토큰(`api_token`)은 제외됩니다.
+   - 스크린샷: 사용자가 촬영한 경우 기기의 사진 폴더에 저장됩니다.
+   - Kcanotify 연동용 게임 통신 데이터: 최근 통신 내역 일부가 저장되며, 인증 토큰은 제외됩니다.
 
 2. **게임 및 접속 서비스와의 통신** 앱은 게임 플레이를 위해 DMM 및 칸코레 서버와 통신합니다. 사용자가 접속 방식으로 제3자가 운영하는 웹 프록시 서비스를 선택한 경우, 로그인 정보를 포함한 게임 통신이 해당 서비스를 거쳐 전달됩니다. 이러한 서비스는 개발자와 무관하며, 해당 서비스의 개인정보 처리방침이 적용됩니다. Gadget 서버 우회 기능을 활성화한 경우, 일부 게임 리소스 요청이 설정된 대체 서버로 전달됩니다.
 
 3. **게임 플레이에 대한 영향** 앱은 칸코레 및 DMM 서버와 주고받는 통신 내용을 변경하지 않으며, 매크로나 치트 등 게임 플레이에 영향을 주는 기능을 제공하지 않습니다.
 
-4. **Kcanotify 연동** 브로드캐스트 모드가 활성화된 경우(기본값), 게임 통신 내용을 같은 기기에 설치된 Kcanotify 앱으로 전달합니다. 이때 인증 토큰(`api_token`)은 임의의 값으로 바꾸어 전달합니다. 이 데이터는 기기 외부로 전송되지 않으며, 설정에서 브로드캐스트 모드를 끌 수 있습니다.
+4. **Kcanotify 연동** 브로드캐스트 모드가 활성화된 경우(기본값), 게임 통신 내용을 같은 기기에 설치된 Kcanotify 앱으로 전달합니다. 이때 인증 토큰은 임의의 값으로 바꾸어 전달합니다. 이 데이터는 기기 외부로 전송되지 않으며, 설정에서 브로드캐스트 모드를 끌 수 있습니다.
 
 5. **오류 보고 및 사용 통계** 앱의 문제를 진단하고 해결하기 위해 Google Firebase(Crashlytics, Analytics)를 사용합니다. 오류 발생 시의 오류 정보, 기기 모델, OS 및 앱 버전과 같은 기기 정보, 앱 사용 현황 등이 수집될 수 있습니다. 게임 계정 정보, 로그인 정보, 게임 플레이 데이터는 수집하지 않습니다. 수집된 정보의 처리는 Google의 정책을 따릅니다. (https://policies.google.com/privacy, https://firebase.google.com/support/privacy)
 
@@ -48,14 +48,14 @@ GotoBrowser ("the app") is an open-source browser for playing KanColle (HTML5) o
    - App settings
    - Login autofill credentials (ID/password): stored only if you enter them in the settings, and used only to fill in the login page. The password is encrypted with a key held in the Android Keystore. The key never leaves your device, so if the app data is restored from a backup on another device, the password cannot be read and is deleted.
    - Cookies, login sessions and game resource cache
-   - Screenshots: saved to the `Pictures/GotoBrowser` folder on your device when you take them.
-   - Game traffic data for Kcanotify: up to the 10 most recent records are kept, with the authentication token (`api_token`) removed.
+   - Screenshots: saved to the pictures folder on your device when you take them.
+   - Game traffic data for Kcanotify: a few of the most recent records are kept, with the authentication token removed.
 
 2. **Communication with Game and Connection Services** The app communicates with the DMM and KanColle servers to play the game. If you choose a web proxy service run by a third party as the connection method, your game traffic, including your login credentials, passes through that service. Such services are unrelated to the developer, and their own privacy policies apply. If you enable Gadget Server Bypass, some game resource requests are sent to the configured alternative server.
 
 3. **Effect on Gameplay** The app does not modify any traffic exchanged with the KanColle/DMM servers, and it does not provide any macro or cheat features that affect gameplay.
 
-4. **Kcanotify Integration** When Broadcast Mode is enabled (default), the app passes game traffic to the Kcanotify app installed on the same device, with the authentication token (`api_token`) replaced by a dummy value. This data does not leave your device, and you can turn off Broadcast Mode in the settings.
+4. **Kcanotify Integration** When Broadcast Mode is enabled (default), the app passes game traffic to the Kcanotify app installed on the same device, with the authentication token replaced by a dummy value. This data does not leave your device, and you can turn off Broadcast Mode in the settings.
 
 5. **Error Reports and Usage Statistics** To find and fix problems, the app uses Google Firebase (Crashlytics and Analytics). Error details, device information such as the device model, OS and app version, and app usage data may be collected. Game account information, login credentials and gameplay data are not collected. Collected information is handled under Google's policies. (https://policies.google.com/privacy, https://firebase.google.com/support/privacy)
 
@@ -86,14 +86,14 @@ GotoBrowser(以下「本アプリ」)は、Android端末で艦これ(HTML5)を�
    - アプリの設定
    - ログイン自動入力情報(ID/パスワード):ユーザーが設定で入力した場合のみ保存され、ログインページの自動入力にのみ使用されます。パスワードはAndroidキーストアの鍵で暗号化して保存します。この鍵は端末の外に出ないため、アプリデータのバックアップを別の端末に復元した場合、パスワードは読み取れず削除されます。
    - Cookie、ログインセッション、ゲームリソースのキャッシュ
-   - スクリーンショット:撮影した場合、端末の `Pictures/GotoBrowser` フォルダに保存されます。
-   - Kcanotify連携用のゲーム通信データ:直近の通信最大10件が保存され、認証トークン(`api_token`)は除外されます。
+   - スクリーンショット:撮影した場合、端末の画像フォルダに保存されます。
+   - Kcanotify連携用のゲーム通信データ:直近の通信の一部が保存され、認証トークンは除外されます。
 
 2. **ゲームおよび接続サービスとの通信** 本アプリはゲームをプレイするためにDMMおよび艦これのサーバーと通信します。接続方式として第三者が運営するWebプロキシサービスを選択した場合、ログイン情報を含むゲーム通信は当該サービスを経由します。これらのサービスは開発者とは関係がなく、各サービスのプライバシーポリシーが適用されます。Gadgetサーバー迂回機能を有効にした場合、一部のゲームリソースのリクエストは設定された代替サーバーに送信されます。
 
 3. **ゲームプレイへの影響** 本アプリは艦これおよびDMMのサーバーとの通信内容を改変せず、マクロやチートなどゲームプレイに影響を与える機能は一切提供しません。
 
-4. **Kcanotify連携** ブロードキャストモードが有効な場合(初期設定)、ゲーム通信の内容を同じ端末にインストールされたKcanotifyアプリに渡します。その際、認証トークン(`api_token`)は任意の値に置き換えて渡します。このデータが端末の外に送信されることはなく、ブロードキャストモードは設定で無効にできます。
+4. **Kcanotify連携** ブロードキャストモードが有効な場合(初期設定)、ゲーム通信の内容を同じ端末にインストールされたKcanotifyアプリに渡します。その際、認証トークンは任意の値に置き換えて渡します。このデータが端末の外に送信されることはなく、ブロードキャストモードは設定で無効にできます。
 
 5. **エラーレポートおよび利用統計** 問題の把握と解決のため、Google Firebase(Crashlytics、Analytics)を使用しています。エラー情報、端末の機種・OS・アプリのバージョンなどの端末情報、アプリの利用状況が収集されることがあります。ゲームのアカウント情報、ログイン情報、ゲームプレイデータは収集しません。収集された情報はGoogleのポリシーに従って取り扱われます。(https://policies.google.com/privacy, https://firebase.google.com/support/privacy)
 
