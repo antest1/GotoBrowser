@@ -302,7 +302,7 @@ class BrowserActivity : ComponentActivity() {
             v.setPadding(safe.left, safe.top, safe.right, safe.bottom)
             insets
         }
-        displayController = DisplayController(this, webView) { gameArea.marginDp = it }
+        displayController = DisplayController(this, webView) { top, bottom -> gameArea.setDividerMargin(top, bottom) }
 
         val backgroundTapView = View(this).apply {
             setOnClickListener { toolbarVisible.value = !toolbarVisible.value }
