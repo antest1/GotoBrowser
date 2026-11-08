@@ -35,6 +35,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -372,12 +373,35 @@ public class KcUtils {
     }
 
     public static JsonObject readJsonObjectFromFile(String path) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+        File file = new File(path);
+        // Not downloaded yet is an expected state, not an error worth reporting.
+        if (!file.exists()) return null;
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             return getGson().fromJson(reader, JsonObject.class);
         } catch (IOException e) {
             KcUtils.reportException(e);
+        } catch (JsonParseException e) {
+            // Truncated or corrupted file: drop it so it can be downloaded again.
+            KcUtils.reportException(e);
+            file.delete();
         }
         return null;
+    }
+
+    // Writes through a temp sibling and renames it over the target, so a reader
+    // never sees a partially written file. Throws if the target was not replaced.
+    public static void writeStringToFileAtomically(File dest, String content) throws IOException {
+        File temp = newTempSibling(dest);
+        try (OutputStream os = new FileOutputStream(temp)) {
+            os.write(content.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            temp.delete();
+            throw e;
+        }
+        if (!temp.renameTo(dest)) {
+            temp.delete();
+            throw new IOException("failed to replace " + dest.getPath());
+        }
     }
 
     public static byte[] gzipcompress(String value) throws IOException {

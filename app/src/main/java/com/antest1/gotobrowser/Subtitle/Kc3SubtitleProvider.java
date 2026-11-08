@@ -16,7 +16,6 @@ import com.google.gson.JsonPrimitive;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
@@ -464,7 +463,8 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                         if (!commit_log.isEmpty()) {
                             JsonObject latestData = commit_log.get(0).getAsJsonObject();
                             String latestCommit = latestData.get("sha").getAsString();
-                            if (!currentCommit.equals(latestCommit)) {
+                            // Also offer the download when the file is gone (e.g. deleted as corrupted).
+                            if (!currentCommit.equals(latestCommit) || !new File(subtitle_path).exists()) {
                                 subtitleData = new JsonObject();
                                 subtitleData.addProperty("locale_code", localeCode);
                                 subtitleData.addProperty("latest_commit", latestCommit);
@@ -541,10 +541,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                 }
                 JsonObject data = response.body();
                 if (data != null) {
-                    File subtitleFile = new File(subtitle_path);
-                    FileOutputStream fos = new FileOutputStream(subtitleFile);
-                    fos.write(data.toString().getBytes());
-                    fos.close();
+                    KcUtils.writeStringToFileAtomically(new File(subtitle_path), data.toString());
                     versionTable.putVersionValue(subtitle_path, commit);
                     host.setSubtitleUpdateStatus(host.getString(R.string.setting_latest_version), false);
                     host.onSubtitleDataUpdated();
