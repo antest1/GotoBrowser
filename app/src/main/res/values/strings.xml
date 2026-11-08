@@ -11,7 +11,8 @@
     <string name="select_server">Select Login Method</string>
     <string name="select_server_toast">Login method must be chosen first</string>
     <string name="cache_clear_text">Clear Cache</string>
-    <string name="cache_cleared_toast">Webview cache cleared</string>
+    <string name="cache_clearing">Clearing cache…</string>
+    <string name="cache_cleared_refresh_msg">The cache has been cleared. Reload the game to download the resources again. Do you want to reload now?</string>
     <string name="webview_unavailable">Could not load Android System WebView. It may be updating; try again shortly, or update or enable it in the Play Store.</string>
     <string name="clearcache_msg">Use this when images or audio are not loading correctly, or to switch between login methods. You may need to log in again afterwards.</string>
     <string name="thirdpartyconnector_msg">In the case of non-official web proxy-based connectors (like OOI), the game resources may be different from the original ones, depending on their policy. Basically, GotoBrowser does not inference the policy of each connector. If you do not want to display unofficial resources with GotoBrowser, please clear the cache and play KanColle through DMM Direct.</string>
@@ -66,6 +67,7 @@
     <string name="settings_refresh_required_msg">The setting has been saved. A reload of the game is required for it to take effect. Do you want to reload now?</string>
     <string name="settings_refresh_now">Reload Now</string>
     <string name="settings_refresh_later">Change Settings Without Reload</string>
+    <string name="refresh_later">Later</string>
     <string name="settings_menu_tooltip">Settings</string>
     <string name="logout_msg">Are you sure you want to Logout?</string>
     <string name="noti_screenshot_name">GotoBrowser Screenshot</string>

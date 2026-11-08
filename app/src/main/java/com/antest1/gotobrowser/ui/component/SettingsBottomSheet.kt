@@ -227,6 +227,8 @@ private fun hideSystemBarsOf(window: android.view.Window) {
  * @param activity host activity, used for actions that need a window (dialogs,
  *        snackbars). The sheet renders in its own window, so it cannot be
  *        resolved from [LocalContext] and must be supplied by the host.
+ * @param onCacheCleared called once the cache clear finishes, so the host can offer a
+ *        reload; the game keeps using what it already loaded until then.
  */
 @Composable
 fun SettingsBottomSheet(
@@ -235,7 +237,8 @@ fun SettingsBottomSheet(
     onDismissRequest: () -> Unit,
     onSettingChanged: (String) -> Unit,
     onLogoutRequest: () -> Unit = {},
-    onHelpClick: () -> Unit = {}
+    onHelpClick: () -> Unit = {},
+    onCacheCleared: () -> Unit = {}
 ) {
     // The sheet has its own blue palette; the game overlay underneath keeps the neutral theme.
     SettingsTheme {
@@ -245,7 +248,8 @@ fun SettingsBottomSheet(
             onDismissRequest = onDismissRequest,
             onSettingChanged = onSettingChanged,
             onLogoutRequest = onLogoutRequest,
-            onHelpClick = onHelpClick
+            onHelpClick = onHelpClick,
+            onCacheCleared = onCacheCleared
         )
     }
 }
@@ -258,7 +262,8 @@ private fun SettingsBottomSheetContent(
     onDismissRequest: () -> Unit,
     onSettingChanged: (String) -> Unit,
     onLogoutRequest: () -> Unit,
-    onHelpClick: () -> Unit
+    onHelpClick: () -> Unit,
+    onCacheCleared: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
@@ -395,7 +400,8 @@ private fun SettingsBottomSheetContent(
                     modifier = Modifier.fillMaxWidth(),
                     onDismissRequest = onDismissRequest,
                     onSettingChanged = onSettingChanged,
-                    onLogoutRequest = onLogoutRequest
+                    onLogoutRequest = onLogoutRequest,
+                    onCacheCleared = onCacheCleared
                 )
                 // Rendered inside the sheet so its messages appear above the
                 // sheet's own window rather than behind it. Padding keeps it
@@ -457,7 +463,8 @@ fun SettingsContent(
     modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit = {},
     onSettingChanged: (String) -> Unit = {},
-    onLogoutRequest: () -> Unit = {}
+    onLogoutRequest: () -> Unit = {},
+    onCacheCleared: () -> Unit = {}
 ) {
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
 
@@ -518,7 +525,7 @@ fun SettingsContent(
                 ControlSection(viewModel, onSettingChanged)
             }
             SettingsScreen.DOWNLOAD -> {
-                DownloadSection(viewModel, onSettingChanged)
+                DownloadSection(viewModel, onSettingChanged, onCacheCleared)
             }
             SettingsScreen.SUBTITLE -> {
                 SubtitleSection(viewModel, subtitleSummary, subtitleEnabled, onSettingChanged)
@@ -567,23 +574,20 @@ private fun ControlSection(viewModel: SettingsViewModel?, onSettingChanged: (Str
 }
 
 @Composable
-private fun DownloadSection(viewModel: SettingsViewModel?, onSettingChanged: (String) -> Unit) {
-    val context = LocalContext.current
+private fun DownloadSection(viewModel: SettingsViewModel?, onSettingChanged: (String) -> Unit, onCacheCleared: () -> Unit) {
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
     SwitchRow(viewModel, PREF_USE_EXTCACHE, R.string.settings_use_external_dir, R.string.settings_recommended_summary,
         onChanged = { if (!isPreview) viewModel.onExternalCacheChanged() }, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_FONT_PREFETCH, R.string.browser_fontprefetch, R.string.settings_recommended_summary, defaultValue = true, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_DOWNLOAD_RETRY, R.string.settings_retry_enable, R.string.settings_retry_summary,
         onSettingChanged = onSettingChanged)
+    // Runs in the background; the row stays disabled until it finishes.
+    val clearing = if (isPreview) false else viewModel.cacheClearing.observeAsState(false).value
     ClickRow(
         title = R.string.cache_clear_text,
-        summary = R.string.clearcache_msg,
-        onClick = {
-            if (!isPreview) {
-                viewModel.clearBrowserCache()
-                KcUtils.showToast(context.applicationContext, R.string.cache_cleared_toast)
-            }
-        }
+        summary = if (clearing) R.string.cache_clearing else R.string.clearcache_msg,
+        enabled = !clearing,
+        onClick = { if (!isPreview) viewModel.clearBrowserCache(onCacheCleared) }
     )
 }
 

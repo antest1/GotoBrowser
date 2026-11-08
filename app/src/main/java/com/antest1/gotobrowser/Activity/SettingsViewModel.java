@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.webkit.WebView;
 
@@ -99,6 +101,8 @@ public class SettingsViewModel extends AndroidViewModel {
             new MutableLiveData<>(PatchDownloadState.Idle.INSTANCE);
     /** One-shot message for the settings snackbar; cleared by {@link #consumePatchMessage()}. */
     private final MutableLiveData<String> patchMessage = new MutableLiveData<>(null);
+    /** True while {@link #clearBrowserCache(Runnable)} is deleting files. */
+    private final MutableLiveData<Boolean> cacheClearing = new MutableLiveData<>(false);
 
     public SettingsViewModel(@NonNull Application application) {
         super(application);
@@ -199,6 +203,10 @@ public class SettingsViewModel extends AndroidViewModel {
         patchMessage.setValue(null);
     }
 
+    public LiveData<Boolean> getCacheClearing() {
+        return cacheClearing;
+    }
+
     public void setPatchUpdateStatus(String summary, boolean enabled) {
         patchUpdateSummary.setValue(summary);
         patchUpdateEnabled.setValue(enabled);
@@ -291,12 +299,38 @@ public class SettingsViewModel extends AndroidViewModel {
         KcUtils.requestLatestAppVersion(activity, appCheck, true, onMessage);
     }
 
-    public void clearBrowserCache() {
+    /**
+     * Clears the WebView and resource caches. The file deletion runs on a background thread:
+     * the resource cache can hold hundreds of MB, and deleting it on the main thread froze
+     * the app. {@code onDone} runs on the main thread once everything is deleted. Ignored
+     * while a previous clear is still running.
+     */
+    public void clearBrowserCache(Runnable onDone) {
+        if (Boolean.TRUE.equals(cacheClearing.getValue())) return;
+        cacheClearing.setValue(true);
+
         Context context = getApplication().getApplicationContext();
-        // clear webview cache
+        // WebView must be used on the main thread; clearing its own cache is quick.
         WebView webview = new WebView(context);
         webview.clearCache(true);
+        webview.destroy();
 
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+        new Thread(() -> {
+            try {
+                deleteCacheFiles(context);
+            } catch (RuntimeException e) {
+                KcUtils.reportException(e);
+            } finally {
+                mainHandler.post(() -> {
+                    cacheClearing.setValue(false);
+                    if (onDone != null) onDone.run();
+                });
+            }
+        }, "clear-cache").start();
+    }
+
+    private void deleteCacheFiles(Context context) {
         // clear version table
         versionTable.clearVersionDatabase();
 

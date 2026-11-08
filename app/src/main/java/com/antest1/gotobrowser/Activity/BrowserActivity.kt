@@ -180,6 +180,8 @@ class BrowserActivity : ComponentActivity() {
     private var toolbarRevealAvailable = true
     private val settingsSheetVisible = mutableStateOf(false)
     private val refreshPromptVisible = mutableStateOf(false)
+    /** What the refresh prompt says; a changed setting and a cleared cache explain it differently. */
+    private val refreshPromptReason = mutableStateOf(RefreshPromptReason.SETTING_CHANGED)
     private val refreshOption = mutableStateOf(RefreshOption.QUICK)
     private val messageDialogs = mutableStateListOf<MessageDialog>()
     private val subtitleFontSize = mutableStateOf(DEFAULT_SUBTITLE_FONT_SIZE)
@@ -426,7 +428,8 @@ class BrowserActivity : ComponentActivity() {
                                 showLogoutDialog()
                             },
                             onHelpClick = { openManual(this@BrowserActivity) },
-                            onSettingChanged = { key -> onSettingChanged(key) }
+                            onSettingChanged = { key -> onSettingChanged(key) },
+                            onCacheCleared = { showRefreshPrompt(RefreshPromptReason.CACHE_CLEARED) }
                         )
                     }
 
@@ -434,6 +437,7 @@ class BrowserActivity : ComponentActivity() {
                         // Same palette as the sheet it is asked from.
                         SettingsTheme {
                             SettingsRefreshDialog(
+                                reason = refreshPromptReason.value,
                                 onRefreshNow = {
                                     refreshPromptVisible.value = false
                                     settingsSheetVisible.value = false
@@ -542,13 +546,18 @@ class BrowserActivity : ComponentActivity() {
     private fun onSettingChanged(key: String) {
         when (key) {
             in liveSettings -> applyLiveSetting(key)
-            in refreshSettings -> refreshPromptVisible.value = true
+            in refreshSettings -> showRefreshPrompt(RefreshPromptReason.SETTING_CHANGED)
             else -> {
                 // Unclassified keys fall back to a refresh prompt.
                 if (BuildConfig.DEBUG) Log.w("GOTO", "unclassified setting key: $key")
-                refreshPromptVisible.value = true
+                showRefreshPrompt(RefreshPromptReason.SETTING_CHANGED)
             }
         }
+    }
+
+    private fun showRefreshPrompt(reason: RefreshPromptReason) {
+        refreshPromptReason.value = reason
+        refreshPromptVisible.value = true
     }
 
     private fun applyLiveSetting(key: String) {
@@ -966,15 +975,21 @@ fun PanelButton(
     }
 }
 
+internal enum class RefreshPromptReason(val messageRes: Int, val laterRes: Int) {
+    SETTING_CHANGED(R.string.settings_refresh_required_msg, R.string.settings_refresh_later),
+    CACHE_CLEARED(R.string.cache_cleared_refresh_msg, R.string.refresh_later)
+}
+
 @Composable
 internal fun SettingsRefreshDialog(
     onRefreshNow: () -> Unit,
-    onChangeWithoutRefresh: () -> Unit
+    onChangeWithoutRefresh: () -> Unit,
+    reason: RefreshPromptReason = RefreshPromptReason.SETTING_CHANGED
 ) {
     AlertDialog(
         onDismissRequest = onChangeWithoutRefresh,
         title = { Text(text = stringResource(id = R.string.settings_refresh_required_title)) },
-        text = { Text(text = stringResource(id = R.string.settings_refresh_required_msg)) },
+        text = { Text(text = stringResource(id = reason.messageRes)) },
         confirmButton = {
             TextButton(onClick = onRefreshNow) {
                 Text(text = stringResource(id = R.string.settings_refresh_now))
@@ -982,7 +997,7 @@ internal fun SettingsRefreshDialog(
         },
         dismissButton = {
             TextButton(onClick = onChangeWithoutRefresh) {
-                Text(text = stringResource(id = R.string.settings_refresh_later))
+                Text(text = stringResource(id = reason.laterRes))
             }
         }
     )
