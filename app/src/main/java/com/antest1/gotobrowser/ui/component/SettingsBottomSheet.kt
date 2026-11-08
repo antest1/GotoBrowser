@@ -850,10 +850,17 @@ private fun ModsSection(
 
     // --- Group 3: English & Language Patches --------------------------------
     SectionHeader(R.string.settings_mod_group_kccp)
+    // Held as state so the dependent rows follow the switch right away.
+    var patchEnabled by remember { mutableStateOf(if (isPreview) false else viewModel.isKccpPatchEnabled()) }
     SwitchRow(viewModel, PREF_MOD_KCCP_LANG_PATCH, R.string.settings_mod_kccp, R.string.settings_mod_kccp_summary,
-        onChanged = { if (!isPreview) viewModel.onKccpPatchChanged() }, onSettingChanged = onSettingChanged)
+        onChanged = {
+            if (!isPreview) {
+                patchEnabled = viewModel.isKccpPatchEnabled()
+                viewModel.onKccpPatchChanged()
+            }
+        },
+        onSettingChanged = onSettingChanged)
 
-    val patchEnabled = if (isPreview) false else viewModel.isKccpPatchEnabled()
     ListRow(
         viewModel, PREF_MOD_KCCP_LANG_PATCH_NAME, R.string.settings_mod_kccp_patch_name, kccpLanguageOptions(),
         enabled = patchEnabled,
@@ -1064,9 +1071,12 @@ private fun ListRow(
     }
     var showDialog by remember { mutableStateOf(false) }
 
+    // Dimmed like ClickRow when disabled, not just made unclickable.
+    val textColor = if (enabled) MaterialTheme.colorScheme.onSurface
+    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     ListItem(
-        headlineContent = { Text(stringResource(titleRes)) },
-        supportingContent = { Text(summaryProvider(selected)) },
+        headlineContent = { Text(stringResource(titleRes), color = textColor) },
+        supportingContent = { Text(summaryProvider(selected), color = textColor) },
         modifier = if (enabled) Modifier.clickable { showDialog = true } else Modifier
     )
     HorizontalDivider()
