@@ -99,6 +99,7 @@ import com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL
 import com.antest1.gotobrowser.Constants.DEFAULT_SUBTITLE_FONT_SIZE
 import com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT
 import com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT
+import com.antest1.gotobrowser.Constants.PREF_ALTER_AUTO_DISABLE
 import com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET
 import com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD
 import com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY
@@ -197,7 +198,9 @@ class BrowserActivity : ComponentActivity() {
         PREF_FPS_LIMIT,
         PREF_KEYBOARD,
         PREF_SUBTITLE_LOCALE,
-        PREF_BROADCAST
+        PREF_BROADCAST,
+        // Read by ResourceProcess on each game load; nothing to apply now.
+        PREF_ALTER_AUTO_DISABLE
     )
 
     // Settings that only take effect on page load; they must be re-read on refresh.

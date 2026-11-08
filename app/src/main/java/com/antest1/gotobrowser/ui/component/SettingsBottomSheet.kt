@@ -95,6 +95,7 @@ import androidx.compose.ui.unit.sp
 import com.antest1.gotobrowser.Activity.PatchDownloadState
 import com.antest1.gotobrowser.Activity.SettingsViewModel
 import com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT
+import com.antest1.gotobrowser.Constants.PREF_ALTER_AUTO_DISABLE
 import com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT
 import com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET
 import com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD
@@ -802,6 +803,10 @@ private fun ConnectionLoginSection(
             onDismiss = { showEndpointDialog = false }
         )
     }
+
+    // Read on each game load, so it can be set before turning the bypass on.
+    SwitchRow(viewModel, PREF_ALTER_AUTO_DISABLE, R.string.setting_alter_auto_disable,
+        R.string.setting_alter_auto_disable_summary, defaultValue = true, onSettingChanged = onSettingChanged)
 }
 
 @Composable

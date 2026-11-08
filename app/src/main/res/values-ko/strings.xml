@@ -68,6 +68,8 @@
     <string name="setting_devtools_enable">DevTools 디버깅 활성화</string>
     <string name="connection_use_alter">Gadget 서버 우회 활성화</string>
     <string name="connection_use_alter_summary">해외 IP 차단 문제(검은 화면에서 멈춤)가 발생하는 경우 이 설정을 활성화해야 합니다.</string>
+    <string name="setting_alter_auto_disable">우회 자동 비활성화</string>
+    <string name="setting_alter_auto_disable_summary">차단 없이 정상적으로 접속되면 우회 옵션을 자동으로 끕니다</string>
     <string name="setting_connection">접속 설정</string>
     <string name="setting_alter_method_url">URL 교체</string>
     <string name="setting_alter_method_proxy">KCCacheProxy (remote)</string>

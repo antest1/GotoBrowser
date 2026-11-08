@@ -67,6 +67,8 @@
     <string name="setting_devtools_enable">DevToolsデバッグを使用</string>
     <string name="connection_use_alter">国外ブロックのバイパス</string>
     <string name="connection_use_alter_summary">外部IPブロックの問題（無限の黒い画面）に直面している場合は、この設定を使用してください</string>
+    <string name="setting_alter_auto_disable">バイパスの自動無効化</string>
+    <string name="setting_alter_auto_disable_summary">ブロックされずに接続できた場合、バイパスを自動的に無効にします</string>
     <string name="setting_connection">接続設定</string>
     <string name="setting_alter_method_url">URL置換</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（リモート）</string>

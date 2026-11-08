@@ -80,6 +80,8 @@
     <string name="setting_devtools_description" translatable="false">chrome://inspect</string>
     <string name="connection_use_alter">Gadget Block Bypass</string>
     <string name="connection_use_alter_summary">Use this setting if you\'re faced with the foreign IP block issue (infinite black screen)</string>
+    <string name="setting_alter_auto_disable">Auto-Disable Bypass</string>
+    <string name="setting_alter_auto_disable_summary">Turn the bypass off automatically once the game connects without being blocked</string>
     <string name="setting_connection">Connection Settings</string>
     <string name="setting_alter_method">Bypass Method</string>
     <string name="setting_alter_method_url">URL Replacement</string>

@@ -51,6 +51,7 @@ import static com.antest1.gotobrowser.Constants.CACHE_DIR;
 import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.GADGET_OSAPI_IFR;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_AUTO_DISABLE;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
@@ -149,6 +150,11 @@ public class ResourceProcess {
         return sharedPref.getBoolean(PREF_ALTER_GADGET, false);
     }
 
+    /** Whether the bypass turns itself off once the gadget server is reachable without it. */
+    private boolean isAlterAutoDisableEnabled() {
+        return sharedPref.getBoolean(PREF_ALTER_AUTO_DISABLE, true);
+    }
+
     private boolean isGadgetUrlReplaceMode() {
         return PREF_ALTER_METHOD_URL.equals(sharedPref.getString(PREF_ALTER_METHOD, PREF_ALTER_METHOD_URL));
     }
@@ -219,7 +225,9 @@ public class ResourceProcess {
             boolean ip_banned = getIpBannedStatus(url);
             boolean alterGadget = isAlterGadgetEnabled();
             if (alterGadget && !ip_banned) {
-                sharedPref.edit().putBoolean(PREF_ALTER_GADGET, false).commit();
+                if (isAlterAutoDisableEnabled()) {
+                    sharedPref.edit().putBoolean(PREF_ALTER_GADGET, false).commit();
+                }
             } else if (!alterGadget && ip_banned) {
                 showGadgetIpServerBlockedDialog();
             }

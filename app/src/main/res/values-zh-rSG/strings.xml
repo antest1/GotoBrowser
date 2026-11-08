@@ -65,6 +65,8 @@
     <string name="setting_devtools_enable">启用DevTools除错</string>
     <string name="connection_use_alter">启用登入服务器封锁绕行</string>
     <string name="connection_use_alter_summary">如果您遇到封锁外国IP的问题（无限黑屏幕），请使用此设定</string>
+    <string name="setting_alter_auto_disable">自动停用绕行</string>
+    <string name="setting_alter_auto_disable_summary">未遭封锁而正常连接时，自动关闭绕行设定</string>
     <string name="setting_connection">连接设置</string>
     <string name="setting_alter_method_url">URL替换</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（远程服务器）</string>
