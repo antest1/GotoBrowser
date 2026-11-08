@@ -89,8 +89,15 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
     }
 
     private static int computeVoiceDiff(String shipId, String filename) {
-        int ship_id_val = Integer.parseInt(shipId, 10);
-        int f = Integer.parseInt(filename, 10);
+        int ship_id_val;
+        int f;
+        try {
+            ship_id_val = Integer.parseInt(shipId, 10);
+            f = Integer.parseInt(filename, 10);
+        } catch (NumberFormatException e) {
+            // Some voice files use hashed (non-numeric) names; they have no voice line mapping.
+            return -1;
+        }
         int k = 17 * (ship_id_val + 7);
         int r = f - 100000;
         if (f > 53 && r < 0) {
