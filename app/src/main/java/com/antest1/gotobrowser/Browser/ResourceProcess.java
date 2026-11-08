@@ -256,7 +256,7 @@ public class ResourceProcess {
             }
         } catch (Exception e) {
             Log.e(TAG_G, KcUtils.getStringFromException(e));
-            KcUtils.reportException(e);
+            KcUtils.reportDownloadException(e);
         }
         return null;
     }
@@ -386,7 +386,7 @@ public class ResourceProcess {
                     versionTable.putCacheControlValue(update_key, getRevalidationExpiry());
                 }
             } catch (Exception e) {
-                KcUtils.reportException(e);
+                KcUtils.reportDownloadException(e);
             } finally {
                 revalidationInFlight.remove(update_key);
             }

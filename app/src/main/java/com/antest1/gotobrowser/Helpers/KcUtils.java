@@ -42,16 +42,21 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.ProtocolException;
+import java.net.SocketException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -65,6 +70,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+import javax.net.ssl.SSLException;
 
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
@@ -139,6 +146,33 @@ public class KcUtils {
     public static void reportException(ExceptionInInitializerError e) {
         e.printStackTrace();
         crashlytics.recordException(e);
+    }
+
+    // For download paths: connectivity failures (timeouts, DNS, dropped connections) are
+    // expected on mobile networks and say nothing about the app, so they only go to the
+    // Crashlytics log as context instead of opening an issue.
+    public static void reportDownloadException(Exception e) {
+        if (isNetworkException(e)) {
+            e.printStackTrace();
+            crashlytics.log("network error: " + e);
+        } else {
+            reportException(e);
+        }
+    }
+
+    public static boolean isNetworkException(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t instanceof SocketException            // incl. ConnectException, connection abort/reset
+                    || t instanceof UnknownHostException
+                    || t instanceof InterruptedIOException  // incl. SocketTimeoutException
+                    || t instanceof SSLException
+                    || t instanceof ProtocolException       // unexpected end of stream
+                    || t instanceof EOFException) {         // truncated response
+                return true;
+            }
+            if (t.getCause() == t) break;
+        }
+        return false;
     }
 
     public static Request getDownloadRequest(String url, String userAgent, String mimetype) {
@@ -307,7 +341,7 @@ public class KcUtils {
             }
         } catch (Exception e) {
             Log.e("GOTO-E", getStringFromException(e));
-            KcUtils.reportException(e);
+            KcUtils.reportDownloadException(e);
             downloadResult.error = getStringFromException(e);
         }
         return downloadResult;
