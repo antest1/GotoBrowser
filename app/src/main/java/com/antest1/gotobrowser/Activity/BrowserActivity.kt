@@ -474,7 +474,13 @@ class BrowserActivity : ComponentActivity() {
         // Loaded off the main thread:
         // The result is only consumed later when a voice line plays.
         // A single-thread executor keeps loads in order, so the latest locale wins.
-        val subtitleLocale = viewModel.sharedPref.getString(PREF_SUBTITLE_LOCALE, "en") ?: "en"
+        // "" means no language has been picked yet; there is no quotes file to load.
+        val subtitleLocale = viewModel.sharedPref.getString(PREF_SUBTITLE_LOCALE, "") ?: ""
+        if (subtitleLocale.isEmpty()) {
+            viewModel.subtitleRequestKey = null
+            viewModel.isSubtitleLoaded = false
+            return
+        }
         val requestKey = "$subtitleLocale|${viewModel.sharedPref.getBoolean(PREF_USE_EXTCACHE, false)}"
         if (!force && requestKey == viewModel.subtitleRequestKey) return
         viewModel.subtitleRequestKey = requestKey
