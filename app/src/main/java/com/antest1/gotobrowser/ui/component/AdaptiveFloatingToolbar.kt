@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.antest1.gotobrowser.Activity.safeOverlayInsets
+import com.antest1.gotobrowser.Browser.GameGeometry
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -96,6 +97,8 @@ fun AdaptiveFloatingToolbar(
     onVisibleChange: (Boolean) -> Unit,
     /** Reports whether a reveal strip has room on screen (the game leaves a margin to swipe from). */
     onRevealAvailableChange: (Boolean) -> Unit = {},
+    /** Matches GameAreaLayout.verticalBias; see GameGeometry.fit. */
+    gameVerticalBias: Float = GameGeometry.BIAS_CENTER,
     modifier: Modifier = Modifier,
     barSize: Dp = 56.dp,
     barLengthFraction: Float = 0.7f,
@@ -304,26 +307,18 @@ fun AdaptiveFloatingToolbar(
         val maxBarLength = ((if (isLandscape) constraints.maxHeight else constraints.maxWidth) * barLengthFraction).roundToInt()
 
         // WebView geometry (simplified dodge logic for now, similar to original).
-        // GameAreaLayout pads itself by the same insets, so fit the 1200:720 box
-        // into the inset-free area and offset it back into screen coordinates.
+        // GameAreaLayout pads itself by the same insets and places the game the same way,
+        // in screen coordinates since this layout is not inset.
         val containerWidth = constraints.maxWidth.toFloat()
         val containerHeight = constraints.maxHeight.toFloat()
-        val safeWidth = (containerWidth - insetLeftPx - insetRightPx).coerceAtLeast(1f)
-        val safeHeight = (containerHeight - insetTopPx - insetBottomPx).coerceAtLeast(1f)
-        val ratio = 1200f / 720f
-        val wvw: Float
-        val wvh: Float
-        if (safeWidth / safeHeight > ratio) {
-            wvh = safeHeight
-            wvw = safeHeight * ratio
-        } else {
-            wvw = safeWidth
-            wvh = safeWidth / ratio
-        }
-        val wvl = insetLeftPx + (safeWidth - wvw) / 2f
-        val wvt = insetTopPx + (safeHeight - wvh) / 2f
-        val wvr = wvl + wvw
-        val wvb = wvt + wvh
+        val game = GameGeometry.fit(
+            containerWidth, containerHeight, gameVerticalBias,
+            insetLeftPx, insetTopPx, insetRightPx, insetBottomPx
+        )
+        val wvl = game.left
+        val wvt = game.top
+        val wvr = game.right
+        val wvb = game.bottom
 
         val revealSizePx = with(density) { revealSize.toPx() }
         // Mirrors the strip sizing below: a full-length strip along the edge when the game

@@ -64,6 +64,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
@@ -91,6 +92,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.antest1.gotobrowser.Browser.GameAreaLayout
+import com.antest1.gotobrowser.Browser.GameGeometry
 import com.antest1.gotobrowser.Browser.WebViewL
 import com.antest1.gotobrowser.Browser.WebViewManager
 import com.antest1.gotobrowser.BuildConfig
@@ -1036,7 +1038,9 @@ fun BrowserOverlayLayer(
     onCaptureClick: () -> Unit,
     onCloseClick: () -> Unit,
     gameWidth: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified,
-    gameHeight: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified
+    gameHeight: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified,
+    /** Matches GameAreaLayout.verticalBias; see GameGeometry.fit. */
+    gameVerticalBias: Float = GameGeometry.BIAS_CENTER
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (showSubtitle && subtitleText.isNotEmpty()) {
@@ -1052,13 +1056,14 @@ fun BrowserOverlayLayer(
                     )
                 }
             ) { measurables, constraints ->
-                // The game is centered in this layer (as GameAreaLayout does). The
+                // The game sits in this layer as GameAreaLayout places it. The
                 // subtitle wraps to the game width so it never spills into the side
                 // letterbox, and sits just below the game, clamped to the screen bottom.
                 // maxWidth can be 0 while the window is being resized; keep the range non-empty.
                 val gameW = if (gameWidth.isSpecified) gameWidth.roundToPx().coerceIn(minOf(1, constraints.maxWidth), constraints.maxWidth) else constraints.maxWidth
                 val gameH = if (gameHeight.isSpecified) gameHeight.roundToPx().coerceIn(0, constraints.maxHeight) else constraints.maxHeight
-                val gameBottom = (constraints.maxHeight + gameH) / 2
+                val gameTop = ((constraints.maxHeight - gameH) * (1f + gameVerticalBias) / 2f).toInt()
+                val gameBottom = gameTop + gameH
 
                 val placeable = measurables.first().measure(
                     constraints.copy(minWidth = 0, minHeight = 0, maxWidth = gameW)
@@ -1127,7 +1132,9 @@ fun BrowserOverlayContent(
     subtitleFontSize: MutableState<Int>,
     activity: BrowserActivity,
     onCapture: () -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    /** Matches GameAreaLayout.verticalBias; see GameGeometry.fit. */
+    gameVerticalBias: Float = GameGeometry.BIAS_CENTER
 ) {
     val isCaption by viewModel.isCaptionMode.observeAsState(false)
     val subtitleText by viewModel.subtitleText.observeAsState("")
@@ -1144,12 +1151,9 @@ fun BrowserOverlayContent(
     // computed below matches where the game is actually drawn.
     Box(modifier = Modifier.fillMaxSize().windowInsetsPadding(safeOverlayInsets())) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            val ratio = 1200f / 720f
-            val containerWidth = maxWidth.value
-            val containerHeight = maxHeight.value
-            val fitHeight = containerWidth / containerHeight > ratio
-            val gameWidth = if (fitHeight) maxHeight * ratio else maxWidth
-            val gameHeight = if (fitHeight) maxHeight else maxWidth / ratio
+            val game = GameGeometry.fit(maxWidth.value, maxHeight.value, gameVerticalBias)
+            val gameWidth = game.width.dp
+            val gameHeight = game.height.dp
 
             if (errorText.value.isNotEmpty()) {
                 Text(
@@ -1171,7 +1175,7 @@ fun BrowserOverlayContent(
                 // Status sits within the game area: loading card centered (or at the bottom
                 // while the game draws its own loading screen), server errors centered as well,
                 // below the message at the top of the game's own connection error screen.
-                Box(modifier = Modifier.align(Alignment.Center).size(gameWidth, gameHeight)) {
+                Box(modifier = Modifier.align(BiasAlignment(0f, gameVerticalBias)).size(gameWidth, gameHeight)) {
                     LoadingStatusOverlay(loadState)
                     ServerNoticeCard(
                         notice = serverNotice,
@@ -1194,7 +1198,8 @@ fun BrowserOverlayContent(
                     },
                     onCloseClick = onClose,
                     gameWidth = gameWidth,
-                    gameHeight = gameHeight
+                    gameHeight = gameHeight,
+                    gameVerticalBias = gameVerticalBias
                 )
             }
         }

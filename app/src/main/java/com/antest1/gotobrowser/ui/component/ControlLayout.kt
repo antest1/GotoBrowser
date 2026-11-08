@@ -58,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.antest1.gotobrowser.Activity.safeOverlayInsets
+import com.antest1.gotobrowser.Browser.GameGeometry
 import com.antest1.gotobrowser.R
 
 enum class RefreshOption { QUICK, FULL }
@@ -79,6 +80,8 @@ fun ControlLayout(
     refreshAttention: Color? = null,
     /** Tapping the FAB runs a full refresh, without changing the saved option. */
     forceFullRefresh: Boolean = false,
+    /** Matches GameAreaLayout.verticalBias; see GameGeometry.fit. */
+    gameVerticalBias: Float = GameGeometry.BIAS_CENTER,
     toolbarContent: @Composable () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -90,6 +93,7 @@ fun ControlLayout(
             visible = visible,
             onVisibleChange = onVisibleChange,
             onRevealAvailableChange = onRevealAvailableChange,
+            gameVerticalBias = gameVerticalBias,
             barSize = panelBarSize,
             contentInset = (panelBarSize - panelButtonSize) / 2,
             fab = {
