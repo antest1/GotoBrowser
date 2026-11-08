@@ -997,7 +997,8 @@ fun BrowserOverlayLayer(
                 // The game is centered in this layer (as GameAreaLayout does). The
                 // subtitle wraps to the game width so it never spills into the side
                 // letterbox, and sits just below the game, clamped to the screen bottom.
-                val gameW = if (gameWidth.isSpecified) gameWidth.roundToPx().coerceIn(1, constraints.maxWidth) else constraints.maxWidth
+                // maxWidth can be 0 while the window is being resized; keep the range non-empty.
+                val gameW = if (gameWidth.isSpecified) gameWidth.roundToPx().coerceIn(minOf(1, constraints.maxWidth), constraints.maxWidth) else constraints.maxWidth
                 val gameH = if (gameHeight.isSpecified) gameHeight.roundToPx().coerceIn(0, constraints.maxHeight) else constraints.maxHeight
                 val gameBottom = (constraints.maxHeight + gameH) / 2
 
