@@ -751,10 +751,12 @@ private fun ConnectionLoginSection(
     // navigation level.
     SectionHeader(R.string.settings_bypass_section_header)
 
+    // Held as state so the dependent rows follow the switch right away.
+    var alterGadgetEnabled by remember { mutableStateOf(if (isPreview) false else viewModel.isAlterGadgetEnabled()) }
     SwitchRow(viewModel, PREF_ALTER_GADGET, R.string.connection_use_alter, R.string.connection_use_alter_summary,
+        onChanged = { if (!isPreview) alterGadgetEnabled = viewModel.isAlterGadgetEnabled() },
         onSettingChanged = onSettingChanged)
 
-    val alterGadgetEnabled = if (isPreview) false else viewModel.getBoolean(PREF_ALTER_GADGET, false)
     ListRow(
         viewModel, PREF_ALTER_METHOD, R.string.setting_alter_method, alterMethodOptions(),
         enabled = alterGadgetEnabled,
