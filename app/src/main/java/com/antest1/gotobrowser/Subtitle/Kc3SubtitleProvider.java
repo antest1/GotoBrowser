@@ -55,7 +55,8 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             "https://raw.githubusercontent.com/KC3Kai/KC3Kai/%s/src/data/quotes_size.json";
     public static final String QUOTES_FILENAME_FORMAT = "quotes_%s.json";
 
-    private static JsonObject quoteSizeData = new JsonObject();
+    // Replaced from a worker thread; never null so lookups need no null check.
+    private static volatile JsonObject quoteSizeData = new JsonObject();
     private static final int MAX_LOOP = 9;
 
 
@@ -237,12 +238,14 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                         loadQuoteSizeData(submeta_path);
                         Log.e("GOTO", "quote_size: " + (quoteSizeData == null ? -1 : quoteSizeData.size()));
                     }).start();
+                } else {
+                    // e.g. a rate-limited API call: fall back to the local copy.
+                    loadQuoteSizeDataInBackground(submeta_path);
                 }
             }
             @Override
             public void onFailure(Call<JsonArray> call, Throwable t) {
-                loadQuoteSizeData(submeta_path);
-                Log.e("GOTO", "quote_size: " + (quoteSizeData == null ? -1 : quoteSizeData.size()));
+                loadQuoteSizeDataInBackground(submeta_path);
             }
         });
 
@@ -263,9 +266,18 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         }
     }
 
+    // Retrofit callbacks run on the main thread; parse the file off it.
+    private static void loadQuoteSizeDataInBackground(String filename) {
+        new Thread(() -> {
+            loadQuoteSizeData(filename);
+            Log.e("GOTO", "quote_size: " + (quoteSizeData == null ? -1 : quoteSizeData.size()));
+        }).start();
+    }
+
     private static boolean loadQuoteSizeData(String filename) {
-        quoteSizeData = KcUtils.readJsonObjectFromFile(filename);
-        return quoteSizeData != null;
+        JsonObject data = KcUtils.readJsonObjectFromFile(filename);
+        quoteSizeData = data != null ? data : new JsonObject();
+        return data != null;
     }
 
 
