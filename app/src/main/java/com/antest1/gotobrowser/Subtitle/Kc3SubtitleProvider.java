@@ -494,6 +494,8 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
     public void downloadUpdateFromPreference(SettingsStatusHost host, VersionDatabase versionTable) {
         if (subtitleData != null) {
             try {
+                // Capture now: a new update check resets subtitleData before this download returns.
+                String localeCode = subtitleData.get("locale_code").getAsString();
                 String commit = subtitleData.get("latest_commit").getAsString();
                 String path = subtitleData.get("download_url").getAsString();
 
@@ -507,7 +509,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                 call.enqueue(new Callback<JsonObject>() {
                     @Override
                     public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                        saveQuotesFile(host, response, versionTable);
+                        saveQuotesFile(host, response, versionTable, localeCode, commit);
                     }
                     @Override
                     public void onFailure(Call<JsonObject> call, Throwable t) {
@@ -523,10 +525,9 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         }
     }
 
-    private void saveQuotesFile(SettingsStatusHost host, Response<JsonObject> response, VersionDatabase versionTable) {
+    private void saveQuotesFile(SettingsStatusHost host, Response<JsonObject> response, VersionDatabase versionTable,
+                                String locale_code, String commit) {
         String message;
-        String locale_code = subtitleData.get("locale_code").getAsString();
-        String commit = subtitleData.get("latest_commit").getAsString();
 
         Context context = host.getContext();
         if (context != null) {
