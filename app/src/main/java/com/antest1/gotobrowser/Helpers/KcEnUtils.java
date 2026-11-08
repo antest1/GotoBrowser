@@ -7,6 +7,8 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.parseJsonObject;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.antest1.gotobrowser.Activity.PatchDownloadState;
@@ -331,9 +333,16 @@ public class KcEnUtils {
     public void deletePatch(SettingsStatusHost host) {
         Context context = host.getContext();
         if (context == null) return;
-        deleteEnglishPatch(context);
-        newVersionFlag = false;
-        host.showPatchMessage(host.getString(R.string.patch_deleted));
+        Context appContext = context.getApplicationContext();
+        String message = host.getString(R.string.patch_deleted);
+        // The patch folder holds many files; deleting it on the main thread causes ANRs.
+        new Thread(() -> {
+            deleteEnglishPatch(appContext);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                newVersionFlag = false;
+                host.showPatchMessage(message);
+            });
+        }).start();
     }
 
     private static void deleteEnglishPatch(Context context) {
