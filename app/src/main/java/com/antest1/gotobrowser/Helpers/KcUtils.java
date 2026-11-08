@@ -53,6 +53,7 @@ import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.SocketException;
 import java.net.URL;
@@ -152,9 +153,9 @@ public class KcUtils {
     // expected on mobile networks and say nothing about the app, so they only go to the
     // Crashlytics log as context instead of opening an issue.
     public static void reportDownloadException(Exception e) {
-        if (isNetworkException(e)) {
+        if (isNetworkException(e) || e instanceof HttpStatusException) {
             e.printStackTrace();
-            crashlytics.log("network error: " + e);
+            crashlytics.log("download failed: " + e);
         } else {
             reportException(e);
         }
@@ -275,17 +276,33 @@ public class KcUtils {
         return formatter.format(new Date(target_time));
     }
 
-    public static byte[] downloadDataFromURL(String url) throws IOException {
-        InputStream in = new BufferedInputStream(new URL(url).openStream());
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        int nRead;
-        byte[] data = new byte[16384];
-        while ((nRead = in.read(data, 0, data.length)) != -1) {
-            buffer.write(data, 0, nRead);
+    // The server answered with an error status (e.g. 404); not a fault in the app.
+    public static class HttpStatusException extends IOException {
+        public final int statusCode;
+
+        public HttpStatusException(String url, int statusCode) {
+            super("HTTP " + statusCode + " " + url);
+            this.statusCode = statusCode;
         }
-        buffer.flush();
-        in.close();
-        return buffer.toByteArray();
+    }
+
+    public static byte[] downloadDataFromURL(String url) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        try {
+            int statusCode = connection.getResponseCode();
+            if (statusCode >= 400) throw new HttpStatusException(url, statusCode);
+            try (InputStream in = new BufferedInputStream(connection.getInputStream())) {
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                int nRead;
+                byte[] data = new byte[16384];
+                while ((nRead = in.read(data, 0, data.length)) != -1) {
+                    buffer.write(data, 0, nRead);
+                }
+                return buffer.toByteArray();
+            }
+        } finally {
+            connection.disconnect();
+        }
     }
 
     public static class DownloadResult {
