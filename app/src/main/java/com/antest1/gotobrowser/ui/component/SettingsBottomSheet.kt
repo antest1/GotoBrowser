@@ -1001,9 +1001,12 @@ private fun SwitchRow(
 ) {
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
     val checked = remember { mutableStateOf(if (isPreview) defaultValue else viewModel.getBoolean(key, defaultValue)) }
+    // Dimmed like ClickRow when disabled, not just the switch itself.
+    val textColor = if (enabled) MaterialTheme.colorScheme.onSurface
+    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     ListItem(
-        headlineContent = { Text(stringResource(titleRes)) },
-        supportingContent = summaryRes?.let { { Text(stringResource(it)) } },
+        headlineContent = { Text(stringResource(titleRes), color = textColor) },
+        supportingContent = summaryRes?.let { { Text(stringResource(it), color = textColor) } },
         trailingContent = {
             Switch(
                 checked = checked.value,
