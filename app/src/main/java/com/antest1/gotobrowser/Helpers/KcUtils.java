@@ -390,13 +390,29 @@ public class KcUtils {
         return getRetrofitAdapter(context, baseUrl, true);
     }
 
-    public static Retrofit getRetrofitAdapter(Context context, String baseUrl, boolean followRedirects) {
-        OkHttpClient.Builder builder = new OkHttpClient().newBuilder();
-        builder.cache(new Cache(context.getCacheDir(), CACHE_SIZE_BYTES));
-        builder.followRedirects(followRedirects);
-        builder.followSslRedirects(followRedirects);
+    private static OkHttpClient retrofitBaseClient;
 
-        OkHttpClient client = builder.build();
+    /**
+     * One client for every Retrofit adapter. Building a client sets up TLS and its own
+     * connection pool, which made each adapter slow to create on the main thread, and
+     * separate Cache instances must not share one directory.
+     */
+    private static synchronized OkHttpClient getRetrofitBaseClient(Context context) {
+        if (retrofitBaseClient == null) {
+            File cacheDir = context.getApplicationContext().getCacheDir();
+            retrofitBaseClient = new OkHttpClient.Builder()
+                    .cache(new Cache(cacheDir, CACHE_SIZE_BYTES))
+                    .build();
+        }
+        return retrofitBaseClient;
+    }
+
+    public static Retrofit getRetrofitAdapter(Context context, String baseUrl, boolean followRedirects) {
+        // newBuilder() shares the base client's TLS setup, connection pool and cache.
+        OkHttpClient client = getRetrofitBaseClient(context).newBuilder()
+                .followRedirects(followRedirects)
+                .followSslRedirects(followRedirects)
+                .build();
         return new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create(getGson()))
                 .baseUrl(baseUrl)
