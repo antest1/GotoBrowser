@@ -114,6 +114,9 @@ import com.antest1.gotobrowser.Constants.PREF_DMM_ID
 import com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY
 import com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH
 import com.antest1.gotobrowser.Constants.PREF_FPS_LIMIT
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN_CENTER
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN_TOP
 import com.antest1.gotobrowser.Constants.PREF_KEYBOARD
 import com.antest1.gotobrowser.Constants.PREF_LANDSCAPE
 import com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER
@@ -171,6 +174,7 @@ class BrowserActivity : ComponentActivity() {
 
     internal lateinit var pipController: PipController
     private lateinit var displayController: DisplayController
+    private lateinit var gameArea: GameAreaLayout
 
     val isInPictureInPictureModeState = mutableStateOf(false)
     val loadingTracker = LoadingTracker()
@@ -187,12 +191,15 @@ class BrowserActivity : ComponentActivity() {
     private val refreshOption = mutableStateOf(RefreshOption.QUICK)
     private val messageDialogs = mutableStateListOf<MessageDialog>()
     private val subtitleFontSize = mutableStateOf(DEFAULT_SUBTITLE_FONT_SIZE)
+    /** Where the game sits when the screen leaves a margin above and below it. */
+    private val gameVerticalBias = mutableStateOf(GameGeometry.BIAS_CENTER)
     private val subtitleLoader = Executors.newSingleThreadExecutor()
 
     // Settings applied immediately without reloading the page.
     private val liveSettings = setOf(
         PREF_LANDSCAPE,
         PREF_MULTIWIN_MARGIN,
+        PREF_GAME_ALIGN,
         PREF_SUBTITLE_FONTSIZE,
         PREF_DOWNLOAD_RETRY,
         PREF_PIP_MODE,
@@ -279,7 +286,8 @@ class BrowserActivity : ComponentActivity() {
         mContentView = webView
         pipController = PipController(this, webView, { isInPictureInPictureModeState.value = it }, { hideSystemBars() })
         pipController.setupPinchToPipGesture()
-        val gameArea = GameAreaLayout(this).apply { addView(webView) }
+        gameArea = GameAreaLayout(this).apply { addView(webView) }
+        applyGameAlignment()
         // Keep the game area clear of the display cutout. Since targetSdk 35 the
         // window always extends into the cutout, so on 16:10 tablets the WebView
         // could otherwise be partially covered. Insets are passed through, not consumed.
@@ -360,7 +368,8 @@ class BrowserActivity : ComponentActivity() {
                         subtitleFontSize = subtitleFontSize,
                         activity = this@BrowserActivity,
                         onCapture = { manager?.captureGameScreen(webView) },
-                        onClose = { finish() }
+                        onClose = { finish() },
+                        gameVerticalBias = gameVerticalBias.value
                     )
 
                     ControlLayout(
@@ -377,7 +386,8 @@ class BrowserActivity : ComponentActivity() {
                         },
                         onSettingsClick = { settingsSheetVisible.value = true },
                         refreshAttention = refreshAttention,
-                        forceFullRefresh = requiresFullRefresh(loadState, notice)
+                        forceFullRefresh = requiresFullRefresh(loadState, notice),
+                        gameVerticalBias = gameVerticalBias.value
                     ) {
                         val isMute by viewModel.isMuteMode.observeAsState(false)
                         val isCapture by viewModel.isCaptureMode.observeAsState(false)
@@ -566,6 +576,7 @@ class BrowserActivity : ComponentActivity() {
         when (key) {
             PREF_LANDSCAPE -> displayController.updateOrientationLock()
             PREF_MULTIWIN_MARGIN -> displayController.updateMultiwindowMargin()
+            PREF_GAME_ALIGN -> applyGameAlignment()
             PREF_SUBTITLE_FONTSIZE -> subtitleFontSize.value = settingsViewModel.getSubtitleFontSize()
             PREF_PIP_MODE -> pipController.setupSmoothPipAnimation()
             PREF_KEYBOARD -> displayController.applyKeyboardSetting()
@@ -574,6 +585,16 @@ class BrowserActivity : ComponentActivity() {
             PREF_DISABLE_REFRESH_DIALOG -> viewModel.setNoRefreshPopupMode(viewModel.sharedPref.getBoolean(PREF_DISABLE_REFRESH_DIALOG, false))
             PREF_FPS_LIMIT -> displayController.applyFpsLimit()
         }
+    }
+
+    // The WebView (GameAreaLayout) and the overlays lined up with it must change together.
+    private fun applyGameAlignment() {
+        val bias = when (viewModel.sharedPref.getString(PREF_GAME_ALIGN, PREF_GAME_ALIGN_CENTER)) {
+            PREF_GAME_ALIGN_TOP -> GameGeometry.BIAS_TOP
+            else -> GameGeometry.BIAS_CENTER
+        }
+        gameVerticalBias.value = bias
+        gameArea.verticalBias = bias
     }
 
     fun handleBackPress() {

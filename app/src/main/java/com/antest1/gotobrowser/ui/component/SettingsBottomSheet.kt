@@ -112,6 +112,9 @@ import com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY
 import com.antest1.gotobrowser.Constants.DEFAULT_FPS_LIMIT
 import com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH
 import com.antest1.gotobrowser.Constants.PREF_FPS_LIMIT
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN_CENTER
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN_TOP
 import com.antest1.gotobrowser.Constants.PREF_KEYBOARD
 import com.antest1.gotobrowser.Constants.PREF_LANDSCAPE
 import com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER
@@ -560,6 +563,16 @@ fun SettingsContent(
 @Composable
 private fun DisplaySection(viewModel: SettingsViewModel?, onSettingChanged: (String) -> Unit) {
     SwitchRow(viewModel, PREF_LANDSCAPE, R.string.mode_landscape, defaultValue = true, onSettingChanged = onSettingChanged)
+    val gameAlignOptions = gameAlignOptions()
+    val gameAlignSummary = stringResource(R.string.settings_game_align_summary)
+    ListRow(
+        viewModel, PREF_GAME_ALIGN, R.string.settings_game_align, gameAlignOptions,
+        defaultValue = PREF_GAME_ALIGN_CENTER,
+        summaryProvider = { value ->
+            gameAlignSummary.format(gameAlignOptions.firstOrNull { it.value == value }?.title ?: value)
+        },
+        onSettingChanged = onSettingChanged
+    )
     SwitchRow(viewModel, PREF_ADJUSTMENT, R.string.mode_adjustment, R.string.settings_recommended_summary, defaultValue = true, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_PIP_MODE, R.string.browser_enablepipmode, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_MULTIWIN_MARGIN, R.string.settings_mw_margin, onSettingChanged = onSettingChanged)
@@ -1389,6 +1402,12 @@ private fun fpsLimitOptions(context: Context): List<ListOption> {
     }
     return options
 }
+
+@Composable
+private fun gameAlignOptions() = listOf(
+    ListOption(PREF_GAME_ALIGN_CENTER, stringResource(R.string.settings_game_align_center)),
+    ListOption(PREF_GAME_ALIGN_TOP, stringResource(R.string.settings_game_align_top))
+)
 
 private fun cursorModeOptions() = listOf(
     ListOption("1", "Screen Touch"),
