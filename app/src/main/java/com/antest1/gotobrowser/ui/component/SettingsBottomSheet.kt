@@ -467,13 +467,6 @@ fun SettingsContent(
     val patchAboutTitle = if (isPreview) R.string.settings_mod_kantaien_about else viewModel.patchAboutTitleRes.observeAsState(R.string.settings_mod_kantaien_about).value
     val patchAboutUrl = if (isPreview) "" else viewModel.patchAboutUrl.observeAsState("").value
 
-    if (!isPreview) {
-        androidx.compose.runtime.LaunchedEffect(Unit) {
-            viewModel.refreshSubtitleDescription()
-            viewModel.refreshKccpDependentRows(null)
-        }
-    }
-
     Column(
         modifier = modifier
             .nestedScroll(BlockSheetDragConnection)
@@ -596,6 +589,10 @@ private fun DownloadSection(viewModel: SettingsViewModel?, onSettingChanged: (St
 @Composable
 private fun SubtitleSection(viewModel: SettingsViewModel?, subtitleSummary: String, subtitleEnabled: Boolean, onSettingChanged: (String) -> Unit) {
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
+    // Checked only on this screen, the one that shows the result, not on every sheet open.
+    if (!isPreview) {
+        LaunchedEffect(Unit) { viewModel.refreshSubtitleDescription() }
+    }
     // PREF_SUBTITLE_LOCALE is stored as "" until the user picks a language (see
     // SettingsViewModel.refreshSubtitleDescription, which treats "" as "not selected").
     // Show that state explicitly instead of printing the raw empty string.
@@ -816,6 +813,10 @@ private fun ModsSection(
 ) {
     val context = LocalContext.current
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
+    // Checked only on this screen, the one that shows the result, not on every sheet open.
+    if (!isPreview) {
+        LaunchedEffect(Unit) { viewModel.refreshKccpDependentRows(null) }
+    }
 
     // --- Group 1: General Mods -----------------------------------------------
     SectionHeader(R.string.settings_mod_group_general)
