@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -238,41 +239,56 @@ public class KcEnUtils {
         return enVersionInfo;
     }
 
+    // Bumped per check so a slow, superseded check cannot overwrite a newer result.
+    private final AtomicInteger updateCheckGeneration = new AtomicInteger();
+
     public void checkKantaiEnUpdate(SettingsStatusHost host) {
-        // To do: clean up this mess
         host.setPatchUpdateStatus("Checking updates...", false);
-
-        JsonObject enPatchLocalInfo;
+        int generation = updateCheckGeneration.incrementAndGet();
         String enPatchLocalInfoPath = getEnPatchLocalFolder(host.getContext()).concat(ENPATCH_INFO_LOCAL_FILE());
+        Handler mainHandler = new Handler(Looper.getMainLooper());
 
-        JsonObject enPatchInfo = getKantaiEnUpdateInfo(client);
-        String availableVersion = "";
-        if (!enPatchInfo.has("error"))
-            availableVersion = enPatchInfo.get("version").getAsString();
+        // The version lookup is a network call; running it on the main thread caused ANRs.
+        new Thread(() -> {
+            JsonObject enPatchInfo = getKantaiEnUpdateInfo(client);
+            String availableVersion = "";
+            if (!enPatchInfo.has("error") && enPatchInfo.has("version"))
+                availableVersion = enPatchInfo.get("version").getAsString();
 
-        File enPatchLocalInfoFile = new File(enPatchLocalInfoPath);
-        if (!enPatchLocalInfoFile.exists()) {
+            File enPatchLocalInfoFile = new File(enPatchLocalInfoPath);
+            boolean installed = enPatchLocalInfoFile.exists();
+            JsonObject enPatchLocalInfo = installed
+                    ? KcUtils.readJsonObjectFromFile(enPatchLocalInfoFile.getPath()) : null;
+
+            String finalAvailableVersion = availableVersion;
+            mainHandler.post(() -> {
+                if (generation != updateCheckGeneration.get()) return;
+                applyUpdateCheckResult(host, finalAvailableVersion, installed, enPatchLocalInfo);
+            });
+        }).start();
+    }
+
+    private void applyUpdateCheckResult(SettingsStatusHost host, String availableVersion,
+                                        boolean installed, JsonObject enPatchLocalInfo) {
+        if (!installed) {
             host.setPatchUpdateStatus(String.format(Locale.US,
                     "Data not installed yet. (%s)",
                     availableVersion), true);
             newVersionFlag = false;
-        } else {
-            enPatchLocalInfo = KcUtils.readJsonObjectFromFile(enPatchLocalInfoFile.getPath());
-            if (enPatchLocalInfo != null && enPatchLocalInfo.has("version")) {
-                currentVersion = enPatchLocalInfo.get("version").getAsString();
-                if (!currentVersion.equals(availableVersion)) {
-                    host.setPatchUpdateStatus(String.format(Locale.US,
-                            host.getString(R.string.setting_latest_download_subtitle),
-                            availableVersion), true);
-                    newVersionFlag = true;
-                } else {
-                    host.setPatchUpdateStatus(host.getString(R.string.setting_latest_version), false);
-                    newVersionFlag = false;
-                }
+        } else if (enPatchLocalInfo != null && enPatchLocalInfo.has("version")) {
+            currentVersion = enPatchLocalInfo.get("version").getAsString();
+            if (!currentVersion.equals(availableVersion)) {
+                host.setPatchUpdateStatus(String.format(Locale.US,
+                        host.getString(R.string.setting_latest_download_subtitle),
+                        availableVersion), true);
+                newVersionFlag = true;
             } else {
-                host.setPatchUpdateStatus("Error occurred while retrieving latest version", false);
+                host.setPatchUpdateStatus(host.getString(R.string.setting_latest_version), false);
                 newVersionFlag = false;
             }
+        } else {
+            host.setPatchUpdateStatus("Error occurred while retrieving latest version", false);
+            newVersionFlag = false;
         }
     }
 
@@ -323,9 +339,8 @@ public class KcEnUtils {
             // Updates the patch by downloading each new file individually, and deleting outdated ones
             new PatchIndividualDownloader(context, host).execute();
         } else {
-            // Downloads and extracts the Patch zip
-            JsonObject enPatchInfo = getKantaiEnUpdateInfo(client);
-            new PatchZipDownloader(context, host, enPatchInfo).execute();
+            // Downloads and extracts the Patch zip (the patch info is fetched in the background)
+            new PatchZipDownloader(context, host).execute();
         }
     }
 
@@ -525,8 +540,7 @@ public class KcEnUtils {
             if (result == 2) {
                 // Hand over to the zip download without going idle in between,
                 // so the progress dialog stays up instead of flickering.
-                JsonObject enPatchInfo = getKantaiEnUpdateInfo(client);
-                new PatchZipDownloader(context, host, enPatchInfo).execute();
+                new PatchZipDownloader(context, host).execute();
                 return;
             }
 
@@ -652,21 +666,15 @@ public class KcEnUtils {
         private final SettingsStatusHost host;
         private final OkHttpClient client = new OkHttpClient();
         private final Context context;
-        private final JsonObject patchInfo;
         long patchSize = 370000000;
 
-        public PatchZipDownloader(Context ctx, SettingsStatusHost host, JsonObject patch_info) {
+        public PatchZipDownloader(Context ctx, SettingsStatusHost host) {
             this.context = ctx;
             this.host = host;
-            this.patchInfo = patch_info;
         }
 
         @Override
         protected void onPreExecute() {
-            if (patchInfo.has("size") && !patchInfo.get("size").isJsonNull()) {
-                patchSize = patchInfo.get("size").getAsLong();
-            }
-
             super.onPreExecute();
             host.setPatchDownloadState(running(context.getString(R.string.patch_download_archive), 0f));
         }
@@ -679,6 +687,11 @@ public class KcEnUtils {
 
         @Override
         protected Integer doInBackground(Integer... params) {
+            // Only used for the progress total; a network call, so it stays off the main thread.
+            JsonObject patchInfo = getKantaiEnUpdateInfo(client);
+            if (patchInfo.has("size") && !patchInfo.get("size").isJsonNull()) {
+                patchSize = patchInfo.get("size").getAsLong();
+            }
             try {
                 URL url = new URL(ENPATCH_ZIP_FILE_SRC());
                 String out = KcUtils.getAppCacheFileDir(context, "/master.zip");
