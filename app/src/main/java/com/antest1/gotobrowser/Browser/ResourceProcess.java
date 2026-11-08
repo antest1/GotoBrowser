@@ -482,7 +482,9 @@ public class ResourceProcess {
             File file = new File(out_file_path);
 
             String prevLastModified = versionTable.getVersionValue(update_key);
-            if (!file.exists() || file.length() == 0 || prevLastModified.equals(versionTable.getDefaultValue())) {
+            // prevLastModified is null when the last response had no Last-Modified header.
+            if (!file.exists() || file.length() == 0 || prevLastModified == null
+                    || prevLastModified.equals(versionTable.getDefaultValue())) {
                 prevLastModified = null;
             }
 
