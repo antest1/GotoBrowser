@@ -31,6 +31,7 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 | Gadget Block Bypass | Turn on if you are experiencing the foreign IP block issue (infinite black screen) | After reload |
 | Bypass Method | Select URL Replacement or KCCacheProxy (remote) (use "URL Replacement" in most cases) | After reload |
 | Bypass Endpoint Server | Server URL to use for bypass<br/>`https://kcwiki.github.io/cache/` (default) | After reload |
+| Auto-Disable Bypass | Turns the bypass off automatically once the game connects without being blocked (on by default) | Immediately |
 
 For related information, refer to the <span class="link" data-move="gadgetbypass">IP Block Bypass (Non-Japan)</span> page. Bypass Method and Bypass Endpoint Server cannot be selected while Gadget Block Bypass is turned off.
 

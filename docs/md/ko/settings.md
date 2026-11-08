@@ -31,6 +31,7 @@
 | Gadget 서버 우회 활성화 | 해외 IP 차단 문제(검은 화면에서 멈춤)가 발생하는 경우 활성화 | 새로고침 |
 | 우회 방식 | URL 교체 혹은 KCCacheProxy (remote) 선택 (대부분의 경우 "URL 교체" 사용) | 새로고침 |
 | Endpoint 서버 | 우회에 사용할 서버 주소<br/>`https://kcwiki.github.io/cache/` (기본값) | 새로고침 |
+| 우회 자동 비활성화 | 차단 없이 정상적으로 접속되면 우회 옵션을 자동으로 끔 (기본 켜짐) | 즉시 |
 
 우회 관련 내용은 <span class="link" data-move="gadgetbypass">해외 IP 차단 우회</span> 페이지 참고. Gadget 서버 우회 활성화가 꺼져 있으면 우회 방식과 Endpoint 서버는 선택할 수 없습니다.
 

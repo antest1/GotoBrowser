@@ -31,6 +31,7 @@
 | 啟用登入伺服器封鎖繞行 | 發生海外 IP 封鎖問題（停在黑畫面）時開啟 | 重新載入 |
 | 繞行方式 | 選擇 URL Replacement 或 KCCacheProxy (remote)（大多數情況下使用「URL Replacement」） | 重新載入 |
 | 端點伺服器 | 繞行時使用的伺服器位址<br/>`https://kcwiki.github.io/cache/`（預設值） | 重新載入 |
+| 自動停用繞行 | 未遭封鎖而正常連線時，自動關閉繞行設定（預設開啟） | 立即 |
 
 繞行相關內容請參閱<span class="link" data-move="gadgetbypass">繞過海外 IP 封鎖</span>頁面。「啟用登入伺服器封鎖繞行」關閉時，無法選擇繞行方式與端點伺服器。
 
