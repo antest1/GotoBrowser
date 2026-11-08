@@ -351,7 +351,8 @@ public class ResourceProcess {
     // Serves the cached copy if present (refreshing it in the background), else downloads once.
     private int downloadResourceIfMissing(ResourceRequestInfo requestInfo, File file) {
         String update_key = requestInfo.key;
-        boolean cached = file.exists() && file.length() > 0
+        // canRead: a file left by an earlier install/restore can exist but be unreadable (EACCES).
+        boolean cached = file.exists() && file.canRead() && file.length() > 0
                 && !Objects.equals(versionTable.getVersionValue(update_key), versionTable.getDefaultValue());
         if (cached) {
             revalidateCacheInBackground(update_key, requestInfo.fullUrl, file);
@@ -406,8 +407,9 @@ public class ResourceProcess {
             String type = ResourceProcess.isImage(resource_type) ? "image/png" : "application/json";
             return new WebResourceResponse(type, "utf-8", is);
         } catch (IOException e) {
+            // A local file error; retrying the same file would fail again, so let the WebView fetch it.
             KcUtils.reportException(e);
-            return promptForRetry(requestInfo, resource_type);
+            return null;
         }
     }
 
@@ -548,8 +550,9 @@ public class ResourceProcess {
             file = ResourcePatcher.INSTANCE.applyKenPatcherIfAvailable(context, versionTable, requestInfo.path, file, false);
             return new WebResourceResponse("audio/mpeg", "binary", new BufferedInputStream(new FileInputStream(file)));
         } catch (IOException e) {
+            // A local file error; retrying the same file would fail again, so let the WebView fetch it.
             KcUtils.reportException(e);
-            return promptForRetry(requestInfo, resource_type);
+            return null;
         }
     }
 
