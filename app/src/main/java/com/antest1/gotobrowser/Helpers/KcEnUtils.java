@@ -203,6 +203,9 @@ public class KcEnUtils {
         } catch (Exception e) {
             Log.e("GOTO", KcUtils.getStringFromException(e));
             enPatchInfo.addProperty("error", getStringFromException(e));
+        } finally {
+            // A fresh executor per call; without shutdown its thread is never released.
+            executor.shutdown();
         }
         Log.e("GOTO", "enPatchInfo: " + enPatchInfo.toString());
         return enPatchInfo;
@@ -234,6 +237,8 @@ public class KcEnUtils {
             enVersionInfo = result.get();
         } catch (Exception e) {
             Log.e("GOTO", KcUtils.getStringFromException(e));
+        } finally {
+            executor.shutdown();
         }
         Log.e("GOTO", "enPatchInfo: " + enVersionInfo.toString());
         return enVersionInfo;
