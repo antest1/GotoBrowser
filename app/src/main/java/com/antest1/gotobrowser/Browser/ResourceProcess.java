@@ -86,6 +86,8 @@ public class ResourceProcess {
     private static final int RESOURCE_CACHED = 0;
     private static final int RESOURCE_DOWNLOADED = 1;
     private static final int RESOURCE_FAILED = -1;
+    // The server answered (e.g. 403/404) but there is no local copy to serve.
+    private static final int RESOURCE_UNAVAILABLE = -2;
 
     private static final ExecutorService REVALIDATION_EXECUTOR = Executors.newFixedThreadPool(4);
     private static final Set<String> revalidationInFlight = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -342,6 +344,7 @@ public class ResourceProcess {
         File file = new File(requestInfo.outputPath);
         int status = downloadResourceIfMissing(requestInfo, file);
         if (status == RESOURCE_FAILED) return promptForRetry(requestInfo, resource_type);
+        if (status == RESOURCE_UNAVAILABLE) return null;
         return serveLocalCachedImage(file, requestInfo, resource_type, status == RESOURCE_DOWNLOADED);
     }
 
@@ -359,7 +362,9 @@ public class ResourceProcess {
             versionTable.putCacheAndVersion(update_key, result.lastModified, getRevalidationExpiry());
             return RESOURCE_DOWNLOADED;
         }
-        return result.responseCode == -1 ? RESOURCE_FAILED : RESOURCE_CACHED;
+        if (result.responseCode == -1) return RESOURCE_FAILED;
+        // Non-200 answers write nothing, so only an existing file counts as cached.
+        return file.exists() && file.length() > 0 ? RESOURCE_CACHED : RESOURCE_UNAVAILABLE;
     }
 
     // Stale-while-revalidate (off the UI thread): the conditional GET result is used on a future
@@ -525,9 +530,10 @@ public class ResourceProcess {
 
     private WebResourceResponse processAudioFile(ResourceRequestInfo requestInfo, int resource_type) {
         File file = new File(requestInfo.outputPath);
-        if (downloadResourceIfMissing(requestInfo, file) == RESOURCE_FAILED) {
-            return promptForRetry(requestInfo, resource_type);
-        }
+        int status = downloadResourceIfMissing(requestInfo, file);
+        if (status == RESOURCE_FAILED) return promptForRetry(requestInfo, resource_type);
+        // Let the WebView fetch it itself and see the server's real answer.
+        if (status == RESOURCE_UNAVAILABLE) return null;
 
         String voiceSize = String.valueOf(file.length());
         String subtitle_local = sharedPref.getString(PREF_SUBTITLE_LOCALE, "en");
@@ -550,6 +556,7 @@ public class ResourceProcess {
     private WebResourceResponse processFontFile(ResourceRequestInfo requestInfo) throws IOException {
         File file = new File(requestInfo.outputPath);
         downloadResourceIfMissing(requestInfo, file);
+        if (!file.exists()) return null; // let the WebView fetch it itself
         file = ResourcePatcher.INSTANCE.applyKenPatcherIfAvailable(context, versionTable, requestInfo.path, file, false);
         return new WebResourceResponse("application/font-woff2", "binary", new BufferedInputStream(new FileInputStream(file)));
     }
