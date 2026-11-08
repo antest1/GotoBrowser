@@ -45,12 +45,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 
 import static com.antest1.gotobrowser.Constants.CACHE_DIR;
 import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.GADGET_OSAPI_IFR;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_AUTO_DISABLE;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
@@ -129,7 +131,11 @@ public class ResourceProcess {
     private final BrowserActivity activity;
     private final Context context;
     private final VersionDatabase versionTable;
-    private final OkHttpClient resourceClient = new OkHttpClient();
+    // Reuses the shared client's TLS setup, which is slow to build on the main thread, but
+    // keeps a connection pool of its own so game resource loads keep their idle connections.
+    private final OkHttpClient resourceClient = KcUtils.getSharedHttpClient().newBuilder()
+            .connectionPool(new ConnectionPool())
+            .build();
     SharedPreferences sharedPref;
 
     private final Handler shipVoiceHandler = new Handler();
@@ -147,6 +153,11 @@ public class ResourceProcess {
     // Preferences are read on every use (not cached) so that changes apply on the next page load.
     private boolean isAlterGadgetEnabled() {
         return sharedPref.getBoolean(PREF_ALTER_GADGET, false);
+    }
+
+    /** Whether the bypass turns itself off once the gadget server is reachable without it. */
+    private boolean isAlterAutoDisableEnabled() {
+        return sharedPref.getBoolean(PREF_ALTER_AUTO_DISABLE, true);
     }
 
     private boolean isGadgetUrlReplaceMode() {
@@ -219,7 +230,9 @@ public class ResourceProcess {
             boolean ip_banned = getIpBannedStatus(url);
             boolean alterGadget = isAlterGadgetEnabled();
             if (alterGadget && !ip_banned) {
-                sharedPref.edit().putBoolean(PREF_ALTER_GADGET, false).commit();
+                if (isAlterAutoDisableEnabled()) {
+                    sharedPref.edit().putBoolean(PREF_ALTER_GADGET, false).commit();
+                }
             } else if (!alterGadget && ip_banned) {
                 showGadgetIpServerBlockedDialog();
             }

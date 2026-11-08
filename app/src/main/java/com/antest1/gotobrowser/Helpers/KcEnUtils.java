@@ -34,9 +34,6 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import okhttp3.OkHttpClient;
@@ -57,7 +54,6 @@ public class KcEnUtils {
 
     private static int BUFFER_SIZE = 16384;
 
-    private final OkHttpClient client = new OkHttpClient();
     private boolean newVersionFlag = false;
     static String currentVersion = null;
 
@@ -170,42 +166,31 @@ public class KcEnUtils {
         return KcUtils.getAppCacheFileDir(context, ENPATCH_LOCAL_FOLDER());
     }
 
+    /**
+     * Fetches the patch info file. Blocks on the network, so callers run it off the main
+     * thread (both do: the update check's thread and the zip downloader's background task).
+     * On failure the result holds an "error" property.
+     */
     public static JsonObject getKantaiEnUpdateInfo(OkHttpClient client) {
         JsonObject enPatchInfo = new JsonObject();
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        try {
-            Future<JsonObject> result = executor.submit(() -> {
-                JsonObject resultData = new JsonObject();
-                Request.Builder builder = new Request.Builder().url(ENPATCH_INFO_URL());
-                Request request = builder.build();
-                try {
-                    Response response = client.newCall(request).execute();
-                    if (response.code() == 200) {
-                        ResponseBody body = response.body();
-                        if (body != null) {
-                            try (Reader reader = body.charStream()) {
-                                return parseJsonObject(reader);
-                            }
-                        }
-                    } else {
-                        resultData.addProperty("error", String.valueOf(response.code()));
-                    }
-
-                } catch (IOException e) {
-                    Log.e("GOTO", KcUtils.getStringFromException(e));
-                    resultData.addProperty("error", getStringFromException(e));
+        Request request = new Request.Builder().url(ENPATCH_INFO_URL()).build();
+        try (Response response = client.newCall(request).execute()) {
+            ResponseBody body = response.body();
+            if (response.code() != 200) {
+                enPatchInfo.addProperty("error", String.valueOf(response.code()));
+            } else if (body != null) {
+                try (Reader reader = body.charStream()) {
+                    JsonObject parsed = parseJsonObject(reader);
+                    // An empty body parses to null.
+                    if (parsed != null) enPatchInfo = parsed;
                 }
-                return resultData;
-            });
-            enPatchInfo = result.get();
-        } catch (Exception e) {
+            }
+        } catch (IOException | RuntimeException e) {
             Log.e("GOTO", KcUtils.getStringFromException(e));
+            enPatchInfo = new JsonObject();
             enPatchInfo.addProperty("error", getStringFromException(e));
-        } finally {
-            // A fresh executor per call; without shutdown its thread is never released.
-            executor.shutdown();
         }
-        Log.e("GOTO", "enPatchInfo: " + enPatchInfo.toString());
+        Log.e("GOTO", "enPatchInfo: " + enPatchInfo);
         return enPatchInfo;
     }
 
@@ -220,7 +205,7 @@ public class KcEnUtils {
 
         // The version lookup is a network call; running it on the main thread caused ANRs.
         new Thread(() -> {
-            JsonObject enPatchInfo = getKantaiEnUpdateInfo(client);
+            JsonObject enPatchInfo = getKantaiEnUpdateInfo(KcUtils.getSharedHttpClient());
             String availableVersion = "";
             if (!enPatchInfo.has("error") && enPatchInfo.has("version"))
                 availableVersion = enPatchInfo.get("version").getAsString();
@@ -469,7 +454,7 @@ public class KcEnUtils {
 
         private final Context context;
         private final SettingsStatusHost host;
-        private final OkHttpClient client = new OkHttpClient();
+        private final OkHttpClient client = KcUtils.getSharedHttpClient();
 
         public PatchIndividualDownloader(Context ctx, SettingsStatusHost host) {
             this.context = ctx;
@@ -615,7 +600,7 @@ public class KcEnUtils {
     /** Downloads and extracts the whole patch archive. Progress is reported like {@link PatchIndividualDownloader}. */
     private static class PatchZipDownloader extends AsyncTask<Integer, PatchDownloadState, Integer> {
         private final SettingsStatusHost host;
-        private final OkHttpClient client = new OkHttpClient();
+        private final OkHttpClient client = KcUtils.getSharedHttpClient();
         private final Context context;
         long patchSize = 370000000;
 

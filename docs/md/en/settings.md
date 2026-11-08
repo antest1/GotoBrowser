@@ -31,6 +31,7 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 | Gadget Block Bypass | Turn on if you are experiencing the foreign IP block issue (infinite black screen) | After reload |
 | Bypass Method | Select URL Replacement or KCCacheProxy (remote) (use "URL Replacement" in most cases) | After reload |
 | Bypass Endpoint Server | Server URL to use for bypass<br/>`https://kcwiki.github.io/cache/` (default) | After reload |
+| Auto-Disable Bypass | Turns the bypass off automatically once the game connects without being blocked (on by default) | Immediately |
 
 For related information, refer to the <span class="link" data-move="gadgetbypass">IP Block Bypass (Non-Japan)</span> page. Bypass Method and Bypass Endpoint Server cannot be selected while Gadget Block Bypass is turned off.
 
@@ -62,7 +63,7 @@ For PIP/multi-window information, refer to the <span class="link" data-move="pip
 | External Storage for Resource Caching | Use external storage instead of internal storage when caching game resources (recommended)<br/>(allows access to image/voice resources via PC) | After reload |
 | Prefetch Font Assets | Use built-in font files instead of loading them from the game server (recommended, on by default) | After reload |
 | Retry Game Asset Download | Prompts a dialog asking whether to retry when the client fails to download a sound or image asset<br/>Can sometimes avoid catbombs caused by poor network. Does not apply to game data API errors | Immediately |
-| Clear Cache | Deletes the browser cache. Use this when images or audio are not loading correctly, or to switch between login methods<br/>You may need to log in again afterwards | Immediately |
+| Clear Cache | Deletes the browser cache. Use this when images or audio are not loading correctly, or to switch between login methods<br/>You may need to log in again afterwards<br/>A reload prompt appears once clearing is done | Immediately |
 
 ##### Subtitle
 

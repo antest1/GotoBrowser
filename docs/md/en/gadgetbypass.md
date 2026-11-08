@@ -21,5 +21,5 @@ When IP block is detected, the following notification will appear when you start
 | `https://kcwiki.github.io/cache/` | default |
 
 ##### Notes
-- If the block is found to be lifted while the bypass is on, the bypass option is turned off automatically.
+- If the block is found to be lifted while the bypass is on, the bypass option is turned off automatically. To keep it on, turn off "Auto-Disable Bypass" in the same section.
 - Conversely, if a block is detected while the bypass is off, the notification above is shown again.

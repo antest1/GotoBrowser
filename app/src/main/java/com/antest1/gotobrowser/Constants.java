@@ -33,6 +33,7 @@ public class Constants {
     public static final String PREF_DEVTOOLS_DEBUG = "pref_devtools_debug";
     public static final String PREF_ALTER_METHOD = "pref_alter_method";
     public static final String PREF_ALTER_ENDPOINT = "pref_alter_endpoint";
+    public static final String PREF_ALTER_AUTO_DISABLE = "pref_alter_auto_disable";
     public static final String PREF_TP_DISCLAIMED = "pref_tp_disclaimed";
     public static final String PREF_LEGACY_RENDERER = "pref_legacy_renderer";
     public static final String PREF_MOD_KANTAI3D = "pref_mod_kantai3d";

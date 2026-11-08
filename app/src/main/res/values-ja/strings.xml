@@ -8,7 +8,8 @@
     <string name="select_server">接続方式選択</string>
     <string name="select_server_toast">接続方式を先に選択してください。</string>
     <string name="cache_clear_text">キャッシュ削除</string>
-    <string name="cache_cleared_toast">WebViewのキャッシュを削除しました。</string>
+    <string name="cache_clearing">キャッシュを削除中…</string>
+    <string name="cache_cleared_refresh_msg">キャッシュを削除しました。ゲームを再読み込みするとリソースを再ダウンロードします。今すぐ再読み込みしますか？</string>
     <string name="webview_unavailable">Android System WebViewを読み込めませんでした。更新中の可能性があります。しばらくしてから起動し直すか、Playストアで更新・有効化してください。</string>
     <string name="clearcache_msg">画像や音声が正しく読み込まれない場合や、ログイン方法を切り替える場合に使用してください。削除後は再度ログインが必要になることがあります。</string>
     <string name="thirdpartyconnector_msg">非公式のWebプロキシ型コネクタ（OOIなど）の場合、その方針によってゲームリソースが本来のものと異なることがあります。GotoBrowserは各コネクタの方針を関知しません。非公式のリソースを表示したくない場合は、キャッシュを削除してDMM Directでプレイしてください。</string>
@@ -67,6 +68,8 @@
     <string name="setting_devtools_enable">DevToolsデバッグを使用</string>
     <string name="connection_use_alter">国外ブロックのバイパス</string>
     <string name="connection_use_alter_summary">外部IPブロックの問題（無限の黒い画面）に直面している場合は、この設定を使用してください</string>
+    <string name="setting_alter_auto_disable">バイパスの自動無効化</string>
+    <string name="setting_alter_auto_disable_summary">ブロックされずに接続できた場合、バイパスを自動的に無効にします</string>
     <string name="setting_connection">接続設定</string>
     <string name="setting_alter_method_url">URL置換</string>
     <string name="setting_alter_method_proxy">KCCacheProxy（リモート）</string>
@@ -155,6 +158,7 @@
     <string name="settings_refresh_required_msg">設定が保存されました。効果を有効にするにはゲームの再読み込みが必要です。今すぐ再読み込みしますか？</string>
     <string name="settings_refresh_now">今すぐ再読み込み</string>
     <string name="settings_refresh_later">再読み込みせずに設定を変更</string>
+    <string name="refresh_later">後で</string>
     <!-- First-screen loading status and server errors -->
     <string name="loading_preparing_title">設定を適用中</string>
     <string name="loading_preparing_desc">プロキシとパッチの設定を準備しています</string>
