@@ -224,9 +224,12 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                     Log.e("GOTO", response.headers().toString());
                     Log.e("GOTO", commit_log.toString());
                     String commit = commit_log.get(0).getAsJsonObject().get("sha").getAsString();
-                    downloadQuoteSizeData(versionTable, context, commit, submeta_file);
-                    loadQuoteSizeData(submeta_path);
-                    Log.e("GOTO", "quote_size: " + (quoteSizeData == null ? -1 : quoteSizeData.size()));
+                    // onResponse runs on the main thread; download off it instead of joining.
+                    new Thread(() -> {
+                        downloadQuoteSizeData(versionTable, commit, submeta_file);
+                        loadQuoteSizeData(submeta_path);
+                        Log.e("GOTO", "quote_size: " + (quoteSizeData == null ? -1 : quoteSizeData.size()));
+                    }).start();
                 }
             }
             @Override
@@ -240,27 +243,16 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         Log.e("GOTO", "quote_meta: " + (quoteLabel == null ? -1 : quoteLabel.size()));
     }
 
-    private static void downloadQuoteSizeData(VersionDatabase table, Context context, String commit, File file) {
+    // Blocking; call off the main thread.
+    private static void downloadQuoteSizeData(VersionDatabase table, String commit, File file) {
         String key = "|kc3_quote_size|" + file.getPath();
+        String last_modified = table.getVersionValue(key);
+        if (last_modified.equals(commit)) return;
         String download_path = String.format(Locale.US, SUBTITLE_META_ROOT_FORMAT, commit);
         OkHttpClient resourceClient = new OkHttpClient();
-        Thread downloadThread = new Thread() {
-            @Override
-            public void run() {
-                String last_modified = table.getVersionValue(key);
-                if (!last_modified.equals(commit)) {
-                    KcUtils.DownloadResult result = KcUtils.downloadResource(resourceClient, download_path, file);
-                    if (result.responseCode != -1 && result.responseCode != 304) {
-                        table.putVersionValue(key, commit);
-                    }
-                }
-            }
-        };
-        try {
-            downloadThread.start();
-            downloadThread.join();
-        } catch (InterruptedException e) {
-            // do nothing
+        KcUtils.DownloadResult result = KcUtils.downloadResource(resourceClient, download_path, file);
+        if (result.responseCode != -1 && result.responseCode != 304) {
+            table.putVersionValue(key, commit);
         }
     }
 
