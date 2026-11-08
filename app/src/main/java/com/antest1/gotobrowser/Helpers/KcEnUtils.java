@@ -1,7 +1,6 @@
 package com.antest1.gotobrowser.Helpers;
 
 import static com.antest1.gotobrowser.Helpers.KcUtils.getStringFromException;
-import static com.antest1.gotobrowser.Helpers.KcUtils.parseJsonArray;
 import static com.antest1.gotobrowser.Helpers.KcUtils.parseJsonObject;
 
 import android.content.Context;
@@ -52,7 +51,6 @@ public class KcEnUtils {
     private static String ENPATCH_INFO_LOCAL_FILE() { return getLanguageSymbol() + "-patch.mod.json"; }
     private static String ENPATCH_INFO_URL() { return RAW_BASE() + ENPATCH_INFO_LOCAL_FILE(); }
     private static String ENPATCH_FILE_URL_ROOT() { return RAW_BASE(); }
-    private static String ENPATCH_VERSION_URL() { return RAW_BASE() + "version.json"; }
     private static String ENPATCH_LOCAL_FOLDER() { return "/" + getRootPath(); }
     private static String ENPATCH_ZIP_FILE_SRC() { return GITHUB_BASE() + "archive/refs/heads/master.zip"; }
     private static String ENPATCH_COMMIT_URL() { return "https://api.github.com/repos/" + getGitHubNameRootPath() + "commits/master"; }
@@ -211,39 +209,6 @@ public class KcEnUtils {
         return enPatchInfo;
     }
 
-    public JsonArray getKantaiEnVersionData() {
-        JsonArray enVersionInfo = new JsonArray();
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        try {
-            Future<JsonArray> result = executor.submit(() -> {
-                JsonArray resultData = new JsonArray();
-                Request.Builder builder = new Request.Builder().url(ENPATCH_VERSION_URL());
-                Request request = builder.build();
-                try {
-                    Response response = client.newCall(request).execute();
-                    if (response.code() == 200) {
-                        ResponseBody body = response.body();
-                        if (body != null) {
-                            try (Reader reader = body.charStream()) {
-                                return parseJsonArray(reader);
-                            }
-                        }
-                    }
-                } catch (IOException e) {
-                    Log.e("GOTO", KcUtils.getStringFromException(e));
-                }
-                return resultData;
-            });
-            enVersionInfo = result.get();
-        } catch (Exception e) {
-            Log.e("GOTO", KcUtils.getStringFromException(e));
-        } finally {
-            executor.shutdown();
-        }
-        Log.e("GOTO", "enPatchInfo: " + enVersionInfo.toString());
-        return enVersionInfo;
-    }
-
     // Bumped per check so a slow, superseded check cannot overwrite a newer result.
     private final AtomicInteger updateCheckGeneration = new AtomicInteger();
 
@@ -295,25 +260,6 @@ public class KcEnUtils {
             host.setPatchUpdateStatus("Error occurred while retrieving latest version", false);
             newVersionFlag = false;
         }
-    }
-
-    public String checkKantaiEnUpdateEntrance(Context context) {
-        String enPatchLocalInfoPath = getEnPatchLocalFolder(context).concat(ENPATCH_INFO_LOCAL_FILE());
-        JsonObject enPatchInfo = getKantaiEnUpdateInfo(client);
-        Log.e("GOTO-P", "enPatchInfo: " + enPatchInfo.toString());
-        if (enPatchInfo.has("version")) {
-            String availableVersion = enPatchInfo.get("version").getAsString();
-            File enPatchLocalInfoFile = new File(enPatchLocalInfoPath);
-            if (enPatchLocalInfoFile.exists()) {
-                JsonObject enPatchLocalInfo = KcUtils.readJsonObjectFromFile(enPatchLocalInfoFile.getPath());
-                Log.e("GOTO-P", "enPatchLocalInfo: " + enPatchLocalInfo.toString());
-                currentVersion = enPatchLocalInfo.get("version").getAsString();
-                if (!currentVersion.equals(availableVersion)) {
-                    return availableVersion;
-                }
-            }
-        }
-        return null;
     }
 
     public boolean remoteFileExists(String URLName){
