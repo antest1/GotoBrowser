@@ -12,6 +12,7 @@
     <string name="select_server_toast">Login method must be chosen first</string>
     <string name="cache_clear_text">Clear Cache</string>
     <string name="cache_cleared_toast">Webview cache cleared</string>
+    <string name="webview_unavailable">Could not load Android System WebView. It may be updating; try again shortly, or update or enable it in the Play Store.</string>
     <string name="clearcache_msg">Use this when images or audio are not loading correctly, or to switch between login methods. You may need to log in again afterwards.</string>
     <string name="thirdpartyconnector_msg">In the case of non-official web proxy-based connectors (like OOI), the game resources may be different from the original ones, depending on their policy. Basically, GotoBrowser does not inference the policy of each connector. If you do not want to display unofficial resources with GotoBrowser, please clear the cache and play KanColle through DMM Direct.</string>
     <string name="backpress_msg">Press back again to exit</string>

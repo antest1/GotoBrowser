@@ -9,6 +9,7 @@
     <string name="select_server_toast">접속기를 먼저 선택해주세요.</string>
     <string name="cache_clear_text">캐시 비우기</string>
     <string name="cache_cleared_toast">웹뷰 캐시 비우기 완료</string>
+    <string name="webview_unavailable">Android System WebView를 불러오지 못했습니다. 업데이트 중일 수 있으니 잠시 후 다시 실행하거나, Play 스토어에서 업데이트 또는 활성화해 주세요.</string>
     <string name="clearcache_msg">이미지나 오디오가 제대로 불러와지지 않거나 로그인 방식을 바꿀 때 사용하세요. 삭제 후에는 다시 로그인해야 할 수 있습니다.</string>
     <string name="thirdpartyconnector_msg">비공식 웹 프록시 기반 연결(OOI 등)의 경우, 해당 정책에 따라 게임 리소스가 원본과 다를 수 있습니다. GotoBrowser는 각 연결의 정책을 관여하지 않습니다. 비공식 리소스를 표시하고 싶지 않다면 캐시를 삭제하고 DMM Direct로 플레이하세요.</string>
     <string name="backpress_msg">종료하려면 뒤로 버튼을 다시 누르세요.</string>

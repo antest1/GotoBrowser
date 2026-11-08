@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.PictureInPictureParams
 import android.graphics.Rect
 import android.os.Build
+import android.util.Log
 import android.util.Rational
 import android.view.ScaleGestureDetector
 import android.webkit.WebView
@@ -34,17 +35,24 @@ class PipController(
 
     @RequiresApi(Build.VERSION_CODES.S)
     private fun updatePipParams() {
+        // Layout changes keep firing while the activity is being torn down.
+        if (activity.isFinishing || activity.isDestroyed) return
         val pipEnabled = activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_PIP_MODE, false)
         val sourceRectHint = Rect()
         mContentView.getGlobalVisibleRect(sourceRectHint)
-        activity.setPictureInPictureParams(
-            PictureInPictureParams.Builder()
-                .setSeamlessResizeEnabled(false)
-                .setSourceRectHint(sourceRectHint)
-                .setAutoEnterEnabled(pipEnabled)
-                .setAspectRatio(Rational(1200, 720))
-                .build()
-        )
+        try {
+            activity.setPictureInPictureParams(
+                PictureInPictureParams.Builder()
+                    .setSeamlessResizeEnabled(false)
+                    .setSourceRectHint(sourceRectHint)
+                    .setAutoEnterEnabled(pipEnabled)
+                    .setAspectRatio(Rational(1200, 720))
+                    .build()
+            )
+        } catch (e: IllegalStateException) {
+            // The system may no longer know the activity (e.g. its task was removed).
+            Log.e("GOTO", "setPictureInPictureParams failed: ${e.message}")
+        }
     }
 
     fun onUserLeaveHint() {

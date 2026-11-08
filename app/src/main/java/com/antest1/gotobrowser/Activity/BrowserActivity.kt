@@ -220,8 +220,17 @@ class BrowserActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setBackgroundDrawable(ColorDrawable(android.graphics.Color.BLACK))
         viewModel = ViewModelProvider(this)[BrowserViewModel::class.java]
-        WebViewManager.setWebViewDebugging(viewModel.sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false))
         settingsViewModel = ViewModelProvider(this)[SettingsViewModel::class.java]
+        // First touch of the WebView provider. It throws when the system WebView can't be
+        // loaded (e.g. while it is being updated); tell the user instead of crashing.
+        try {
+            WebViewManager.setWebViewDebugging(viewModel.sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false))
+        } catch (e: RuntimeException) {
+            KcUtils.reportException(e)
+            KcUtils.showToast(applicationContext, R.string.webview_unavailable)
+            finish()
+            return
+        }
         screenshotNotification = ScreenshotNotification(this)
         backPressCloseHandler = BackPressCloseHandler(this, true)
 
@@ -474,7 +483,13 @@ class BrowserActivity : ComponentActivity() {
         // Loaded off the main thread:
         // The result is only consumed later when a voice line plays.
         // A single-thread executor keeps loads in order, so the latest locale wins.
-        val subtitleLocale = viewModel.sharedPref.getString(PREF_SUBTITLE_LOCALE, "en") ?: "en"
+        // "" means no language has been picked yet; there is no quotes file to load.
+        val subtitleLocale = viewModel.sharedPref.getString(PREF_SUBTITLE_LOCALE, "") ?: ""
+        if (subtitleLocale.isEmpty()) {
+            viewModel.subtitleRequestKey = null
+            viewModel.isSubtitleLoaded = false
+            return
+        }
         val requestKey = "$subtitleLocale|${viewModel.sharedPref.getBoolean(PREF_USE_EXTCACHE, false)}"
         if (!force && requestKey == viewModel.subtitleRequestKey) return
         viewModel.subtitleRequestKey = requestKey
@@ -991,7 +1006,8 @@ fun BrowserOverlayLayer(
                 // The game is centered in this layer (as GameAreaLayout does). The
                 // subtitle wraps to the game width so it never spills into the side
                 // letterbox, and sits just below the game, clamped to the screen bottom.
-                val gameW = if (gameWidth.isSpecified) gameWidth.roundToPx().coerceIn(1, constraints.maxWidth) else constraints.maxWidth
+                // maxWidth can be 0 while the window is being resized; keep the range non-empty.
+                val gameW = if (gameWidth.isSpecified) gameWidth.roundToPx().coerceIn(minOf(1, constraints.maxWidth), constraints.maxWidth) else constraints.maxWidth
                 val gameH = if (gameHeight.isSpecified) gameHeight.roundToPx().coerceIn(0, constraints.maxHeight) else constraints.maxHeight
                 val gameBottom = (constraints.maxHeight + gameH) / 2
 

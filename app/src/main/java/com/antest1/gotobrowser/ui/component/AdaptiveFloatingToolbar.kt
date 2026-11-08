@@ -307,7 +307,13 @@ fun AdaptiveFloatingToolbar(
                     else measurable.measure(looseConstraints.copy(maxWidth = maxBarLength))
                 }
                 FabLayoutId -> {
-                    measurable.measure(looseConstraints.copy(minWidth = barSizePx.roundToInt(), minHeight = barSizePx.roundToInt()))
+                    // Cap the minimum by the container so a very small window
+                    // (split screen, resizing) cannot produce min > max.
+                    val fabMin = barSizePx.roundToInt()
+                    measurable.measure(looseConstraints.copy(
+                        minWidth = fabMin.coerceAtMost(constraints.maxWidth),
+                        minHeight = fabMin.coerceAtMost(constraints.maxHeight)
+                    ))
                 }
                 RevealStrip1LayoutId -> {
                     if (isLandscape) {

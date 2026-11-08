@@ -16,7 +16,6 @@ import com.google.gson.JsonPrimitive;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
@@ -56,7 +55,8 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
             "https://raw.githubusercontent.com/KC3Kai/KC3Kai/%s/src/data/quotes_size.json";
     public static final String QUOTES_FILENAME_FORMAT = "quotes_%s.json";
 
-    private static JsonObject quoteSizeData = new JsonObject();
+    // Replaced from a worker thread; never null so lookups need no null check.
+    private static volatile JsonObject quoteSizeData = new JsonObject();
     private static final int MAX_LOOP = 9;
 
 
@@ -90,8 +90,15 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
     }
 
     private static int computeVoiceDiff(String shipId, String filename) {
-        int ship_id_val = Integer.parseInt(shipId, 10);
-        int f = Integer.parseInt(filename, 10);
+        int ship_id_val;
+        int f;
+        try {
+            ship_id_val = Integer.parseInt(shipId, 10);
+            f = Integer.parseInt(filename, 10);
+        } catch (NumberFormatException e) {
+            // Some voice files use hashed (non-numeric) names; they have no voice line mapping.
+            return -1;
+        }
         int k = 17 * (ship_id_val + 7);
         int r = f - 100000;
         if (f > 53 && r < 0) {
@@ -225,15 +232,20 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                     Log.e("GOTO", response.headers().toString());
                     Log.e("GOTO", commit_log.toString());
                     String commit = commit_log.get(0).getAsJsonObject().get("sha").getAsString();
-                    downloadQuoteSizeData(versionTable, context, commit, submeta_file);
-                    loadQuoteSizeData(submeta_path);
-                    Log.e("GOTO", "quote_size: " + (quoteSizeData == null ? -1 : quoteSizeData.size()));
+                    // onResponse runs on the main thread; download off it instead of joining.
+                    new Thread(() -> {
+                        downloadQuoteSizeData(versionTable, commit, submeta_file);
+                        loadQuoteSizeData(submeta_path);
+                        Log.e("GOTO", "quote_size: " + (quoteSizeData == null ? -1 : quoteSizeData.size()));
+                    }).start();
+                } else {
+                    // e.g. a rate-limited API call: fall back to the local copy.
+                    loadQuoteSizeDataInBackground(submeta_path);
                 }
             }
             @Override
             public void onFailure(Call<JsonArray> call, Throwable t) {
-                loadQuoteSizeData(submeta_path);
-                Log.e("GOTO", "quote_size: " + (quoteSizeData == null ? -1 : quoteSizeData.size()));
+                loadQuoteSizeDataInBackground(submeta_path);
             }
         });
 
@@ -241,33 +253,31 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         Log.e("GOTO", "quote_meta: " + (quoteLabel == null ? -1 : quoteLabel.size()));
     }
 
-    private static void downloadQuoteSizeData(VersionDatabase table, Context context, String commit, File file) {
+    // Blocking; call off the main thread.
+    private static void downloadQuoteSizeData(VersionDatabase table, String commit, File file) {
         String key = "|kc3_quote_size|" + file.getPath();
+        String last_modified = table.getVersionValue(key);
+        if (last_modified.equals(commit)) return;
         String download_path = String.format(Locale.US, SUBTITLE_META_ROOT_FORMAT, commit);
         OkHttpClient resourceClient = new OkHttpClient();
-        Thread downloadThread = new Thread() {
-            @Override
-            public void run() {
-                String last_modified = table.getVersionValue(key);
-                if (!last_modified.equals(commit)) {
-                    KcUtils.DownloadResult result = KcUtils.downloadResource(resourceClient, download_path, file);
-                    if (result.responseCode != -1 && result.responseCode != 304) {
-                        table.putVersionValue(key, commit);
-                    }
-                }
-            }
-        };
-        try {
-            downloadThread.start();
-            downloadThread.join();
-        } catch (InterruptedException e) {
-            // do nothing
+        KcUtils.DownloadResult result = KcUtils.downloadResource(resourceClient, download_path, file);
+        if (result.responseCode != -1 && result.responseCode != 304) {
+            table.putVersionValue(key, commit);
         }
     }
 
+    // Retrofit callbacks run on the main thread; parse the file off it.
+    private static void loadQuoteSizeDataInBackground(String filename) {
+        new Thread(() -> {
+            loadQuoteSizeData(filename);
+            Log.e("GOTO", "quote_size: " + (quoteSizeData == null ? -1 : quoteSizeData.size()));
+        }).start();
+    }
+
     private static boolean loadQuoteSizeData(String filename) {
-        quoteSizeData = KcUtils.readJsonObjectFromFile(filename);
-        return quoteSizeData != null;
+        JsonObject data = KcUtils.readJsonObjectFromFile(filename);
+        quoteSizeData = data != null ? data : new JsonObject();
+        return data != null;
     }
 
 
@@ -464,7 +474,8 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                         if (!commit_log.isEmpty()) {
                             JsonObject latestData = commit_log.get(0).getAsJsonObject();
                             String latestCommit = latestData.get("sha").getAsString();
-                            if (!currentCommit.equals(latestCommit)) {
+                            // Also offer the download when the file is gone (e.g. deleted as corrupted).
+                            if (!currentCommit.equals(latestCommit) || !new File(subtitle_path).exists()) {
                                 subtitleData = new JsonObject();
                                 subtitleData.addProperty("locale_code", localeCode);
                                 subtitleData.addProperty("latest_commit", latestCommit);
@@ -494,6 +505,8 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
     public void downloadUpdateFromPreference(SettingsStatusHost host, VersionDatabase versionTable) {
         if (subtitleData != null) {
             try {
+                // Capture now: a new update check resets subtitleData before this download returns.
+                String localeCode = subtitleData.get("locale_code").getAsString();
                 String commit = subtitleData.get("latest_commit").getAsString();
                 String path = subtitleData.get("download_url").getAsString();
 
@@ -507,7 +520,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                 call.enqueue(new Callback<JsonObject>() {
                     @Override
                     public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                        saveQuotesFile(host, response, versionTable);
+                        saveQuotesFile(host, response, versionTable, localeCode, commit);
                     }
                     @Override
                     public void onFailure(Call<JsonObject> call, Throwable t) {
@@ -523,10 +536,9 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         }
     }
 
-    private void saveQuotesFile(SettingsStatusHost host, Response<JsonObject> response, VersionDatabase versionTable) {
+    private void saveQuotesFile(SettingsStatusHost host, Response<JsonObject> response, VersionDatabase versionTable,
+                                String locale_code, String commit) {
         String message;
-        String locale_code = subtitleData.get("locale_code").getAsString();
-        String commit = subtitleData.get("latest_commit").getAsString();
 
         Context context = host.getContext();
         if (context != null) {
@@ -540,10 +552,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                 }
                 JsonObject data = response.body();
                 if (data != null) {
-                    File subtitleFile = new File(subtitle_path);
-                    FileOutputStream fos = new FileOutputStream(subtitleFile);
-                    fos.write(data.toString().getBytes());
-                    fos.close();
+                    KcUtils.writeStringToFileAtomically(new File(subtitle_path), data.toString());
                     versionTable.putVersionValue(subtitle_path, commit);
                     host.setSubtitleUpdateStatus(host.getString(R.string.setting_latest_version), false);
                     host.onSubtitleDataUpdated();
