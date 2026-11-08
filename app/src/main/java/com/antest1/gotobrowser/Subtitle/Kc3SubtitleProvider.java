@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -259,8 +258,7 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
         String last_modified = table.getVersionValue(key);
         if (last_modified.equals(commit)) return;
         String download_path = String.format(Locale.US, SUBTITLE_META_ROOT_FORMAT, commit);
-        OkHttpClient resourceClient = new OkHttpClient();
-        KcUtils.DownloadResult result = KcUtils.downloadResource(resourceClient, download_path, file);
+        KcUtils.DownloadResult result = KcUtils.downloadResource(KcUtils.getSharedHttpClient(), download_path, file);
         if (result.responseCode != -1 && result.responseCode != 304) {
             table.putVersionValue(key, commit);
         }
