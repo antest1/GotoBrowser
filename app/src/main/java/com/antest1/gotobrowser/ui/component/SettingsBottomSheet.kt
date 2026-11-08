@@ -266,6 +266,8 @@ private fun SettingsBottomSheetContent(
     onCacheCleared: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    // Each opening checks for updates again; screen switches inside it reuse the result.
+    LaunchedEffect(viewModel) { viewModel?.onSettingsOpened() }
     val snackbarHostState = remember { SnackbarHostState() }
     var currentScreen by remember { mutableStateOf(SettingsScreen.MAIN) }
 
@@ -594,9 +596,9 @@ private fun DownloadSection(viewModel: SettingsViewModel?, onSettingChanged: (St
 @Composable
 private fun SubtitleSection(viewModel: SettingsViewModel?, subtitleSummary: String, subtitleEnabled: Boolean, onSettingChanged: (String) -> Unit) {
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
-    // Checked only on this screen, the one that shows the result, not on every sheet open.
+    // Checked on this screen, the one that shows the result, once per sheet opening.
     if (!isPreview) {
-        LaunchedEffect(Unit) { viewModel.refreshSubtitleDescription() }
+        LaunchedEffect(Unit) { viewModel.checkSubtitleUpdateOnce() }
     }
     // PREF_SUBTITLE_LOCALE is stored as "" until the user picks a language (see
     // SettingsViewModel.refreshSubtitleDescription, which treats "" as "not selected").
@@ -824,9 +826,9 @@ private fun ModsSection(
 ) {
     val context = LocalContext.current
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
-    // Checked only on this screen, the one that shows the result, not on every sheet open.
+    // Checked on this screen, the one that shows the result, once per sheet opening.
     if (!isPreview) {
-        LaunchedEffect(Unit) { viewModel.refreshKccpDependentRows(null) }
+        LaunchedEffect(Unit) { viewModel.checkPatchUpdateOnce() }
     }
 
     // --- Group 1: General Mods -----------------------------------------------

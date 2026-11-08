@@ -248,12 +248,34 @@ public class SettingsViewModel extends AndroidViewModel {
         return value;
     }
 
+    // Whether each update check already ran since the settings sheet opened. The checks call
+    // GitHub, so revisiting a screen reuses the last result instead of asking again.
+    private boolean patchChecked = false;
+    private boolean subtitleChecked = false;
+
+    /** Called when the settings sheet opens: its update checks run again from scratch. */
+    public void onSettingsOpened() {
+        patchChecked = false;
+        subtitleChecked = false;
+    }
+
+    /** Runs the patch update check unless it already ran since the sheet opened. */
+    public void checkPatchUpdateOnce() {
+        if (!patchChecked) refreshKccpDependentRows(null);
+    }
+
+    /** Runs the subtitle update check unless it already ran since the sheet opened. */
+    public void checkSubtitleUpdateOnce() {
+        if (!subtitleChecked) refreshSubtitleDescription();
+    }
+
     /**
      * Refresh the patch dropdown dependent rows (About link + Download row).
      * Mirrors the old SettingsFragment#updateKCCPLangPatchInfo and
      * #updateKCCPLangPatchDescriptionText.
      */
     public void refreshKccpDependentRows(String lang) {
+        patchChecked = true;
         Context context = getApplication().getApplicationContext();
         if (lang == null) {
             lang = sharedPref.getString(PREF_MOD_KCCP_LANG_PATCH_NAME, PREF_MOD_KCCP_LANG_PATCH_EN);
@@ -276,6 +298,7 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     public void refreshSubtitleDescription() {
+        subtitleChecked = true;
         String subtitleLocale = sharedPref.getString(PREF_SUBTITLE_LOCALE, "");
         if (!subtitleLocale.isEmpty()) {
             SubtitleProviderUtils.getSubtitleProvider(subtitleLocale)
