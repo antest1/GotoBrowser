@@ -45,6 +45,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 
 import static com.antest1.gotobrowser.Constants.CACHE_DIR;
@@ -130,7 +131,11 @@ public class ResourceProcess {
     private final BrowserActivity activity;
     private final Context context;
     private final VersionDatabase versionTable;
-    private final OkHttpClient resourceClient = new OkHttpClient();
+    // Reuses the shared client's TLS setup, which is slow to build on the main thread, but
+    // keeps a connection pool of its own so game resource loads keep their idle connections.
+    private final OkHttpClient resourceClient = KcUtils.getSharedHttpClient().newBuilder()
+            .connectionPool(new ConnectionPool())
+            .build();
     SharedPreferences sharedPref;
 
     private final Handler shipVoiceHandler = new Handler();
