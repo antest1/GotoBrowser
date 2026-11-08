@@ -57,7 +57,6 @@ public class KcEnUtils {
 
     private static int BUFFER_SIZE = 16384;
 
-    private final OkHttpClient client = new OkHttpClient();
     private boolean newVersionFlag = false;
     static String currentVersion = null;
 
@@ -220,7 +219,7 @@ public class KcEnUtils {
 
         // The version lookup is a network call; running it on the main thread caused ANRs.
         new Thread(() -> {
-            JsonObject enPatchInfo = getKantaiEnUpdateInfo(client);
+            JsonObject enPatchInfo = getKantaiEnUpdateInfo(KcUtils.getSharedHttpClient());
             String availableVersion = "";
             if (!enPatchInfo.has("error") && enPatchInfo.has("version"))
                 availableVersion = enPatchInfo.get("version").getAsString();
@@ -469,7 +468,7 @@ public class KcEnUtils {
 
         private final Context context;
         private final SettingsStatusHost host;
-        private final OkHttpClient client = new OkHttpClient();
+        private final OkHttpClient client = KcUtils.getSharedHttpClient();
 
         public PatchIndividualDownloader(Context ctx, SettingsStatusHost host) {
             this.context = ctx;
@@ -615,7 +614,7 @@ public class KcEnUtils {
     /** Downloads and extracts the whole patch archive. Progress is reported like {@link PatchIndividualDownloader}. */
     private static class PatchZipDownloader extends AsyncTask<Integer, PatchDownloadState, Integer> {
         private final SettingsStatusHost host;
-        private final OkHttpClient client = new OkHttpClient();
+        private final OkHttpClient client = KcUtils.getSharedHttpClient();
         private final Context context;
         long patchSize = 370000000;
 

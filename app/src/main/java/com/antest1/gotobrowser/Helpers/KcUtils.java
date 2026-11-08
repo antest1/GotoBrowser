@@ -390,17 +390,30 @@ public class KcUtils {
         return getRetrofitAdapter(context, baseUrl, true);
     }
 
+    private static OkHttpClient sharedHttpClient;
     private static OkHttpClient retrofitBaseClient;
 
     /**
-     * One client for every Retrofit adapter. Building a client sets up TLS and its own
-     * connection pool, which made each adapter slow to create on the main thread, and
-     * separate Cache instances must not share one directory.
+     * One client for the app's own HTTP calls, without a response cache. Building a client
+     * sets up TLS and its own connection pool, so each new one was slow to create (often on
+     * the main thread) and kept its own threads. Derive variants with {@code newBuilder()},
+     * which shares all of that.
+     */
+    public static synchronized OkHttpClient getSharedHttpClient() {
+        if (sharedHttpClient == null) {
+            sharedHttpClient = new OkHttpClient();
+        }
+        return sharedHttpClient;
+    }
+
+    /**
+     * The shared client plus the response cache, for every Retrofit adapter. One Cache
+     * instance only: separate instances must not share one directory.
      */
     private static synchronized OkHttpClient getRetrofitBaseClient(Context context) {
         if (retrofitBaseClient == null) {
             File cacheDir = context.getApplicationContext().getCacheDir();
-            retrofitBaseClient = new OkHttpClient.Builder()
+            retrofitBaseClient = getSharedHttpClient().newBuilder()
                     .cache(new Cache(cacheDir, CACHE_SIZE_BYTES))
                     .build();
         }
