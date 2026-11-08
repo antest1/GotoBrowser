@@ -9,6 +9,7 @@
     <string name="select_server_toast">接続方式を先に選択してください。</string>
     <string name="cache_clear_text">キャッシュ削除</string>
     <string name="cache_cleared_toast">WebViewのキャッシュを削除しました。</string>
+    <string name="webview_unavailable">Android System WebViewを読み込めませんでした。更新中の可能性があります。しばらくしてから起動し直すか、Playストアで更新・有効化してください。</string>
     <string name="clearcache_msg">画像や音声が正しく読み込まれない場合や、ログイン方法を切り替える場合に使用してください。削除後は再度ログインが必要になることがあります。</string>
     <string name="thirdpartyconnector_msg">非公式のWebプロキシ型コネクタ（OOIなど）の場合、その方針によってゲームリソースが本来のものと異なることがあります。GotoBrowserは各コネクタの方針を関知しません。非公式のリソースを表示したくない場合は、キャッシュを削除してDMM Directでプレイしてください。</string>
     <string name="backpress_msg">もう一度押すと終了します</string>

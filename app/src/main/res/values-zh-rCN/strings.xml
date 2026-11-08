@@ -8,6 +8,7 @@
     <string name="select_server_toast">请先选择一个登入方式</string>
     <string name="cache_clear_text">清除快取</string>
     <string name="cache_cleared_toast">Webview快取已清除</string>
+    <string name="webview_unavailable">無法載入 Android System WebView。可能正在更新中，請稍後再試，或在 Play 商店更新或啟用。</string>
     <string name="clearcache_msg">当图片或声音无法正常加载，或需要切换登录方式时使用。清除后可能需要重新登录。</string>
     <string name="thirdpartyconnector_msg">使用非官方网页代理连接（如 OOI）时，根据其政策，游戏资源可能与原始资源不同。GotoBrowser 不干预各连接的政策。如果不希望显示非官方资源，请清除缓存并使用 DMM Direct 进行游戏。</string>
     <string name="backpress_msg">再按一次返回键退出</string>

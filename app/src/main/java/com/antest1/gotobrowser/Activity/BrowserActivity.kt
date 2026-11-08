@@ -220,8 +220,17 @@ class BrowserActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setBackgroundDrawable(ColorDrawable(android.graphics.Color.BLACK))
         viewModel = ViewModelProvider(this)[BrowserViewModel::class.java]
-        WebViewManager.setWebViewDebugging(viewModel.sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false))
         settingsViewModel = ViewModelProvider(this)[SettingsViewModel::class.java]
+        // First touch of the WebView provider. It throws when the system WebView can't be
+        // loaded (e.g. while it is being updated); tell the user instead of crashing.
+        try {
+            WebViewManager.setWebViewDebugging(viewModel.sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false))
+        } catch (e: RuntimeException) {
+            KcUtils.reportException(e)
+            KcUtils.showToast(applicationContext, R.string.webview_unavailable)
+            finish()
+            return
+        }
         screenshotNotification = ScreenshotNotification(this)
         backPressCloseHandler = BackPressCloseHandler(this, true)
 
