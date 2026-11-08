@@ -66,6 +66,10 @@
     <string name="settings_source_code">소스 코드</string>
     <string name="subtitle_select_language">언어를 먼저 선택해주세요.</string>
     <string name="settings_mw_margin">[멀티윈도우] 분할 바로부터 여백 추가</string>
+    <string name="settings_game_align">게임 화면 세로 위치</string>
+    <string name="settings_game_align_center">가운데</string>
+    <string name="settings_game_align_top">위쪽</string>
+    <string name="settings_game_align_summary">%1$s (게임 위아래에 여백이 있을 때 적용)</string>
     <string name="setting_devtools_enable">DevTools 디버깅 활성화</string>
     <string name="connection_use_alter">Gadget 서버 우회 활성화</string>
     <string name="connection_use_alter_summary">해외 IP 차단 문제(검은 화면에서 멈춤)가 발생하는 경우 이 설정을 활성화해야 합니다.</string>

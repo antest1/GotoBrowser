@@ -64,6 +64,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
@@ -91,6 +92,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.antest1.gotobrowser.Browser.GameAreaLayout
+import com.antest1.gotobrowser.Browser.GameGeometry
 import com.antest1.gotobrowser.Browser.WebViewL
 import com.antest1.gotobrowser.Browser.WebViewManager
 import com.antest1.gotobrowser.BuildConfig
@@ -112,6 +114,9 @@ import com.antest1.gotobrowser.Constants.PREF_DMM_ID
 import com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY
 import com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH
 import com.antest1.gotobrowser.Constants.PREF_FPS_LIMIT
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN_CENTER
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN_TOP
 import com.antest1.gotobrowser.Constants.PREF_KEYBOARD
 import com.antest1.gotobrowser.Constants.PREF_LANDSCAPE
 import com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER
@@ -169,6 +174,7 @@ class BrowserActivity : ComponentActivity() {
 
     internal lateinit var pipController: PipController
     private lateinit var displayController: DisplayController
+    private lateinit var gameArea: GameAreaLayout
 
     val isInPictureInPictureModeState = mutableStateOf(false)
     val loadingTracker = LoadingTracker()
@@ -185,12 +191,15 @@ class BrowserActivity : ComponentActivity() {
     private val refreshOption = mutableStateOf(RefreshOption.QUICK)
     private val messageDialogs = mutableStateListOf<MessageDialog>()
     private val subtitleFontSize = mutableStateOf(DEFAULT_SUBTITLE_FONT_SIZE)
+    /** Where the game sits when the screen leaves a margin above and below it. */
+    private val gameVerticalBias = mutableStateOf(GameGeometry.BIAS_CENTER)
     private val subtitleLoader = Executors.newSingleThreadExecutor()
 
     // Settings applied immediately without reloading the page.
     private val liveSettings = setOf(
         PREF_LANDSCAPE,
         PREF_MULTIWIN_MARGIN,
+        PREF_GAME_ALIGN,
         PREF_SUBTITLE_FONTSIZE,
         PREF_DOWNLOAD_RETRY,
         PREF_PIP_MODE,
@@ -277,7 +286,8 @@ class BrowserActivity : ComponentActivity() {
         mContentView = webView
         pipController = PipController(this, webView, { isInPictureInPictureModeState.value = it }, { hideSystemBars() })
         pipController.setupPinchToPipGesture()
-        val gameArea = GameAreaLayout(this).apply { addView(webView) }
+        gameArea = GameAreaLayout(this).apply { addView(webView) }
+        applyGameAlignment()
         // Keep the game area clear of the display cutout. Since targetSdk 35 the
         // window always extends into the cutout, so on 16:10 tablets the WebView
         // could otherwise be partially covered. Insets are passed through, not consumed.
@@ -292,7 +302,7 @@ class BrowserActivity : ComponentActivity() {
             v.setPadding(safe.left, safe.top, safe.right, safe.bottom)
             insets
         }
-        displayController = DisplayController(this, webView) { gameArea.marginDp = it }
+        displayController = DisplayController(this, webView) { top, bottom -> gameArea.setDividerMargin(top, bottom) }
 
         val backgroundTapView = View(this).apply {
             setOnClickListener { toolbarVisible.value = !toolbarVisible.value }
@@ -358,7 +368,8 @@ class BrowserActivity : ComponentActivity() {
                         subtitleFontSize = subtitleFontSize,
                         activity = this@BrowserActivity,
                         onCapture = { manager?.captureGameScreen(webView) },
-                        onClose = { finish() }
+                        onClose = { finish() },
+                        gameVerticalBias = gameVerticalBias.value
                     )
 
                     ControlLayout(
@@ -375,7 +386,8 @@ class BrowserActivity : ComponentActivity() {
                         },
                         onSettingsClick = { settingsSheetVisible.value = true },
                         refreshAttention = refreshAttention,
-                        forceFullRefresh = requiresFullRefresh(loadState, notice)
+                        forceFullRefresh = requiresFullRefresh(loadState, notice),
+                        gameVerticalBias = gameVerticalBias.value
                     ) {
                         val isMute by viewModel.isMuteMode.observeAsState(false)
                         val isCapture by viewModel.isCaptureMode.observeAsState(false)
@@ -564,6 +576,7 @@ class BrowserActivity : ComponentActivity() {
         when (key) {
             PREF_LANDSCAPE -> displayController.updateOrientationLock()
             PREF_MULTIWIN_MARGIN -> displayController.updateMultiwindowMargin()
+            PREF_GAME_ALIGN -> applyGameAlignment()
             PREF_SUBTITLE_FONTSIZE -> subtitleFontSize.value = settingsViewModel.getSubtitleFontSize()
             PREF_PIP_MODE -> pipController.setupSmoothPipAnimation()
             PREF_KEYBOARD -> displayController.applyKeyboardSetting()
@@ -572,6 +585,16 @@ class BrowserActivity : ComponentActivity() {
             PREF_DISABLE_REFRESH_DIALOG -> viewModel.setNoRefreshPopupMode(viewModel.sharedPref.getBoolean(PREF_DISABLE_REFRESH_DIALOG, false))
             PREF_FPS_LIMIT -> displayController.applyFpsLimit()
         }
+    }
+
+    // The WebView (GameAreaLayout) and the overlays lined up with it must change together.
+    private fun applyGameAlignment() {
+        val bias = when (viewModel.sharedPref.getString(PREF_GAME_ALIGN, PREF_GAME_ALIGN_CENTER)) {
+            PREF_GAME_ALIGN_TOP -> GameGeometry.BIAS_TOP
+            else -> GameGeometry.BIAS_CENTER
+        }
+        gameVerticalBias.value = bias
+        gameArea.verticalBias = bias
     }
 
     fun handleBackPress() {
@@ -1036,7 +1059,9 @@ fun BrowserOverlayLayer(
     onCaptureClick: () -> Unit,
     onCloseClick: () -> Unit,
     gameWidth: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified,
-    gameHeight: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified
+    gameHeight: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified,
+    /** Matches GameAreaLayout.verticalBias; see GameGeometry.fit. */
+    gameVerticalBias: Float = GameGeometry.BIAS_CENTER
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (showSubtitle && subtitleText.isNotEmpty()) {
@@ -1052,13 +1077,14 @@ fun BrowserOverlayLayer(
                     )
                 }
             ) { measurables, constraints ->
-                // The game is centered in this layer (as GameAreaLayout does). The
+                // The game sits in this layer as GameAreaLayout places it. The
                 // subtitle wraps to the game width so it never spills into the side
                 // letterbox, and sits just below the game, clamped to the screen bottom.
                 // maxWidth can be 0 while the window is being resized; keep the range non-empty.
                 val gameW = if (gameWidth.isSpecified) gameWidth.roundToPx().coerceIn(minOf(1, constraints.maxWidth), constraints.maxWidth) else constraints.maxWidth
                 val gameH = if (gameHeight.isSpecified) gameHeight.roundToPx().coerceIn(0, constraints.maxHeight) else constraints.maxHeight
-                val gameBottom = (constraints.maxHeight + gameH) / 2
+                val gameTop = ((constraints.maxHeight - gameH) * (1f + gameVerticalBias) / 2f).toInt()
+                val gameBottom = gameTop + gameH
 
                 val placeable = measurables.first().measure(
                     constraints.copy(minWidth = 0, minHeight = 0, maxWidth = gameW)
@@ -1127,7 +1153,9 @@ fun BrowserOverlayContent(
     subtitleFontSize: MutableState<Int>,
     activity: BrowserActivity,
     onCapture: () -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    /** Matches GameAreaLayout.verticalBias; see GameGeometry.fit. */
+    gameVerticalBias: Float = GameGeometry.BIAS_CENTER
 ) {
     val isCaption by viewModel.isCaptionMode.observeAsState(false)
     val subtitleText by viewModel.subtitleText.observeAsState("")
@@ -1144,12 +1172,9 @@ fun BrowserOverlayContent(
     // computed below matches where the game is actually drawn.
     Box(modifier = Modifier.fillMaxSize().windowInsetsPadding(safeOverlayInsets())) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            val ratio = 1200f / 720f
-            val containerWidth = maxWidth.value
-            val containerHeight = maxHeight.value
-            val fitHeight = containerWidth / containerHeight > ratio
-            val gameWidth = if (fitHeight) maxHeight * ratio else maxWidth
-            val gameHeight = if (fitHeight) maxHeight else maxWidth / ratio
+            val game = GameGeometry.fit(maxWidth.value, maxHeight.value, gameVerticalBias)
+            val gameWidth = game.width.dp
+            val gameHeight = game.height.dp
 
             if (errorText.value.isNotEmpty()) {
                 Text(
@@ -1171,7 +1196,7 @@ fun BrowserOverlayContent(
                 // Status sits within the game area: loading card centered (or at the bottom
                 // while the game draws its own loading screen), server errors centered as well,
                 // below the message at the top of the game's own connection error screen.
-                Box(modifier = Modifier.align(Alignment.Center).size(gameWidth, gameHeight)) {
+                Box(modifier = Modifier.align(BiasAlignment(0f, gameVerticalBias)).size(gameWidth, gameHeight)) {
                     LoadingStatusOverlay(loadState)
                     ServerNoticeCard(
                         notice = serverNotice,
@@ -1194,7 +1219,8 @@ fun BrowserOverlayContent(
                     },
                     onCloseClick = onClose,
                     gameWidth = gameWidth,
-                    gameHeight = gameHeight
+                    gameHeight = gameHeight,
+                    gameVerticalBias = gameVerticalBias
                 )
             }
         }
