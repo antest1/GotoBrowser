@@ -363,7 +363,9 @@ public class ResourceProcess {
             versionTable.putCacheAndVersion(update_key, result.lastModified, getRevalidationExpiry());
             return RESOURCE_DOWNLOADED;
         }
-        if (result.responseCode == -1) return RESOURCE_FAILED;
+        // Only a connectivity failure is worth a retry prompt; a local file error (e.g. an
+        // unwritable cache folder) would fail again, so let the WebView fetch it instead.
+        if (result.responseCode == -1) return result.networkError ? RESOURCE_FAILED : RESOURCE_UNAVAILABLE;
         // Non-200 answers write nothing, so only an existing file counts as cached.
         return file.exists() && file.length() > 0 ? RESOURCE_CACHED : RESOURCE_UNAVAILABLE;
     }

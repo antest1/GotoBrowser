@@ -310,6 +310,8 @@ public class KcUtils {
         public String lastModified;
         public String cacheControl;
         public String error;
+        // Set with responseCode == -1: true for connectivity failures, false for local file errors.
+        public boolean networkError;
     }
 
     public static DownloadResult downloadResource(OkHttpClient client, String fullpath, File file) {
@@ -327,8 +329,8 @@ public class KcUtils {
 
         Log.e("GOTO", "download " + fullpath + " " + if_modified_since);
         Request request = builder.build();
-        try {
-            Response response = client.newCall(request).execute();
+        File temp = null;
+        try (Response response = client.newCall(request).execute()) {
             downloadResult.responseCode = response.code();
             downloadResult.lastModified = response.header("Last-Modified", null);
             downloadResult.cacheControl = response.header("Cache-Control", null);
@@ -341,15 +343,17 @@ public class KcUtils {
                     byte[] buffer = new byte[16384];
                     int bytes;
                     if (file != null) {
-                        File temp = newTempSibling(file);
-                        FileOutputStream fos = new FileOutputStream(temp);
-                        while ((bytes = in.read(buffer)) != -1) {
-                            fos.write(buffer, 0, bytes);
+                        temp = newTempSibling(file);
+                        try (FileOutputStream fos = new FileOutputStream(temp)) {
+                            while ((bytes = in.read(buffer)) != -1) {
+                                fos.write(buffer, 0, bytes);
+                            }
                         }
-                        fos.close();
-                        replaceFile(temp, file);
+                        if (!temp.renameTo(file)) {
+                            throw new IOException("failed to replace " + file.getPath());
+                        }
+                        temp = null;
                     }
-                    body.close();
                 }
             } else if (response.code() == 304) {
                 Log.e("GOTO", "304 Not Modified " + fullpath);
@@ -359,7 +363,12 @@ public class KcUtils {
         } catch (Exception e) {
             Log.e("GOTO-E", getStringFromException(e));
             KcUtils.reportDownloadException(e);
+            // A failure while saving the body must not look like a successful 200.
+            downloadResult.responseCode = -1;
+            downloadResult.networkError = isNetworkException(e);
             downloadResult.error = getStringFromException(e);
+        } finally {
+            if (temp != null) temp.delete();
         }
         return downloadResult;
     }
