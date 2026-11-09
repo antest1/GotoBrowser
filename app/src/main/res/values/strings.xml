@@ -188,7 +188,7 @@
     <string name="loading_stalled_desc">Try again with the refresh button</string>
     <string name="loading_error_connect_title">Can\'t reach the server</string>
     <string name="loading_error_connect_desc">Check your internet connection, then use Full Refresh on the refresh button</string>
-    <string name="loading_error_timeout_title">The server took too long to respond</string>
+    <string name="loading_error_timeout_title">Server timed out</string>
     <string name="loading_error_timeout_desc">Wait a moment, then use Full Refresh on the refresh button</string>
     <string name="loading_error_forbidden_title">Access denied (HTTP %1$d)</string>
     <string name="loading_error_forbidden_desc">This may be a regional restriction. Check the login method or proxy settings, then use Full Refresh</string>

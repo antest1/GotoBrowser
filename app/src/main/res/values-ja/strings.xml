@@ -174,9 +174,9 @@
     <string name="loading_stalled_desc">リフレッシュボタンでもう一度お試しください</string>
     <string name="loading_error_connect_title">サーバーに接続できません</string>
     <string name="loading_error_connect_desc">インターネット接続を確認してから、リフレッシュボタンでフルリフレッシュしてください</string>
-    <string name="loading_error_timeout_title">サーバーの応答がタイムアウトしました</string>
+    <string name="loading_error_timeout_title">サーバー応答がタイムアウト</string>
     <string name="loading_error_timeout_desc">しばらく待ってから、リフレッシュボタンでフルリフレッシュしてください</string>
-    <string name="loading_error_forbidden_title">アクセスが拒否されました (HTTP %1$d)</string>
+    <string name="loading_error_forbidden_title">アクセス拒否 (HTTP %1$d)</string>
     <string name="loading_error_forbidden_desc">地域制限の可能性があります。接続方式またはプロキシの設定を確認してから、フルリフレッシュしてください</string>
     <string name="loading_error_server_title">サーバーエラー (HTTP %1$d)</string>
     <string name="loading_error_server_desc">サーバーがメンテナンス中の可能性があります。しばらくしてからリフレッシュボタンでフルリフレッシュしてください</string>
