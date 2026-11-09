@@ -7,6 +7,12 @@
  * must not depend on that.
  */
 
+/* The WebView is black behind the page (see BrowserActivity); give the page the white canvas
+   a browser would. ooi.moe's dark theme sets its own on html.theme-dark, which wins. */
+html {
+  background-color: #fff;
+}
+
 /* The 1200x720 game frame starts at the page's top-left corner and the WebView fits the
    page width (see GameAreaLayout), so anything shown above or beside it would cut the
    game off. */
