@@ -326,7 +326,8 @@ class DocScreenshotTest(private val locale: String) {
                         .then(if (wide) Modifier.fillMaxHeight() else Modifier.fillMaxWidth())
                         .aspectRatio(1200f / 720f)
                 ) {
-                    LoadingStatusOverlay(state)
+                    // The default connector, as the app names it in the card title.
+                    LoadingStatusOverlay(state, connectorTag = "DMM")
                     ServerNoticeCard(notice, onDismiss = {}, modifier = Modifier.align(ServerNoticeAlignment).padding(16.dp))
                 }
             }

@@ -44,6 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
@@ -57,6 +58,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.antest1.gotobrowser.Activity.LoadingTracker
+import com.antest1.gotobrowser.Constants.CONN_DMM
+import com.antest1.gotobrowser.Constants.CONN_OOI
 import com.antest1.gotobrowser.Helpers.KcUtils
 import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.ui.theme.SettingsTheme
@@ -82,6 +85,16 @@ data class ServerNotice(val kind: Kind, val code: String, val api: String, val m
 private const val SHOW_DELAY_MILLIS = 500L
 private const val POLL_MILLIS = 500L
 private const val STEP_COUNT = 3
+
+/** Prefix for every loading card title, naming the connector being loaded. */
+private val LocalConnectorTag = staticCompositionLocalOf<String?> { null }
+
+/** The tag shown in the loading card title for a PREF_CONNECTOR value, or null for none. */
+fun loadingConnectorTag(connector: String?): String? = when (connector) {
+    CONN_DMM -> "DMM"
+    CONN_OOI -> "OOI"
+    else -> null
+}
 
 /** Polls [tracker]; equal snapshots do not recompose, so this is idle once loading ends. */
 @Composable
@@ -110,7 +123,12 @@ fun requiresFullRefresh(snapshot: LoadingTracker.Snapshot, notice: ServerNotice?
  * existing refresh FAB, which [refreshAttentionColor] highlights.
  */
 @Composable
-fun LoadingStatusOverlay(snapshot: LoadingTracker.Snapshot, modifier: Modifier = Modifier) {
+fun LoadingStatusOverlay(
+    snapshot: LoadingTracker.Snapshot,
+    modifier: Modifier = Modifier,
+    /** See [loadingConnectorTag]. */
+    connectorTag: String? = null
+) {
     val active = snapshot.isLoading
     var armed by remember { mutableStateOf(false) }
     LaunchedEffect(active) {
@@ -135,7 +153,9 @@ fun LoadingStatusOverlay(snapshot: LoadingTracker.Snapshot, modifier: Modifier =
                 .align(if (compact) Alignment.BottomCenter else Alignment.Center)
                 .padding(horizontal = 16.dp, vertical = if (compact) 16.dp else 0.dp)
         ) {
-            StatusCard(shown, compact)
+            CompositionLocalProvider(LocalConnectorTag provides connectorTag) {
+                StatusCard(shown, compact)
+            }
         }
     }
 }
@@ -156,9 +176,9 @@ private fun StatusCard(snapshot: LoadingTracker.Snapshot, compact: Boolean) {
         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
             Column(
                 Modifier
-                    // Same width when compact: a long title ("ゲームリソースをダウンロード中")
+                    // Same width when compact: a long title ("[DMM] ゲームリソースをダウンロード中")
                     // plus the request count must still fit on one line.
-                    .widthIn(max = 320.dp)
+                    .widthIn(max = 360.dp)
                     .fillMaxWidth()
                     .shadow(3.dp, shape)
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh, shape)
@@ -319,8 +339,9 @@ private fun Header(
             leading()
             Spacer(Modifier.width(10.dp))
         }
+        val tag = LocalConnectorTag.current
         Text(
-            text = title,
+            text = if (tag != null) "[$tag] $title" else title,
             style = MaterialTheme.typography.titleSmall,
             color = titleColor,
             modifier = Modifier.weight(1f)
