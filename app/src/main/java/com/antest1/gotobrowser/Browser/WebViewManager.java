@@ -188,6 +188,7 @@ public class WebViewManager {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 Uri source = request.getUrl();
+                if (request.isForMainFrame()) activity.getLoadingTracker().onMainFrameRequest(source.toString());
                 activity.getLoadingTracker().onRequest(source.toString());
                 WebResourceResponse response = resourceProcess.processWebRequest(source);
                 Log.e("GOTO", "shouldInterceptRequest " + source + " " + (response == null));

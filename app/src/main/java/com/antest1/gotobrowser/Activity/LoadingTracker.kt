@@ -66,6 +66,19 @@ class LoadingTracker {
     }
 
     /**
+     * The main frame sent a request for [url]: a form was submitted or a link followed.
+     * [onPageStarted] only runs once the server has answered and the new page commits, so
+     * without this a slow answer (e.g. a connector logging in to DMM) shows nothing at all.
+     * A load already under way is left alone, so a redirect keeps its counts and a failure
+     * stays shown. Whatever page arrives then sets the stage as usual.
+     */
+    @Synchronized
+    fun onMainFrameRequest(url: String?) {
+        if (isBlank(url) || stage.isLoading()) return
+        reset(Stage.CONNECTING)
+    }
+
+    /**
      * The main frame committed to [url] (also after a redirect) or finished loading it.
      * Anything but the game page is a normal web page, so loading ends there.
      */
