@@ -55,6 +55,9 @@ public class WebViewManager {
 
     private boolean logoutFlag;
     private boolean refreshFlag;
+    // Armed by logoutGame(): the next openPage() shows the connector's login form instead
+    // of submitting the stored credentials, which would log straight back in.
+    private boolean loginFormFlag;
     private final BrowserActivity activity;
     private final ResourceProcess resourceProcess;
     private final SharedPreferences sharedPref;
@@ -340,7 +343,7 @@ public class WebViewManager {
     /**
      * Loads the connector's logout URL, invalidating the session. onPageFinished()
      * then takes the browser back to the connector's start page, which now shows
-     * the login form.
+     * the login form (see {@link #postsLogin}).
      */
     public void logoutGame(WebViewL webview) {
         // The logout dialog pauses timers; while paused the logout redirect never
@@ -358,6 +361,7 @@ public class WebViewManager {
             }
         }
         logoutFlag = true;
+        loginFormFlag = true;
     }
 
     public void refreshPage(WebViewL webview) {
@@ -393,7 +397,9 @@ public class WebViewManager {
         webview.resumeTimers();
         webview.getSettings().setTextZoom(100);
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
-        if (CONN_KANMOE.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
+        boolean afterLogout = loginFormFlag;
+        loginFormFlag = false;
+        if (postsLogin(pref_connector, afterLogout)) {
             int connect_mode = 1;
             String post_data = String.format(Locale.US, "login_id=%s&password=%s&mode=%d",
                     encodeText(login_id), encodeText(login_password), connect_mode);
@@ -401,6 +407,16 @@ public class WebViewManager {
         } else {
             webview.loadUrl(connector_url_default);
         }
+    }
+
+    /**
+     * The ooi-based connectors log in by posting the stored credentials to their start
+     * page. Right after a logout that would log straight back in, so the start page is
+     * loaded as is: it shows the login form, which runLoginLogoutScript() fills in.
+     */
+    static boolean postsLogin(String connector, boolean afterLogout) {
+        if (afterLogout) return false;
+        return CONN_KANMOE.equals(connector) || CONN_OOI.equals(connector);
     }
 
     public static String replaceEndpoint(String url, String endpoint) {
