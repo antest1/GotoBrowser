@@ -13,6 +13,12 @@ html {
   background-color: #fff;
 }
 
+/* ooi.moe hides its header for the app on every page (html.is-goto). The login page has
+   room for it, and the background image (#bg) sits inside it. */
+:root body:not(.ooi-page-game):not(:has(#externalswf)) #ooi-header {
+  display: flex !important;
+}
+
 /* The 1200x720 game frame starts at the page's top-left corner and the WebView fits the
    page width (see GameAreaLayout), so anything shown above or beside it would cut the
    game off. The login page keeps its own spacing. */
