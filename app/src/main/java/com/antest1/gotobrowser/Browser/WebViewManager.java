@@ -342,9 +342,15 @@ public class WebViewManager {
         if (url.contains(URL_DMM_LOGIN) || url.contains(URL_DMM_LOGIN_2)) {
             webview.evaluateJavascript(cookie + String.format(Locale.US, AUTOCOMPLETE_DMM, login_id, login_password), null);
         } else if (url.contains(URL_OOI)) {
-            webview.evaluateJavascript(
-                    String.format(Locale.US, AUTOCOMPLETE_OOI, login_id, login_password), null);
+            webview.evaluateJavascript(ooiAutofillScript(login_id, login_password), null);
         }
+    }
+
+    /** The values are quoted as JS strings, so quotes or backslashes in a password survive. */
+    static String ooiAutofillScript(String loginId, String password) {
+        return String.format(Locale.US, AUTOCOMPLETE_OOI,
+                JSONObject.quote(loginId == null ? "" : loginId),
+                JSONObject.quote(password == null ? "" : password));
     }
 
     public void closeWebView() {
