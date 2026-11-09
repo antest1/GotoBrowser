@@ -147,6 +147,7 @@ import com.antest1.gotobrowser.ui.component.ServerNotice
 import com.antest1.gotobrowser.ui.component.ServerNoticeAlignment
 import com.antest1.gotobrowser.ui.component.ServerNoticeCard
 import com.antest1.gotobrowser.ui.component.floatingToolbarEdgeMargin
+import com.antest1.gotobrowser.ui.component.loadingConnectorTag
 import com.antest1.gotobrowser.ui.component.RefreshOption
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
 import com.antest1.gotobrowser.ui.component.rememberLoadingSnapshot
@@ -178,6 +179,8 @@ class BrowserActivity : ComponentActivity() {
 
     val isInPictureInPictureModeState = mutableStateOf(false)
     val loadingTracker = LoadingTracker()
+    // Connector of the load in progress, named in the loading card (changes apply on reload).
+    private val loadConnectorTag = mutableStateOf<String?>(null)
     private val serverNotice = mutableStateOf<ServerNotice?>(null)
     private val errorText = mutableStateOf("")
     private val closeButtonVisible = mutableStateOf(false)
@@ -369,7 +372,8 @@ class BrowserActivity : ComponentActivity() {
                         activity = this@BrowserActivity,
                         onCapture = { manager?.captureGameScreen(webView) },
                         onClose = { finish() },
-                        gameVerticalBias = gameVerticalBias.value
+                        gameVerticalBias = gameVerticalBias.value,
+                        loadingConnectorTag = loadConnectorTag.value
                     )
 
                     ControlLayout(
@@ -497,7 +501,7 @@ class BrowserActivity : ComponentActivity() {
             WebViewManager.enableBrowserCookie(webView)
             manager?.setWebViewClient(this, webView)
             manager?.setPopupView(webView)
-            loadingTracker.start()
+            startLoading()
             reloadSettings { manager?.openPage(webView, info) }
         }
         webView.setBackgroundColor(android.graphics.Color.BLACK)
@@ -761,11 +765,16 @@ class BrowserActivity : ComponentActivity() {
         )
     }
 
+    private fun startLoading() {
+        loadConnectorTag.value = loadingConnectorTag(viewModel.sharedPref.getString(PREF_CONNECTOR, CONN_DMM))
+        loadingTracker.start()
+    }
+
     private fun refreshPageOrFinish(option: RefreshOption = refreshOption.value) {
         viewModel.connectorInfo = WebViewManager.getDefaultPage(this)
         val info = viewModel.connectorInfo
         if (manager != null && info != null && info.size == 2) {
-            loadingTracker.start()
+            startLoading()
             serverNotice.value = null
             errorText.value = ""
             reloadSettings {
@@ -1155,7 +1164,9 @@ fun BrowserOverlayContent(
     onCapture: () -> Unit,
     onClose: () -> Unit,
     /** Matches GameAreaLayout.verticalBias; see GameGeometry.fit. */
-    gameVerticalBias: Float = GameGeometry.BIAS_CENTER
+    gameVerticalBias: Float = GameGeometry.BIAS_CENTER,
+    /** See loadingConnectorTag in LoadingStatus. */
+    loadingConnectorTag: String? = null
 ) {
     val isCaption by viewModel.isCaptionMode.observeAsState(false)
     val subtitleText by viewModel.subtitleText.observeAsState("")
@@ -1197,7 +1208,7 @@ fun BrowserOverlayContent(
                 // while the game draws its own loading screen), server errors centered as well,
                 // below the message at the top of the game's own connection error screen.
                 Box(modifier = Modifier.align(BiasAlignment(0f, gameVerticalBias)).size(gameWidth, gameHeight)) {
-                    LoadingStatusOverlay(loadState)
+                    LoadingStatusOverlay(loadState, connectorTag = loadingConnectorTag)
                     ServerNoticeCard(
                         notice = serverNotice,
                         onDismiss = onDismissServerNotice,

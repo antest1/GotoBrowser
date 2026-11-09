@@ -32,7 +32,7 @@ While the game loads, its progress is shown in the middle of the game screen. It
 
 ##### Selecting a Connector
 - In general, you do not need to change the default value, DMM direct.
-- If you want to use an OOI-based connector ([ooi.moe](https://ooi.moe/) or [kancolle.moe](https://kancolle.moe/)), change it in Settings → Login and Connection → Select Login Method.
+- If you want to use an OOI-based connector ([ooi.moe](https://ooi.moe/)), change it in Settings → Login and Connection → Select Login Method.
   - When you select an unofficial connector for the first time, a notice that game resources may differ from the original ones is shown.
 - Changing the connector takes effect after a reload.
 

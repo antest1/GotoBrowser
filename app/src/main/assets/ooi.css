@@ -1,88 +1,97 @@
-body {
-	overflow-y: hidden;
-	background-color: #30384A;
-	color: #eeeeee;
-	margin: 0px;
+/*
+ * Added to ooi.moe's pages on top of the site's own stylesheet (see WebViewManager), so the
+ * pages keep their look and theme; only the game page is shaped here. The page's inline
+ * styles use !important in places (the game page header is display: flex !important), so
+ * these rules are written to win on their own. ooi.moe hides the same parts itself when it
+ * detects the app (html.is-goto, keyed on the GotoBrowser JS interface), but the layout
+ * must not depend on that.
+ */
+
+/* The WebView is black behind the page (see BrowserActivity); give the page the white canvas
+   a browser would. ooi.moe's dark theme sets its own on html.theme-dark, which wins. */
+html {
+  background-color: #fff;
 }
 
-a:link {
-  color: #FFC400;
+/* ooi.moe hides its header for the app on every page (html.is-goto). The login page has
+   room for it, and the background image (#bg) sits inside it. */
+:root body:not(.ooi-page-game):not(:has(#externalswf)) #ooi-header {
+  display: flex !important;
 }
 
-input, textarea {
-    background-color : #424242;
-    border: 1px solid #888888;
-    color: #dddddd;
+/* The 1200x720 game frame starts at the page's top-left corner and the WebView fits the
+   page width (see GameAreaLayout), so anything shown above or beside it would cut the
+   game off. The login page keeps its own spacing. */
+:root body.ooi-page-game {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-y: hidden !important;
 }
 
-#ooi-page {
-  margin-top: 2px;
-  margin-bottom: 14px;
+:root body:has(#externalswf) {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-y: hidden !important;
 }
 
-#ooi-logo img {
-  width: 80px;
-  height: 96px;
+:root body.ooi-page-game #ooi-page,
+:root body.ooi-page-game #ooi-content,
+:root body.ooi-page-game #ooi-game,
+:root body.ooi-page-game .ooi-frame-wrap {
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: none !important;
 }
 
-#ooi-headline h1 {
-  margin: 20px 0;
-  font-size: 42px;
+:root body:has(#externalswf) #ooi-page,
+:root body:has(#externalswf) #ooi-content,
+:root body:has(#externalswf) #ooi-game,
+:root body:has(#externalswf) .ooi-frame-wrap {
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: none !important;
 }
 
-#ooi-content {
-  margin-top: 15px;
+:root body #ooi-game #externalswf {
+  display: block !important;
+  margin: 0 !important;
+  width: 1200px !important;
+  height: 720px !important;
+  border: 0 !important;
 }
 
-#ooi-form p {
-  margin-left: 15px;
+/* Header, footer, the theme/layout buttons (fixed in the corners, or moved next to the
+   logout link), the maintenance badge and the logout link. */
+:root body.ooi-page-game #ooi-page #ooi-header,
+:root body.ooi-page-game #ooi-header,
+:root body.ooi-page-game #ooi-footer,
+:root body.ooi-page-game #ooi-theme-toggle,
+:root body.ooi-page-game #ooi-layout-toggle,
+:root body.ooi-page-game .ooi-wiki-badge,
+:root body.ooi-page-game #ooi-logout-wrap,
+:root body.ooi-page-game #ooi-game a {
+  display: none !important;
 }
 
-#ooi-announcement p {
-  text-indent: 2em;
+:root body:has(#externalswf) #ooi-page #ooi-header,
+:root body:has(#externalswf) #ooi-header,
+:root body:has(#externalswf) #ooi-footer,
+:root body:has(#externalswf) #ooi-theme-toggle,
+:root body:has(#externalswf) #ooi-layout-toggle,
+:root body:has(#externalswf) .ooi-wiki-badge,
+:root body:has(#externalswf) #ooi-logout-wrap,
+:root body:has(#externalswf) #ooi-game a {
+  display: none !important;
 }
 
-#ooi-footer {
-  margin-top: 15px;
+/* Modals (account and card shops, about) and statistics follow #ooi-page. The login page
+   keeps them: its links open them, and a hidden open modal would still lock the page. */
+:root body.ooi-page-game #ooi-page ~ div,
+:root body.ooi-page-game .statistics {
+  display: none !important;
 }
 
-#ooi-game {
-    width: 1200,
-	height: 720,
-}
-
-#ooi-game #externalswf {
-  margin: 0px;
-  width: 1200px!important;
-  height: 720px!important;
-  border: 0px;
-}
-
-.statistics {
-  visibility: hidden;
-}
-
-#bg {
-position:fixed;
-top:0;
-left:0;
-height:100%;
-width:100%;
-overflow:hidden;
-background-color:#7987A8;
-background-size:cover;
-opacity:0.15;
-z-index:-1;
-}
-
-#ooi-page ~ div, #ooi-game a {
-   display: none;
-}
-
-#ooi-header, #ooi-footer {
-   display: none;
-}
-
-#ooi-page, #ooi-content, #ooi-game {
-   margin: 0; padding: 0;
+:root body:has(#externalswf) #ooi-page ~ div,
+:root body:has(#externalswf) .statistics {
+  display: none !important;
 }
