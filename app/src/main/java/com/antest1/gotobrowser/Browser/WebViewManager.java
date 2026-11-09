@@ -41,9 +41,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -61,9 +58,6 @@ public class WebViewManager {
 
     private boolean logoutFlag;
     private boolean refreshFlag;
-    // Armed by logoutGame(): the next openPage() shows the connector's login form instead
-    // of submitting the stored credentials, which would log straight back in.
-    private boolean loginFormFlag;
     private final BrowserActivity activity;
     private final ResourceProcess resourceProcess;
     private final SharedPreferences sharedPref;
@@ -377,7 +371,7 @@ public class WebViewManager {
     /**
      * Loads the connector's logout URL, invalidating the session. onPageFinished()
      * then takes the browser back to the connector's start page, which now shows
-     * the login form (see {@link #postsLogin}).
+     * the login form.
      */
     public void logoutGame(WebViewL webview) {
         // The logout dialog pauses timers; while paused the logout redirect never
@@ -394,7 +388,6 @@ public class WebViewManager {
             }
         }
         logoutFlag = true;
-        loginFormFlag = true;
     }
 
     public void refreshPage(WebViewL webview) {
@@ -419,9 +412,13 @@ public class WebViewManager {
         webview.resumeTimers();
     }
 
+    /**
+     * Opens the connector's start page. Every connector shows its own login form there
+     * (unless a session is still active), and runLoginLogoutScript() fills it in; the user
+     * submits it. ooi.moe used to be logged into by posting the stored credentials, which
+     * left no way to stay logged out or to pick the form's other options.
+     */
     public void openPage(WebViewL webview, List<String> connector_info) {
-        String login_id = sharedPref.getString(PREF_DMM_ID, ""); // intent.getStringExtra("login_id");
-        String login_password = CredentialStore.getPassword(sharedPref);
         if (connector_info == null || connector_info.size() != 2) return;
 
         String connector_url_default = connector_info.get(0);
@@ -429,27 +426,7 @@ public class WebViewManager {
 
         webview.resumeTimers();
         webview.getSettings().setTextZoom(100);
-        String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
-        boolean afterLogout = loginFormFlag;
-        loginFormFlag = false;
-        if (postsLogin(pref_connector, afterLogout)) {
-            int connect_mode = 1;
-            String post_data = String.format(Locale.US, "login_id=%s&password=%s&mode=%d",
-                    encodeText(login_id), encodeText(login_password), connect_mode);
-            webview.postUrl(connector_url_default, post_data.getBytes());
-        } else {
-            webview.loadUrl(connector_url_default);
-        }
-    }
-
-    /**
-     * The ooi.moe connector logs in by posting the stored credentials to its start page.
-     * Right after a logout that would log straight back in, so the start page is loaded
-     * as is: it shows the login form, which runLoginLogoutScript() fills in.
-     */
-    static boolean postsLogin(String connector, boolean afterLogout) {
-        if (afterLogout) return false;
-        return CONN_OOI.equals(connector);
+        webview.loadUrl(connector_url_default);
     }
 
     public static String replaceEndpoint(String url, String endpoint) {
@@ -550,18 +527,6 @@ public class WebViewManager {
             webview.evaluateJavascript(String.format(Locale.US, CAPTURE_SEND_DMM), callback);
         } else if (CONN_OOI.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, CAPTURE_SEND_OOI), callback);
-        }
-    }
-
-    private String encodeText(String text) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            return URLEncoder.encode(text, StandardCharsets.UTF_8);
-        } else {
-            try {
-                return URLEncoder.encode(text, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                return text;
-            }
         }
     }
 
