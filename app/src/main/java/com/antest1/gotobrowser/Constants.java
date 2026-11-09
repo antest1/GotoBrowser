@@ -108,8 +108,7 @@ public class Constants {
             "doubleclick.net",
             "googletagmanager.com/",
             "facebook.com",
-            "pics.dmm.com/",
-            "/uikit"
+            "pics.dmm.com/"
     };
 
     public static final String GADGET_OSAPI_IFR = "osapi.dmm.com/gadgets/ifr?aid=854854";
