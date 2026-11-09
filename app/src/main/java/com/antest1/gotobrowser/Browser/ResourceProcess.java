@@ -219,7 +219,6 @@ public class ResourceProcess {
 
         if (checkBlockedContent(url)) return getEmptyResponse();
         if (url.contains(GADGET_OSAPI_IFR)) return getGadgetIfrPage(url);
-        if (url.contains("ooi.css")) return getOoiSheetFromAsset();
         if (url.contains("tweenjs.min.js")) return getTweenJs();
         if (url.contains("gadget_html5/script/rollover.js")) return getMuteInjectedRolloverJs();
         if (url.contains("html/maintenance.png")) return getMaintenanceFiles(true);
@@ -595,12 +594,6 @@ public class ResourceProcess {
         Runnable r = new VoiceSubtitleRunnable(data);
         shipVoiceHandler.removeCallbacks(r);
         shipVoiceHandler.postDelayed(r, data.getExtraDelay());
-    }
-
-    private WebResourceResponse getOoiSheetFromAsset() {
-        try {
-            return new WebResourceResponse("text/css", "utf-8", context.getAssets().open("ooi.css"));
-        } catch (IOException e) { return null; }
     }
 
     private WebResourceResponse getMuteInjectedRolloverJs() {

@@ -1,42 +1,35 @@
 /*
- * Served in place of ooi.moe's /static/css/ooi.css (see ResourceProcess), so the page keeps
- * only its inline styles. Some of those use !important (the game page header is
- * display: flex !important), so the rules that shape the game area are written to win on
- * their own. ooi.moe hides the same parts itself when it detects the app (html.is-goto,
- * keyed on the GotoBrowser JS interface), but the layout must not depend on that.
+ * Added to ooi.moe's pages on top of the site's own stylesheet (see WebViewManager), so the
+ * page keeps its look and theme; only the game area is shaped here. The page's inline
+ * styles use !important in places (the game page header is display: flex !important), so
+ * these rules are written to win on their own. ooi.moe hides the same parts itself when it
+ * detects the app (html.is-goto, keyed on the GotoBrowser JS interface), but the layout
+ * must not depend on that.
  */
-body {
-	overflow-y: hidden;
-	background-color: #30384A;
-	color: #eeeeee;
-	margin: 0;
-}
-
-a:link {
-  color: #FFC400;
-}
-
-input, textarea {
-    background-color : #424242;
-    border: 1px solid #888888;
-    color: #dddddd;
-}
-
-#ooi-form p {
-  margin-left: 15px;
-}
-
-#ooi-announcement p {
-  text-indent: 2em;
-}
 
 /* The 1200x720 game frame starts at the page's top-left corner and the WebView fits the
-   page width (see GameAreaLayout), so anything shown above it would cut the game off. */
-:root body #ooi-page,
-:root body #ooi-content,
-:root body #ooi-game {
+   page width (see GameAreaLayout), so anything shown above or beside it would cut the
+   game off. */
+:root body {
   margin: 0 !important;
   padding: 0 !important;
+}
+
+:root body.ooi-page-game {
+  overflow-y: hidden !important;
+}
+
+:root body:has(#externalswf) {
+  overflow-y: hidden !important;
+}
+
+:root body #ooi-page,
+:root body #ooi-content,
+:root body #ooi-game,
+:root body .ooi-frame-wrap {
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: none !important;
 }
 
 :root body #ooi-game #externalswf {
@@ -60,17 +53,4 @@ input, textarea {
 :root body #ooi-page ~ div,
 :root body .statistics {
   display: none !important;
-}
-
-#bg {
-position:fixed;
-top:0;
-left:0;
-height:100%;
-width:100%;
-overflow:hidden;
-background-color:#7987A8;
-background-size:cover;
-opacity:0.15;
-z-index:-1;
 }

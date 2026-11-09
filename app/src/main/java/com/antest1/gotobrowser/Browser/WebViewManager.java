@@ -27,6 +27,7 @@ import android.webkit.WebViewClient;
 
 import androidx.webkit.ProxyConfig;
 import androidx.webkit.ProxyController;
+import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
@@ -36,10 +37,15 @@ import com.antest1.gotobrowser.Helpers.CredentialStore;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.R;
 
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executor;
@@ -61,6 +67,7 @@ public class WebViewManager {
     private final BrowserActivity activity;
     private final ResourceProcess resourceProcess;
     private final SharedPreferences sharedPref;
+    private String ooiStyleScript;
 
     public WebViewManager (BrowserActivity ac) {
         activity = ac;
@@ -109,6 +116,7 @@ public class WebViewManager {
 
     public void setWebViewClient(BrowserActivity activity, WebViewL webview) {
         webview.addJavascriptInterface(new KcsInterface(activity), GOTO_ANDROID);
+        addOoiStyleScript(webview);
         webview.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -131,6 +139,7 @@ public class WebViewManager {
                     return;
                 }
                 runLoginLogoutScript(webview, url);
+                if (url.startsWith(URL_OOI)) webview.evaluateJavascript(getOoiStyleScript(), null);
                 sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
                 if (url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
                     activity.setStartedFlag();
@@ -202,6 +211,31 @@ public class WebViewManager {
                 }
             }
         });
+    }
+
+    /**
+     * ooi.moe keeps its own stylesheet and theme; only the game layout rules (assets/ooi.css)
+     * go on top. They are added at document start where the WebView supports it, so the page
+     * never lays out without them; onPageFinished() adds them otherwise.
+     */
+    private void addOoiStyleScript(WebViewL webview) {
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            WebViewCompat.addDocumentStartJavaScript(webview, getOoiStyleScript(),
+                    Collections.singleton(URL_OOI_ORIGIN));
+        }
+    }
+
+    private String getOoiStyleScript() {
+        if (ooiStyleScript == null) {
+            String css = "";
+            try (InputStream in = activity.getAssets().open("ooi.css")) {
+                css = KcUtils.getStringFromInputStream(in);
+            } catch (IOException e) {
+                KcUtils.reportException(e);
+            }
+            ooiStyleScript = String.format(Locale.US, OOI_STYLE_SCRIPT, JSONObject.quote(css));
+        }
+        return ooiStyleScript;
     }
 
     /**
