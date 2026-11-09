@@ -25,7 +25,7 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 | --- | --- | --- |
 | Login Autocomplete | ID and password to be filled into the login form automatically. Stored only within the device | After reload |
 | Logout | Logs out of the game and returns to the login page of the connector | |
-| Select Login Method | DMM direct (default) / kancolle.moe / ooi.moe<br/>A notice about game resources is shown when an unofficial connector is selected for the first time | After reload |
+| Select Login Method | DMM direct (default) / ooi.moe<br/>A notice about game resources is shown when an unofficial connector is selected for the first time | After reload |
 | Start with Audio OFF | Sets the in-game BGM/SE/VOICE volume to 0 when the game starts (same as the official application function)<br/>Available only with DMM direct | After reload |
 | Broadcast Mode | Sends the KanColle-related communication to other applications such as Kcanotify (on by default)<br/>Must be turned on to use with Kcanotify | Immediately |
 | Gadget Block Bypass | Turn on if you are experiencing the foreign IP block issue (infinite black screen) | After reload |

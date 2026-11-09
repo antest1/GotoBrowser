@@ -101,7 +101,6 @@ import com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET
 import com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD
 import com.antest1.gotobrowser.Constants.PREF_BROADCAST
 import com.antest1.gotobrowser.Constants.CONN_DMM
-import com.antest1.gotobrowser.Constants.CONN_KANMOE
 import com.antest1.gotobrowser.Constants.CONN_OOI
 import com.antest1.gotobrowser.Constants.PREF_CONNECTOR
 import com.antest1.gotobrowser.Constants.PREF_CURSOR_MODE
@@ -1434,7 +1433,6 @@ private fun kccpLanguageOptions() = listOf(
 
 private fun connectorOptions() = listOf(
     ListOption(CONN_DMM, CONN_DMM),
-    ListOption(CONN_KANMOE, CONN_KANMOE),
     ListOption(CONN_OOI, CONN_OOI)
 )
 

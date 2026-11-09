@@ -132,7 +132,7 @@ public class WebViewManager {
                 }
                 runLoginLogoutScript(webview, url);
                 sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
-                if (url.contains(Constants.URL_KANMOE_1) || url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
+                if (url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
                     activity.setStartedFlag();
                     webview.getSettings().setBuiltInZoomControls(true);
                     webview.getSettings().setDisplayZoomControls(false);
@@ -215,7 +215,7 @@ public class WebViewManager {
         String path = uri.getPath();
         if (host == null || path == null) return false;
         return (host.equals("play.games.dmm.com") && path.startsWith("/game/kancolle"))
-                || ((host.equals("ooi.moe") || host.equals("kancolle.moe")) && path.startsWith("/kancolle"));
+                || (host.equals("ooi.moe") && path.startsWith("/kancolle"));
     }
 
     /** Login, logout and region pages: ordinary pages the user reads and fills in. */
@@ -223,7 +223,7 @@ public class WebViewManager {
         if (url == null) return false;
         return url.contains(URL_DMM_LOGIN) || url.contains(URL_DMM_LOGIN_2)
                 || url.contains(URL_DMM_FOREIGN) || url.contains(URL_DMM_FOREIGN_2)
-                || url.startsWith(URL_OOI_LOGOUT) || url.startsWith(URL_KANMOE_LOGOUT);
+                || url.startsWith(URL_OOI_LOGOUT);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -313,7 +313,7 @@ public class WebViewManager {
 
         if (url.contains(URL_DMM_LOGIN) || url.contains(URL_DMM_LOGIN_2)) {
             webview.evaluateJavascript(cookie + String.format(Locale.US, AUTOCOMPLETE_DMM, login_id, login_password), null);
-        } else if (url.contains(URL_KANMOE) || url.contains(URL_OOI)) {
+        } else if (url.contains(URL_OOI)) {
             webview.evaluateJavascript(
                     String.format(Locale.US, AUTOCOMPLETE_OOI, login_id, login_password), null);
         }
@@ -335,7 +335,7 @@ public class WebViewManager {
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         if (CONN_DMM.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_DMM, is_mute ? 1 : 0), callback);
-        } else if (CONN_KANMOE.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
+        } else if (CONN_OOI.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_OOI, is_mute ? 1 : 0), callback);
         }
     }
@@ -353,7 +353,6 @@ public class WebViewManager {
         switch (pref_connector) {
             case CONN_DMM -> webview.loadUrl(URL_DMM_LOGOUT);
             case CONN_OOI -> webview.loadUrl(URL_OOI_LOGOUT);
-            case CONN_KANMOE -> webview.loadUrl(URL_KANMOE_LOGOUT);
             // Nothing to load, so leave logoutFlag untouched rather than arming
             // a flow that waits for a page that will never arrive.
             default -> {
@@ -380,7 +379,7 @@ public class WebViewManager {
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         if (CONN_DMM.equals(pref_connector)) {
             webview.evaluateJavascript(REFRESH_GAME_FRAME_DMM, callback);
-        } else if (CONN_KANMOE.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
+        } else if (CONN_OOI.equals(pref_connector)) {
             webview.evaluateJavascript(REFRESH_GAME_FRAME_OOI, callback);
         }
         webview.resumeTimers();
@@ -410,13 +409,13 @@ public class WebViewManager {
     }
 
     /**
-     * The ooi-based connectors log in by posting the stored credentials to their start
-     * page. Right after a logout that would log straight back in, so the start page is
-     * loaded as is: it shows the login form, which runLoginLogoutScript() fills in.
+     * The ooi.moe connector logs in by posting the stored credentials to its start page.
+     * Right after a logout that would log straight back in, so the start page is loaded
+     * as is: it shows the login form, which runLoginLogoutScript() fills in.
      */
     static boolean postsLogin(String connector, boolean afterLogout) {
         if (afterLogout) return false;
-        return CONN_KANMOE.equals(connector) || CONN_OOI.equals(connector);
+        return CONN_OOI.equals(connector);
     }
 
     public static String replaceEndpoint(String url, String endpoint) {
@@ -492,12 +491,15 @@ public class WebViewManager {
                 url_list.add(URL_OOI);
                 url_list.add(URL_OOI);
             }
-            case CONN_KANMOE -> {
-                url_list.add(URL_KANMOE);
-                url_list.add(URL_KANMOE);
-            }
         }
         return url_list;
+    }
+
+    /** kancolle.moe has shut down: a session saved with it moves to ooi.moe. */
+    public static void migrateRetiredConnector(SharedPreferences sharedPref) {
+        if ("kancolle.moe".equals(sharedPref.getString(PREF_CONNECTOR, CONN_DMM))) {
+            sharedPref.edit().putString(PREF_CONNECTOR, CONN_OOI).apply();
+        }
     }
 
     public String getDmmCookie() {
@@ -512,7 +514,7 @@ public class WebViewManager {
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         if (CONN_DMM.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, CAPTURE_SEND_DMM), callback);
-        } else if (CONN_KANMOE.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
+        } else if (CONN_OOI.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, CAPTURE_SEND_OOI), callback);
         }
     }

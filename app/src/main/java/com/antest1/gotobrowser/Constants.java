@@ -60,13 +60,11 @@ public class Constants {
     public static final String PREF_ALTER_METHOD_PROXY = "2";
 
     public static final String CONN_DMM = "DMM direct";
-    public static final String CONN_KANMOE = "kancolle.moe";
     public static final String CONN_OOI = "ooi.moe";
 
     public static final String URL_DMM = "https://play.games.dmm.com/game/kancolle";
     public static final String URL_OOI = "https://ooi.moe/";
-    public static final String URL_KANMOE = "https://kancolle.moe/";
-    public static final String[] URL_LIST = {URL_DMM, URL_KANMOE, URL_OOI};
+    public static final String[] URL_LIST = {URL_DMM, URL_OOI};
     public static final String URL_GOOGLE_ACCOUNTS = "https://accounts.google.com/";
 
     public static final String URL_DMM_LOGIN = "www.dmm.com/my/-/login/";
@@ -74,10 +72,8 @@ public class Constants {
     public static final String URL_DMM_FOREIGN = "www.dmm.com/netgame/foreign";
     public static final String URL_DMM_FOREIGN_2 = "special.dmm.com/not-available-in-your-region";
     public static final String URL_OOI_1 = "ooi.moe/kancolle";
-    public static final String URL_KANMOE_1 = "kancolle.moe/kancolle";
     public static final String URL_DMM_LOGOUT = "https://www.dmm.com/my/-/login/logout/=/path=Sg9VTQFXDFcXFl5bWlcKGExKUVdUXgFNEU0KSVMVR28MBQ0BUwJZBwxK";
     public static final String URL_OOI_LOGOUT = "https://ooi.moe/logout";
-    public static final String URL_KANMOE_LOGOUT = "https://kancolle.moe/logout";
 
     public static final String ADD_VIEWPORT_META = "var metaTag=document.createElement('meta');metaTag.name='viewport',metaTag.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',document.getElementsByTagName('head')[0].appendChild(metaTag);";
 
