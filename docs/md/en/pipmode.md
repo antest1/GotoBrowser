@@ -13,6 +13,7 @@ You can use this function to play KanColle while doing other tasks on your devic
   - Press the home button or swipe up to go to the home screen
   - Pinch the game screen with two fingers (pinch-zoom out)
 - If "Picture-in-picture mode" is off, the app goes to the background when you leave for the home screen.
+- Entering PIP mode closes the settings sheet if it is open, and cancels a refresh or logout confirmation.
 
 ##### Multi-window mode
 - Normal game play is possible in multi-window (split/pop-up) mode.

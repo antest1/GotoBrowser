@@ -146,6 +146,7 @@ import com.antest1.gotobrowser.ui.component.MessageDialogHost
 import com.antest1.gotobrowser.ui.component.ServerNotice
 import com.antest1.gotobrowser.ui.component.ServerNoticeAlignment
 import com.antest1.gotobrowser.ui.component.ServerNoticeCard
+import com.antest1.gotobrowser.ui.component.cancelForPip
 import com.antest1.gotobrowser.ui.component.floatingToolbarEdgeMargin
 import com.antest1.gotobrowser.ui.component.loadingConnectorTag
 import com.antest1.gotobrowser.ui.component.RefreshOption
@@ -642,6 +643,10 @@ class BrowserActivity : ComponentActivity() {
         pipController.handlePictureInPictureModeChanged(isInPictureInPictureMode)
         if (isInPictureInPictureMode) {
             toolbarVisible.value = false
+            // The sheet and its dialogs are separate windows the PiP window cannot show usefully.
+            settingsSheetVisible.value = false
+            refreshPromptVisible.value = false
+            messageDialogs.cancelForPip()
         }
         val rot = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             display?.rotation ?: Surface.ROTATION_0
@@ -839,7 +844,8 @@ class BrowserActivity : ComponentActivity() {
                     title = getString(titleRes),
                     message = getString(messageRes),
                     confirm = DialogButton(getString(R.string.action_ok)) { refreshPageOrFinish(option) },
-                    dismiss = DialogButton(getString(R.string.action_cancel)) { mContentView?.resumeTimers() }
+                    dismiss = DialogButton(getString(R.string.action_cancel)) { mContentView?.resumeTimers() },
+                    cancelOnPip = true
                 )
             )
         }
@@ -854,7 +860,8 @@ class BrowserActivity : ComponentActivity() {
                 confirm = DialogButton(getString(R.string.action_ok)) {
                     mContentView?.let { manager?.logoutGame(it) }
                 },
-                dismiss = DialogButton(getString(R.string.action_cancel)) { mContentView?.resumeTimers() }
+                dismiss = DialogButton(getString(R.string.action_cancel)) { mContentView?.resumeTimers() },
+                cancelOnPip = true
             )
         )
     }
