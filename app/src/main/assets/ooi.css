@@ -1,8 +1,15 @@
+/*
+ * Served in place of ooi.moe's /static/css/ooi.css (see ResourceProcess), so the page keeps
+ * only its inline styles. Some of those use !important (the game page header is
+ * display: flex !important), so the rules that shape the game area are written to win on
+ * their own. ooi.moe hides the same parts itself when it detects the app (html.is-goto,
+ * keyed on the GotoBrowser JS interface), but the layout must not depend on that.
+ */
 body {
 	overflow-y: hidden;
 	background-color: #30384A;
 	color: #eeeeee;
-	margin: 0px;
+	margin: 0;
 }
 
 a:link {
@@ -15,25 +22,6 @@ input, textarea {
     color: #dddddd;
 }
 
-#ooi-page {
-  margin-top: 2px;
-  margin-bottom: 14px;
-}
-
-#ooi-logo img {
-  width: 80px;
-  height: 96px;
-}
-
-#ooi-headline h1 {
-  margin: 20px 0;
-  font-size: 42px;
-}
-
-#ooi-content {
-  margin-top: 15px;
-}
-
 #ooi-form p {
   margin-left: 15px;
 }
@@ -42,24 +30,36 @@ input, textarea {
   text-indent: 2em;
 }
 
-#ooi-footer {
-  margin-top: 15px;
+/* The 1200x720 game frame starts at the page's top-left corner and the WebView fits the
+   page width (see GameAreaLayout), so anything shown above it would cut the game off. */
+:root body #ooi-page,
+:root body #ooi-content,
+:root body #ooi-game {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-#ooi-game {
-    width: 1200,
-	height: 720,
+:root body #ooi-game #externalswf {
+  display: block !important;
+  margin: 0 !important;
+  width: 1200px !important;
+  height: 720px !important;
+  border: 0 !important;
 }
 
-#ooi-game #externalswf {
-  margin: 0px;
-  width: 1200px!important;
-  height: 720px!important;
-  border: 0px;
-}
-
-.statistics {
-  visibility: hidden;
+/* Header, footer, the theme/layout buttons (fixed in the corners, or moved next to the
+   logout link), the maintenance badge, the logout link, modals and statistics. */
+:root body #ooi-page #ooi-header,
+:root body #ooi-header,
+:root body #ooi-footer,
+:root body #ooi-theme-toggle,
+:root body #ooi-layout-toggle,
+:root body .ooi-wiki-badge,
+:root body #ooi-logout-wrap,
+:root body #ooi-game a,
+:root body #ooi-page ~ div,
+:root body .statistics {
+  display: none !important;
 }
 
 #bg {
@@ -73,16 +73,4 @@ background-color:#7987A8;
 background-size:cover;
 opacity:0.15;
 z-index:-1;
-}
-
-#ooi-page ~ div, #ooi-game a {
-   display: none;
-}
-
-#ooi-header, #ooi-footer {
-   display: none;
-}
-
-#ooi-page, #ooi-content, #ooi-game {
-   margin: 0; padding: 0;
 }
