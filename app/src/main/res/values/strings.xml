@@ -42,6 +42,7 @@
     <string name="settings_download_label">Asset Caching</string>
     <string name="settings_connection_login_label">Login and Connection</string>
     <string name="settings_login_section_header">Game Login</string>
+    <string name="settings_browser_section_header">Browser Settings</string>
     <string name="settings_bypass_section_header">Gadget Block Bypass</string>
     <string name="settings_logout_summary">Returns to the connector\'s login page</string>
     <string name="settings_toolbar_section_header">Toolbar</string>

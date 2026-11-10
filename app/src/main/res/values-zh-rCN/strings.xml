@@ -37,6 +37,7 @@
     <string name="settings_download_label">缓存设定</string>
     <string name="settings_connection_login_label">登录与连接</string>
     <string name="settings_login_section_header">游戏登录</string>
+    <string name="settings_browser_section_header">浏览器设定</string>
     <string name="settings_bypass_section_header">登录服务器封锁绕行</string>
     <string name="settings_logout_summary">返回所选登入方式的登录页面</string>
     <string name="settings_toolbar_section_header">工具栏</string>

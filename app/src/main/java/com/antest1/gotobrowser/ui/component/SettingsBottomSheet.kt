@@ -725,6 +725,9 @@ private fun ConnectionLoginSection(
         onClick = onLogoutRequest
     )
 
+    // --- Browser -------------------------------------------------------------
+    SectionHeader(R.string.settings_browser_section_header)
+
     // Shown when the user switches to an unofficial connector for the first time.
     var showDisclaimer by remember { mutableStateOf(false) }
     // Shown when the user disables broadcast while Kcanotify is installed.
