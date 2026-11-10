@@ -40,6 +40,7 @@
     <string name="settings_connection_login_label">로그인 및 접속</string>
     <string name="settings_login_section_header">로그인</string>
     <string name="settings_bypass_section_header">Gadget 서버 우회</string>
+    <string name="settings_logout_summary">접속기의 로그인 화면으로 돌아갑니다</string>
     <string name="settings_toolbar_section_header">툴바</string>
     <string name="settings_game_control_section_header">게임 조작</string>
     <string name="settings_subtitle_label">자막 설정</string>

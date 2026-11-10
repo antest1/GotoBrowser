@@ -38,6 +38,7 @@
     <string name="settings_connection_login_label">登入與連接</string>
     <string name="settings_login_section_header">登入</string>
     <string name="settings_bypass_section_header">登入伺服器封鎖繞行</string>
+    <string name="settings_logout_summary">返回所選登入方式的登入頁面</string>
     <string name="settings_toolbar_section_header">工具列</string>
     <string name="settings_game_control_section_header">遊戲操作</string>
     <string name="settings_subtitle_label">字幕設定</string>

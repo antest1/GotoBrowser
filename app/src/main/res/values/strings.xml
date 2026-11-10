@@ -43,6 +43,7 @@
     <string name="settings_connection_login_label">Login and Connection</string>
     <string name="settings_login_section_header">Login</string>
     <string name="settings_bypass_section_header">Gadget Block Bypass</string>
+    <string name="settings_logout_summary">Returns to the connector\'s login page</string>
     <string name="settings_toolbar_section_header">Toolbar</string>
     <string name="settings_game_control_section_header">Game Controls</string>
     <string name="settings_subtitle_label">Subtitle</string>

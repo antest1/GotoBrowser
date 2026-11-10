@@ -721,6 +721,7 @@ private fun ConnectionLoginSection(
 
     ClickRow(
         title = R.string.menu_tooltip_logout,
+        summary = R.string.settings_logout_summary,
         onClick = onLogoutRequest
     )
 
