@@ -1,5 +1,6 @@
 package com.antest1.gotobrowser.ui.component
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -46,5 +47,18 @@ class SettleShownTest {
     fun aSlowReleaseIsJudgedByDistanceOnly() {
         assertTrue(reveal(30f, velocity = -100f))
         assertFalse(reveal(10f, velocity = 300f))
+    }
+
+    @Test
+    fun theSettleAnimationKeepsTheReleaseSpeedTowardItsTarget() {
+        assertEquals(800f, settleVelocity(800f, shown = true, max = 1500f))
+        assertEquals(-800f, settleVelocity(-800f, shown = false, max = 1500f))
+    }
+
+    @Test
+    fun aFastReleaseIsCappedAndAReleaseAwayStartsAtRest() {
+        assertEquals(1500f, settleVelocity(5000f, shown = true, max = 1500f))
+        assertEquals(0f, settleVelocity(-300f, shown = true, max = 1500f))
+        assertEquals(0f, settleVelocity(300f, shown = false, max = 1500f))
     }
 }
