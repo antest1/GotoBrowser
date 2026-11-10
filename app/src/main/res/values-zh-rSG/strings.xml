@@ -71,6 +71,8 @@
     <string name="settings_toolbar_position_center">居中</string>
     <string name="settings_toolbar_position_top">顶部 · 经典</string>
     <string name="settings_toolbar_position_summary">%1$s（横屏时适用）</string>
+    <string name="settings_toolbar_swipe">从边缘滑动显示工具栏</string>
+    <string name="settings_toolbar_swipe_summary">关闭后，边缘滑动仅用于系统手势</string>
     <string name="setting_devtools_enable">启用DevTools除错</string>
     <string name="connection_use_alter">启用登入服务器封锁绕行</string>
     <string name="connection_use_alter_summary">如果您遇到封锁外国IP的问题（无限黑屏幕），请使用此设定</string>

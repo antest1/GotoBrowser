@@ -73,6 +73,8 @@
     <string name="settings_toolbar_position_center">中央</string>
     <string name="settings_toolbar_position_top">上・クラシック</string>
     <string name="settings_toolbar_position_summary">%1$s（横画面で適用）</string>
+    <string name="settings_toolbar_swipe">端からスワイプしてツールバーを表示</string>
+    <string name="settings_toolbar_swipe_summary">オフにすると、端のスワイプはシステムのジェスチャーだけに使われます</string>
     <string name="setting_devtools_enable">DevToolsデバッグを使用</string>
     <string name="connection_use_alter">国外ブロックのバイパス</string>
     <string name="connection_use_alter_summary">外部IPブロックの問題（無限の黒い画面）に直面している場合は、この設定を使用してください</string>

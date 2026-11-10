@@ -122,6 +122,11 @@ fun AdaptiveFloatingToolbar(
      */
     alignTop: Boolean = false,
     topInset: Dp = 0.dp,
+    /**
+     * Whether a swipe in from the docking edge reveals the hidden bar. Off, no reveal strips
+     * are laid out, so that edge is left entirely to the system gestures (back, home).
+     */
+    swipeToReveal: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val configuration = LocalConfiguration.current
@@ -195,7 +200,7 @@ fun AdaptiveFloatingToolbar(
     Layout(
         modifier = modifier.fillMaxSize(),
         content = {
-            if (!visible) {
+            if (!visible && swipeToReveal) {
                 val createStrip = @Composable { id: String ->
                     Box(
                         modifier = Modifier

@@ -128,6 +128,7 @@ import com.antest1.gotobrowser.Constants.PREF_PIP_MODE
 import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION
 import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION_CENTER
 import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION_TOP
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_SWIPE
 import com.antest1.gotobrowser.Constants.PREF_SILENT
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE
@@ -588,6 +589,8 @@ private fun ControlSection(viewModel: SettingsViewModel?, onSettingChanged: (Str
     ListRow(viewModel, PREF_CURSOR_MODE, R.string.setting_cursor_mode, cursorModeOptions(), onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_DISABLE_REFRESH_DIALOG, R.string.browser_disable_refresh_dialog, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_PANELSTART, R.string.mode_show_panel, defaultValue = true, onSettingChanged = onSettingChanged)
+    SwitchRow(viewModel, PREF_TOOLBAR_SWIPE, R.string.settings_toolbar_swipe, R.string.settings_toolbar_swipe_summary,
+        defaultValue = true, onSettingChanged = onSettingChanged)
     val toolbarPositionOptions = toolbarPositionOptions()
     val toolbarPositionSummary = stringResource(R.string.settings_toolbar_position_summary)
     ListRow(

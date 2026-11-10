@@ -74,6 +74,8 @@
     <string name="settings_toolbar_position_center">가운데</string>
     <string name="settings_toolbar_position_top">위쪽 · 클래식</string>
     <string name="settings_toolbar_position_summary">%1$s (가로 화면에 적용)</string>
+    <string name="settings_toolbar_swipe">가장자리 스와이프로 툴바 표시</string>
+    <string name="settings_toolbar_swipe_summary">끄면 가장자리 스와이프가 시스템 제스처로만 동작</string>
     <string name="setting_devtools_enable">DevTools 디버깅 활성화</string>
     <string name="connection_use_alter">Gadget 서버 우회 활성화</string>
     <string name="connection_use_alter_summary">해외 IP 차단 문제(검은 화면에서 멈춤)가 발생하는 경우 이 설정을 활성화해야 합니다.</string>

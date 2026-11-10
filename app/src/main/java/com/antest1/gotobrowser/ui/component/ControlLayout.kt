@@ -104,6 +104,8 @@ fun ControlLayout(
     gameVerticalBias: Float = GameGeometry.BIAS_CENTER,
     /** Toolbar docked at the top with the refresh FAB first; landscape only (PREF_TOOLBAR_POSITION). */
     toolbarAtTop: Boolean = false,
+    /** Edge swipe reveals the hidden toolbar (PREF_TOOLBAR_SWIPE); a margin tap always does. */
+    swipeToReveal: Boolean = true,
     toolbarContent: @Composable () -> Unit
 ) {
     // In portrait the bar lies along the bottom and the FAB already sits at its start.
@@ -122,6 +124,7 @@ fun ControlLayout(
             barSize = panelBarSize,
             contentInset = (panelBarSize - panelButtonSize) / 2,
             alignTop = refreshAboveBar,
+            swipeToReveal = swipeToReveal,
             // The refresh FAB then lines up with the settings button in the opposite corner.
             topInset = dimensionResource(R.dimen.top_menu_padding),
             fab = {

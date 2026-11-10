@@ -32,6 +32,7 @@ public class Constants {
     public static final String PREF_MULTIWIN_MARGIN = "pref_multiwin_margin";
     public static final String PREF_GAME_ALIGN = "pref_game_align";
     public static final String PREF_TOOLBAR_POSITION = "pref_toolbar_position";
+    public static final String PREF_TOOLBAR_SWIPE = "pref_toolbar_swipe";
     public static final String PREF_DEVTOOLS_DEBUG = "pref_devtools_debug";
     public static final String PREF_ALTER_METHOD = "pref_alter_method";
     public static final String PREF_ALTER_ENDPOINT = "pref_alter_endpoint";

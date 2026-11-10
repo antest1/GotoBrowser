@@ -86,6 +86,8 @@
     <string name="settings_toolbar_position_center">Center</string>
     <string name="settings_toolbar_position_top">Top · Classic</string>
     <string name="settings_toolbar_position_summary">%1$s (applies in landscape)</string>
+    <string name="settings_toolbar_swipe">Swipe from Edge to Show Toolbar</string>
+    <string name="settings_toolbar_swipe_summary">When off, edge swipes are left to the system gestures</string>
     <string name="setting_devtools_enable">Enable DevTools Debugging</string>
     <string name="setting_devtools_description" translatable="false">chrome://inspect</string>
     <string name="connection_use_alter">Gadget Block Bypass</string>

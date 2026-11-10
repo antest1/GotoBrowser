@@ -56,6 +56,7 @@ For PIP/multi-window information, refer to the <span class="link" data-move="pip
 | Optimize Pointer Device | Choose the input method when playing the game (Touch Screen or Mouse or Trackpad) | After reload |
 | Disable Refresh Warning Dialog | The game screen is refreshed immediately without a confirmation dialog | Immediately |
 | Show Control Panel on Start | Starts with the toolbar shown when the app starts (on by default) | Next launch |
+| Swipe from Edge to Show Toolbar | Swipe in from the edge where the toolbar is hidden to show it (on by default)<br/>When off, edge swipes are left to the system gestures<br/>Without a margin around the game, the back button shows the toolbar | Immediately |
 | Toolbar Position | Center (default) or Top · Classic. Top · Classic docks the toolbar at the top of the screen with the refresh button first, as in 3.x. Applies in landscape | Immediately |
 
 ##### Asset Caching
