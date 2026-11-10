@@ -12,6 +12,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,6 +45,7 @@ import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -66,6 +70,49 @@ fun floatingToolbarEdgeMargin(): Dp {
     val configuration = LocalConfiguration.current
     return if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 24.dp else 16.dp
 }
+
+/**
+ * The two strips a swipe can start from to reveal the hidden bar, in the toolbar layout's
+ * (unpadded) pixels, and whether any of them has room at all.
+ *
+ * A single full-length strip lies along the docking edge (left in landscape, bottom in
+ * portrait) when the game leaves a margin there. Otherwise two strips go in the margins on
+ * either side of the game, still along that edge; one may be empty.
+ * Both start [navEdge] in from the edge: a hidden navigation bar on that edge comes back with
+ * a swipe from there, and that swipe must not reveal the toolbar as well.
+ */
+data class RevealStrips(val first: GameGeometry.Rect, val second: GameGeometry.Rect, val available: Boolean)
+
+fun revealStrips(
+    isLandscape: Boolean,
+    containerWidth: Float,
+    containerHeight: Float,
+    game: GameGeometry.Rect,
+    revealSize: Float,
+    navEdge: Float
+): RevealStrips = if (isLandscape) {
+    val full = game.left - navEdge >= revealSize
+    val above = game.top.coerceAtLeast(0f)
+    val below = (containerHeight - game.bottom).coerceAtLeast(0f)
+    RevealStrips(
+        first = GameGeometry.Rect(navEdge, 0f, revealSize, if (full) containerHeight else above),
+        second = GameGeometry.Rect(navEdge, game.bottom, revealSize, if (full) 0f else below),
+        available = full || maxOf(above, below) >= revealSize
+    )
+} else {
+    val full = containerHeight - game.bottom - navEdge >= revealSize
+    val left = game.left.coerceAtLeast(0f)
+    val right = (containerWidth - game.right).coerceAtLeast(0f)
+    val top = containerHeight - revealSize - navEdge
+    RevealStrips(
+        first = GameGeometry.Rect(0f, top, if (full) containerWidth else left, revealSize),
+        second = GameGeometry.Rect(game.right, top, if (full) 0f else right, revealSize),
+        available = full || maxOf(left, right) >= revealSize
+    )
+}
+
+private fun GameGeometry.Rect.fixedConstraints() =
+    Constraints.fixed(width.roundToInt().coerceAtLeast(0), height.roundToInt().coerceAtLeast(0))
 
 /** Android honors at most this much system gesture exclusion per screen edge. */
 private val MaxGestureExclusionLength = 200.dp
@@ -99,6 +146,7 @@ private fun Modifier.revealGestureExclusion(id: String, maxLengthPx: Float, topA
         Rect(0f, top, width, top + length)
     }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AdaptiveFloatingToolbar(
     visible: Boolean,
@@ -149,6 +197,12 @@ fun AdaptiveFloatingToolbar(
     val insetRightPx = safeInsets.getRight(density, layoutDirection).toFloat()
     val insetBottomPx = safeInsets.getBottom(density).toFloat()
     val dockInsetPx = if (isLandscape) insetLeftPx else insetBottomPx
+    // The hidden navigation bar comes back with a swipe in from its edge. When that is the edge
+    // the bar docks against (3-button navigation in reverse landscape, or at the bottom in
+    // portrait), the reveal strips start past it, so that swipe shows the navigation bar only.
+    val navigationBars = WindowInsets.navigationBarsIgnoringVisibility
+    val navEdgePx = (if (isLandscape) navigationBars.getLeft(density, layoutDirection)
+        else navigationBars.getBottom(density)).toFloat()
 
     // Offset logic
     // Vertical: slides horizontally from left (-barSize to inset + margin)
@@ -337,18 +391,10 @@ fun AdaptiveFloatingToolbar(
             containerWidth, containerHeight, gameVerticalBias,
             insetLeftPx, insetTopPx, insetRightPx, insetBottomPx
         )
-        val wvl = game.left
-        val wvt = game.top
-        val wvr = game.right
-        val wvb = game.bottom
 
         val revealSizePx = with(density) { revealSize.toPx() }
-        // Mirrors the strip sizing below: a full-length strip along the edge when the game
-        // leaves a margin there, otherwise strips in the margins on either side of the game.
-        currentOnRevealAvailableChange(
-            if (isLandscape) wvl >= revealSizePx || maxOf(wvt, containerHeight - wvb) >= revealSizePx
-            else containerHeight - wvb >= revealSizePx || maxOf(wvl, containerWidth - wvr) >= revealSizePx
-        )
+        val strips = revealStrips(isLandscape, containerWidth, containerHeight, game, revealSizePx, navEdgePx)
+        currentOnRevealAvailableChange(strips.available)
         val fabSpacingPx = with(density) { 16.dp.toPx() }
         val barSizePx = with(density) { barSize.toPx() }
 
@@ -368,24 +414,8 @@ fun AdaptiveFloatingToolbar(
                         minHeight = fabMin.coerceAtMost(constraints.maxHeight)
                     ))
                 }
-                RevealStrip1LayoutId -> {
-                    if (isLandscape) {
-                        val heightCap = if (wvl < revealSizePx) wvt.roundToInt().coerceAtLeast(0) else constraints.maxHeight
-                        measurable.measure(looseConstraints.copy(maxHeight = heightCap))
-                    } else {
-                        val widthCap = if (containerHeight - wvb < revealSizePx) wvl.roundToInt().coerceAtLeast(0) else constraints.maxWidth
-                        measurable.measure(looseConstraints.copy(maxWidth = widthCap))
-                    }
-                }
-                RevealStrip2LayoutId -> {
-                    if (isLandscape) {
-                        val heightCap = if (wvl < revealSizePx) (constraints.maxHeight - wvb.roundToInt()).coerceAtLeast(0) else 0
-                        measurable.measure(looseConstraints.copy(maxHeight = heightCap))
-                    } else {
-                        val widthCap = if (containerHeight - wvb < revealSizePx) (constraints.maxWidth - wvr.roundToInt()).coerceAtLeast(0) else 0
-                        measurable.measure(looseConstraints.copy(maxWidth = widthCap))
-                    }
-                }
+                RevealStrip1LayoutId -> measurable.measure(strips.first.fixedConstraints())
+                RevealStrip2LayoutId -> measurable.measure(strips.second.fixedConstraints())
                 else -> measurable.measure(looseConstraints)
             }
         }
@@ -424,14 +454,8 @@ fun AdaptiveFloatingToolbar(
                             placeable.place(x = startX, y = constraints.maxHeight - placeable.height)
                         }
                     }
-                    RevealStrip1LayoutId -> {
-                        if (isLandscape) placeable.place(x = 0, y = 0)
-                        else placeable.place(x = 0, y = constraints.maxHeight - placeable.height)
-                    }
-                    RevealStrip2LayoutId -> {
-                        if (isLandscape) placeable.place(x = 0, y = wvb.roundToInt())
-                        else placeable.place(x = wvr.roundToInt(), y = constraints.maxHeight - placeable.height)
-                    }
+                    RevealStrip1LayoutId -> placeable.place(strips.first.left.roundToInt(), strips.first.top.roundToInt())
+                    RevealStrip2LayoutId -> placeable.place(strips.second.left.roundToInt(), strips.second.top.roundToInt())
                 }
             }
         }
