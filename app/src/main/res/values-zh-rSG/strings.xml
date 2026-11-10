@@ -39,6 +39,7 @@
     <string name="settings_login_section_header">游戏登录</string>
     <string name="settings_browser_section_header">浏览器设定</string>
     <string name="settings_bypass_section_header">登录服务器封锁绕行</string>
+    <string name="settings_autocomplete_summary">保存要自动填入登录页面的账号</string>
     <string name="settings_logout_summary">返回所选登入方式的登录页面</string>
     <string name="settings_toolbar_section_header">工具栏</string>
     <string name="settings_game_control_section_header">游戏操作</string>

@@ -44,6 +44,7 @@
     <string name="settings_login_section_header">Game Login</string>
     <string name="settings_browser_section_header">Browser Settings</string>
     <string name="settings_bypass_section_header">Gadget Block Bypass</string>
+    <string name="settings_autocomplete_summary">Saves the account to fill in on the login page</string>
     <string name="settings_logout_summary">Returns to the connector\'s login page</string>
     <string name="settings_toolbar_section_header">Toolbar</string>
     <string name="settings_game_control_section_header">Game Controls</string>

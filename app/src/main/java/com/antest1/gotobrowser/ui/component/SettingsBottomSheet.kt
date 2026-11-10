@@ -697,7 +697,7 @@ private fun ConnectionLoginSection(
 
     ClickRow(
         title = R.string.autocomplete_title,
-        summary = R.string.autocomplete_msg,
+        summary = R.string.settings_autocomplete_summary,
         onClick = { showLoginForm = true }
     )
 
