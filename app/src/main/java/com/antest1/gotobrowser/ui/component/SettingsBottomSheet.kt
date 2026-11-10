@@ -16,6 +16,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,6 +45,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
@@ -1009,14 +1011,16 @@ private fun AppInfoSection(
  */
 @Composable
 private fun SectionHeader(titleRes: Int) {
-    ListItem(
-        headlineContent = {
-            Text(
-                text = stringResource(titleRes),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
+    // Not a ListItem: its 56dp minimum height centered the small label and left it far from
+    // the rows it introduces. Same background and 16dp inset as the rows below.
+    Text(
+        text = stringResource(titleRes),
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(ListItemDefaults.containerColor)
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp)
     )
 }
 
