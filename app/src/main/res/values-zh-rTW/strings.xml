@@ -67,6 +67,10 @@
     <string name="settings_game_align_center">置中</string>
     <string name="settings_game_align_top">頂部</string>
     <string name="settings_game_align_summary">%1$s（遊戲上下留有空白時適用）</string>
+    <string name="settings_toolbar_position">工具列位置</string>
+    <string name="settings_toolbar_position_center">置中</string>
+    <string name="settings_toolbar_position_top">頂部 · 經典</string>
+    <string name="settings_toolbar_position_summary">%1$s（橫向畫面時適用）</string>
     <string name="setting_devtools_enable">啟用DevTools除錯</string>
     <string name="connection_use_alter">啟用登入伺服器封鎖繞行</string>
     <string name="connection_use_alter_summary">如果您遇到封鎖外國IP的問題（無限黑螢幕），請使用此設定</string>

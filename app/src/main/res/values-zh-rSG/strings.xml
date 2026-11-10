@@ -67,6 +67,10 @@
     <string name="settings_game_align_center">居中</string>
     <string name="settings_game_align_top">顶部</string>
     <string name="settings_game_align_summary">%1$s（游戏上下留有空白时适用）</string>
+    <string name="settings_toolbar_position">工具栏位置</string>
+    <string name="settings_toolbar_position_center">居中</string>
+    <string name="settings_toolbar_position_top">顶部 · 经典</string>
+    <string name="settings_toolbar_position_summary">%1$s（横屏时适用）</string>
     <string name="setting_devtools_enable">启用DevTools除错</string>
     <string name="connection_use_alter">启用登入服务器封锁绕行</string>
     <string name="connection_use_alter_summary">如果您遇到封锁外国IP的问题（无限黑屏幕），请使用此设定</string>

@@ -82,6 +82,10 @@
     <string name="settings_game_align_center">Center</string>
     <string name="settings_game_align_top">Top</string>
     <string name="settings_game_align_summary">%1$s (applies when there is space above and below the game)</string>
+    <string name="settings_toolbar_position">Toolbar Position</string>
+    <string name="settings_toolbar_position_center">Center</string>
+    <string name="settings_toolbar_position_top">Top · Classic</string>
+    <string name="settings_toolbar_position_summary">%1$s (applies in landscape)</string>
     <string name="setting_devtools_enable">Enable DevTools Debugging</string>
     <string name="setting_devtools_description" translatable="false">chrome://inspect</string>
     <string name="connection_use_alter">Gadget Block Bypass</string>

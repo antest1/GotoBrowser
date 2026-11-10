@@ -125,6 +125,9 @@ import com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_NAME
 import com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN
 import com.antest1.gotobrowser.Constants.PREF_PANELSTART
 import com.antest1.gotobrowser.Constants.PREF_PIP_MODE
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION_CENTER
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION_TOP
 import com.antest1.gotobrowser.Constants.PREF_SILENT
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE
@@ -585,6 +588,16 @@ private fun ControlSection(viewModel: SettingsViewModel?, onSettingChanged: (Str
     ListRow(viewModel, PREF_CURSOR_MODE, R.string.setting_cursor_mode, cursorModeOptions(), onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_DISABLE_REFRESH_DIALOG, R.string.browser_disable_refresh_dialog, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_PANELSTART, R.string.mode_show_panel, defaultValue = true, onSettingChanged = onSettingChanged)
+    val toolbarPositionOptions = toolbarPositionOptions()
+    val toolbarPositionSummary = stringResource(R.string.settings_toolbar_position_summary)
+    ListRow(
+        viewModel, PREF_TOOLBAR_POSITION, R.string.settings_toolbar_position, toolbarPositionOptions,
+        defaultValue = PREF_TOOLBAR_POSITION_CENTER,
+        summaryProvider = { value ->
+            toolbarPositionSummary.format(toolbarPositionOptions.firstOrNull { it.value == value }?.title ?: value)
+        },
+        onSettingChanged = onSettingChanged
+    )
 }
 
 @Composable
@@ -1406,6 +1419,12 @@ private fun fpsLimitOptions(context: Context): List<ListOption> {
 private fun gameAlignOptions() = listOf(
     ListOption(PREF_GAME_ALIGN_CENTER, stringResource(R.string.settings_game_align_center)),
     ListOption(PREF_GAME_ALIGN_TOP, stringResource(R.string.settings_game_align_top))
+)
+
+@Composable
+private fun toolbarPositionOptions() = listOf(
+    ListOption(PREF_TOOLBAR_POSITION_CENTER, stringResource(R.string.settings_toolbar_position_center)),
+    ListOption(PREF_TOOLBAR_POSITION_TOP, stringResource(R.string.settings_toolbar_position_top))
 )
 
 private fun cursorModeOptions() = listOf(

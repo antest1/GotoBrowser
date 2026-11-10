@@ -75,13 +75,21 @@ private val MaxGestureExclusionLength = 200.dp
  * bar docks, so the swipe reaches the strip. The rest of the edge still works as back.
  * A full-height strip excludes its center; split strips (above/below the game) share the
  * budget and exclude the end nearest the screen center.
+ * With [topAlignedFromPx] (the bar docks at the top, starting there) the part from that
+ * point down is excluded instead, all of it from the upper strip when the strips are split.
  */
-private fun Modifier.revealGestureExclusion(id: String, maxLengthPx: Float): Modifier =
+private fun Modifier.revealGestureExclusion(id: String, maxLengthPx: Float, topAlignedFromPx: Float?): Modifier =
     systemGestureExclusion { coords ->
         val width = coords.size.width.toFloat()
         val height = coords.size.height.toFloat()
         val parentHeight = coords.parentLayoutCoordinates?.size?.height?.toFloat() ?: height
         val fullHeight = height >= parentHeight - 1f
+        if (topAlignedFromPx != null) {
+            if (!fullHeight && id != RevealStrip1LayoutId) return@systemGestureExclusion Rect(0f, 0f, 0f, 0f)
+            val length = minOf(height, maxLengthPx)
+            val top = topAlignedFromPx.coerceIn(0f, height - length)
+            return@systemGestureExclusion Rect(0f, top, width, top + length)
+        }
         val length = minOf(height, if (fullHeight) maxLengthPx else maxLengthPx / 2f)
         val top = when {
             fullHeight -> (height - length) / 2f
@@ -108,6 +116,12 @@ fun AdaptiveFloatingToolbar(
     contentInset: Dp = 8.dp,
     elevation: Dp = 0.dp,
     fab: @Composable (() -> Unit)? = null,
+    /**
+     * Landscape only: dock at the top, [topInset] below the safe area, with the [fab] above
+     * the bar (3.x placed refresh first in its panel), instead of centered with the fab below.
+     */
+    alignTop: Boolean = false,
+    topInset: Dp = 0.dp,
     content: @Composable () -> Unit
 ) {
     val configuration = LocalConfiguration.current
@@ -142,6 +156,9 @@ fun AdaptiveFloatingToolbar(
     val currentOnVisibleChange by rememberUpdatedState(onVisibleChange)
     val currentOnRevealAvailableChange by rememberUpdatedState(onRevealAvailableChange)
     val gestureExclusionMaxPx = with(density) { MaxGestureExclusionLength.toPx() }
+    // Where a top-aligned bar group starts, in this layout's (unpadded) coordinates.
+    val topAlignedStartPx = insetTopPx + with(density) { topInset.toPx() }
+    val alignTopInLandscape = alignTop && isLandscape
 
     val offsetAnim = remember { Animatable(if (visible) dockedOffset else hiddenOffset) }
 
@@ -189,7 +206,7 @@ fun AdaptiveFloatingToolbar(
                             )
                             // The left edge is also the system back gesture area. The bottom
                             // edge (portrait) is the home gesture, which cannot be excluded.
-                            .then(if (isLandscape) Modifier.revealGestureExclusion(id, gestureExclusionMaxPx) else Modifier)
+                            .then(if (isLandscape) Modifier.revealGestureExclusion(id, gestureExclusionMaxPx, topAlignedStartPx.takeIf { alignTopInLandscape }) else Modifier)
                             .pointerInput(isLandscape) {
                                 if (isLandscape) {
                                     detectHorizontalDragGestures(
@@ -376,9 +393,12 @@ fun AdaptiveFloatingToolbar(
                 when (measurable.layoutId) {
                     BarLayoutId -> {
                         if (isLandscape) {
-                            val totalHeight = placeable.height + (fabPlaceable?.height ?: 0) + (if (fabPlaceable != null) fabSpacingPx.roundToInt() else 0)
-                            val startY = (constraints.maxHeight - totalHeight) / 2
-                            placeable.place(x = 0, y = startY)
+                            val fabExtent = if (fabPlaceable != null) fabPlaceable.height + fabSpacingPx.roundToInt() else 0
+                            if (alignTopInLandscape) {
+                                placeable.place(x = 0, y = topAlignedStartPx.roundToInt() + fabExtent)
+                            } else {
+                                placeable.place(x = 0, y = (constraints.maxHeight - placeable.height - fabExtent) / 2)
+                            }
                         } else {
                             val totalWidth = placeable.width + (fabPlaceable?.width ?: 0) + (if (fabPlaceable != null) fabSpacingPx.roundToInt() else 0)
                             val startX = (constraints.maxWidth - totalWidth) / 2
@@ -391,7 +411,7 @@ fun AdaptiveFloatingToolbar(
                             val barHeight = barPlaceable?.height ?: 0
                             val totalHeight = barHeight + placeable.height + fabSpacingPx.roundToInt()
                             val startY = (constraints.maxHeight - totalHeight) / 2
-                            placeable.place(x = 0, y = startY + barHeight + fabSpacingPx.roundToInt())
+                            placeable.place(x = 0, y = if (alignTopInLandscape) topAlignedStartPx.roundToInt() else startY + barHeight + fabSpacingPx.roundToInt())
                         } else {
                             val barWidth = barPlaceable?.width ?: 0
                             val totalWidth = barWidth + placeable.width + fabSpacingPx.roundToInt()
