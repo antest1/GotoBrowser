@@ -37,9 +37,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.util.VelocityTracker1D
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalConfiguration
@@ -113,6 +116,59 @@ fun revealStrips(
 
 private fun GameGeometry.Rect.fixedConstraints() =
     Constraints.fixed(width.roundToInt().coerceAtLeast(0), height.roundToInt().coerceAtLeast(0))
+
+/** A release at least this fast toward the edge or away from it settles the bar that way. */
+private val BarFlingVelocity = 400.dp
+
+/** Share of the way between hidden and docked a slow drag must cover to change the bar's state. */
+private const val BAR_SETTLE_FRACTION = 0.25f
+
+/**
+ * Whether the bar ends up shown when a drag on it or on a reveal strip ends at [offset]
+ * (between [hidden] and [docked]). [velocity] is in the reveal direction, in px per second:
+ * a fling decides on its own, otherwise a quarter of the way from where the bar started is
+ * enough, so a short swipe in from the edge already brings it out.
+ */
+fun settleShown(offset: Float, hidden: Float, docked: Float, wasVisible: Boolean, velocity: Float, flingVelocity: Float): Boolean {
+    if (velocity >= flingVelocity) return true
+    if (velocity <= -flingVelocity) return false
+    val progress = (offset - hidden) / (docked - hidden)
+    return if (wasVisible) progress > 1f - BAR_SETTLE_FRACTION else progress >= BAR_SETTLE_FRACTION
+}
+
+/**
+ * Drags along the bar's axis. [onDrag] gets each step and [onDragEnd] the release velocity
+ * (px per second), both in the reveal direction. The velocity is tracked on the summed drag
+ * rather than on positions, since the bar moves along under the finger.
+ */
+private fun Modifier.barDrag(isLandscape: Boolean, onDrag: (Float) -> Unit, onDragEnd: (Float) -> Unit): Modifier =
+    pointerInput(isLandscape) {
+        val tracker = VelocityTracker1D(isDataDifferential = false)
+        var total = 0f
+        fun step(change: PointerInputChange, amount: Float) {
+            change.consume()
+            total += amount
+            tracker.addDataPoint(change.uptimeMillis, total)
+            onDrag(amount)
+        }
+        val start = { _: Offset -> tracker.resetTracking(); total = 0f }
+        if (isLandscape) {
+            detectHorizontalDragGestures(
+                onDragStart = start,
+                onHorizontalDrag = { change, dragAmount -> step(change, dragAmount) },
+                onDragEnd = { onDragEnd(tracker.calculateVelocity()) },
+                onDragCancel = { onDragEnd(0f) }
+            )
+        } else {
+            // Dragging up (negative dragAmount) reveals the bar.
+            detectVerticalDragGestures(
+                onDragStart = start,
+                onVerticalDrag = { change, dragAmount -> step(change, -dragAmount) },
+                onDragEnd = { onDragEnd(tracker.calculateVelocity()) },
+                onDragCancel = { onDragEnd(0f) }
+            )
+        }
+    }
 
 /** Android honors at most this much system gesture exclusion per screen edge. */
 private val MaxGestureExclusionLength = 200.dp
@@ -209,7 +265,7 @@ fun AdaptiveFloatingToolbar(
     // Horizontal: slides vertically from bottom (-barSize to inset + margin)
     val dockedOffset = marginPx + dockInsetPx
     val hiddenOffset = -barSizePx
-    val triggerOffset = (dockedOffset + hiddenOffset) / 2f
+    val flingVelocityPx = with(density) { BarFlingVelocity.toPx() }
 
     val currentVisible by rememberUpdatedState(visible)
     val currentOnVisibleChange by rememberUpdatedState(onVisibleChange)
@@ -226,8 +282,16 @@ fun AdaptiveFloatingToolbar(
         stiffness = Spring.StiffnessMediumLow
     )
 
-    fun settle() {
-        val shouldShow = offsetAnim.value > triggerOffset
+    // Called with the drag in the reveal direction (right in landscape, up in portrait).
+    fun dragBy(amount: Float) {
+        coroutineScope.launch {
+            offsetAnim.stop()
+            offsetAnim.snapTo((offsetAnim.value + amount).coerceIn(hiddenOffset, dockedOffset))
+        }
+    }
+
+    fun settle(velocity: Float) {
+        val shouldShow = settleShown(offsetAnim.value, hiddenOffset, dockedOffset, currentVisible, velocity, flingVelocityPx)
         if (shouldShow != currentVisible) {
             currentOnVisibleChange(shouldShow)
         } else {
@@ -266,34 +330,7 @@ fun AdaptiveFloatingToolbar(
                             // The left edge is also the system back gesture area. The bottom
                             // edge (portrait) is the home gesture, which cannot be excluded.
                             .then(if (isLandscape) Modifier.revealGestureExclusion(id, gestureExclusionMaxPx, topAlignedStartPx.takeIf { alignTopInLandscape }) else Modifier)
-                            .pointerInput(isLandscape) {
-                                if (isLandscape) {
-                                    detectHorizontalDragGestures(
-                                        onDragStart = { coroutineScope.launch { offsetAnim.stop() } },
-                                        onHorizontalDrag = { change, dragAmount ->
-                                            change.consume()
-                                            coroutineScope.launch {
-                                                offsetAnim.snapTo((offsetAnim.value + dragAmount).coerceIn(hiddenOffset, dockedOffset))
-                                            }
-                                        },
-                                        onDragEnd = { settle() },
-                                        onDragCancel = { settle() }
-                                    )
-                                } else {
-                                    detectVerticalDragGestures(
-                                        onDragStart = { coroutineScope.launch { offsetAnim.stop() } },
-                                        onVerticalDrag = { change, dragAmount ->
-                                            change.consume()
-                                            // Dragging up (negative dragAmount) reveals the bar
-                                            coroutineScope.launch {
-                                                offsetAnim.snapTo((offsetAnim.value - dragAmount).coerceIn(hiddenOffset, dockedOffset))
-                                            }
-                                        },
-                                        onDragEnd = { settle() },
-                                        onDragCancel = { settle() }
-                                    )
-                                }
-                            }
+                            .barDrag(isLandscape, ::dragBy, ::settle)
                     )
                 }
                 createStrip(RevealStrip1LayoutId)
@@ -333,33 +370,7 @@ fun AdaptiveFloatingToolbar(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
                     ) { }
-                    .pointerInput(isLandscape) {
-                        if (isLandscape) {
-                            detectHorizontalDragGestures(
-                                onDragStart = { coroutineScope.launch { offsetAnim.stop() } },
-                                onHorizontalDrag = { change, dragAmount ->
-                                    change.consume()
-                                    coroutineScope.launch {
-                                        offsetAnim.snapTo((offsetAnim.value + dragAmount).coerceIn(hiddenOffset, dockedOffset))
-                                    }
-                                },
-                                onDragEnd = { settle() },
-                                onDragCancel = { settle() }
-                            )
-                        } else {
-                            detectVerticalDragGestures(
-                                onDragStart = { coroutineScope.launch { offsetAnim.stop() } },
-                                onVerticalDrag = { change, dragAmount ->
-                                    change.consume()
-                                    coroutineScope.launch {
-                                        offsetAnim.snapTo((offsetAnim.value - dragAmount).coerceIn(hiddenOffset, dockedOffset))
-                                    }
-                                },
-                                onDragEnd = { settle() },
-                                onDragCancel = { settle() }
-                            )
-                        }
-                    },
+                    .barDrag(isLandscape, ::dragBy, ::settle),
                 shape = RoundedCornerShape(barSize / 2),
                 color = Color.Transparent,
                 shadowElevation = elevation
