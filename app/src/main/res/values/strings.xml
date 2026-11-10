@@ -20,7 +20,7 @@
     <string name="refresh_msg">Do you really want to refresh?</string>
     <string name="refresh_quick_msg">Reload only the game frame instead of the full web page.\n\nQuick refresh may not always succeed. If a network error occurs, please use Full Refresh.</string>
     <string name="refresh_full_msg">Reload the full web page. This is the most reliable way to refresh, but it takes longer than Quick Refresh.</string>
-    <string name="mode_landscape">Only Landscape</string>
+    <string name="mode_landscape">Lock to Landscape</string>
     <string name="mode_adjustment">Auto Layout Adjustment</string>
     <string name="mode_silent">Start with Audio OFF</string>
     <string name="mode_broadcast">Broadcast Mode</string>
@@ -41,7 +41,7 @@
     <string name="settings_control_label">Controls &amp; Toolbar</string>
     <string name="settings_download_label">Asset Caching</string>
     <string name="settings_connection_login_label">Login and Connection</string>
-    <string name="settings_login_section_header">Login</string>
+    <string name="settings_login_section_header">Game Login</string>
     <string name="settings_bypass_section_header">Gadget Block Bypass</string>
     <string name="settings_logout_summary">Returns to the connector\'s login page</string>
     <string name="settings_toolbar_section_header">Toolbar</string>

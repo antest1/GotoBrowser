@@ -16,7 +16,7 @@
     <string name="refresh_msg">是否要重新整理頁面？</string>
     <string name="refresh_quick_msg">僅重新載入遊戲框架，而不重新整理整個頁面。\n\n快速重新整理未必總能成功，若出現網路錯誤，請使用完全重新整理。</string>
     <string name="refresh_full_msg">重新載入整個頁面。這是最可靠的重新整理方式，但比快速重新整理耗時更長。</string>
-    <string name="mode_landscape">僅限橫向</string>
+    <string name="mode_landscape">固定橫向畫面</string>
     <string name="mode_adjustment">自動調整佈局</string>
     <string name="mode_silent">以靜音模式啟動</string>
     <string name="mode_broadcast">使用廣播訊息方式</string>
@@ -36,7 +36,7 @@
     <string name="settings_control_label">操作與工具列</string>
     <string name="settings_download_label">快取設定</string>
     <string name="settings_connection_login_label">登入與連接</string>
-    <string name="settings_login_section_header">登入</string>
+    <string name="settings_login_section_header">遊戲登入</string>
     <string name="settings_bypass_section_header">登入伺服器封鎖繞行</string>
     <string name="settings_logout_summary">返回所選登入方式的登入頁面</string>
     <string name="settings_toolbar_section_header">工具列</string>

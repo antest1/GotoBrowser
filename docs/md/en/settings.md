@@ -39,7 +39,7 @@ For related information, refer to the <span class="link" data-move="gadgetbypass
 
 | Name | Description | Applies |
 | --- | --- | --- |
-| Only Landscape | Always play in landscape mode regardless of device orientation (on by default) | Immediately |
+| Lock to Landscape | Always play in landscape mode regardless of device orientation (on by default) | Immediately |
 | Auto Layout Adjustment | Automatically scales the game screen to fit the device screen (recommended, on by default) | After reload |
 | Game Vertical Position | Places the game at the center or the top when there is space above and below it, such as in portrait or split screen (center by default) | Immediately |
 | Picture-in-picture mode | Shows the game in a small floating window when you leave for the home screen or pinch-zoom out on the game screen | Immediately |

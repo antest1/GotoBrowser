@@ -30,9 +30,9 @@
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/loading_status.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/loading_error.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 
-##### 접속기 선택
+##### 접속 방법 선택
 - 일반적인 경우 DMM direct로 설정된 값을 바꾸지 않아도 됩니다.
-- OOI 기반 접속기([ooi.moe](https://ooi.moe/))를 사용하고자 하는 경우 설정 → 로그인 및 접속 → 접속기 선택에서 변경할 수 있습니다.
+- OOI 기반 접속기([ooi.moe](https://ooi.moe/))를 사용하고자 하는 경우 설정 → 로그인 및 접속 → 접속 방법 선택에서 변경할 수 있습니다.
   - 비공식 접속기를 처음 선택하면 게임 리소스가 원본과 다를 수 있다는 고지가 표시됩니다.
 - 접속기를 바꾸면 새로고침 후 적용됩니다.
 
@@ -50,7 +50,7 @@
 ##### 이전 버전과의 차이
 | 이전 버전 (메인 화면) | 4.0 이후 |
 | --- | --- |
-| 접속 사이트 선택 | 설정 → 로그인 및 접속 → 접속기 선택 |
+| 접속 방법 선택 | 설정 → 로그인 및 접속 → 접속 방법 선택 |
 | 로그인 자동완성 | 설정 → 로그인 및 접속 → 로그인 자동완성 |
 | 음량 OFF로 시작 / 브로드캐스트 모드 / Gadget 서버 우회 활성화 | 설정 → 로그인 및 접속 |
 | 패널 보이기 / 키보드 입력 활성화 | 설정 → 조작 및 툴바 |

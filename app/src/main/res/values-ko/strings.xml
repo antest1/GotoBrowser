@@ -5,8 +5,8 @@
     <string name="action_ok">확인</string>
     <string name="action_cancel">취소</string>
     <string name="selected_server">접속기</string>
-    <string name="select_server">접속기 선택</string>
-    <string name="select_server_toast">접속기를 먼저 선택해주세요.</string>
+    <string name="select_server">접속 방법 선택</string>
+    <string name="select_server_toast">접속 방법을 먼저 선택해주세요.</string>
     <string name="cache_clear_text">캐시 비우기</string>
     <string name="cache_clearing">캐시를 비우는 중…</string>
     <string name="cache_cleared_refresh_msg">캐시를 비웠습니다. 게임을 새로고침하면 리소스를 다시 받아옵니다. 지금 새로고침하시겠습니까?</string>
@@ -17,7 +17,7 @@
     <string name="refresh_msg">새로고침 하시겠습니까?</string>
     <string name="refresh_quick_msg">전체 웹 페이지 대신 게임 프레임만 다시 불러옵니다.\n\n빠른 새로고침이 항상 성공하는 것은 아닙니다. 네트워크 오류가 발생하면 전체 새로고침을 사용해 주세요.</string>
     <string name="refresh_full_msg">전체 웹 페이지를 다시 불러옵니다. 가장 확실한 새로고침 방법이지만 빠른 새로고침보다 오래 걸립니다.</string>
-    <string name="mode_landscape">가로 고정만</string>
+    <string name="mode_landscape">가로 화면 고정</string>
     <string name="mode_adjustment">레이아웃 자동 조정</string>
     <string name="mode_silent">음량 OFF로 시작</string>
     <string name="mode_broadcast">브로드캐스트 모드</string>
@@ -38,7 +38,7 @@
     <string name="settings_control_label">조작 및 툴바</string>
     <string name="settings_download_label">캐시 설정</string>
     <string name="settings_connection_login_label">로그인 및 접속</string>
-    <string name="settings_login_section_header">로그인</string>
+    <string name="settings_login_section_header">게임 로그인</string>
     <string name="settings_bypass_section_header">Gadget 서버 우회</string>
     <string name="settings_logout_summary">접속기의 로그인 화면으로 돌아갑니다</string>
     <string name="settings_toolbar_section_header">툴바</string>
