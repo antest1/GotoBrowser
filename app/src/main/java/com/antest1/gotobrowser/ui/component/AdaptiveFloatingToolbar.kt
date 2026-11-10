@@ -133,6 +133,17 @@ private val BarMaxSettleVelocity = 1500.dp
 fun settleVelocity(velocity: Float, shown: Boolean, max: Float): Float =
     if (shown) velocity.coerceIn(0f, max) else velocity.coerceIn(-max, 0f)
 
+/**
+ * How far from the docking edge the shown bar sits, before its margin: clear of the display
+ * cutout and of where the hidden navigation bar appears on that edge (at the bottom in
+ * portrait, on the left in reverse landscape with 3-button navigation), so the bar is not
+ * covered when that comes up. [navEdge] is 0 when the navigation bar is elsewhere. The insets
+ * already hold the visible navigation bar in multi-window, hence the larger of the two rather
+ * than their sum.
+ */
+fun toolbarDockInset(isLandscape: Boolean, insetLeft: Float, insetBottom: Float, navEdge: Float): Float =
+    maxOf(if (isLandscape) insetLeft else insetBottom, navEdge)
+
 /** Share of the way between hidden and docked a slow drag must cover to change the bar's state. */
 private const val BAR_SETTLE_FRACTION = 0.25f
 
@@ -273,13 +284,13 @@ fun AdaptiveFloatingToolbar(
     val insetTopPx = safeInsets.getTop(density).toFloat()
     val insetRightPx = safeInsets.getRight(density, layoutDirection).toFloat()
     val insetBottomPx = safeInsets.getBottom(density).toFloat()
-    val dockInsetPx = if (isLandscape) insetLeftPx else insetBottomPx
     // The hidden navigation bar comes back with a swipe in from its edge. When that is the edge
     // the bar docks against (3-button navigation in reverse landscape, or at the bottom in
     // portrait), the reveal strips start past it, so that swipe shows the navigation bar only.
     val navigationBars = WindowInsets.navigationBarsIgnoringVisibility
     val navEdgePx = (if (isLandscape) navigationBars.getLeft(density, layoutDirection)
         else navigationBars.getBottom(density)).toFloat()
+    val dockInsetPx = toolbarDockInset(isLandscape, insetLeftPx, insetBottomPx, navEdgePx)
 
     // Offset logic
     // Vertical: slides horizontally from left (-barSize to inset + margin)

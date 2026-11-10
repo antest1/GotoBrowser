@@ -58,4 +58,24 @@ class RevealStripsTest {
         assertEquals(0f, strips.second.width)
         assertTrue(strips.available)
     }
+
+    @Test
+    fun portraitToolbarSitsAboveTheNavigationBar() {
+        // 126px 3-button bar at the bottom, no cutout there.
+        assertEquals(126f, toolbarDockInset(false, 0f, 0f, 126f))
+        // Multi-window: the bottom inset already holds the visible bar, so it is not added twice.
+        assertEquals(126f, toolbarDockInset(false, 0f, 126f, 126f))
+    }
+
+    @Test
+    fun reverseLandscapeToolbarSitsPastTheNavigationBar() {
+        // 3-button bar on the left (126px), wider than an 80px cutout there.
+        assertEquals(126f, toolbarDockInset(true, 80f, 0f, 126f))
+    }
+
+    @Test
+    fun regularLandscapeToolbarOnlyAvoidsTheCutout() {
+        // The navigation bar is on the right: nothing on the docking edge.
+        assertEquals(80f, toolbarDockInset(true, 80f, 0f, 0f))
+    }
 }
