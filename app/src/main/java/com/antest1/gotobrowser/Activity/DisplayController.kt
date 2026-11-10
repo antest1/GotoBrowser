@@ -19,12 +19,13 @@ import kotlin.math.abs
 class DisplayController(
     private val activity: BrowserActivity,
     private val mContentView: WebView,
-    private val onMultiwinMarginChanged: (Int) -> Unit
+    /** Divider margin (dp) to keep above and below the game. */
+    private val onMultiwinMarginChanged: (topDp: Int, bottomDp: Int) -> Unit
 ) {
     fun updateMultiwindowMargin() {
         val enabled = activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_MULTIWIN_MARGIN, false)
         if (!enabled || Build.VERSION.SDK_INT < Build.VERSION_CODES.N || !activity.isInMultiWindowMode) {
-            onMultiwinMarginChanged(0)
+            onMultiwinMarginChanged(0, 0)
             return
         }
 
@@ -39,17 +40,16 @@ class DisplayController(
                 windowRect.left != screenRect.left &&
                 windowRect.right != screenRect.right
 
-        val margin = if (isFreeform) {
-            0
-        } else {
-            val center = (screenRect.top + screenRect.bottom) / 2
-            when {
-                windowRect.top > center -> BrowserActivity.MULTIWIN_MARGIN_DP
-                windowRect.bottom < center -> BrowserActivity.MULTIWIN_MARGIN_DP
-                else -> 0
-            }
+        val margin = BrowserActivity.MULTIWIN_MARGIN_DP
+        val center = (screenRect.top + screenRect.bottom) / 2
+        when {
+            isFreeform -> onMultiwinMarginChanged(0, 0)
+            // Bottom split: the divider is above the window.
+            windowRect.top > center -> onMultiwinMarginChanged(margin, 0)
+            // Top split: the divider is below the window.
+            windowRect.bottom < center -> onMultiwinMarginChanged(0, margin)
+            else -> onMultiwinMarginChanged(0, 0)
         }
-        onMultiwinMarginChanged(margin)
     }
 
     fun updateOrientationLock() {

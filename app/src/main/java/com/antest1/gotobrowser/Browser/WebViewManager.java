@@ -27,6 +27,7 @@ import android.webkit.WebViewClient;
 
 import androidx.webkit.ProxyConfig;
 import androidx.webkit.ProxyController;
+import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
@@ -36,10 +37,12 @@ import com.antest1.gotobrowser.Helpers.CredentialStore;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.R;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executor;
@@ -58,6 +61,7 @@ public class WebViewManager {
     private final BrowserActivity activity;
     private final ResourceProcess resourceProcess;
     private final SharedPreferences sharedPref;
+    private String ooiStyleScript;
 
     public WebViewManager (BrowserActivity ac) {
         activity = ac;
@@ -106,6 +110,7 @@ public class WebViewManager {
 
     public void setWebViewClient(BrowserActivity activity, WebViewL webview) {
         webview.addJavascriptInterface(new KcsInterface(activity), GOTO_ANDROID);
+        addOoiStyleScript(webview);
         webview.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -128,8 +133,9 @@ public class WebViewManager {
                     return;
                 }
                 runLoginLogoutScript(webview, url);
+                if (url.startsWith(URL_OOI)) webview.evaluateJavascript(getOoiStyleScript(), null);
                 sharedPref.edit().putString(PREF_LATEST_URL, url).apply();
-                if (url.contains(Constants.URL_KANMOE_1) || url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
+                if (url.contains(Constants.URL_OOI_1) || url.contains(URL_DMM)) {
                     activity.setStartedFlag();
                     webview.getSettings().setBuiltInZoomControls(true);
                     webview.getSettings().setDisplayZoomControls(false);
@@ -182,6 +188,7 @@ public class WebViewManager {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 Uri source = request.getUrl();
+                if (request.isForMainFrame()) activity.getLoadingTracker().onMainFrameRequest(source.toString());
                 activity.getLoadingTracker().onRequest(source.toString());
                 WebResourceResponse response = resourceProcess.processWebRequest(source);
                 Log.e("GOTO", "shouldInterceptRequest " + source + " " + (response == null));
@@ -202,6 +209,31 @@ public class WebViewManager {
     }
 
     /**
+     * ooi.moe keeps its own stylesheet and theme; only the game layout rules (assets/ooi.css)
+     * go on top. They are added at document start where the WebView supports it, so the page
+     * never lays out without them; onPageFinished() adds them otherwise.
+     */
+    private void addOoiStyleScript(WebViewL webview) {
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            WebViewCompat.addDocumentStartJavaScript(webview, getOoiStyleScript(),
+                    Collections.singleton(URL_OOI_ORIGIN));
+        }
+    }
+
+    private String getOoiStyleScript() {
+        if (ooiStyleScript == null) {
+            String css = "";
+            try (InputStream in = activity.getAssets().open("ooi.css")) {
+                css = KcUtils.getStringFromInputStream(in);
+            } catch (IOException e) {
+                KcUtils.reportException(e);
+            }
+            ooiStyleScript = String.format(Locale.US, OOI_STYLE_SCRIPT, JSONObject.quote(css));
+        }
+        return ooiStyleScript;
+    }
+
+    /**
      * The game page itself, matched on host and path: a login URL can carry the game
      * URL as its return parameter, so a substring match is not enough here.
      */
@@ -212,7 +244,7 @@ public class WebViewManager {
         String path = uri.getPath();
         if (host == null || path == null) return false;
         return (host.equals("play.games.dmm.com") && path.startsWith("/game/kancolle"))
-                || ((host.equals("ooi.moe") || host.equals("kancolle.moe")) && path.startsWith("/kancolle"));
+                || (host.equals("ooi.moe") && path.startsWith("/kancolle"));
     }
 
     /** Login, logout and region pages: ordinary pages the user reads and fills in. */
@@ -220,7 +252,7 @@ public class WebViewManager {
         if (url == null) return false;
         return url.contains(URL_DMM_LOGIN) || url.contains(URL_DMM_LOGIN_2)
                 || url.contains(URL_DMM_FOREIGN) || url.contains(URL_DMM_FOREIGN_2)
-                || url.startsWith(URL_OOI_LOGOUT) || url.startsWith(URL_KANMOE_LOGOUT);
+                || url.startsWith(URL_OOI_LOGOUT);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -310,10 +342,16 @@ public class WebViewManager {
 
         if (url.contains(URL_DMM_LOGIN) || url.contains(URL_DMM_LOGIN_2)) {
             webview.evaluateJavascript(cookie + String.format(Locale.US, AUTOCOMPLETE_DMM, login_id, login_password), null);
-        } else if (url.contains(URL_KANMOE) || url.contains(URL_OOI)) {
-            webview.evaluateJavascript(
-                    String.format(Locale.US, AUTOCOMPLETE_OOI, login_id, login_password), null);
+        } else if (url.contains(URL_OOI)) {
+            webview.evaluateJavascript(ooiAutofillScript(login_id, login_password), null);
         }
+    }
+
+    /** The values are quoted as JS strings, so quotes or backslashes in a password survive. */
+    static String ooiAutofillScript(String loginId, String password) {
+        return String.format(Locale.US, AUTOCOMPLETE_OOI,
+                JSONObject.quote(loginId == null ? "" : loginId),
+                JSONObject.quote(password == null ? "" : password));
     }
 
     public void closeWebView() {
@@ -332,7 +370,7 @@ public class WebViewManager {
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         if (CONN_DMM.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_DMM, is_mute ? 1 : 0), callback);
-        } else if (CONN_KANMOE.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
+        } else if (CONN_OOI.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, MUTE_SEND_OOI, is_mute ? 1 : 0), callback);
         }
     }
@@ -350,7 +388,6 @@ public class WebViewManager {
         switch (pref_connector) {
             case CONN_DMM -> webview.loadUrl(URL_DMM_LOGOUT);
             case CONN_OOI -> webview.loadUrl(URL_OOI_LOGOUT);
-            case CONN_KANMOE -> webview.loadUrl(URL_KANMOE_LOGOUT);
             // Nothing to load, so leave logoutFlag untouched rather than arming
             // a flow that waits for a page that will never arrive.
             default -> {
@@ -376,15 +413,19 @@ public class WebViewManager {
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         if (CONN_DMM.equals(pref_connector)) {
             webview.evaluateJavascript(REFRESH_GAME_FRAME_DMM, callback);
-        } else if (CONN_KANMOE.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
+        } else if (CONN_OOI.equals(pref_connector)) {
             webview.evaluateJavascript(REFRESH_GAME_FRAME_OOI, callback);
         }
         webview.resumeTimers();
     }
 
+    /**
+     * Opens the connector's start page. Every connector shows its own login form there
+     * (unless a session is still active), and runLoginLogoutScript() fills it in; the user
+     * submits it. ooi.moe used to be logged into by posting the stored credentials, which
+     * left no way to stay logged out or to pick the form's other options.
+     */
     public void openPage(WebViewL webview, List<String> connector_info) {
-        String login_id = sharedPref.getString(PREF_DMM_ID, ""); // intent.getStringExtra("login_id");
-        String login_password = CredentialStore.getPassword(sharedPref);
         if (connector_info == null || connector_info.size() != 2) return;
 
         String connector_url_default = connector_info.get(0);
@@ -392,15 +433,7 @@ public class WebViewManager {
 
         webview.resumeTimers();
         webview.getSettings().setTextZoom(100);
-        String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
-        if (CONN_KANMOE.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
-            int connect_mode = 1;
-            String post_data = String.format(Locale.US, "login_id=%s&password=%s&mode=%d",
-                    encodeText(login_id), encodeText(login_password), connect_mode);
-            webview.postUrl(connector_url_default, post_data.getBytes());
-        } else {
-            webview.loadUrl(connector_url_default);
-        }
+        webview.loadUrl(connector_url_default);
     }
 
     public static String replaceEndpoint(String url, String endpoint) {
@@ -476,12 +509,15 @@ public class WebViewManager {
                 url_list.add(URL_OOI);
                 url_list.add(URL_OOI);
             }
-            case CONN_KANMOE -> {
-                url_list.add(URL_KANMOE);
-                url_list.add(URL_KANMOE);
-            }
         }
         return url_list;
+    }
+
+    /** kancolle.moe has shut down: a session saved with it moves to ooi.moe. */
+    public static void migrateRetiredConnector(SharedPreferences sharedPref) {
+        if ("kancolle.moe".equals(sharedPref.getString(PREF_CONNECTOR, CONN_DMM))) {
+            sharedPref.edit().putString(PREF_CONNECTOR, CONN_OOI).apply();
+        }
     }
 
     public String getDmmCookie() {
@@ -496,20 +532,8 @@ public class WebViewManager {
         String pref_connector = sharedPref.getString(PREF_CONNECTOR, CONN_DMM);
         if (CONN_DMM.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, CAPTURE_SEND_DMM), callback);
-        } else if (CONN_KANMOE.equals(pref_connector) || CONN_OOI.equals(pref_connector)) {
+        } else if (CONN_OOI.equals(pref_connector)) {
             webview.evaluateJavascript(String.format(Locale.US, CAPTURE_SEND_OOI), callback);
-        }
-    }
-
-    private String encodeText(String text) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            return URLEncoder.encode(text, StandardCharsets.UTF_8);
-        } else {
-            try {
-                return URLEncoder.encode(text, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                return text;
-            }
         }
     }
 

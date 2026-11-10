@@ -7,7 +7,7 @@ Everything that used to be on the main screen before version 4.0 has moved to th
 
 ##### Startup Flow
 1. The start page of the connector opens. On the login page, the account information saved in the settings is filled in automatically.
-2. After logging in, the game screen is fitted to your device screen. (Settings → Display → Auto Layout Adjustment)
+2. After logging in, the game screen is fitted to your device screen. (Settings → Game Display → Auto Layout Adjustment)
 3. While the game loads, a loading notice is shown on the game screen. It disappears when the game starts. (See Loading Notice below)
 4. Touch the black margin outside the game screen to show the <span class="link" data-move="browserui">toolbar</span>. The settings button (<span class="material-symbols-outlined inline-icon">settings</span>) in the top right opens the settings screen.
 
@@ -32,7 +32,7 @@ While the game loads, its progress is shown in the middle of the game screen. It
 
 ##### Selecting a Connector
 - In general, you do not need to change the default value, DMM direct.
-- If you want to use an OOI-based connector ([ooi.moe](https://ooi.moe/) or [kancolle.moe](https://kancolle.moe/)), change it in Settings → Login and Connection → Select Login Method.
+- If you want to use an OOI-based connector ([ooi.moe](https://ooi.moe/)), change it in Settings → Login and Connection → Select Login Method.
   - When you select an unofficial connector for the first time, a notice that game resources may differ from the original ones is shown.
 - Changing the connector takes effect after a reload.
 
@@ -53,7 +53,7 @@ While the game loads, its progress is shown in the middle of the game screen. It
 | Select Connector Site | Settings → Login and Connection → Select Login Method |
 | Login Autocompletion | Settings → Login and Connection → Login Autocomplete |
 | Start with Audio OFF / Broadcast Mode / Gadget Server Bypass | Settings → Login and Connection |
-| Show Control Panel on Start / Enable Keyboard Input | Settings → Controls |
+| Show Control Panel on Start / Enable Keyboard Input | Settings → Controls & Toolbar |
 | Clear Cache | Settings → Asset Caching → Clear Cache |
 | Manual Website (<span class="material-symbols-outlined inline-icon">help</span>) | Help button at the top of the settings screen |
 | Settings Menu (<span class="material-symbols-outlined inline-icon">settings</span>) | Settings button in the top right of the game screen |

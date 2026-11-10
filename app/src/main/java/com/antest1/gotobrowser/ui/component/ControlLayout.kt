@@ -1,5 +1,6 @@
 package com.antest1.gotobrowser.ui.component
 
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -49,6 +50,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.dimensionResource
@@ -58,15 +60,36 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.antest1.gotobrowser.Activity.safeOverlayInsets
+import com.antest1.gotobrowser.Browser.GameGeometry
 import com.antest1.gotobrowser.R
 
 enum class RefreshOption { QUICK, FULL }
+
+/** What a finger on the refresh FAB's long-press menu points at: the FAB's own option or the other one. */
+enum class RefreshMenuTarget { TAP, OTHER }
+
+/**
+ * The menu item under a finger at [localY] (relative to the FAB's top), or null between or
+ * beyond them. The other option sits one [itemStepPx] above the FAB, or below it when
+ * [expandDown]: the two layouts are mirror images, so they feel the same.
+ */
+fun refreshMenuTarget(localY: Float, fabSizePx: Float, itemStepPx: Float, expandDown: Boolean): RefreshMenuTarget? {
+    val y = if (expandDown) fabSizePx - localY else localY
+    val slop = itemStepPx * 0.4f
+    return when {
+        y >= -itemStepPx - slop && y < -itemStepPx / 2f -> RefreshMenuTarget.OTHER
+        y >= -itemStepPx / 2f && y <= fabSizePx + slop -> RefreshMenuTarget.TAP
+        else -> null
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ControlLayout(
     visible: Boolean,
     onVisibleChange: (Boolean) -> Unit,
+    /** Whether the toolbar can be revealed by a margin tap or an edge swipe. */
+    onRevealAvailableChange: (Boolean) -> Unit = {},
     onRefreshClick: () -> Unit,
     onQuickRefreshClick: () -> Unit = onRefreshClick,
     onFullRefreshClick: () -> Unit = onRefreshClick,
@@ -77,8 +100,17 @@ fun ControlLayout(
     refreshAttention: Color? = null,
     /** Tapping the FAB runs a full refresh, without changing the saved option. */
     forceFullRefresh: Boolean = false,
+    /** Matches GameAreaLayout.verticalBias; see GameGeometry.fit. */
+    gameVerticalBias: Float = GameGeometry.BIAS_CENTER,
+    /** Toolbar docked at the top with the refresh FAB first; landscape only (PREF_TOOLBAR_POSITION). */
+    toolbarAtTop: Boolean = false,
+    /** Edge swipe reveals the hidden toolbar (PREF_TOOLBAR_SWIPE); a margin tap always does. */
+    swipeToReveal: Boolean = true,
     toolbarContent: @Composable () -> Unit
 ) {
+    // In portrait the bar lies along the bottom and the FAB already sits at its start.
+    val refreshAboveBar = toolbarAtTop &&
+        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     Box(modifier = Modifier.fillMaxSize()) {
         // Main Toolbar (Adaptive)
         // End inset equals the side inset, so the pill has uniform breathing room around the buttons.
@@ -87,8 +119,14 @@ fun ControlLayout(
         AdaptiveFloatingToolbar(
             visible = visible,
             onVisibleChange = onVisibleChange,
+            onRevealAvailableChange = onRevealAvailableChange,
+            gameVerticalBias = gameVerticalBias,
             barSize = panelBarSize,
             contentInset = (panelBarSize - panelButtonSize) / 2,
+            alignTop = refreshAboveBar,
+            swipeToReveal = swipeToReveal,
+            // The refresh FAB then lines up with the settings button in the opposite corner.
+            topInset = dimensionResource(R.dimen.top_menu_padding),
             fab = {
                 FullRefreshHintTooltip(visible = forceFullRefresh && visible) {
                     OneTouchRefreshFab(
@@ -97,7 +135,9 @@ fun ControlLayout(
                         onQuickRefreshClick = onQuickRefreshClick,
                         onFullRefreshClick = onFullRefreshClick,
                         attention = refreshAttention,
-                        forceFullRefresh = forceFullRefresh
+                        forceFullRefresh = forceFullRefresh,
+                        // Above the bar there is little room overhead, so the menu opens over the bar.
+                        expandDown = refreshAboveBar
                     )
                 }
             },
@@ -199,6 +239,8 @@ private fun OneTouchRefreshFab(
     onFullRefreshClick: () -> Unit,
     attention: Color?,
     forceFullRefresh: Boolean,
+    /** Open the menu below the FAB instead of above it. */
+    expandDown: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var isTouching by remember { mutableStateOf(false) }
@@ -215,19 +257,14 @@ private fun OneTouchRefreshFab(
 
     // While forced, FULL takes the tap position but the saved choice stays as it is.
     val tapOption = if (forceFullRefresh) RefreshOption.FULL else selectedOption
-    val bottomOption = tapOption
-    val topOption = if (tapOption == RefreshOption.QUICK) RefreshOption.FULL else RefreshOption.QUICK
+    val otherOption = if (tapOption == RefreshOption.QUICK) RefreshOption.FULL else RefreshOption.QUICK
 
-    fun calculateHoveredOption(localY: Float): RefreshOption? {
-        val topYStart = -itemStepPx
-        val slop = itemStepPx * 0.4f
-
-        return when {
-            localY >= (topYStart - slop) && localY < -itemStepPx / 2f -> topOption
-            localY >= -itemStepPx / 2f && localY <= (fabSizePx + slop) -> bottomOption
-            else -> null
+    fun calculateHoveredOption(localY: Float): RefreshOption? =
+        when (refreshMenuTarget(localY, fabSizePx, itemStepPx, expandDown)) {
+            RefreshMenuTarget.OTHER -> otherOption
+            RefreshMenuTarget.TAP -> tapOption
+            null -> null
         }
-    }
 
     val expandAnim by animateFloatAsState(
         targetValue = if (isTouching) 1f else 0f,
@@ -241,7 +278,7 @@ private fun OneTouchRefreshFab(
     Box(
         modifier = modifier
             .wrapContentSize(align = Alignment.TopStart, unbounded = true)
-            .pointerInput(tapOption, forceFullRefresh) {
+            .pointerInput(tapOption, forceFullRefresh, expandDown) {
                 awaitPointerEventScope {
                     while (true) {
                         awaitFirstDown(requireUnconsumed = false)
@@ -317,8 +354,8 @@ private fun OneTouchRefreshFab(
                 contentAlignment = Alignment.TopStart
             ) {
                 listOf(
-                    topOption to -itemStepDp * expandAnim,
-                    bottomOption to 0.dp
+                    otherOption to itemStepDp * expandAnim * (if (expandDown) 1f else -1f),
+                    tapOption to 0.dp
                 ).forEach { (option, yOffset) ->
                     ExtendedFabMenuItem(
                         label = stringResource(if (option == RefreshOption.QUICK) R.string.menu_quick_refresh else R.string.menu_full_refresh),

@@ -14,6 +14,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.Surface
 import android.view.View
 import android.view.ViewGroup
@@ -21,6 +23,7 @@ import android.view.WindowManager
 import android.webkit.SslErrorHandler
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.RequiresApi
 import androidx.browser.customtabs.CustomTabColorSchemeParams
@@ -61,9 +64,11 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -87,6 +92,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.antest1.gotobrowser.Browser.GameAreaLayout
+import com.antest1.gotobrowser.Browser.GameGeometry
 import com.antest1.gotobrowser.Browser.WebViewL
 import com.antest1.gotobrowser.Browser.WebViewManager
 import com.antest1.gotobrowser.BuildConfig
@@ -95,6 +101,7 @@ import com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL
 import com.antest1.gotobrowser.Constants.DEFAULT_SUBTITLE_FONT_SIZE
 import com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT
 import com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT
+import com.antest1.gotobrowser.Constants.PREF_ALTER_AUTO_DISABLE
 import com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET
 import com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD
 import com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD_PROXY
@@ -107,6 +114,9 @@ import com.antest1.gotobrowser.Constants.PREF_DMM_ID
 import com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY
 import com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH
 import com.antest1.gotobrowser.Constants.PREF_FPS_LIMIT
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN_CENTER
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN_TOP
 import com.antest1.gotobrowser.Constants.PREF_KEYBOARD
 import com.antest1.gotobrowser.Constants.PREF_LANDSCAPE
 import com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER
@@ -118,6 +128,9 @@ import com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_NAME
 import com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN
 import com.antest1.gotobrowser.Constants.PREF_PANELSTART
 import com.antest1.gotobrowser.Constants.PREF_PIP_MODE
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION_TOP
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_SWIPE
 import com.antest1.gotobrowser.Constants.PREF_SILENT
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE
@@ -136,7 +149,9 @@ import com.antest1.gotobrowser.ui.component.MessageDialogHost
 import com.antest1.gotobrowser.ui.component.ServerNotice
 import com.antest1.gotobrowser.ui.component.ServerNoticeAlignment
 import com.antest1.gotobrowser.ui.component.ServerNoticeCard
+import com.antest1.gotobrowser.ui.component.cancelForPip
 import com.antest1.gotobrowser.ui.component.floatingToolbarEdgeMargin
+import com.antest1.gotobrowser.ui.component.loadingConnectorTag
 import com.antest1.gotobrowser.ui.component.RefreshOption
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
 import com.antest1.gotobrowser.ui.component.rememberLoadingSnapshot
@@ -164,24 +179,40 @@ class BrowserActivity : ComponentActivity() {
 
     internal lateinit var pipController: PipController
     private lateinit var displayController: DisplayController
+    private lateinit var gameArea: GameAreaLayout
 
     val isInPictureInPictureModeState = mutableStateOf(false)
     val loadingTracker = LoadingTracker()
+    // Connector of the load in progress, named in the loading card (changes apply on reload).
+    private val loadConnectorTag = mutableStateOf<String?>(null)
     private val serverNotice = mutableStateOf<ServerNotice?>(null)
     private val errorText = mutableStateOf("")
     private val closeButtonVisible = mutableStateOf(false)
     private val toolbarVisible = mutableStateOf(false)
+    /** False when the game fills the screen, leaving no margin to tap and no edge to swipe from. */
+    private var toolbarRevealAvailable = true
     private val settingsSheetVisible = mutableStateOf(false)
     private val refreshPromptVisible = mutableStateOf(false)
+    /** What the refresh prompt says; a changed setting and a cleared cache explain it differently. */
+    private val refreshPromptReason = mutableStateOf(RefreshPromptReason.SETTING_CHANGED)
     private val refreshOption = mutableStateOf(RefreshOption.QUICK)
     private val messageDialogs = mutableStateListOf<MessageDialog>()
     private val subtitleFontSize = mutableStateOf(DEFAULT_SUBTITLE_FONT_SIZE)
+    /** Where the game sits when the screen leaves a margin above and below it. */
+    private val gameVerticalBias = mutableStateOf(GameGeometry.BIAS_CENTER)
+    /** Toolbar docked at the top with refresh first (landscape), as in 3.x. */
+    private val toolbarAtTop = mutableStateOf(false)
+    /** Whether an edge swipe reveals the hidden toolbar. */
+    private val toolbarSwipe = mutableStateOf(true)
     private val subtitleLoader = Executors.newSingleThreadExecutor()
 
     // Settings applied immediately without reloading the page.
     private val liveSettings = setOf(
         PREF_LANDSCAPE,
         PREF_MULTIWIN_MARGIN,
+        PREF_GAME_ALIGN,
+        PREF_TOOLBAR_POSITION,
+        PREF_TOOLBAR_SWIPE,
         PREF_SUBTITLE_FONTSIZE,
         PREF_DOWNLOAD_RETRY,
         PREF_PIP_MODE,
@@ -191,7 +222,9 @@ class BrowserActivity : ComponentActivity() {
         PREF_FPS_LIMIT,
         PREF_KEYBOARD,
         PREF_SUBTITLE_LOCALE,
-        PREF_BROADCAST
+        PREF_BROADCAST,
+        // Read by ResourceProcess on each game load; nothing to apply now.
+        PREF_ALTER_AUTO_DISABLE
     )
 
     // Settings that only take effect on page load; they must be re-read on refresh.
@@ -220,8 +253,17 @@ class BrowserActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setBackgroundDrawable(ColorDrawable(android.graphics.Color.BLACK))
         viewModel = ViewModelProvider(this)[BrowserViewModel::class.java]
-        WebViewManager.setWebViewDebugging(viewModel.sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false))
         settingsViewModel = ViewModelProvider(this)[SettingsViewModel::class.java]
+        // First touch of the WebView provider. It throws when the system WebView can't be
+        // loaded (e.g. while it is being updated); tell the user instead of crashing.
+        try {
+            WebViewManager.setWebViewDebugging(viewModel.sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false))
+        } catch (e: RuntimeException) {
+            KcUtils.reportException(e)
+            KcUtils.showToast(applicationContext, R.string.webview_unavailable)
+            finish()
+            return
+        }
         screenshotNotification = ScreenshotNotification(this)
         backPressCloseHandler = BackPressCloseHandler(this, true)
 
@@ -257,23 +299,37 @@ class BrowserActivity : ComponentActivity() {
         mContentView = webView
         pipController = PipController(this, webView, { isInPictureInPictureModeState.value = it }, { hideSystemBars() })
         pipController.setupPinchToPipGesture()
-        val gameArea = GameAreaLayout(this).apply { addView(webView) }
+        gameArea = GameAreaLayout(this).apply { addView(webView) }
+        applyGameAlignment()
+        applyToolbarPosition()
+        applyToolbarSwipe()
         // Keep the game area clear of the display cutout. Since targetSdk 35 the
         // window always extends into the cutout, so on 16:10 tablets the WebView
         // could otherwise be partially covered. Insets are passed through, not consumed.
-        // Must stay in sync with safeOverlayInsets() below.
+        // Must stay in sync with safeOverlayInsets() below (system bars in multi-window only).
         ViewCompat.setOnApplyWindowInsetsListener(gameArea) { v, insets ->
-            val safe = insets.getInsets(
+            val types = if (isInMultiWindowMode) {
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            )
+            } else {
+                WindowInsetsCompat.Type.displayCutout()
+            }
+            val safe = insets.getInsets(types)
             v.setPadding(safe.left, safe.top, safe.right, safe.bottom)
             insets
         }
-        displayController = DisplayController(this, webView) { gameArea.marginDp = it }
+        displayController = DisplayController(this, webView) { top, bottom -> gameArea.setDividerMargin(top, bottom) }
 
         val backgroundTapView = View(this).apply {
-            isClickable = true
             setOnClickListener { toolbarVisible.value = !toolbarVisible.value }
+            // A plain click also fires after a drag that stays inside this full-screen view,
+            // so an edge swipe that brings up the system bars toggled the toolbar.
+            // Only a real tap (within touch slop, not cancelled) counts as a click.
+            val tapDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+                override fun onDown(e: MotionEvent) = true
+                override fun onSingleTapUp(e: MotionEvent) = this@apply.performClick()
+            })
+            tapDetector.setOnDoubleTapListener(null)
+            setOnTouchListener { _, event -> tapDetector.onTouchEvent(event); true }
         }
         val rootLayout = FrameLayout(this).apply {
             setBackgroundColor(android.graphics.Color.BLACK)
@@ -327,12 +383,15 @@ class BrowserActivity : ComponentActivity() {
                         subtitleFontSize = subtitleFontSize,
                         activity = this@BrowserActivity,
                         onCapture = { manager?.captureGameScreen(webView) },
-                        onClose = { finish() }
+                        onClose = { finish() },
+                        gameVerticalBias = gameVerticalBias.value,
+                        loadingConnectorTag = loadConnectorTag.value
                     )
 
                     ControlLayout(
                         visible = toolbarVisible.value,
                         onVisibleChange = { toolbarVisible.value = it },
+                        onRevealAvailableChange = { toolbarRevealAvailable = it },
                         onRefreshClick = { showRefreshDialog(refreshOption.value) },
                         onQuickRefreshClick = { showRefreshDialog(RefreshOption.QUICK) },
                         onFullRefreshClick = { showRefreshDialog(RefreshOption.FULL) },
@@ -343,7 +402,10 @@ class BrowserActivity : ComponentActivity() {
                         },
                         onSettingsClick = { settingsSheetVisible.value = true },
                         refreshAttention = refreshAttention,
-                        forceFullRefresh = requiresFullRefresh(loadState, notice)
+                        forceFullRefresh = requiresFullRefresh(loadState, notice),
+                        gameVerticalBias = gameVerticalBias.value,
+                        toolbarAtTop = toolbarAtTop.value,
+                        swipeToReveal = toolbarSwipe.value
                     ) {
                         val isMute by viewModel.isMuteMode.observeAsState(false)
                         val isCapture by viewModel.isCaptureMode.observeAsState(false)
@@ -396,7 +458,8 @@ class BrowserActivity : ComponentActivity() {
                                 showLogoutDialog()
                             },
                             onHelpClick = { openManual(this@BrowserActivity) },
-                            onSettingChanged = { key -> onSettingChanged(key) }
+                            onSettingChanged = { key -> onSettingChanged(key) },
+                            onCacheCleared = { showRefreshPrompt(RefreshPromptReason.CACHE_CLEARED) }
                         )
                     }
 
@@ -404,6 +467,7 @@ class BrowserActivity : ComponentActivity() {
                         // Same palette as the sheet it is asked from.
                         SettingsTheme {
                             SettingsRefreshDialog(
+                                reason = refreshPromptReason.value,
                                 onRefreshNow = {
                                     refreshPromptVisible.value = false
                                     settingsSheetVisible.value = false
@@ -451,7 +515,7 @@ class BrowserActivity : ComponentActivity() {
             WebViewManager.enableBrowserCookie(webView)
             manager?.setWebViewClient(this, webView)
             manager?.setPopupView(webView)
-            loadingTracker.start()
+            startLoading()
             reloadSettings { manager?.openPage(webView, info) }
         }
         webView.setBackgroundColor(android.graphics.Color.BLACK)
@@ -474,7 +538,13 @@ class BrowserActivity : ComponentActivity() {
         // Loaded off the main thread:
         // The result is only consumed later when a voice line plays.
         // A single-thread executor keeps loads in order, so the latest locale wins.
-        val subtitleLocale = viewModel.sharedPref.getString(PREF_SUBTITLE_LOCALE, "en") ?: "en"
+        // "" means no language has been picked yet; there is no quotes file to load.
+        val subtitleLocale = viewModel.sharedPref.getString(PREF_SUBTITLE_LOCALE, "") ?: ""
+        if (subtitleLocale.isEmpty()) {
+            viewModel.subtitleRequestKey = null
+            viewModel.isSubtitleLoaded = false
+            return
+        }
         val requestKey = "$subtitleLocale|${viewModel.sharedPref.getBoolean(PREF_USE_EXTCACHE, false)}"
         if (!force && requestKey == viewModel.subtitleRequestKey) return
         viewModel.subtitleRequestKey = requestKey
@@ -506,19 +576,27 @@ class BrowserActivity : ComponentActivity() {
     private fun onSettingChanged(key: String) {
         when (key) {
             in liveSettings -> applyLiveSetting(key)
-            in refreshSettings -> refreshPromptVisible.value = true
+            in refreshSettings -> showRefreshPrompt(RefreshPromptReason.SETTING_CHANGED)
             else -> {
                 // Unclassified keys fall back to a refresh prompt.
                 if (BuildConfig.DEBUG) Log.w("GOTO", "unclassified setting key: $key")
-                refreshPromptVisible.value = true
+                showRefreshPrompt(RefreshPromptReason.SETTING_CHANGED)
             }
         }
+    }
+
+    private fun showRefreshPrompt(reason: RefreshPromptReason) {
+        refreshPromptReason.value = reason
+        refreshPromptVisible.value = true
     }
 
     private fun applyLiveSetting(key: String) {
         when (key) {
             PREF_LANDSCAPE -> displayController.updateOrientationLock()
             PREF_MULTIWIN_MARGIN -> displayController.updateMultiwindowMargin()
+            PREF_GAME_ALIGN -> applyGameAlignment()
+            PREF_TOOLBAR_POSITION -> applyToolbarPosition()
+            PREF_TOOLBAR_SWIPE -> applyToolbarSwipe()
             PREF_SUBTITLE_FONTSIZE -> subtitleFontSize.value = settingsViewModel.getSubtitleFontSize()
             PREF_PIP_MODE -> pipController.setupSmoothPipAnimation()
             PREF_KEYBOARD -> displayController.applyKeyboardSetting()
@@ -527,6 +605,24 @@ class BrowserActivity : ComponentActivity() {
             PREF_DISABLE_REFRESH_DIALOG -> viewModel.setNoRefreshPopupMode(viewModel.sharedPref.getBoolean(PREF_DISABLE_REFRESH_DIALOG, false))
             PREF_FPS_LIMIT -> displayController.applyFpsLimit()
         }
+    }
+
+    // The WebView (GameAreaLayout) and the overlays lined up with it must change together.
+    private fun applyGameAlignment() {
+        val bias = when (viewModel.sharedPref.getString(PREF_GAME_ALIGN, PREF_GAME_ALIGN_CENTER)) {
+            PREF_GAME_ALIGN_TOP -> GameGeometry.BIAS_TOP
+            else -> GameGeometry.BIAS_CENTER
+        }
+        gameVerticalBias.value = bias
+        gameArea.verticalBias = bias
+    }
+
+    private fun applyToolbarSwipe() {
+        toolbarSwipe.value = viewModel.sharedPref.getBoolean(PREF_TOOLBAR_SWIPE, true)
+    }
+
+    private fun applyToolbarPosition() {
+        toolbarAtTop.value = PREF_TOOLBAR_POSITION_TOP == viewModel.sharedPref.getString(PREF_TOOLBAR_POSITION, null)
     }
 
     fun handleBackPress() {
@@ -538,7 +634,13 @@ class BrowserActivity : ComponentActivity() {
             settingsSheetVisible.value = false
             return
         }
-        toolbarVisible.value = true
+        // Back only runs the exit flow: the back gesture shares the screen edge with the
+        // system bar reveal, so it must not toggle the toolbar too. The exception is a screen
+        // with no margin and no reveal strip, where back is the only way to bring it up.
+        if (!toolbarVisible.value && !toolbarRevealAvailable) {
+            toolbarVisible.value = true
+            return
+        }
         backPressCloseHandler.handleOnBackPressed()
     }
 
@@ -564,6 +666,10 @@ class BrowserActivity : ComponentActivity() {
         pipController.handlePictureInPictureModeChanged(isInPictureInPictureMode)
         if (isInPictureInPictureMode) {
             toolbarVisible.value = false
+            // The sheet and its dialogs are separate windows the PiP window cannot show usefully.
+            settingsSheetVisible.value = false
+            refreshPromptVisible.value = false
+            messageDialogs.cancelForPip()
         }
         val rot = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             display?.rotation ?: Surface.ROTATION_0
@@ -687,11 +793,16 @@ class BrowserActivity : ComponentActivity() {
         )
     }
 
+    private fun startLoading() {
+        loadConnectorTag.value = loadingConnectorTag(viewModel.sharedPref.getString(PREF_CONNECTOR, CONN_DMM))
+        loadingTracker.start()
+    }
+
     private fun refreshPageOrFinish(option: RefreshOption = refreshOption.value) {
         viewModel.connectorInfo = WebViewManager.getDefaultPage(this)
         val info = viewModel.connectorInfo
         if (manager != null && info != null && info.size == 2) {
-            loadingTracker.start()
+            startLoading()
             serverNotice.value = null
             errorText.value = ""
             reloadSettings {
@@ -756,7 +867,8 @@ class BrowserActivity : ComponentActivity() {
                     title = getString(titleRes),
                     message = getString(messageRes),
                     confirm = DialogButton(getString(R.string.action_ok)) { refreshPageOrFinish(option) },
-                    dismiss = DialogButton(getString(R.string.action_cancel)) { mContentView?.resumeTimers() }
+                    dismiss = DialogButton(getString(R.string.action_cancel)) { mContentView?.resumeTimers() },
+                    cancelOnPip = true
                 )
             )
         }
@@ -771,7 +883,8 @@ class BrowserActivity : ComponentActivity() {
                 confirm = DialogButton(getString(R.string.action_ok)) {
                     mContentView?.let { manager?.logoutGame(it) }
                 },
-                dismiss = DialogButton(getString(R.string.action_cancel)) { mContentView?.resumeTimers() }
+                dismiss = DialogButton(getString(R.string.action_cancel)) { mContentView?.resumeTimers() },
+                cancelOnPip = true
             )
         )
     }
@@ -873,14 +986,21 @@ class BrowserActivity : ComponentActivity() {
 }
 
 /**
- * System bars + display cutout. IME is intentionally excluded so overlays do
- * not jump when the keyboard opens on the login page. While the bars are
- * hidden their insets report 0, so in normal fullscreen play this is
- * effectively cutout-only.
+ * Display cutout, plus the system bars in multi-window mode only. IME is
+ * intentionally excluded so overlays do not jump when the keyboard opens on the login page.
+ *
+ * In fullscreen the bars are always hidden (immersive), so they are left out: closing a
+ * dialog window (e.g. the settings sheet) while the bars are swiped in briefly reports them
+ * as visible to the activity, which made overlays jump inward and back.
  */
 @Composable
-fun safeOverlayInsets(): WindowInsets =
-    WindowInsets.systemBars.union(WindowInsets.displayCutout)
+fun safeOverlayInsets(): WindowInsets {
+    val activity = LocalActivity.current
+    // Entering or leaving multi-window comes with a configuration change (window size).
+    val multiWindow = remember(LocalConfiguration.current) { activity?.isInMultiWindowMode == true }
+    return if (multiWindow) WindowInsets.systemBars.union(WindowInsets.displayCutout)
+    else WindowInsets.displayCutout
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -917,15 +1037,21 @@ fun PanelButton(
     }
 }
 
+internal enum class RefreshPromptReason(val messageRes: Int, val laterRes: Int) {
+    SETTING_CHANGED(R.string.settings_refresh_required_msg, R.string.settings_refresh_later),
+    CACHE_CLEARED(R.string.cache_cleared_refresh_msg, R.string.refresh_later)
+}
+
 @Composable
 internal fun SettingsRefreshDialog(
     onRefreshNow: () -> Unit,
-    onChangeWithoutRefresh: () -> Unit
+    onChangeWithoutRefresh: () -> Unit,
+    reason: RefreshPromptReason = RefreshPromptReason.SETTING_CHANGED
 ) {
     AlertDialog(
         onDismissRequest = onChangeWithoutRefresh,
         title = { Text(text = stringResource(id = R.string.settings_refresh_required_title)) },
-        text = { Text(text = stringResource(id = R.string.settings_refresh_required_msg)) },
+        text = { Text(text = stringResource(id = reason.messageRes)) },
         confirmButton = {
             TextButton(onClick = onRefreshNow) {
                 Text(text = stringResource(id = R.string.settings_refresh_now))
@@ -933,7 +1059,7 @@ internal fun SettingsRefreshDialog(
         },
         dismissButton = {
             TextButton(onClick = onChangeWithoutRefresh) {
-                Text(text = stringResource(id = R.string.settings_refresh_later))
+                Text(text = stringResource(id = reason.laterRes))
             }
         }
     )
@@ -972,7 +1098,9 @@ fun BrowserOverlayLayer(
     onCaptureClick: () -> Unit,
     onCloseClick: () -> Unit,
     gameWidth: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified,
-    gameHeight: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified
+    gameHeight: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified,
+    /** Matches GameAreaLayout.verticalBias; see GameGeometry.fit. */
+    gameVerticalBias: Float = GameGeometry.BIAS_CENTER
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (showSubtitle && subtitleText.isNotEmpty()) {
@@ -988,12 +1116,14 @@ fun BrowserOverlayLayer(
                     )
                 }
             ) { measurables, constraints ->
-                // The game is centered in this layer (as GameAreaLayout does). The
+                // The game sits in this layer as GameAreaLayout places it. The
                 // subtitle wraps to the game width so it never spills into the side
                 // letterbox, and sits just below the game, clamped to the screen bottom.
-                val gameW = if (gameWidth.isSpecified) gameWidth.roundToPx().coerceIn(1, constraints.maxWidth) else constraints.maxWidth
+                // maxWidth can be 0 while the window is being resized; keep the range non-empty.
+                val gameW = if (gameWidth.isSpecified) gameWidth.roundToPx().coerceIn(minOf(1, constraints.maxWidth), constraints.maxWidth) else constraints.maxWidth
                 val gameH = if (gameHeight.isSpecified) gameHeight.roundToPx().coerceIn(0, constraints.maxHeight) else constraints.maxHeight
-                val gameBottom = (constraints.maxHeight + gameH) / 2
+                val gameTop = ((constraints.maxHeight - gameH) * (1f + gameVerticalBias) / 2f).toInt()
+                val gameBottom = gameTop + gameH
 
                 val placeable = measurables.first().measure(
                     constraints.copy(minWidth = 0, minHeight = 0, maxWidth = gameW)
@@ -1062,7 +1192,11 @@ fun BrowserOverlayContent(
     subtitleFontSize: MutableState<Int>,
     activity: BrowserActivity,
     onCapture: () -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    /** Matches GameAreaLayout.verticalBias; see GameGeometry.fit. */
+    gameVerticalBias: Float = GameGeometry.BIAS_CENTER,
+    /** See loadingConnectorTag in LoadingStatus. */
+    loadingConnectorTag: String? = null
 ) {
     val isCaption by viewModel.isCaptionMode.observeAsState(false)
     val subtitleText by viewModel.subtitleText.observeAsState("")
@@ -1079,12 +1213,9 @@ fun BrowserOverlayContent(
     // computed below matches where the game is actually drawn.
     Box(modifier = Modifier.fillMaxSize().windowInsetsPadding(safeOverlayInsets())) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            val ratio = 1200f / 720f
-            val containerWidth = maxWidth.value
-            val containerHeight = maxHeight.value
-            val fitHeight = containerWidth / containerHeight > ratio
-            val gameWidth = if (fitHeight) maxHeight * ratio else maxWidth
-            val gameHeight = if (fitHeight) maxHeight else maxWidth / ratio
+            val game = GameGeometry.fit(maxWidth.value, maxHeight.value, gameVerticalBias)
+            val gameWidth = game.width.dp
+            val gameHeight = game.height.dp
 
             if (errorText.value.isNotEmpty()) {
                 Text(
@@ -1106,8 +1237,8 @@ fun BrowserOverlayContent(
                 // Status sits within the game area: loading card centered (or at the bottom
                 // while the game draws its own loading screen), server errors centered as well,
                 // below the message at the top of the game's own connection error screen.
-                Box(modifier = Modifier.align(Alignment.Center).size(gameWidth, gameHeight)) {
-                    LoadingStatusOverlay(loadState)
+                Box(modifier = Modifier.align(BiasAlignment(0f, gameVerticalBias)).size(gameWidth, gameHeight)) {
+                    LoadingStatusOverlay(loadState, connectorTag = loadingConnectorTag)
                     ServerNoticeCard(
                         notice = serverNotice,
                         onDismiss = onDismissServerNotice,
@@ -1129,7 +1260,8 @@ fun BrowserOverlayContent(
                     },
                     onCloseClick = onClose,
                     gameWidth = gameWidth,
-                    gameHeight = gameHeight
+                    gameHeight = gameHeight,
+                    gameVerticalBias = gameVerticalBias
                 )
             }
         }

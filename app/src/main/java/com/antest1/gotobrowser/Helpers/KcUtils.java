@@ -35,22 +35,29 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.HttpURLConnection;
+import java.net.ProtocolException;
+import java.net.SocketException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -64,6 +71,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+import javax.net.ssl.SSLException;
 
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
@@ -138,6 +147,33 @@ public class KcUtils {
     public static void reportException(ExceptionInInitializerError e) {
         e.printStackTrace();
         crashlytics.recordException(e);
+    }
+
+    // For download paths: connectivity failures (timeouts, DNS, dropped connections) are
+    // expected on mobile networks and say nothing about the app, so they only go to the
+    // Crashlytics log as context instead of opening an issue.
+    public static void reportDownloadException(Exception e) {
+        if (isNetworkException(e) || e instanceof HttpStatusException) {
+            e.printStackTrace();
+            crashlytics.log("download failed: " + e);
+        } else {
+            reportException(e);
+        }
+    }
+
+    public static boolean isNetworkException(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t instanceof SocketException            // incl. ConnectException, connection abort/reset
+                    || t instanceof UnknownHostException
+                    || t instanceof InterruptedIOException  // incl. SocketTimeoutException
+                    || t instanceof SSLException
+                    || t instanceof ProtocolException       // unexpected end of stream
+                    || t instanceof EOFException) {         // truncated response
+                return true;
+            }
+            if (t.getCause() == t) break;
+        }
+        return false;
     }
 
     public static Request getDownloadRequest(String url, String userAgent, String mimetype) {
@@ -240,17 +276,33 @@ public class KcUtils {
         return formatter.format(new Date(target_time));
     }
 
-    public static byte[] downloadDataFromURL(String url) throws IOException {
-        InputStream in = new BufferedInputStream(new URL(url).openStream());
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        int nRead;
-        byte[] data = new byte[16384];
-        while ((nRead = in.read(data, 0, data.length)) != -1) {
-            buffer.write(data, 0, nRead);
+    // The server answered with an error status (e.g. 404); not a fault in the app.
+    public static class HttpStatusException extends IOException {
+        public final int statusCode;
+
+        public HttpStatusException(String url, int statusCode) {
+            super("HTTP " + statusCode + " " + url);
+            this.statusCode = statusCode;
         }
-        buffer.flush();
-        in.close();
-        return buffer.toByteArray();
+    }
+
+    public static byte[] downloadDataFromURL(String url) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        try {
+            int statusCode = connection.getResponseCode();
+            if (statusCode >= 400) throw new HttpStatusException(url, statusCode);
+            try (InputStream in = new BufferedInputStream(connection.getInputStream())) {
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                int nRead;
+                byte[] data = new byte[16384];
+                while ((nRead = in.read(data, 0, data.length)) != -1) {
+                    buffer.write(data, 0, nRead);
+                }
+                return buffer.toByteArray();
+            }
+        } finally {
+            connection.disconnect();
+        }
     }
 
     public static class DownloadResult {
@@ -258,6 +310,8 @@ public class KcUtils {
         public String lastModified;
         public String cacheControl;
         public String error;
+        // Set with responseCode == -1: true for connectivity failures, false for local file errors.
+        public boolean networkError;
     }
 
     public static DownloadResult downloadResource(OkHttpClient client, String fullpath, File file) {
@@ -275,8 +329,8 @@ public class KcUtils {
 
         Log.e("GOTO", "download " + fullpath + " " + if_modified_since);
         Request request = builder.build();
-        try {
-            Response response = client.newCall(request).execute();
+        File temp = null;
+        try (Response response = client.newCall(request).execute()) {
             downloadResult.responseCode = response.code();
             downloadResult.lastModified = response.header("Last-Modified", null);
             downloadResult.cacheControl = response.header("Cache-Control", null);
@@ -289,15 +343,17 @@ public class KcUtils {
                     byte[] buffer = new byte[16384];
                     int bytes;
                     if (file != null) {
-                        File temp = newTempSibling(file);
-                        FileOutputStream fos = new FileOutputStream(temp);
-                        while ((bytes = in.read(buffer)) != -1) {
-                            fos.write(buffer, 0, bytes);
+                        temp = newTempSibling(file);
+                        try (FileOutputStream fos = new FileOutputStream(temp)) {
+                            while ((bytes = in.read(buffer)) != -1) {
+                                fos.write(buffer, 0, bytes);
+                            }
                         }
-                        fos.close();
-                        replaceFile(temp, file);
+                        if (!temp.renameTo(file)) {
+                            throw new IOException("failed to replace " + file.getPath());
+                        }
+                        temp = null;
                     }
-                    body.close();
                 }
             } else if (response.code() == 304) {
                 Log.e("GOTO", "304 Not Modified " + fullpath);
@@ -306,8 +362,13 @@ public class KcUtils {
             }
         } catch (Exception e) {
             Log.e("GOTO-E", getStringFromException(e));
-            KcUtils.reportException(e);
+            KcUtils.reportDownloadException(e);
+            // A failure while saving the body must not look like a successful 200.
+            downloadResult.responseCode = -1;
+            downloadResult.networkError = isNetworkException(e);
             downloadResult.error = getStringFromException(e);
+        } finally {
+            if (temp != null) temp.delete();
         }
         return downloadResult;
     }
@@ -329,13 +390,42 @@ public class KcUtils {
         return getRetrofitAdapter(context, baseUrl, true);
     }
 
-    public static Retrofit getRetrofitAdapter(Context context, String baseUrl, boolean followRedirects) {
-        OkHttpClient.Builder builder = new OkHttpClient().newBuilder();
-        builder.cache(new Cache(context.getCacheDir(), CACHE_SIZE_BYTES));
-        builder.followRedirects(followRedirects);
-        builder.followSslRedirects(followRedirects);
+    private static OkHttpClient sharedHttpClient;
+    private static OkHttpClient retrofitBaseClient;
 
-        OkHttpClient client = builder.build();
+    /**
+     * One client for the app's own HTTP calls, without a response cache. Building a client
+     * sets up TLS and its own connection pool, so each new one was slow to create (often on
+     * the main thread) and kept its own threads. Derive variants with {@code newBuilder()},
+     * which shares all of that.
+     */
+    public static synchronized OkHttpClient getSharedHttpClient() {
+        if (sharedHttpClient == null) {
+            sharedHttpClient = new OkHttpClient();
+        }
+        return sharedHttpClient;
+    }
+
+    /**
+     * The shared client plus the response cache, for every Retrofit adapter. One Cache
+     * instance only: separate instances must not share one directory.
+     */
+    private static synchronized OkHttpClient getRetrofitBaseClient(Context context) {
+        if (retrofitBaseClient == null) {
+            File cacheDir = context.getApplicationContext().getCacheDir();
+            retrofitBaseClient = getSharedHttpClient().newBuilder()
+                    .cache(new Cache(cacheDir, CACHE_SIZE_BYTES))
+                    .build();
+        }
+        return retrofitBaseClient;
+    }
+
+    public static Retrofit getRetrofitAdapter(Context context, String baseUrl, boolean followRedirects) {
+        // newBuilder() shares the base client's TLS setup, connection pool and cache.
+        OkHttpClient client = getRetrofitBaseClient(context).newBuilder()
+                .followRedirects(followRedirects)
+                .followSslRedirects(followRedirects)
+                .build();
         return new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create(getGson()))
                 .baseUrl(baseUrl)
@@ -372,12 +462,35 @@ public class KcUtils {
     }
 
     public static JsonObject readJsonObjectFromFile(String path) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+        File file = new File(path);
+        // Not downloaded yet is an expected state, not an error worth reporting.
+        if (!file.exists()) return null;
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             return getGson().fromJson(reader, JsonObject.class);
         } catch (IOException e) {
             KcUtils.reportException(e);
+        } catch (JsonParseException e) {
+            // Truncated or corrupted file: drop it so it can be downloaded again.
+            KcUtils.reportException(e);
+            file.delete();
         }
         return null;
+    }
+
+    // Writes through a temp sibling and renames it over the target, so a reader
+    // never sees a partially written file. Throws if the target was not replaced.
+    public static void writeStringToFileAtomically(File dest, String content) throws IOException {
+        File temp = newTempSibling(dest);
+        try (OutputStream os = new FileOutputStream(temp)) {
+            os.write(content.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            temp.delete();
+            throw e;
+        }
+        if (!temp.renameTo(dest)) {
+            temp.delete();
+            throw new IOException("failed to replace " + dest.getPath());
+        }
     }
 
     public static byte[] gzipcompress(String value) throws IOException {

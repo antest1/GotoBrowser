@@ -14,7 +14,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -264,7 +263,8 @@ public class KcwikiSubtitleProvider implements SubtitleProvider  {
                         String currentVersion = versionTable.getVersionValue(subtitle_path);
                         if (!versionObject.isEmpty()) {
                             String newVersion = versionObject.get("version").getAsString();
-                            if (!currentVersion.equals(newVersion)) {
+                            // Also offer the download when the file is gone (e.g. deleted as corrupted).
+                            if (!currentVersion.equals(newVersion) || !new File(subtitle_path).exists()) {
                                 String summary = String.format(Locale.US,
                                         host.getString(R.string.setting_latest_download_subtitle),
                                         newVersion);
@@ -325,10 +325,7 @@ public class KcwikiSubtitleProvider implements SubtitleProvider  {
                 }
                 JsonObject data = response.body();
                 if (data != null) {
-                    File subtitleFile = new File(subtitle_path);
-                    FileOutputStream fos = new FileOutputStream(subtitleFile);
-                    fos.write(data.toString().getBytes());
-                    fos.close();
+                    KcUtils.writeStringToFileAtomically(new File(subtitle_path), data.toString());
                     versionTable.putVersionValue(subtitle_path, data.get("version").getAsString());
                     host.setSubtitleUpdateStatus(host.getString(R.string.setting_latest_version), false);
                     host.onSubtitleDataUpdated();

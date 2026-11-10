@@ -1,8 +1,11 @@
 package com.antest1.gotobrowser.ui.component
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.view.MotionEvent
+import android.view.View
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.SizeTransform
@@ -13,6 +16,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,8 +45,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
@@ -58,6 +64,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -67,6 +74,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -89,12 +97,12 @@ import androidx.compose.ui.unit.sp
 import com.antest1.gotobrowser.Activity.PatchDownloadState
 import com.antest1.gotobrowser.Activity.SettingsViewModel
 import com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT
+import com.antest1.gotobrowser.Constants.PREF_ALTER_AUTO_DISABLE
 import com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT
 import com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET
 import com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD
 import com.antest1.gotobrowser.Constants.PREF_BROADCAST
 import com.antest1.gotobrowser.Constants.CONN_DMM
-import com.antest1.gotobrowser.Constants.CONN_KANMOE
 import com.antest1.gotobrowser.Constants.CONN_OOI
 import com.antest1.gotobrowser.Constants.PREF_CONNECTOR
 import com.antest1.gotobrowser.Constants.PREF_CURSOR_MODE
@@ -105,6 +113,9 @@ import com.antest1.gotobrowser.Constants.PREF_DOWNLOAD_RETRY
 import com.antest1.gotobrowser.Constants.DEFAULT_FPS_LIMIT
 import com.antest1.gotobrowser.Constants.PREF_FONT_PREFETCH
 import com.antest1.gotobrowser.Constants.PREF_FPS_LIMIT
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN_CENTER
+import com.antest1.gotobrowser.Constants.PREF_GAME_ALIGN_TOP
 import com.antest1.gotobrowser.Constants.PREF_KEYBOARD
 import com.antest1.gotobrowser.Constants.PREF_LANDSCAPE
 import com.antest1.gotobrowser.Constants.PREF_LEGACY_RENDERER
@@ -116,6 +127,10 @@ import com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_NAME
 import com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN
 import com.antest1.gotobrowser.Constants.PREF_PANELSTART
 import com.antest1.gotobrowser.Constants.PREF_PIP_MODE
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION_CENTER
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION_TOP
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_SWIPE
 import com.antest1.gotobrowser.Constants.PREF_SILENT
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE
@@ -171,6 +186,38 @@ enum class SettingsScreen {
     APP_INFO
 }
 
+/** Minimum width of the screen edge band where a touch is taken as a system bar swipe. */
+private const val EDGE_SWIPE_BAND_DP = 24
+
+/**
+ * Calls [onOutsideTouch] when a touch is released, unless it started in the screen edge band:
+ * the area where hidden system bars would be, the system gesture areas, or at least
+ * [EDGE_SWIPE_BAND_DP]. Cancelled touches (taken by a system gesture) are ignored.
+ */
+@SuppressLint("ClickableViewAccessibility")
+private fun outsideTouchListener(onOutsideTouch: () -> Unit): View.OnTouchListener {
+    var startedAtEdge = false
+    return View.OnTouchListener { view, event ->
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> startedAtEdge = isAtScreenEdge(view, event.x, event.y)
+            MotionEvent.ACTION_UP -> if (!startedAtEdge) onOutsideTouch()
+        }
+        true
+    }
+}
+
+private fun isAtScreenEdge(view: View, x: Float, y: Float): Boolean {
+    val insets = ViewCompat.getRootWindowInsets(view)
+    val bars = insets?.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars())
+    val gestures = insets?.getInsets(WindowInsetsCompat.Type.systemGestures())
+    val minBand = EDGE_SWIPE_BAND_DP * view.resources.displayMetrics.density
+    fun band(bar: Int?, gesture: Int?) = maxOf(minBand, (bar ?: 0).toFloat(), (gesture ?: 0).toFloat())
+    return x < band(bars?.left, gestures?.left) ||
+        x > view.width - band(bars?.right, gestures?.right) ||
+        y < band(bars?.top, gestures?.top) ||
+        y > view.height - band(bars?.bottom, gestures?.bottom)
+}
+
 private fun hideSystemBarsOf(window: android.view.Window) {
     val controller = WindowCompat.getInsetsController(window, window.decorView)
     controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -188,6 +235,8 @@ private fun hideSystemBarsOf(window: android.view.Window) {
  * @param activity host activity, used for actions that need a window (dialogs,
  *        snackbars). The sheet renders in its own window, so it cannot be
  *        resolved from [LocalContext] and must be supplied by the host.
+ * @param onCacheCleared called once the cache clear finishes, so the host can offer a
+ *        reload; the game keeps using what it already loaded until then.
  */
 @Composable
 fun SettingsBottomSheet(
@@ -196,7 +245,8 @@ fun SettingsBottomSheet(
     onDismissRequest: () -> Unit,
     onSettingChanged: (String) -> Unit,
     onLogoutRequest: () -> Unit = {},
-    onHelpClick: () -> Unit = {}
+    onHelpClick: () -> Unit = {},
+    onCacheCleared: () -> Unit = {}
 ) {
     // The sheet has its own blue palette; the game overlay underneath keeps the neutral theme.
     SettingsTheme {
@@ -206,7 +256,8 @@ fun SettingsBottomSheet(
             onDismissRequest = onDismissRequest,
             onSettingChanged = onSettingChanged,
             onLogoutRequest = onLogoutRequest,
-            onHelpClick = onHelpClick
+            onHelpClick = onHelpClick,
+            onCacheCleared = onCacheCleared
         )
     }
 }
@@ -219,9 +270,12 @@ private fun SettingsBottomSheetContent(
     onDismissRequest: () -> Unit,
     onSettingChanged: (String) -> Unit,
     onLogoutRequest: () -> Unit,
-    onHelpClick: () -> Unit
+    onHelpClick: () -> Unit,
+    onCacheCleared: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    // Each opening checks for updates again; screen switches inside it reuse the result.
+    LaunchedEffect(viewModel) { viewModel?.onSettingsOpened() }
     val snackbarHostState = remember { SnackbarHostState() }
     var currentScreen by remember { mutableStateOf(SettingsScreen.MAIN) }
 
@@ -231,10 +285,20 @@ private fun SettingsBottomSheetContent(
         onDispose { activity?.window?.let(::hideSystemBarsOf) }
     }
 
+    // Same animated close as the sheet's own scrim tap.
+    val scope = rememberCoroutineScope()
+    val dismissAnimated: () -> Unit = {
+        scope.launch { sheetState.hide() }.invokeOnCompletion {
+            if (!sheetState.isVisible) onDismissRequest()
+        }
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+        // Outside touches are handled below instead, to skip edge swipes.
+        properties = ModalBottomSheetProperties(shouldDismissOnClickOutside = false)
     ) {
         // ModalBottomSheet renders in its own dialog window. When that window gains focus
         // the system bars come back unless the dialog window hides them too, which also
@@ -255,6 +319,18 @@ private fun SettingsBottomSheetContent(
                     immersiveApplied.value = true
                 }
             }
+        }
+
+        // Touches the sheet does not consume (the scrim area) fall through to the dialog's
+        // decor view. Close the sheet on release, as the built-in scrim does, except for a
+        // touch that started at the screen edge: that is a swipe bringing up the system bars,
+        // and closing the sheet then would move focus back to the activity window, which makes
+        // the system hide the bars again right away.
+        val currentDismissAnimated by rememberUpdatedState(dismissAnimated)
+        DisposableEffect(dialogWindow) {
+            val decorView = dialogWindow?.decorView
+            decorView?.setOnTouchListener(outsideTouchListener { currentDismissAnimated() })
+            onDispose { decorView?.setOnTouchListener(null) }
         }
 
         Row(
@@ -334,7 +410,8 @@ private fun SettingsBottomSheetContent(
                     modifier = Modifier.fillMaxWidth(),
                     onDismissRequest = onDismissRequest,
                     onSettingChanged = onSettingChanged,
-                    onLogoutRequest = onLogoutRequest
+                    onLogoutRequest = onLogoutRequest,
+                    onCacheCleared = onCacheCleared
                 )
                 // Rendered inside the sheet so its messages appear above the
                 // sheet's own window rather than behind it. Padding keeps it
@@ -396,7 +473,8 @@ fun SettingsContent(
     modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit = {},
     onSettingChanged: (String) -> Unit = {},
-    onLogoutRequest: () -> Unit = {}
+    onLogoutRequest: () -> Unit = {},
+    onCacheCleared: () -> Unit = {}
 ) {
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
 
@@ -406,13 +484,6 @@ fun SettingsContent(
     val subtitleEnabled = if (isPreview) false else viewModel.subtitleUpdateEnabled.observeAsState(false).value
     val patchAboutTitle = if (isPreview) R.string.settings_mod_kantaien_about else viewModel.patchAboutTitleRes.observeAsState(R.string.settings_mod_kantaien_about).value
     val patchAboutUrl = if (isPreview) "" else viewModel.patchAboutUrl.observeAsState("").value
-
-    if (!isPreview) {
-        androidx.compose.runtime.LaunchedEffect(Unit) {
-            viewModel.refreshSubtitleDescription()
-            viewModel.refreshKccpDependentRows(null)
-        }
-    }
 
     Column(
         modifier = modifier
@@ -464,7 +535,7 @@ fun SettingsContent(
                 ControlSection(viewModel, onSettingChanged)
             }
             SettingsScreen.DOWNLOAD -> {
-                DownloadSection(viewModel, onSettingChanged)
+                DownloadSection(viewModel, onSettingChanged, onCacheCleared)
             }
             SettingsScreen.SUBTITLE -> {
                 SubtitleSection(viewModel, subtitleSummary, subtitleEnabled, onSettingChanged)
@@ -498,6 +569,16 @@ fun SettingsContent(
 private fun DisplaySection(viewModel: SettingsViewModel?, onSettingChanged: (String) -> Unit) {
     SwitchRow(viewModel, PREF_LANDSCAPE, R.string.mode_landscape, defaultValue = true, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_ADJUSTMENT, R.string.mode_adjustment, R.string.settings_recommended_summary, defaultValue = true, onSettingChanged = onSettingChanged)
+    val gameAlignOptions = gameAlignOptions()
+    val gameAlignSummary = stringResource(R.string.settings_game_align_summary)
+    ListRow(
+        viewModel, PREF_GAME_ALIGN, R.string.settings_game_align, gameAlignOptions,
+        defaultValue = PREF_GAME_ALIGN_CENTER,
+        summaryProvider = { value ->
+            gameAlignSummary.format(gameAlignOptions.firstOrNull { it.value == value }?.title ?: value)
+        },
+        onSettingChanged = onSettingChanged
+    )
     SwitchRow(viewModel, PREF_PIP_MODE, R.string.browser_enablepipmode, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_MULTIWIN_MARGIN, R.string.settings_mw_margin, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_LEGACY_RENDERER, R.string.settings_legacy_renderer_enable,
@@ -506,36 +587,52 @@ private fun DisplaySection(viewModel: SettingsViewModel?, onSettingChanged: (Str
 
 @Composable
 private fun ControlSection(viewModel: SettingsViewModel?, onSettingChanged: (String) -> Unit) {
+    SectionHeader(R.string.settings_toolbar_section_header)
+    SwitchRow(viewModel, PREF_PANELSTART, R.string.mode_show_panel, defaultValue = true, onSettingChanged = onSettingChanged)
+    SwitchRow(viewModel, PREF_DISABLE_REFRESH_DIALOG, R.string.browser_disable_refresh_dialog, onSettingChanged = onSettingChanged)
+    val toolbarPositionOptions = toolbarPositionOptions()
+    val toolbarPositionSummary = stringResource(R.string.settings_toolbar_position_summary)
+    ListRow(
+        viewModel, PREF_TOOLBAR_POSITION, R.string.settings_toolbar_position, toolbarPositionOptions,
+        defaultValue = PREF_TOOLBAR_POSITION_CENTER,
+        summaryProvider = { value ->
+            toolbarPositionSummary.format(toolbarPositionOptions.firstOrNull { it.value == value }?.title ?: value)
+        },
+        onSettingChanged = onSettingChanged
+    )
+    SwitchRow(viewModel, PREF_TOOLBAR_SWIPE, R.string.settings_toolbar_swipe, R.string.settings_toolbar_swipe_summary,
+        defaultValue = true, onSettingChanged = onSettingChanged)
+
+    SectionHeader(R.string.settings_game_control_section_header)
     SwitchRow(viewModel, PREF_KEYBOARD, R.string.mode_enable_keyboard, defaultValue = true, onSettingChanged = onSettingChanged)
     ListRow(viewModel, PREF_CURSOR_MODE, R.string.setting_cursor_mode, cursorModeOptions(), onSettingChanged = onSettingChanged)
-    SwitchRow(viewModel, PREF_DISABLE_REFRESH_DIALOG, R.string.browser_disable_refresh_dialog, onSettingChanged = onSettingChanged)
-    SwitchRow(viewModel, PREF_PANELSTART, R.string.mode_show_panel, defaultValue = true, onSettingChanged = onSettingChanged)
 }
 
 @Composable
-private fun DownloadSection(viewModel: SettingsViewModel?, onSettingChanged: (String) -> Unit) {
-    val context = LocalContext.current
+private fun DownloadSection(viewModel: SettingsViewModel?, onSettingChanged: (String) -> Unit, onCacheCleared: () -> Unit) {
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
     SwitchRow(viewModel, PREF_USE_EXTCACHE, R.string.settings_use_external_dir, R.string.settings_recommended_summary,
         onChanged = { if (!isPreview) viewModel.onExternalCacheChanged() }, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_FONT_PREFETCH, R.string.browser_fontprefetch, R.string.settings_recommended_summary, defaultValue = true, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_DOWNLOAD_RETRY, R.string.settings_retry_enable, R.string.settings_retry_summary,
         onSettingChanged = onSettingChanged)
+    // Runs in the background; the row stays disabled until it finishes.
+    val clearing = if (isPreview) false else viewModel.cacheClearing.observeAsState(false).value
     ClickRow(
         title = R.string.cache_clear_text,
-        summary = R.string.clearcache_msg,
-        onClick = {
-            if (!isPreview) {
-                viewModel.clearBrowserCache()
-                KcUtils.showToast(context.applicationContext, R.string.cache_cleared_toast)
-            }
-        }
+        summary = if (clearing) R.string.cache_clearing else R.string.clearcache_msg,
+        enabled = !clearing,
+        onClick = { if (!isPreview) viewModel.clearBrowserCache(onCacheCleared) }
     )
 }
 
 @Composable
 private fun SubtitleSection(viewModel: SettingsViewModel?, subtitleSummary: String, subtitleEnabled: Boolean, onSettingChanged: (String) -> Unit) {
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
+    // Checked on this screen, the one that shows the result, once per sheet opening.
+    if (!isPreview) {
+        LaunchedEffect(Unit) { viewModel.checkSubtitleUpdateOnce() }
+    }
     // PREF_SUBTITLE_LOCALE is stored as "" until the user picks a language (see
     // SettingsViewModel.refreshSubtitleDescription, which treats "" as "not selected").
     // Show that state explicitly instead of printing the raw empty string.
@@ -600,7 +697,7 @@ private fun ConnectionLoginSection(
 
     ClickRow(
         title = R.string.autocomplete_title,
-        summary = R.string.autocomplete_msg,
+        summary = R.string.settings_autocomplete_summary,
         onClick = { showLoginForm = true }
     )
 
@@ -624,8 +721,12 @@ private fun ConnectionLoginSection(
 
     ClickRow(
         title = R.string.menu_tooltip_logout,
+        summary = R.string.settings_logout_summary,
         onClick = onLogoutRequest
     )
+
+    // --- Browser -------------------------------------------------------------
+    SectionHeader(R.string.settings_browser_section_header)
 
     // Shown when the user switches to an unofficial connector for the first time.
     var showDisclaimer by remember { mutableStateOf(false) }
@@ -694,10 +795,12 @@ private fun ConnectionLoginSection(
     // navigation level.
     SectionHeader(R.string.settings_bypass_section_header)
 
+    // Held as state so the dependent rows follow the switch right away.
+    var alterGadgetEnabled by remember { mutableStateOf(if (isPreview) false else viewModel.isAlterGadgetEnabled()) }
     SwitchRow(viewModel, PREF_ALTER_GADGET, R.string.connection_use_alter, R.string.connection_use_alter_summary,
+        onChanged = { if (!isPreview) alterGadgetEnabled = viewModel.isAlterGadgetEnabled() },
         onSettingChanged = onSettingChanged)
 
-    val alterGadgetEnabled = if (isPreview) false else viewModel.getBoolean(PREF_ALTER_GADGET, false)
     ListRow(
         viewModel, PREF_ALTER_METHOD, R.string.setting_alter_method, alterMethodOptions(),
         enabled = alterGadgetEnabled,
@@ -743,6 +846,10 @@ private fun ConnectionLoginSection(
             onDismiss = { showEndpointDialog = false }
         )
     }
+
+    // Read on each game load, so it can be set before turning the bypass on.
+    SwitchRow(viewModel, PREF_ALTER_AUTO_DISABLE, R.string.setting_alter_auto_disable,
+        R.string.setting_alter_auto_disable_summary, defaultValue = true, onSettingChanged = onSettingChanged)
 }
 
 @Composable
@@ -756,6 +863,10 @@ private fun ModsSection(
 ) {
     val context = LocalContext.current
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
+    // Checked on this screen, the one that shows the result, once per sheet opening.
+    if (!isPreview) {
+        LaunchedEffect(Unit) { viewModel.checkPatchUpdateOnce() }
+    }
 
     // --- Group 1: General Mods -----------------------------------------------
     SectionHeader(R.string.settings_mod_group_general)
@@ -789,10 +900,17 @@ private fun ModsSection(
 
     // --- Group 3: English & Language Patches --------------------------------
     SectionHeader(R.string.settings_mod_group_kccp)
+    // Held as state so the dependent rows follow the switch right away.
+    var patchEnabled by remember { mutableStateOf(if (isPreview) false else viewModel.isKccpPatchEnabled()) }
     SwitchRow(viewModel, PREF_MOD_KCCP_LANG_PATCH, R.string.settings_mod_kccp, R.string.settings_mod_kccp_summary,
-        onChanged = { if (!isPreview) viewModel.onKccpPatchChanged() }, onSettingChanged = onSettingChanged)
+        onChanged = {
+            if (!isPreview) {
+                patchEnabled = viewModel.isKccpPatchEnabled()
+                viewModel.onKccpPatchChanged()
+            }
+        },
+        onSettingChanged = onSettingChanged)
 
-    val patchEnabled = if (isPreview) false else viewModel.isKccpPatchEnabled()
     ListRow(
         viewModel, PREF_MOD_KCCP_LANG_PATCH_NAME, R.string.settings_mod_kccp_patch_name, kccpLanguageOptions(),
         enabled = patchEnabled,
@@ -897,14 +1015,16 @@ private fun AppInfoSection(
  */
 @Composable
 private fun SectionHeader(titleRes: Int) {
-    ListItem(
-        headlineContent = {
-            Text(
-                text = stringResource(titleRes),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
+    // Not a ListItem: its 56dp minimum height centered the small label and left it far from
+    // the rows it introduces. Same background and 16dp inset as the rows below.
+    Text(
+        text = stringResource(titleRes),
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(ListItemDefaults.containerColor)
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp)
     )
 }
 
@@ -926,9 +1046,12 @@ private fun SwitchRow(
 ) {
     val isPreview = androidx.compose.ui.platform.LocalInspectionMode.current || viewModel == null
     val checked = remember { mutableStateOf(if (isPreview) defaultValue else viewModel.getBoolean(key, defaultValue)) }
+    // Dimmed like ClickRow when disabled, not just the switch itself.
+    val textColor = if (enabled) MaterialTheme.colorScheme.onSurface
+    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     ListItem(
-        headlineContent = { Text(stringResource(titleRes)) },
-        supportingContent = summaryRes?.let { { Text(stringResource(it)) } },
+        headlineContent = { Text(stringResource(titleRes), color = textColor) },
+        supportingContent = summaryRes?.let { { Text(stringResource(it), color = textColor) } },
         trailingContent = {
             Switch(
                 checked = checked.value,
@@ -1003,9 +1126,12 @@ private fun ListRow(
     }
     var showDialog by remember { mutableStateOf(false) }
 
+    // Dimmed like ClickRow when disabled, not just made unclickable.
+    val textColor = if (enabled) MaterialTheme.colorScheme.onSurface
+    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     ListItem(
-        headlineContent = { Text(stringResource(titleRes)) },
-        supportingContent = { Text(summaryProvider(selected)) },
+        headlineContent = { Text(stringResource(titleRes), color = textColor) },
+        supportingContent = { Text(summaryProvider(selected), color = textColor) },
         modifier = if (enabled) Modifier.clickable { showDialog = true } else Modifier
     )
     HorizontalDivider()
@@ -1303,6 +1429,18 @@ private fun fpsLimitOptions(context: Context): List<ListOption> {
     return options
 }
 
+@Composable
+private fun gameAlignOptions() = listOf(
+    ListOption(PREF_GAME_ALIGN_CENTER, stringResource(R.string.settings_game_align_center)),
+    ListOption(PREF_GAME_ALIGN_TOP, stringResource(R.string.settings_game_align_top))
+)
+
+@Composable
+private fun toolbarPositionOptions() = listOf(
+    ListOption(PREF_TOOLBAR_POSITION_CENTER, stringResource(R.string.settings_toolbar_position_center)),
+    ListOption(PREF_TOOLBAR_POSITION_TOP, stringResource(R.string.settings_toolbar_position_top))
+)
+
 private fun cursorModeOptions() = listOf(
     ListOption("1", "Screen Touch"),
     ListOption("2", "Using Mouse")
@@ -1328,7 +1466,6 @@ private fun kccpLanguageOptions() = listOf(
 
 private fun connectorOptions() = listOf(
     ListOption(CONN_DMM, CONN_DMM),
-    ListOption(CONN_KANMOE, CONN_KANMOE),
     ListOption(CONN_OOI, CONN_OOI)
 )
 

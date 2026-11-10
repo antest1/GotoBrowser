@@ -30,9 +30,13 @@ public class Constants {
     public static final String PREF_ALTER_GADGET = "pref_alter_gadget";
     public static final String PREF_CHECK_UPDATE = "pref_check_update";
     public static final String PREF_MULTIWIN_MARGIN = "pref_multiwin_margin";
+    public static final String PREF_GAME_ALIGN = "pref_game_align";
+    public static final String PREF_TOOLBAR_POSITION = "pref_toolbar_position";
+    public static final String PREF_TOOLBAR_SWIPE = "pref_toolbar_swipe";
     public static final String PREF_DEVTOOLS_DEBUG = "pref_devtools_debug";
     public static final String PREF_ALTER_METHOD = "pref_alter_method";
     public static final String PREF_ALTER_ENDPOINT = "pref_alter_endpoint";
+    public static final String PREF_ALTER_AUTO_DISABLE = "pref_alter_auto_disable";
     public static final String PREF_TP_DISCLAIMED = "pref_tp_disclaimed";
     public static final String PREF_LEGACY_RENDERER = "pref_legacy_renderer";
     public static final String PREF_MOD_KANTAI3D = "pref_mod_kantai3d";
@@ -58,13 +62,12 @@ public class Constants {
     public static final String PREF_ALTER_METHOD_PROXY = "2";
 
     public static final String CONN_DMM = "DMM direct";
-    public static final String CONN_KANMOE = "kancolle.moe";
     public static final String CONN_OOI = "ooi.moe";
 
     public static final String URL_DMM = "https://play.games.dmm.com/game/kancolle";
     public static final String URL_OOI = "https://ooi.moe/";
-    public static final String URL_KANMOE = "https://kancolle.moe/";
-    public static final String[] URL_LIST = {URL_DMM, URL_KANMOE, URL_OOI};
+    public static final String URL_OOI_ORIGIN = "https://ooi.moe";
+    public static final String[] URL_LIST = {URL_DMM, URL_OOI};
     public static final String URL_GOOGLE_ACCOUNTS = "https://accounts.google.com/";
 
     public static final String URL_DMM_LOGIN = "www.dmm.com/my/-/login/";
@@ -72,10 +75,8 @@ public class Constants {
     public static final String URL_DMM_FOREIGN = "www.dmm.com/netgame/foreign";
     public static final String URL_DMM_FOREIGN_2 = "special.dmm.com/not-available-in-your-region";
     public static final String URL_OOI_1 = "ooi.moe/kancolle";
-    public static final String URL_KANMOE_1 = "kancolle.moe/kancolle";
     public static final String URL_DMM_LOGOUT = "https://www.dmm.com/my/-/login/logout/=/path=Sg9VTQFXDFcXFl5bWlcKGExKUVdUXgFNEU0KSVMVR28MBQ0BUwJZBwxK";
     public static final String URL_OOI_LOGOUT = "https://ooi.moe/logout";
-    public static final String URL_KANMOE_LOGOUT = "https://kancolle.moe/logout";
 
     public static final String ADD_VIEWPORT_META = "var metaTag=document.createElement('meta');metaTag.name='viewport',metaTag.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',document.getElementsByTagName('head')[0].appendChild(metaTag);";
 
@@ -88,11 +89,16 @@ public class Constants {
     public static final String CAPTURE_LISTEN = "window.addEventListener(\"message\",function(e){if(e.data.capture!=null){(async function(){{let canvas=document.querySelector('canvas');requestAnimationFrame(()=>{{if(canvas!=null){let dataurl=canvas.toDataURL('image/png');GotoBrowser.kcs_process_canvas_dataurl(dataurl);}}});}})();}});";
 
     public static final String REFRESH_GAME_FRAME_DMM = "(function(){var f=document.getElementById(\"game_frame\")||document.getElementsByTagName(\"iframe\")[0];if(f!=null&&f.contentWindow){f.contentWindow.postMessage(\"gotobrowser_quick_reload\",\"*\");return \"done\";}location.reload();return \"fallback\";})()";
+    // Adds the ooi.css asset to an ooi.moe page (not the game frame) as a <style>; %s is the CSS as
+    // a JS string literal. Does nothing the second time, so it can run at document start and on load.
+    public static final String OOI_STYLE_SCRIPT = "(function(){try{if(window!==window.top)return;var id=\"gotobrowser-ooi-style\";if(document.getElementById(id))return;var s=document.createElement(\"style\");s.id=id;s.textContent=%s;(document.head||document.documentElement).appendChild(s);}catch(e){}})();";
     public static final String REFRESH_GAME_FRAME_OOI = "(function(){var f=document.getElementById(\"externalswf\")||document.getElementsByTagName(\"iframe\")[0];if(f!=null&&f.contentWindow){f.contentWindow.postMessage(\"gotobrowser_quick_reload\",\"*\");return \"done\";}location.reload();return \"fallback\";})()";
 
     public static final String ADJUST_SCRIPT = "(()=>{const t=\"data-game-resize-init\",e=1200;if(document.documentElement.hasAttribute(t))return;document.documentElement.setAttribute(t,\"true\");const n=()=>{const t=document.querySelector(\".gamesResetStyle\");if(!t)return!1;const n=document.createElement(\"style\");n.textContent=\".gamesResetStyle>main{margin:0!important;padding:0!important}.gamesResetStyle>:not(main){display:none!important}#game_frame{transform-origin:top left}\",document.head.appendChild(n);const i=document.getElementById(\"game_frame\");if(!i)return!1;const o=()=>{console.log(\"innerWidth:\",window.innerWidth),i.style.transform=`scale(${window.innerWidth/e})`};let r=0;const a=()=>{cancelAnimationFrame(r),r=requestAnimationFrame(o)};return window.addEventListener(\"resize\",a,{passive:!0}),o(),!0},i=new MutationObserver((()=>{n()&&i.disconnect()}));i.observe(document.body,{childList:!0,subtree:!0}),n()})();";
     public static final String AUTOCOMPLETE_DMM = "function v(e,t){let o=Object.getOwnPropertyDescriptor(e,\"value\").set,s=Object.getPrototypeOf(e),l=Object.getOwnPropertyDescriptor(s,\"value\").set;o&&o!==l?l.call(e,t):o.call(e,t)}if(document.forms.loginForm!=undefined){v(document.forms.loginForm.elements.login_id,\"%s\"),document.forms.loginForm.elements.login_id.dispatchEvent(new Event(\"input\",{bubbles:!0})),v(document.forms.loginForm.elements.password,\"%s\"),document.forms.loginForm.elements.password.dispatchEvent(new Event(\"input\",{bubbles:!0}));}";
-    public static final String AUTOCOMPLETE_OOI = "$('input[name=\"login_id\"]').val(\"%s\");$('input[name=\"password\"]').val(\"%s\");";
+    // %s are JS string literals (see WebViewManager.ooiAutofillScript). An empty value leaves the
+    // field alone, so the account ooi.moe remembers itself is kept when none is saved in the app.
+    public static final String AUTOCOMPLETE_OOI = "(function(){function f(n,v){var e=document.querySelector('input[name=\"'+n+'\"]');if(e&&v)e.value=v;}f(\"login_id\",%s);f(\"password\",%s);})();";
 
     public static final String GITHUB_ROOT = "https://github.com/";
     public static final String GITHUBAPI_ROOT = "https://api.github.com/";
@@ -106,8 +112,7 @@ public class Constants {
             "doubleclick.net",
             "googletagmanager.com/",
             "facebook.com",
-            "pics.dmm.com/",
-            "/uikit"
+            "pics.dmm.com/"
     };
 
     public static final String GADGET_OSAPI_IFR = "osapi.dmm.com/gadgets/ifr?aid=854854";
@@ -119,6 +124,10 @@ public class Constants {
 
     public static final String PREF_CURSOR_MODE_TOUCH = "1";
     public static final String PREF_CURSOR_MODE_MOUSE = "2";
+    public static final String PREF_GAME_ALIGN_CENTER = "center";
+    public static final String PREF_GAME_ALIGN_TOP = "top";
+    public static final String PREF_TOOLBAR_POSITION_CENTER = "center";
+    public static final String PREF_TOOLBAR_POSITION_TOP = "top";
 
     public static final String APP_UI_HELP_VER = "20211002";
     public static final String KCANOTIFY_PACKAGE_NAME = "com.antest1.kcanotify";

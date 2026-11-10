@@ -5,21 +5,23 @@
     <string name="action_ok">확인</string>
     <string name="action_cancel">취소</string>
     <string name="selected_server">접속기</string>
-    <string name="select_server">접속기 선택</string>
-    <string name="select_server_toast">접속기를 먼저 선택해주세요.</string>
+    <string name="select_server">접속 방법 선택</string>
+    <string name="select_server_toast">접속 방법을 먼저 선택해주세요.</string>
     <string name="cache_clear_text">캐시 비우기</string>
-    <string name="cache_cleared_toast">웹뷰 캐시 비우기 완료</string>
+    <string name="cache_clearing">캐시를 비우는 중…</string>
+    <string name="cache_cleared_refresh_msg">캐시를 비웠습니다. 게임을 새로고침하면 리소스를 다시 받아옵니다. 지금 새로고침하시겠습니까?</string>
+    <string name="webview_unavailable">Android System WebView를 불러오지 못했습니다. 업데이트 중일 수 있으니 잠시 후 다시 실행하거나, Play 스토어에서 업데이트 또는 활성화해 주세요.</string>
     <string name="clearcache_msg">이미지나 오디오가 제대로 불러와지지 않거나 로그인 방식을 바꿀 때 사용하세요. 삭제 후에는 다시 로그인해야 할 수 있습니다.</string>
     <string name="thirdpartyconnector_msg">비공식 웹 프록시 기반 연결(OOI 등)의 경우, 해당 정책에 따라 게임 리소스가 원본과 다를 수 있습니다. GotoBrowser는 각 연결의 정책을 관여하지 않습니다. 비공식 리소스를 표시하고 싶지 않다면 캐시를 삭제하고 DMM Direct로 플레이하세요.</string>
     <string name="backpress_msg">종료하려면 뒤로 버튼을 다시 누르세요.</string>
     <string name="refresh_msg">새로고침 하시겠습니까?</string>
     <string name="refresh_quick_msg">전체 웹 페이지 대신 게임 프레임만 다시 불러옵니다.\n\n빠른 새로고침이 항상 성공하는 것은 아닙니다. 네트워크 오류가 발생하면 전체 새로고침을 사용해 주세요.</string>
     <string name="refresh_full_msg">전체 웹 페이지를 다시 불러옵니다. 가장 확실한 새로고침 방법이지만 빠른 새로고침보다 오래 걸립니다.</string>
-    <string name="mode_landscape">가로 고정만</string>
+    <string name="mode_landscape">가로 화면 고정</string>
     <string name="mode_adjustment">레이아웃 자동 조정</string>
     <string name="mode_silent">음량 OFF로 시작</string>
     <string name="mode_broadcast">브로드캐스트 모드</string>
-    <string name="mode_broadcast_summary">Kcanotify 등 다른 앱으로 게임 데이터를 전송합니다</string>
+    <string name="mode_broadcast_summary">Kcanotify 등 다른 앱으로 게임 데이터를 전송합니다.</string>
     <string name="mode_show_panel">시작 시 패널 보이기</string>
     <string name="mode_enable_keyboard">키보드 입력 활성화</string>
     <string name="button_start">게임시작</string>
@@ -32,12 +34,17 @@
     <string name="settings_version_label">현재 버전</string>
     <string name="settings_version_check">업데이트 확인</string>
     <string name="settings_recommended_summary">권장</string>
-    <string name="settings_display_label">화면 표시</string>
-    <string name="settings_control_label">조작</string>
-    <string name="settings_download_label">캐시</string>
+    <string name="settings_display_label">게임 화면 표시</string>
+    <string name="settings_control_label">조작 및 툴바</string>
+    <string name="settings_download_label">캐시 설정</string>
     <string name="settings_connection_login_label">로그인 및 접속</string>
-    <string name="settings_login_section_header">로그인</string>
+    <string name="settings_login_section_header">게임 로그인</string>
+    <string name="settings_browser_section_header">브라우저 설정</string>
     <string name="settings_bypass_section_header">Gadget 서버 우회</string>
+    <string name="settings_autocomplete_summary">로그인 화면에 자동으로 입력할 계정을 저장합니다.</string>
+    <string name="settings_logout_summary">접속기의 로그인 화면으로 돌아갑니다.</string>
+    <string name="settings_toolbar_section_header">툴바</string>
+    <string name="settings_game_control_section_header">게임 조작</string>
     <string name="settings_subtitle_label">자막 설정</string>
     <string name="settings_subtitle_fontsize" >폰트 크기</string>
     <string name="settings_subtitle_example" formatted="false">텍스트 사이즈: %d</string>
@@ -53,7 +60,7 @@
     <string name="browser_fontprefetch">폰트 파일 미리 로드</string>
     <string name="browser_enablepipmode">PIP 모드 활성화</string>
     <string name="browser_enablepipmode_summary">홈 화면으로 돌아가거나, 위로 스와이프하거나, 화면을 두 손가락으로 모으는 핀치 축소 제스처를 취하면 작은 플로팅 창으로 앱이 계속 실행됩니다.</string>
-    <string name="browser_disable_refresh_dialog">새로고침 확인 비활성화</string>
+    <string name="browser_disable_refresh_dialog">확인 없이 새로고침</string>
     <string name="logout_msg">로그아웃하시겠습니까?</string>
     <string name="noti_screenshot_name">GotoBrowser 스크린샷</string>
     <string name="noti_screenshot_title">스크린샷 저장됨</string>
@@ -64,9 +71,21 @@
     <string name="settings_source_code">소스 코드</string>
     <string name="subtitle_select_language">언어를 먼저 선택해주세요.</string>
     <string name="settings_mw_margin">[멀티윈도우] 분할 바로부터 여백 추가</string>
+    <string name="settings_game_align">게임 화면 세로 위치</string>
+    <string name="settings_game_align_center">가운데</string>
+    <string name="settings_game_align_top">위쪽</string>
+    <string name="settings_game_align_summary">%1$s (게임 위아래에 여백이 있을 때 적용)</string>
+    <string name="settings_toolbar_position">툴바 표시 위치</string>
+    <string name="settings_toolbar_position_center">가운데</string>
+    <string name="settings_toolbar_position_top">위쪽 · 클래식</string>
+    <string name="settings_toolbar_position_summary">%1$s (가로 화면에 적용)</string>
+    <string name="settings_toolbar_swipe">가장자리 스와이프로 툴바 표시</string>
+    <string name="settings_toolbar_swipe_summary">끄면 가장자리 스와이프가 시스템 제스처로만 동작합니다.</string>
     <string name="setting_devtools_enable">DevTools 디버깅 활성화</string>
     <string name="connection_use_alter">Gadget 서버 우회 활성화</string>
     <string name="connection_use_alter_summary">해외 IP 차단 문제(검은 화면에서 멈춤)가 발생하는 경우 이 설정을 활성화해야 합니다.</string>
+    <string name="setting_alter_auto_disable">우회 자동 비활성화</string>
+    <string name="setting_alter_auto_disable_summary">차단 없이 정상적으로 접속되면 우회 옵션을 자동으로 끕니다.</string>
     <string name="setting_connection">접속 설정</string>
     <string name="setting_alter_method_url">URL 교체</string>
     <string name="setting_alter_method_proxy">KCCacheProxy (remote)</string>
@@ -95,13 +114,13 @@
     <string name="settings_mod_group_kantai3d">Kantai3D 시각 모드</string>
     <string name="settings_mod_group_kccp">언어 번역 패치 (KCCP)</string>
     <string name="settings_mod_kantai3d_enable">Kantai3D v4.0</string>
-    <string name="settings_mod_kantai3d_summary">일부 비서함에 3D 효과 적용. 저자: @laplamgor</string>
+    <string name="settings_mod_kantai3d_summary">일부 비서함에 3D 효과를 적용합니다. 저자: @laplamgor</string>
     <string name="settings_mod_kantai3d_about">About Kantai3D</string>
     <string name="settings_mod_kantaien_enable">KanColle English Patch</string>
     <string name="settings_mod_kantaien_download">패치 데이터 다운로드</string>
     <string name="settings_mod_kantaien_download_start">다운로드 중… 다운로드하는 동안 애플리케이션을 백그라운드에 그대로 둘 수 있습니다.</string>
     <string name="settings_mod_kantaien_delete">패치 데이터 삭제</string>
-    <string name="settings_mod_kantaien_delete_summary">패치가 예기치 않은 동작을 나타내거나 다운로드 중에 문제가 발생한 경우 이 설정을 사용하세요.</string>
+    <string name="settings_mod_kantaien_delete_summary">패치가 예기치 않게 동작하거나 다운로드 중 문제가 발생한 경우에 사용합니다.</string>
     <string name="settings_mod_kantaien_about">KanColle English Patch에 대해</string>
     <string name="patch_download_checking">변경 사항 확인 중…</string>
     <string name="patch_download_archive">패치 압축 파일 다운로드 중…</string>
@@ -114,7 +133,7 @@
     <string name="settings_mod_kantaiid_about">KanColle Indonesia Patch에 대해</string>
 
     <string name="settings_mod_kccp">KanColle Language Patch (KCCP)</string>
-    <string name="settings_mod_kccp_summary">게임 내 텍스트를 다른 언어로 번역</string>
+    <string name="settings_mod_kccp_summary">게임 내 텍스트를 다른 언어로 번역합니다.</string>
     <string name="settings_mod_kccp_patch_name">적용할 언어 패치</string>
     <string name="settings_mod_kccp_patch_en_summary">KanColle English Patch (저자: @Oradimi)</string>
     <string name="settings_mod_kccp_patch_id_summary">KanColle Indonesia Patch (저자: @SLAVUSworks)</string>
@@ -127,7 +146,7 @@
     <string name="settings_fps_limit_default">기본 (최대)</string>
     <string name="settings_fps_limit_option">%d FPS</string>
     <string name="settings_mod_crit_enable">진정한 크리티컬 히트</string>
-    <string name="settings_mod_crit_summary">하드 코딩된 데미지의 난독화를 제거합니다. 크리티컬 히트(CL2)만을 Critical Hit로 표시됩니다. 저자: @Oradimi</string>
+    <string name="settings_mod_crit_summary">하드 코딩된 데미지의 난독화를 제거합니다. 크리티컬 히트(CL2)만 Critical Hit로 표시합니다. 저자: @Oradimi</string>
     <string name="settings_use_external_dir">리소스 캐싱 시 외부 저장소 사용</string>
 
     <string name="en_download_start">다운로드 시작 중…</string>
@@ -156,6 +175,7 @@
     <string name="settings_refresh_required_msg">설정이 저장되었습니다. 변경 사항을 적용하려면 게임을 새로고침해야 합니다. 지금 새로고침하시겠습니까?</string>
     <string name="settings_refresh_now">지금 새로고침</string>
     <string name="settings_refresh_later">새로고침 없이 설정 변경</string>
+    <string name="refresh_later">나중에</string>
     <!-- First-screen loading status and server errors -->
     <string name="loading_preparing_title">설정 적용 중</string>
     <string name="loading_preparing_desc">프록시와 패치 설정을 준비하고 있습니다</string>

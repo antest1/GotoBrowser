@@ -28,6 +28,7 @@ import static com.antest1.gotobrowser.ContentProvider.KcaContentProvider.BROADCA
 import static com.antest1.gotobrowser.ContentProvider.KcaPacketStore.PACKETSTORE_VERSION;
 
 public class KcsInterface {
+    // ooi.moe keys its app-only layout on this name (window.GotoBrowser), so it must not change.
     public static final String GOTO_ANDROID = "GotoBrowser";
     // Responses go to kcs_xhr_intercept; a kcsapi call that fails (no network, timeout, HTTP error)
     // goes to kcs_axios_error. The error branch hooks axios itself, so it does not depend on how

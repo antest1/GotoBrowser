@@ -21,39 +21,43 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 
 ##### Login and Connection
 
-| Name | Description | Applies |
-| --- | --- | --- |
-| Login Autocomplete | ID and password to be filled into the login form automatically. Stored only within the device | After reload |
-| Logout | Logs out of the game and returns to the login page of the connector | |
-| Select Login Method | DMM direct (default) / kancolle.moe / ooi.moe<br/>A notice about game resources is shown when an unofficial connector is selected for the first time | After reload |
-| Start with Audio OFF | Sets the in-game BGM/SE/VOICE volume to 0 when the game starts (same as the official application function)<br/>Available only with DMM direct | After reload |
-| Broadcast Mode | Sends the KanColle-related communication to other applications such as Kcanotify (on by default)<br/>Must be turned on to use with Kcanotify | Immediately |
-| Gadget Block Bypass | Turn on if you are experiencing the foreign IP block issue (infinite black screen) | After reload |
-| Bypass Method | Select URL Replacement or KCCacheProxy (remote) (use "URL Replacement" in most cases) | After reload |
-| Bypass Endpoint Server | Server URL to use for bypass<br/>`https://kcwiki.github.io/cache/` (default) | After reload |
+| Group | Name | Description | Applies |
+| --- | --- | --- | --- |
+| Game Login | Login Autocomplete | ID and password to be filled into the login form automatically. Stored only within the device | After reload |
+| Game Login | Logout | Logs out of the game and returns to the login page of the connector | |
+| Browser Settings | Select Login Method | DMM direct (default) / ooi.moe<br/>A notice about game resources is shown when an unofficial connector is selected for the first time | After reload |
+| Browser Settings | Start with Audio OFF | Sets the in-game BGM/SE/VOICE volume to 0 when the game starts (same as the official application function)<br/>Available only with DMM direct | After reload |
+| Browser Settings | Broadcast Mode | Sends the KanColle-related communication to other applications such as Kcanotify (on by default)<br/>Must be turned on to use with Kcanotify | Immediately |
+| Gadget Block Bypass | Gadget Block Bypass | Turn on if you are experiencing the foreign IP block issue (infinite black screen) | After reload |
+| Gadget Block Bypass | Bypass Method | Select URL Replacement or KCCacheProxy (remote) (use "URL Replacement" in most cases) | After reload |
+| Gadget Block Bypass | Bypass Endpoint Server | Server URL to use for bypass<br/>`https://kcwiki.github.io/cache/` (default) | After reload |
+| Gadget Block Bypass | Auto-Disable Bypass | Turns the bypass off automatically once the game connects without being blocked (on by default) | Immediately |
 
 For related information, refer to the <span class="link" data-move="gadgetbypass">IP Block Bypass (Non-Japan)</span> page. Bypass Method and Bypass Endpoint Server cannot be selected while Gadget Block Bypass is turned off.
 
-##### Display
+##### Game Display
 
 | Name | Description | Applies |
 | --- | --- | --- |
-| Only Landscape | Always play in landscape mode regardless of device orientation (on by default) | Immediately |
+| Lock to Landscape | Always play in landscape mode regardless of device orientation (on by default) | Immediately |
 | Auto Layout Adjustment | Automatically scales the game screen to fit the device screen (recommended, on by default) | After reload |
+| Game Vertical Position | Places the game at the center or the top when there is space above and below it, such as in portrait or split screen (center by default) | Immediately |
 | Picture-in-picture mode | Shows the game in a small floating window when you leave for the home screen or pinch-zoom out on the game screen | Immediately |
 | [Multi-Window] Add Margin from Divider | Adds a margin to prevent the screen from sticking to the divider when using the multi-window function | Immediately |
 | Legacy Renderer | Force PixiJS game engine to use Canvas renderer instead of WebGL renderer (recommended to disable if no graphic related issues occur)<br/>Kantai3D cannot be used while this is on | After reload |
 
 For PIP/multi-window information, refer to the <span class="link" data-move="pipmode">PIP/Multi-window</span> page.
 
-##### Controls
+##### Controls & Toolbar
 
-| Name | Description | Applies |
-| --- | --- | --- |
-| Enable Keyboard Input | Whether keyboard input is available on the game screen (on by default) | Immediately |
-| Optimize Pointer Device | Choose the input method when playing the game (Touch Screen or Mouse or Trackpad) | After reload |
-| Disable Refresh Warning Dialog | The game screen is refreshed immediately without a confirmation dialog | Immediately |
-| Show Control Panel on Start | Starts with the toolbar shown when the app starts (on by default) | Next launch |
+| Group | Name | Description | Applies |
+| --- | --- | --- | --- |
+| Toolbar | Show Control Panel on Start | Starts with the toolbar shown when the app starts (on by default) | Next launch |
+| Toolbar | Refresh Without Confirmation | The game screen is refreshed immediately without a confirmation dialog | Immediately |
+| Toolbar | Toolbar Placement | Center (default) or Top · Classic. Top · Classic docks the toolbar at the top of the screen with the refresh button first, as in 3.x. Applies in landscape | Immediately |
+| Toolbar | Swipe from Edge to Show Toolbar | Swipe in from the edge where the toolbar is hidden to show it (on by default)<br/>When off, edge swipes are left to the system gestures<br/>Without a margin around the game, the back button shows the toolbar | Immediately |
+| Game Controls | Enable Keyboard Input | Whether keyboard input is available on the game screen (on by default) | Immediately |
+| Game Controls | Optimize Pointer Device | Choose the input method when playing the game (Touch Screen or Mouse or Trackpad) | After reload |
 
 ##### Asset Caching
 
@@ -62,7 +66,7 @@ For PIP/multi-window information, refer to the <span class="link" data-move="pip
 | External Storage for Resource Caching | Use external storage instead of internal storage when caching game resources (recommended)<br/>(allows access to image/voice resources via PC) | After reload |
 | Prefetch Font Assets | Use built-in font files instead of loading them from the game server (recommended, on by default) | After reload |
 | Retry Game Asset Download | Prompts a dialog asking whether to retry when the client fails to download a sound or image asset<br/>Can sometimes avoid catbombs caused by poor network. Does not apply to game data API errors | Immediately |
-| Clear Cache | Deletes the browser cache. Use this when images or audio are not loading correctly, or to switch between login methods<br/>You may need to log in again afterwards | Immediately |
+| Clear Cache | Deletes the browser cache. Use this when images or audio are not loading correctly, or to switch between login methods<br/>You may need to log in again afterwards<br/>A reload prompt appears once clearing is done | Immediately |
 
 ##### Subtitle
 

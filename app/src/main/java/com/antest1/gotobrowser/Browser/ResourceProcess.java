@@ -45,12 +45,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 
 import static com.antest1.gotobrowser.Constants.CACHE_DIR;
 import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.GADGET_OSAPI_IFR;
 import static com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT;
+import static com.antest1.gotobrowser.Constants.PREF_ALTER_AUTO_DISABLE;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET;
 import static com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD;
@@ -86,6 +88,8 @@ public class ResourceProcess {
     private static final int RESOURCE_CACHED = 0;
     private static final int RESOURCE_DOWNLOADED = 1;
     private static final int RESOURCE_FAILED = -1;
+    // The server answered (e.g. 403/404) but there is no local copy to serve.
+    private static final int RESOURCE_UNAVAILABLE = -2;
 
     private static final ExecutorService REVALIDATION_EXECUTOR = Executors.newFixedThreadPool(4);
     private static final Set<String> revalidationInFlight = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -127,7 +131,11 @@ public class ResourceProcess {
     private final BrowserActivity activity;
     private final Context context;
     private final VersionDatabase versionTable;
-    private final OkHttpClient resourceClient = new OkHttpClient();
+    // Reuses the shared client's TLS setup, which is slow to build on the main thread, but
+    // keeps a connection pool of its own so game resource loads keep their idle connections.
+    private final OkHttpClient resourceClient = KcUtils.getSharedHttpClient().newBuilder()
+            .connectionPool(new ConnectionPool())
+            .build();
     SharedPreferences sharedPref;
 
     private final Handler shipVoiceHandler = new Handler();
@@ -145,6 +153,11 @@ public class ResourceProcess {
     // Preferences are read on every use (not cached) so that changes apply on the next page load.
     private boolean isAlterGadgetEnabled() {
         return sharedPref.getBoolean(PREF_ALTER_GADGET, false);
+    }
+
+    /** Whether the bypass turns itself off once the gadget server is reachable without it. */
+    private boolean isAlterAutoDisableEnabled() {
+        return sharedPref.getBoolean(PREF_ALTER_AUTO_DISABLE, true);
     }
 
     private boolean isGadgetUrlReplaceMode() {
@@ -206,7 +219,6 @@ public class ResourceProcess {
 
         if (checkBlockedContent(url)) return getEmptyResponse();
         if (url.contains(GADGET_OSAPI_IFR)) return getGadgetIfrPage(url);
-        if (url.contains("ooi.css")) return getOoiSheetFromAsset();
         if (url.contains("tweenjs.min.js")) return getTweenJs();
         if (url.contains("gadget_html5/script/rollover.js")) return getMuteInjectedRolloverJs();
         if (url.contains("html/maintenance.png")) return getMaintenanceFiles(true);
@@ -217,7 +229,9 @@ public class ResourceProcess {
             boolean ip_banned = getIpBannedStatus(url);
             boolean alterGadget = isAlterGadgetEnabled();
             if (alterGadget && !ip_banned) {
-                sharedPref.edit().putBoolean(PREF_ALTER_GADGET, false).commit();
+                if (isAlterAutoDisableEnabled()) {
+                    sharedPref.edit().putBoolean(PREF_ALTER_GADGET, false).commit();
+                }
             } else if (!alterGadget && ip_banned) {
                 showGadgetIpServerBlockedDialog();
             }
@@ -254,7 +268,7 @@ public class ResourceProcess {
             }
         } catch (Exception e) {
             Log.e(TAG_G, KcUtils.getStringFromException(e));
-            KcUtils.reportException(e);
+            KcUtils.reportDownloadException(e);
         }
         return null;
     }
@@ -342,13 +356,15 @@ public class ResourceProcess {
         File file = new File(requestInfo.outputPath);
         int status = downloadResourceIfMissing(requestInfo, file);
         if (status == RESOURCE_FAILED) return promptForRetry(requestInfo, resource_type);
+        if (status == RESOURCE_UNAVAILABLE) return null;
         return serveLocalCachedImage(file, requestInfo, resource_type, status == RESOURCE_DOWNLOADED);
     }
 
     // Serves the cached copy if present (refreshing it in the background), else downloads once.
     private int downloadResourceIfMissing(ResourceRequestInfo requestInfo, File file) {
         String update_key = requestInfo.key;
-        boolean cached = file.exists() && file.length() > 0
+        // canRead: a file left by an earlier install/restore can exist but be unreadable (EACCES).
+        boolean cached = file.exists() && file.canRead() && file.length() > 0
                 && !Objects.equals(versionTable.getVersionValue(update_key), versionTable.getDefaultValue());
         if (cached) {
             revalidateCacheInBackground(update_key, requestInfo.fullUrl, file);
@@ -359,7 +375,11 @@ public class ResourceProcess {
             versionTable.putCacheAndVersion(update_key, result.lastModified, getRevalidationExpiry());
             return RESOURCE_DOWNLOADED;
         }
-        return result.responseCode == -1 ? RESOURCE_FAILED : RESOURCE_CACHED;
+        // Only a connectivity failure is worth a retry prompt; a local file error (e.g. an
+        // unwritable cache folder) would fail again, so let the WebView fetch it instead.
+        if (result.responseCode == -1) return result.networkError ? RESOURCE_FAILED : RESOURCE_UNAVAILABLE;
+        // Non-200 answers write nothing, so only an existing file counts as cached.
+        return file.exists() && file.length() > 0 ? RESOURCE_CACHED : RESOURCE_UNAVAILABLE;
     }
 
     // Stale-while-revalidate (off the UI thread): the conditional GET result is used on a future
@@ -381,7 +401,7 @@ public class ResourceProcess {
                     versionTable.putCacheControlValue(update_key, getRevalidationExpiry());
                 }
             } catch (Exception e) {
-                KcUtils.reportException(e);
+                KcUtils.reportDownloadException(e);
             } finally {
                 revalidationInFlight.remove(update_key);
             }
@@ -401,8 +421,9 @@ public class ResourceProcess {
             String type = ResourceProcess.isImage(resource_type) ? "image/png" : "application/json";
             return new WebResourceResponse(type, "utf-8", is);
         } catch (IOException e) {
+            // A local file error; retrying the same file would fail again, so let the WebView fetch it.
             KcUtils.reportException(e);
-            return promptForRetry(requestInfo, resource_type);
+            return null;
         }
     }
 
@@ -475,7 +496,9 @@ public class ResourceProcess {
             File file = new File(out_file_path);
 
             String prevLastModified = versionTable.getVersionValue(update_key);
-            if (!file.exists() || file.length() == 0 || prevLastModified.equals(versionTable.getDefaultValue())) {
+            // prevLastModified is null when the last response had no Last-Modified header.
+            if (!file.exists() || file.length() == 0 || prevLastModified == null
+                    || prevLastModified.equals(versionTable.getDefaultValue())) {
                 prevLastModified = null;
             }
 
@@ -525,9 +548,10 @@ public class ResourceProcess {
 
     private WebResourceResponse processAudioFile(ResourceRequestInfo requestInfo, int resource_type) {
         File file = new File(requestInfo.outputPath);
-        if (downloadResourceIfMissing(requestInfo, file) == RESOURCE_FAILED) {
-            return promptForRetry(requestInfo, resource_type);
-        }
+        int status = downloadResourceIfMissing(requestInfo, file);
+        if (status == RESOURCE_FAILED) return promptForRetry(requestInfo, resource_type);
+        // Let the WebView fetch it itself and see the server's real answer.
+        if (status == RESOURCE_UNAVAILABLE) return null;
 
         String voiceSize = String.valueOf(file.length());
         String subtitle_local = sharedPref.getString(PREF_SUBTITLE_LOCALE, "en");
@@ -542,14 +566,16 @@ public class ResourceProcess {
             file = ResourcePatcher.INSTANCE.applyKenPatcherIfAvailable(context, versionTable, requestInfo.path, file, false);
             return new WebResourceResponse("audio/mpeg", "binary", new BufferedInputStream(new FileInputStream(file)));
         } catch (IOException e) {
+            // A local file error; retrying the same file would fail again, so let the WebView fetch it.
             KcUtils.reportException(e);
-            return promptForRetry(requestInfo, resource_type);
+            return null;
         }
     }
 
     private WebResourceResponse processFontFile(ResourceRequestInfo requestInfo) throws IOException {
         File file = new File(requestInfo.outputPath);
         downloadResourceIfMissing(requestInfo, file);
+        if (!file.exists()) return null; // let the WebView fetch it itself
         file = ResourcePatcher.INSTANCE.applyKenPatcherIfAvailable(context, versionTable, requestInfo.path, file, false);
         return new WebResourceResponse("application/font-woff2", "binary", new BufferedInputStream(new FileInputStream(file)));
     }
@@ -568,12 +594,6 @@ public class ResourceProcess {
         Runnable r = new VoiceSubtitleRunnable(data);
         shipVoiceHandler.removeCallbacks(r);
         shipVoiceHandler.postDelayed(r, data.getExtraDelay());
-    }
-
-    private WebResourceResponse getOoiSheetFromAsset() {
-        try {
-            return new WebResourceResponse("text/css", "utf-8", context.getAssets().open("ooi.css"));
-        } catch (IOException e) { return null; }
     }
 
     private WebResourceResponse getMuteInjectedRolloverJs() {
