@@ -585,12 +585,9 @@ private fun DisplaySection(viewModel: SettingsViewModel?, onSettingChanged: (Str
 
 @Composable
 private fun ControlSection(viewModel: SettingsViewModel?, onSettingChanged: (String) -> Unit) {
-    SwitchRow(viewModel, PREF_KEYBOARD, R.string.mode_enable_keyboard, defaultValue = true, onSettingChanged = onSettingChanged)
-    ListRow(viewModel, PREF_CURSOR_MODE, R.string.setting_cursor_mode, cursorModeOptions(), onSettingChanged = onSettingChanged)
-    SwitchRow(viewModel, PREF_DISABLE_REFRESH_DIALOG, R.string.browser_disable_refresh_dialog, onSettingChanged = onSettingChanged)
+    SectionHeader(R.string.settings_toolbar_section_header)
     SwitchRow(viewModel, PREF_PANELSTART, R.string.mode_show_panel, defaultValue = true, onSettingChanged = onSettingChanged)
-    SwitchRow(viewModel, PREF_TOOLBAR_SWIPE, R.string.settings_toolbar_swipe, R.string.settings_toolbar_swipe_summary,
-        defaultValue = true, onSettingChanged = onSettingChanged)
+    SwitchRow(viewModel, PREF_DISABLE_REFRESH_DIALOG, R.string.browser_disable_refresh_dialog, onSettingChanged = onSettingChanged)
     val toolbarPositionOptions = toolbarPositionOptions()
     val toolbarPositionSummary = stringResource(R.string.settings_toolbar_position_summary)
     ListRow(
@@ -601,6 +598,12 @@ private fun ControlSection(viewModel: SettingsViewModel?, onSettingChanged: (Str
         },
         onSettingChanged = onSettingChanged
     )
+    SwitchRow(viewModel, PREF_TOOLBAR_SWIPE, R.string.settings_toolbar_swipe, R.string.settings_toolbar_swipe_summary,
+        defaultValue = true, onSettingChanged = onSettingChanged)
+
+    SectionHeader(R.string.settings_game_control_section_header)
+    SwitchRow(viewModel, PREF_KEYBOARD, R.string.mode_enable_keyboard, defaultValue = true, onSettingChanged = onSettingChanged)
+    ListRow(viewModel, PREF_CURSOR_MODE, R.string.setting_cursor_mode, cursorModeOptions(), onSettingChanged = onSettingChanged)
 }
 
 @Composable

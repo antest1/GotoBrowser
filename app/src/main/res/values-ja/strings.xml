@@ -40,6 +40,8 @@
     <string name="settings_connection_login_label">ログインと接続</string>
     <string name="settings_login_section_header">ログイン</string>
     <string name="settings_bypass_section_header">国外ブロックのバイパス</string>
+    <string name="settings_toolbar_section_header">ツールバー</string>
+    <string name="settings_game_control_section_header">ゲーム操作</string>
     <string name="settings_subtitle_label">字幕設定</string>
     <string name="settings_subtitle_fontsize" >フォントサイズ</string>
     <string name="settings_subtitle_example" formatted="false">字幕テキスト：%d</string>
@@ -54,7 +56,7 @@
     <string name="browser_fontprefetch">フォントをプリロード</string>
     <string name="browser_enablepipmode">PIPモードを有効にする</string>
     <string name="browser_enablepipmode_summary">ホーム画面に戻る、上にスワイプする、またはブラウザ画面を2本の指でピンチイン（縮小）すると、小さなフローティング窓でアプリを再生し続けます。</string>
-    <string name="browser_disable_refresh_dialog">再読み込み確認を無効にする</string>
+    <string name="browser_disable_refresh_dialog">確認なしでリフレッシュ</string>
     <string name="logout_msg">本当にログアウトしますか？</string>
     <string name="noti_screenshot_name">GotoBrowserスクリーンショット</string>
     <string name="noti_screenshot_title">スクリーンショットを保存しました</string>
@@ -69,7 +71,7 @@
     <string name="settings_game_align_center">中央</string>
     <string name="settings_game_align_top">上</string>
     <string name="settings_game_align_summary">%1$s（ゲームの上下に余白がある場合に適用）</string>
-    <string name="settings_toolbar_position">ツールバーの位置</string>
+    <string name="settings_toolbar_position">ツールバーの表示位置</string>
     <string name="settings_toolbar_position_center">中央</string>
     <string name="settings_toolbar_position_top">上・クラシック</string>
     <string name="settings_toolbar_position_summary">%1$s（横画面で適用）</string>

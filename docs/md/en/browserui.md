@@ -22,7 +22,7 @@ You can use various functions such as refreshing the game or taking a screenshot
 
 ##### Refresh
 The refresh button next to the toolbar offers two methods.
-In landscape, setting Settings → Controls & Toolbar → "Toolbar Position" to "Top · Classic" docks the toolbar at the top of the screen with the refresh button first, as in 3.x.
+In landscape, setting Settings → Controls & Toolbar → "Toolbar Placement" to "Top · Classic" docks the toolbar at the top of the screen with the refresh button first, as in 3.x.
 
 |  | Button | Description |
 | --- | --- | --- |
@@ -30,7 +30,7 @@ In landscape, setting Settings → Controls & Toolbar → "Toolbar Position" to 
 | <span class="material-symbols-outlined">refresh</span> | Full Refresh | Reloads the full web page.<br/>This is the most reliable way to refresh, but it takes longer than Quick Refresh. |
 
 - Press and hold the button and drag toward the menu to choose the other method. The menu opens upward with the toolbar at the center, and downward with the toolbar at the top. The last method used is remembered as the default action of the button.
-- The confirmation dialog shown before refreshing can be disabled in Settings → Controls & Toolbar → "Disable Refresh Warning Dialog".
+- Turn on Settings → Controls & Toolbar → "Refresh Without Confirmation" to refresh without the confirmation dialog.
 - If you chose "Change Settings Without Reload" in the "Reload Required" dialog after changing a setting, refreshing with this button also applies the change.
 - After a connection error while loading or a server error during play, the button runs a Full Refresh regardless of the saved method, and "Full Refresh" is shown next to it. The saved method does not change.
 

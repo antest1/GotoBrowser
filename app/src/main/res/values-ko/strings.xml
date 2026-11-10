@@ -40,6 +40,8 @@
     <string name="settings_connection_login_label">로그인 및 접속</string>
     <string name="settings_login_section_header">로그인</string>
     <string name="settings_bypass_section_header">Gadget 서버 우회</string>
+    <string name="settings_toolbar_section_header">툴바</string>
+    <string name="settings_game_control_section_header">게임 조작</string>
     <string name="settings_subtitle_label">자막 설정</string>
     <string name="settings_subtitle_fontsize" >폰트 크기</string>
     <string name="settings_subtitle_example" formatted="false">텍스트 사이즈: %d</string>
@@ -55,7 +57,7 @@
     <string name="browser_fontprefetch">폰트 파일 미리 로드</string>
     <string name="browser_enablepipmode">PIP 모드 활성화</string>
     <string name="browser_enablepipmode_summary">홈 화면으로 돌아가거나, 위로 스와이프하거나, 화면을 두 손가락으로 모으는 핀치 축소 제스처를 취하면 작은 플로팅 창으로 앱이 계속 실행됩니다.</string>
-    <string name="browser_disable_refresh_dialog">새로고침 확인 비활성화</string>
+    <string name="browser_disable_refresh_dialog">확인 없이 새로고침</string>
     <string name="logout_msg">로그아웃하시겠습니까?</string>
     <string name="noti_screenshot_name">GotoBrowser 스크린샷</string>
     <string name="noti_screenshot_title">스크린샷 저장됨</string>
@@ -70,7 +72,7 @@
     <string name="settings_game_align_center">가운데</string>
     <string name="settings_game_align_top">위쪽</string>
     <string name="settings_game_align_summary">%1$s (게임 위아래에 여백이 있을 때 적용)</string>
-    <string name="settings_toolbar_position">툴바 위치</string>
+    <string name="settings_toolbar_position">툴바 표시 위치</string>
     <string name="settings_toolbar_position_center">가운데</string>
     <string name="settings_toolbar_position_top">위쪽 · 클래식</string>
     <string name="settings_toolbar_position_summary">%1$s (가로 화면에 적용)</string>

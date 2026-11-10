@@ -38,6 +38,8 @@
     <string name="settings_connection_login_label">登录与连接</string>
     <string name="settings_login_section_header">登录</string>
     <string name="settings_bypass_section_header">登录服务器封锁绕行</string>
+    <string name="settings_toolbar_section_header">工具栏</string>
+    <string name="settings_game_control_section_header">游戏操作</string>
     <string name="settings_subtitle_label">字幕设定</string>
     <string name="settings_subtitle_fontsize" >字体大小</string>
     <string name="settings_subtitle_example" formatted="false">文字大小：%d</string>
@@ -52,7 +54,7 @@
     <string name="browser_fontprefetch">预先载入字体</string>
     <string name="browser_enablepipmode">启用画中画模式</string>
     <string name="browser_enablepipmode_summary">开启后，当你返回主屏幕、向上滑动或在网页区域使用双指缩小手势时，应用将以浮动小窗形式继续运行。</string>
-    <string name="browser_disable_refresh_dialog">禁用重新加载确认</string>
+    <string name="browser_disable_refresh_dialog">无需确认直接刷新</string>
     <string name="logout_msg">您确定要登出吗？</string>
     <string name="noti_screenshot_name">GotoBrowser截图</string>
     <string name="noti_screenshot_title">已储存萤幕截图</string>
@@ -67,7 +69,7 @@
     <string name="settings_game_align_center">居中</string>
     <string name="settings_game_align_top">顶部</string>
     <string name="settings_game_align_summary">%1$s（游戏上下留有空白时适用）</string>
-    <string name="settings_toolbar_position">工具栏位置</string>
+    <string name="settings_toolbar_position">工具栏显示位置</string>
     <string name="settings_toolbar_position_center">居中</string>
     <string name="settings_toolbar_position_top">顶部 · 经典</string>
     <string name="settings_toolbar_position_summary">%1$s（横屏时适用）</string>
