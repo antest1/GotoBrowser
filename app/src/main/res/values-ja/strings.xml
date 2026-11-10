@@ -17,7 +17,7 @@
     <string name="refresh_msg">リフレッシュしますか？</string>
     <string name="refresh_quick_msg">ゲームフレームのみを再読み込みし、ページ全体は更新しません。\n\nクイックリフレッシュは常に成功するとは限りません。ネットワークエラーが発生した場合は、フルリフレッシュを使用してください。</string>
     <string name="refresh_full_msg">ページ全体を再読み込みします。最も確実なリフレッシュ方法ですが、クイックリフレッシュより時間がかかります。</string>
-    <string name="mode_landscape">横向きのみ</string>
+    <string name="mode_landscape">横画面に固定</string>
     <string name="mode_adjustment">レイアウト自動調整</string>
     <string name="mode_silent">音量OFFでスタート</string>
     <string name="mode_broadcast">ブロードキャストモード</string>
@@ -38,8 +38,10 @@
     <string name="settings_control_label">操作とツールバー</string>
     <string name="settings_download_label">キャッシュ設定</string>
     <string name="settings_connection_login_label">ログインと接続</string>
-    <string name="settings_login_section_header">ログイン</string>
+    <string name="settings_login_section_header">ゲームログイン</string>
+    <string name="settings_browser_section_header">ブラウザ設定</string>
     <string name="settings_bypass_section_header">国外ブロックのバイパス</string>
+    <string name="settings_autocomplete_summary">ログイン画面に自動入力するアカウントを保存します</string>
     <string name="settings_logout_summary">接続方式のログイン画面に戻ります</string>
     <string name="settings_toolbar_section_header">ツールバー</string>
     <string name="settings_game_control_section_header">ゲーム操作</string>

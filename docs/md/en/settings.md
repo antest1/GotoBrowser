@@ -21,17 +21,17 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 
 ##### Login and Connection
 
-| Name | Description | Applies |
-| --- | --- | --- |
-| Login Autocomplete | ID and password to be filled into the login form automatically. Stored only within the device | After reload |
-| Logout | Logs out of the game and returns to the login page of the connector | |
-| Select Login Method | DMM direct (default) / ooi.moe<br/>A notice about game resources is shown when an unofficial connector is selected for the first time | After reload |
-| Start with Audio OFF | Sets the in-game BGM/SE/VOICE volume to 0 when the game starts (same as the official application function)<br/>Available only with DMM direct | After reload |
-| Broadcast Mode | Sends the KanColle-related communication to other applications such as Kcanotify (on by default)<br/>Must be turned on to use with Kcanotify | Immediately |
-| Gadget Block Bypass | Turn on if you are experiencing the foreign IP block issue (infinite black screen) | After reload |
-| Bypass Method | Select URL Replacement or KCCacheProxy (remote) (use "URL Replacement" in most cases) | After reload |
-| Bypass Endpoint Server | Server URL to use for bypass<br/>`https://kcwiki.github.io/cache/` (default) | After reload |
-| Auto-Disable Bypass | Turns the bypass off automatically once the game connects without being blocked (on by default) | Immediately |
+| Group | Name | Description | Applies |
+| --- | --- | --- | --- |
+| Game Login | Login Autocomplete | ID and password to be filled into the login form automatically. Stored only within the device | After reload |
+| Game Login | Logout | Logs out of the game and returns to the login page of the connector | |
+| Browser Settings | Select Login Method | DMM direct (default) / ooi.moe<br/>A notice about game resources is shown when an unofficial connector is selected for the first time | After reload |
+| Browser Settings | Start with Audio OFF | Sets the in-game BGM/SE/VOICE volume to 0 when the game starts (same as the official application function)<br/>Available only with DMM direct | After reload |
+| Browser Settings | Broadcast Mode | Sends the KanColle-related communication to other applications such as Kcanotify (on by default)<br/>Must be turned on to use with Kcanotify | Immediately |
+| Gadget Block Bypass | Gadget Block Bypass | Turn on if you are experiencing the foreign IP block issue (infinite black screen) | After reload |
+| Gadget Block Bypass | Bypass Method | Select URL Replacement or KCCacheProxy (remote) (use "URL Replacement" in most cases) | After reload |
+| Gadget Block Bypass | Bypass Endpoint Server | Server URL to use for bypass<br/>`https://kcwiki.github.io/cache/` (default) | After reload |
+| Gadget Block Bypass | Auto-Disable Bypass | Turns the bypass off automatically once the game connects without being blocked (on by default) | Immediately |
 
 For related information, refer to the <span class="link" data-move="gadgetbypass">IP Block Bypass (Non-Japan)</span> page. Bypass Method and Bypass Endpoint Server cannot be selected while Gadget Block Bypass is turned off.
 
@@ -39,7 +39,7 @@ For related information, refer to the <span class="link" data-move="gadgetbypass
 
 | Name | Description | Applies |
 | --- | --- | --- |
-| Only Landscape | Always play in landscape mode regardless of device orientation (on by default) | Immediately |
+| Lock to Landscape | Always play in landscape mode regardless of device orientation (on by default) | Immediately |
 | Auto Layout Adjustment | Automatically scales the game screen to fit the device screen (recommended, on by default) | After reload |
 | Game Vertical Position | Places the game at the center or the top when there is space above and below it, such as in portrait or split screen (center by default) | Immediately |
 | Picture-in-picture mode | Shows the game in a small floating window when you leave for the home screen or pinch-zoom out on the game screen | Immediately |

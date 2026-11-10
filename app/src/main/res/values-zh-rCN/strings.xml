@@ -16,7 +16,7 @@
     <string name="refresh_msg">是否要刷新页面？</string>
     <string name="refresh_quick_msg">仅重新加载游戏框架，而不刷新整个页面。\n\n快速刷新未必总能成功，若出现网络错误，请使用完全刷新。</string>
     <string name="refresh_full_msg">重新加载整个页面。这是最可靠的刷新方式，但比快速刷新耗时更长。</string>
-    <string name="mode_landscape">仅限横向</string>
+    <string name="mode_landscape">固定横屏</string>
     <string name="mode_adjustment">自动调整佈局</string>
     <string name="mode_silent">以静音模式启动</string>
     <string name="mode_broadcast">使用广播讯息方式</string>
@@ -36,8 +36,10 @@
     <string name="settings_control_label">操作与工具栏</string>
     <string name="settings_download_label">缓存设定</string>
     <string name="settings_connection_login_label">登录与连接</string>
-    <string name="settings_login_section_header">登录</string>
+    <string name="settings_login_section_header">游戏登录</string>
+    <string name="settings_browser_section_header">浏览器设定</string>
     <string name="settings_bypass_section_header">登录服务器封锁绕行</string>
+    <string name="settings_autocomplete_summary">保存要自动填入登录页面的账号</string>
     <string name="settings_logout_summary">返回所选登入方式的登录页面</string>
     <string name="settings_toolbar_section_header">工具栏</string>
     <string name="settings_game_control_section_header">游戏操作</string>

@@ -697,7 +697,7 @@ private fun ConnectionLoginSection(
 
     ClickRow(
         title = R.string.autocomplete_title,
-        summary = R.string.autocomplete_msg,
+        summary = R.string.settings_autocomplete_summary,
         onClick = { showLoginForm = true }
     )
 
@@ -724,6 +724,9 @@ private fun ConnectionLoginSection(
         summary = R.string.settings_logout_summary,
         onClick = onLogoutRequest
     )
+
+    // --- Browser -------------------------------------------------------------
+    SectionHeader(R.string.settings_browser_section_header)
 
     // Shown when the user switches to an unofficial connector for the first time.
     var showDisclaimer by remember { mutableStateOf(false) }
