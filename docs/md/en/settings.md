@@ -35,20 +35,20 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 
 For related information, refer to the <span class="link" data-move="gadgetbypass">IP Block Bypass (Non-Japan)</span> page. Bypass Method and Bypass Endpoint Server cannot be selected while Gadget Block Bypass is turned off.
 
-##### Display
+##### Game Display
 
 | Name | Description | Applies |
 | --- | --- | --- |
 | Only Landscape | Always play in landscape mode regardless of device orientation (on by default) | Immediately |
-| Game Vertical Position | Places the game at the center or the top when there is space above and below it, such as in portrait or split screen (center by default) | Immediately |
 | Auto Layout Adjustment | Automatically scales the game screen to fit the device screen (recommended, on by default) | After reload |
+| Game Vertical Position | Places the game at the center or the top when there is space above and below it, such as in portrait or split screen (center by default) | Immediately |
 | Picture-in-picture mode | Shows the game in a small floating window when you leave for the home screen or pinch-zoom out on the game screen | Immediately |
 | [Multi-Window] Add Margin from Divider | Adds a margin to prevent the screen from sticking to the divider when using the multi-window function | Immediately |
 | Legacy Renderer | Force PixiJS game engine to use Canvas renderer instead of WebGL renderer (recommended to disable if no graphic related issues occur)<br/>Kantai3D cannot be used while this is on | After reload |
 
 For PIP/multi-window information, refer to the <span class="link" data-move="pipmode">PIP/Multi-window</span> page.
 
-##### Controls
+##### Controls & Toolbar
 
 | Name | Description | Applies |
 | --- | --- | --- |

@@ -34,9 +34,9 @@
     <string name="settings_version_label">現在のバージョン</string>
     <string name="settings_version_check">更新の確認</string>
     <string name="settings_recommended_summary">おすすめ</string>
-    <string name="settings_display_label">表示</string>
-    <string name="settings_control_label">操作</string>
-    <string name="settings_download_label">キャッシュ</string>
+    <string name="settings_display_label">ゲーム画面表示</string>
+    <string name="settings_control_label">操作とツールバー</string>
+    <string name="settings_download_label">キャッシュ設定</string>
     <string name="settings_connection_login_label">ログインと接続</string>
     <string name="settings_login_section_header">ログイン</string>
     <string name="settings_bypass_section_header">国外ブロックのバイパス</string>

@@ -14,7 +14,7 @@ You can use various functions such as refreshing the game or taking a screenshot
 - Here are the ways to make the toolbar appear:
   - Touch the black margin outside the game screen (recommended)
   - Swipe inward from the edge where the toolbar is hidden (portrait: bottom, landscape: left)
-  - Turn on "Show Control Panel on Start" in Settings → Controls to show it on startup
+  - Turn on "Show Control Panel on Start" in Settings → Controls & Toolbar to show it on startup
 - Conversely, here are the ways to make the toolbar disappear:
   - Touch the black margin outside the game screen again
   - Swipe the toolbar toward the edge of the screen
@@ -28,7 +28,7 @@ The refresh button at the end of the toolbar offers two methods.
 | <span class="material-symbols-outlined">refresh</span> | Full Refresh | Reloads the full web page.<br/>This is the most reliable way to refresh, but it takes longer than Quick Refresh. |
 
 - Press and hold the button and drag upward to choose the other method. The last method used is remembered as the default action of the button.
-- The confirmation dialog shown before refreshing can be disabled in Settings → Controls → "Disable Refresh Warning Dialog".
+- The confirmation dialog shown before refreshing can be disabled in Settings → Controls & Toolbar → "Disable Refresh Warning Dialog".
 - If you chose "Change Settings Without Reload" in the "Reload Required" dialog after changing a setting, refreshing with this button also applies the change.
 - After a connection error while loading or a server error during play, the button runs a Full Refresh regardless of the saved method, and "Full Refresh" is shown next to it. The saved method does not change.
 

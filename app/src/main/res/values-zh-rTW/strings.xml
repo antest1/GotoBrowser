@@ -32,9 +32,9 @@
     <string name="settings_version_label">目前版本</string>
     <string name="settings_version_check">檢查更新</string>
     <string name="settings_recommended_summary">推薦</string>
-    <string name="settings_display_label">顯示</string>
-    <string name="settings_control_label">操作</string>
-    <string name="settings_download_label">快取</string>
+    <string name="settings_display_label">遊戲畫面顯示</string>
+    <string name="settings_control_label">操作與工具列</string>
+    <string name="settings_download_label">快取設定</string>
     <string name="settings_connection_login_label">登入與連接</string>
     <string name="settings_login_section_header">登入</string>
     <string name="settings_bypass_section_header">登入伺服器封鎖繞行</string>

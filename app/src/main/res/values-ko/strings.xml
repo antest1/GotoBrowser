@@ -34,9 +34,9 @@
     <string name="settings_version_label">현재 버전</string>
     <string name="settings_version_check">업데이트 확인</string>
     <string name="settings_recommended_summary">권장</string>
-    <string name="settings_display_label">화면 표시</string>
-    <string name="settings_control_label">조작</string>
-    <string name="settings_download_label">캐시</string>
+    <string name="settings_display_label">게임 화면 표시</string>
+    <string name="settings_control_label">조작 및 툴바</string>
+    <string name="settings_download_label">캐시 설정</string>
     <string name="settings_connection_login_label">로그인 및 접속</string>
     <string name="settings_login_section_header">로그인</string>
     <string name="settings_bypass_section_header">Gadget 서버 우회</string>

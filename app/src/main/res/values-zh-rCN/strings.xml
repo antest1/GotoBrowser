@@ -32,9 +32,9 @@
     <string name="settings_version_label">目前版本</string>
     <string name="settings_version_check">检查更新</string>
     <string name="settings_recommended_summary">推荐</string>
-    <string name="settings_display_label">显示</string>
-    <string name="settings_control_label">操作</string>
-    <string name="settings_download_label">缓存</string>
+    <string name="settings_display_label">游戏画面显示</string>
+    <string name="settings_control_label">操作与工具栏</string>
+    <string name="settings_download_label">缓存设定</string>
     <string name="settings_connection_login_label">登录与连接</string>
     <string name="settings_login_section_header">登录</string>
     <string name="settings_bypass_section_header">登录服务器封锁绕行</string>

@@ -562,6 +562,7 @@ fun SettingsContent(
 @Composable
 private fun DisplaySection(viewModel: SettingsViewModel?, onSettingChanged: (String) -> Unit) {
     SwitchRow(viewModel, PREF_LANDSCAPE, R.string.mode_landscape, defaultValue = true, onSettingChanged = onSettingChanged)
+    SwitchRow(viewModel, PREF_ADJUSTMENT, R.string.mode_adjustment, R.string.settings_recommended_summary, defaultValue = true, onSettingChanged = onSettingChanged)
     val gameAlignOptions = gameAlignOptions()
     val gameAlignSummary = stringResource(R.string.settings_game_align_summary)
     ListRow(
@@ -572,7 +573,6 @@ private fun DisplaySection(viewModel: SettingsViewModel?, onSettingChanged: (Str
         },
         onSettingChanged = onSettingChanged
     )
-    SwitchRow(viewModel, PREF_ADJUSTMENT, R.string.mode_adjustment, R.string.settings_recommended_summary, defaultValue = true, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_PIP_MODE, R.string.browser_enablepipmode, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_MULTIWIN_MARGIN, R.string.settings_mw_margin, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_LEGACY_RENDERER, R.string.settings_legacy_renderer_enable,

@@ -37,8 +37,8 @@
     <string name="settings_version_label">Current Version</string>
     <string name="settings_version_check">Check Update</string>
     <string name="settings_recommended_summary">Recommended</string>
-    <string name="settings_display_label">Display</string>
-    <string name="settings_control_label">Controls</string>
+    <string name="settings_display_label">Game Display</string>
+    <string name="settings_control_label">Controls &amp; Toolbar</string>
     <string name="settings_download_label">Asset Caching</string>
     <string name="settings_connection_login_label">Login and Connection</string>
     <string name="settings_login_section_header">Login</string>
