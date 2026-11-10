@@ -37,12 +37,15 @@
     <string name="settings_version_label">Current Version</string>
     <string name="settings_version_check">Check Update</string>
     <string name="settings_recommended_summary">Recommended</string>
-    <string name="settings_display_label">Display</string>
-    <string name="settings_control_label">Controls</string>
+    <string name="settings_display_label">Game Display</string>
+    <string name="settings_control_label">Controls &amp; Toolbar</string>
     <string name="settings_download_label">Asset Caching</string>
     <string name="settings_connection_login_label">Login and Connection</string>
     <string name="settings_login_section_header">Login</string>
     <string name="settings_bypass_section_header">Gadget Block Bypass</string>
+    <string name="settings_logout_summary">Returns to the connector\'s login page</string>
+    <string name="settings_toolbar_section_header">Toolbar</string>
+    <string name="settings_game_control_section_header">Game Controls</string>
     <string name="settings_subtitle_label">Subtitle</string>
     <string name="settings_subtitle_fontsize">Font Size</string>
     <string name="settings_subtitle_example" formatted="false">TEXT SIZE: %d</string>
@@ -62,7 +65,7 @@
     <string name="browser_fontprefetch">Prefetch Font Assets</string>
     <string name="browser_enablepipmode">Picture-in-picture mode</string>
     <string name="browser_enablepipmode_summary">Enter floating window when swiping up home or pinch-zooming out.</string>
-    <string name="browser_disable_refresh_dialog">Disable Refresh Warning Dialog</string>
+    <string name="browser_disable_refresh_dialog">Refresh Without Confirmation</string>
     <string name="settings_refresh_required_title">Reload Required</string>
     <string name="settings_refresh_required_msg">The setting has been saved. A reload of the game is required for it to take effect. Do you want to reload now?</string>
     <string name="settings_refresh_now">Reload Now</string>
@@ -82,6 +85,12 @@
     <string name="settings_game_align_center">Center</string>
     <string name="settings_game_align_top">Top</string>
     <string name="settings_game_align_summary">%1$s (applies when there is space above and below the game)</string>
+    <string name="settings_toolbar_position">Toolbar Placement</string>
+    <string name="settings_toolbar_position_center">Center</string>
+    <string name="settings_toolbar_position_top">Top · Classic</string>
+    <string name="settings_toolbar_position_summary">%1$s (applies in landscape)</string>
+    <string name="settings_toolbar_swipe">Swipe from Edge to Show Toolbar</string>
+    <string name="settings_toolbar_swipe_summary">When off, edge swipes are left to the system gestures</string>
     <string name="setting_devtools_enable">Enable DevTools Debugging</string>
     <string name="setting_devtools_description" translatable="false">chrome://inspect</string>
     <string name="connection_use_alter">Gadget Block Bypass</string>

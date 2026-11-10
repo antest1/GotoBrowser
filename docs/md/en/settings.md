@@ -35,27 +35,29 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 
 For related information, refer to the <span class="link" data-move="gadgetbypass">IP Block Bypass (Non-Japan)</span> page. Bypass Method and Bypass Endpoint Server cannot be selected while Gadget Block Bypass is turned off.
 
-##### Display
+##### Game Display
 
 | Name | Description | Applies |
 | --- | --- | --- |
 | Only Landscape | Always play in landscape mode regardless of device orientation (on by default) | Immediately |
-| Game Vertical Position | Places the game at the center or the top when there is space above and below it, such as in portrait or split screen (center by default) | Immediately |
 | Auto Layout Adjustment | Automatically scales the game screen to fit the device screen (recommended, on by default) | After reload |
+| Game Vertical Position | Places the game at the center or the top when there is space above and below it, such as in portrait or split screen (center by default) | Immediately |
 | Picture-in-picture mode | Shows the game in a small floating window when you leave for the home screen or pinch-zoom out on the game screen | Immediately |
 | [Multi-Window] Add Margin from Divider | Adds a margin to prevent the screen from sticking to the divider when using the multi-window function | Immediately |
 | Legacy Renderer | Force PixiJS game engine to use Canvas renderer instead of WebGL renderer (recommended to disable if no graphic related issues occur)<br/>Kantai3D cannot be used while this is on | After reload |
 
 For PIP/multi-window information, refer to the <span class="link" data-move="pipmode">PIP/Multi-window</span> page.
 
-##### Controls
+##### Controls & Toolbar
 
-| Name | Description | Applies |
-| --- | --- | --- |
-| Enable Keyboard Input | Whether keyboard input is available on the game screen (on by default) | Immediately |
-| Optimize Pointer Device | Choose the input method when playing the game (Touch Screen or Mouse or Trackpad) | After reload |
-| Disable Refresh Warning Dialog | The game screen is refreshed immediately without a confirmation dialog | Immediately |
-| Show Control Panel on Start | Starts with the toolbar shown when the app starts (on by default) | Next launch |
+| Group | Name | Description | Applies |
+| --- | --- | --- | --- |
+| Toolbar | Show Control Panel on Start | Starts with the toolbar shown when the app starts (on by default) | Next launch |
+| Toolbar | Refresh Without Confirmation | The game screen is refreshed immediately without a confirmation dialog | Immediately |
+| Toolbar | Toolbar Placement | Center (default) or Top · Classic. Top · Classic docks the toolbar at the top of the screen with the refresh button first, as in 3.x. Applies in landscape | Immediately |
+| Toolbar | Swipe from Edge to Show Toolbar | Swipe in from the edge where the toolbar is hidden to show it (on by default)<br/>When off, edge swipes are left to the system gestures<br/>Without a margin around the game, the back button shows the toolbar | Immediately |
+| Game Controls | Enable Keyboard Input | Whether keyboard input is available on the game screen (on by default) | Immediately |
+| Game Controls | Optimize Pointer Device | Choose the input method when playing the game (Touch Screen or Mouse or Trackpad) | After reload |
 
 ##### Asset Caching
 

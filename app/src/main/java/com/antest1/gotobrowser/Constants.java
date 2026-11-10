@@ -31,6 +31,8 @@ public class Constants {
     public static final String PREF_CHECK_UPDATE = "pref_check_update";
     public static final String PREF_MULTIWIN_MARGIN = "pref_multiwin_margin";
     public static final String PREF_GAME_ALIGN = "pref_game_align";
+    public static final String PREF_TOOLBAR_POSITION = "pref_toolbar_position";
+    public static final String PREF_TOOLBAR_SWIPE = "pref_toolbar_swipe";
     public static final String PREF_DEVTOOLS_DEBUG = "pref_devtools_debug";
     public static final String PREF_ALTER_METHOD = "pref_alter_method";
     public static final String PREF_ALTER_ENDPOINT = "pref_alter_endpoint";
@@ -124,6 +126,8 @@ public class Constants {
     public static final String PREF_CURSOR_MODE_MOUSE = "2";
     public static final String PREF_GAME_ALIGN_CENTER = "center";
     public static final String PREF_GAME_ALIGN_TOP = "top";
+    public static final String PREF_TOOLBAR_POSITION_CENTER = "center";
+    public static final String PREF_TOOLBAR_POSITION_TOP = "top";
 
     public static final String APP_UI_HELP_VER = "20211002";
     public static final String KCANOTIFY_PACKAGE_NAME = "com.antest1.kcanotify";

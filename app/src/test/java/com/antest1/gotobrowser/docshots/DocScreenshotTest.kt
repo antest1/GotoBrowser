@@ -232,7 +232,7 @@ class DocScreenshotTest(private val locale: String) {
 
     /** Game + overlay (screenshot button) + toolbar, as the browser draws them. */
     @Composable
-    private fun Browser(subtitle: String = "", refreshOption: RefreshOption = RefreshOption.QUICK) {
+    private fun Browser(subtitle: String = "", refreshOption: RefreshOption = RefreshOption.QUICK, toolbarAtTop: Boolean = false) {
         GotobrowserTheme {
             GameArea()
             BrowserOverlayLayer(
@@ -250,7 +250,8 @@ class DocScreenshotTest(private val locale: String) {
                 onVisibleChange = {},
                 onRefreshClick = {},
                 onSettingsClick = {},
-                selectedRefreshOption = refreshOption
+                selectedRefreshOption = refreshOption,
+                toolbarAtTop = toolbarAtTop
             ) {
                 PanelButton(id = R.drawable.volume_off, tooltip = stringResource(R.string.menu_tooltip_mute), active = true, onClick = {})
                 PanelButton(id = R.drawable.camera_icon, tooltip = stringResource(R.string.menu_tooltip_camera), active = true, onClick = {})
@@ -306,6 +307,20 @@ class DocScreenshotTest(private val locale: String) {
         }
         settle(800)
     }) { Browser() }
+
+    /** Toolbar docked at the top, refresh first (Settings > Controls & Toolbar > Toolbar Position). */
+    @Test
+    fun toolbarTop() = shoot("ui_toolbar_top") { Browser(toolbarAtTop = true) }
+
+    /** With the toolbar at the top, the refresh menu opens downward: press and drag down. */
+    @Test
+    fun refreshMenuTop() = shoot("ui_refresh_menu_top", action = {
+        compose.onNodeWithContentDescription(str(R.string.menu_tooltip_refresh)).performTouchInput {
+            down(center)
+            moveBy(Offset(0f, 64.dp.toPx()))
+        }
+        settle(800)
+    }) { Browser(toolbarAtTop = true) }
 
     // ------------------------------------------------------------------
     // Loading and error notices

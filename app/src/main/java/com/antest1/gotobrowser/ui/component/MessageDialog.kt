@@ -38,8 +38,20 @@ class MessageDialog @JvmOverloads constructor(
     val message: String,
     val confirm: DialogButton,
     val dismiss: DialogButton? = null,
-    val neutral: DialogButton? = null
+    val neutral: DialogButton? = null,
+    /**
+     * Answered with [dismiss] when the app enters picture-in-picture: a confirmation that
+     * pauses the game while it waits would otherwise leave the game frozen in the PiP window.
+     */
+    val cancelOnPip: Boolean = false
 )
+
+/** Closes the dialogs marked [MessageDialog.cancelOnPip], running their dismiss action. */
+fun MutableList<MessageDialog>.cancelForPip() {
+    val cancelled = filter { it.cancelOnPip }
+    removeAll(cancelled)
+    cancelled.forEach { it.dismiss?.onClick?.run() }
+}
 
 /**
  * Draws the pending [dialogs]. Each one is removed from the list when one of its

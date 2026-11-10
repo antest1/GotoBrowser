@@ -128,6 +128,9 @@ import com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_NAME
 import com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN
 import com.antest1.gotobrowser.Constants.PREF_PANELSTART
 import com.antest1.gotobrowser.Constants.PREF_PIP_MODE
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION_TOP
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_SWIPE
 import com.antest1.gotobrowser.Constants.PREF_SILENT
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE
@@ -146,6 +149,7 @@ import com.antest1.gotobrowser.ui.component.MessageDialogHost
 import com.antest1.gotobrowser.ui.component.ServerNotice
 import com.antest1.gotobrowser.ui.component.ServerNoticeAlignment
 import com.antest1.gotobrowser.ui.component.ServerNoticeCard
+import com.antest1.gotobrowser.ui.component.cancelForPip
 import com.antest1.gotobrowser.ui.component.floatingToolbarEdgeMargin
 import com.antest1.gotobrowser.ui.component.loadingConnectorTag
 import com.antest1.gotobrowser.ui.component.RefreshOption
@@ -196,6 +200,10 @@ class BrowserActivity : ComponentActivity() {
     private val subtitleFontSize = mutableStateOf(DEFAULT_SUBTITLE_FONT_SIZE)
     /** Where the game sits when the screen leaves a margin above and below it. */
     private val gameVerticalBias = mutableStateOf(GameGeometry.BIAS_CENTER)
+    /** Toolbar docked at the top with refresh first (landscape), as in 3.x. */
+    private val toolbarAtTop = mutableStateOf(false)
+    /** Whether an edge swipe reveals the hidden toolbar. */
+    private val toolbarSwipe = mutableStateOf(true)
     private val subtitleLoader = Executors.newSingleThreadExecutor()
 
     // Settings applied immediately without reloading the page.
@@ -203,6 +211,8 @@ class BrowserActivity : ComponentActivity() {
         PREF_LANDSCAPE,
         PREF_MULTIWIN_MARGIN,
         PREF_GAME_ALIGN,
+        PREF_TOOLBAR_POSITION,
+        PREF_TOOLBAR_SWIPE,
         PREF_SUBTITLE_FONTSIZE,
         PREF_DOWNLOAD_RETRY,
         PREF_PIP_MODE,
@@ -291,6 +301,8 @@ class BrowserActivity : ComponentActivity() {
         pipController.setupPinchToPipGesture()
         gameArea = GameAreaLayout(this).apply { addView(webView) }
         applyGameAlignment()
+        applyToolbarPosition()
+        applyToolbarSwipe()
         // Keep the game area clear of the display cutout. Since targetSdk 35 the
         // window always extends into the cutout, so on 16:10 tablets the WebView
         // could otherwise be partially covered. Insets are passed through, not consumed.
@@ -391,7 +403,9 @@ class BrowserActivity : ComponentActivity() {
                         onSettingsClick = { settingsSheetVisible.value = true },
                         refreshAttention = refreshAttention,
                         forceFullRefresh = requiresFullRefresh(loadState, notice),
-                        gameVerticalBias = gameVerticalBias.value
+                        gameVerticalBias = gameVerticalBias.value,
+                        toolbarAtTop = toolbarAtTop.value,
+                        swipeToReveal = toolbarSwipe.value
                     ) {
                         val isMute by viewModel.isMuteMode.observeAsState(false)
                         val isCapture by viewModel.isCaptureMode.observeAsState(false)
@@ -581,6 +595,8 @@ class BrowserActivity : ComponentActivity() {
             PREF_LANDSCAPE -> displayController.updateOrientationLock()
             PREF_MULTIWIN_MARGIN -> displayController.updateMultiwindowMargin()
             PREF_GAME_ALIGN -> applyGameAlignment()
+            PREF_TOOLBAR_POSITION -> applyToolbarPosition()
+            PREF_TOOLBAR_SWIPE -> applyToolbarSwipe()
             PREF_SUBTITLE_FONTSIZE -> subtitleFontSize.value = settingsViewModel.getSubtitleFontSize()
             PREF_PIP_MODE -> pipController.setupSmoothPipAnimation()
             PREF_KEYBOARD -> displayController.applyKeyboardSetting()
@@ -599,6 +615,14 @@ class BrowserActivity : ComponentActivity() {
         }
         gameVerticalBias.value = bias
         gameArea.verticalBias = bias
+    }
+
+    private fun applyToolbarSwipe() {
+        toolbarSwipe.value = viewModel.sharedPref.getBoolean(PREF_TOOLBAR_SWIPE, true)
+    }
+
+    private fun applyToolbarPosition() {
+        toolbarAtTop.value = PREF_TOOLBAR_POSITION_TOP == viewModel.sharedPref.getString(PREF_TOOLBAR_POSITION, null)
     }
 
     fun handleBackPress() {
@@ -642,6 +666,10 @@ class BrowserActivity : ComponentActivity() {
         pipController.handlePictureInPictureModeChanged(isInPictureInPictureMode)
         if (isInPictureInPictureMode) {
             toolbarVisible.value = false
+            // The sheet and its dialogs are separate windows the PiP window cannot show usefully.
+            settingsSheetVisible.value = false
+            refreshPromptVisible.value = false
+            messageDialogs.cancelForPip()
         }
         val rot = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             display?.rotation ?: Surface.ROTATION_0
@@ -839,7 +867,8 @@ class BrowserActivity : ComponentActivity() {
                     title = getString(titleRes),
                     message = getString(messageRes),
                     confirm = DialogButton(getString(R.string.action_ok)) { refreshPageOrFinish(option) },
-                    dismiss = DialogButton(getString(R.string.action_cancel)) { mContentView?.resumeTimers() }
+                    dismiss = DialogButton(getString(R.string.action_cancel)) { mContentView?.resumeTimers() },
+                    cancelOnPip = true
                 )
             )
         }
@@ -854,7 +883,8 @@ class BrowserActivity : ComponentActivity() {
                 confirm = DialogButton(getString(R.string.action_ok)) {
                     mContentView?.let { manager?.logoutGame(it) }
                 },
-                dismiss = DialogButton(getString(R.string.action_cancel)) { mContentView?.resumeTimers() }
+                dismiss = DialogButton(getString(R.string.action_cancel)) { mContentView?.resumeTimers() },
+                cancelOnPip = true
             )
         )
     }

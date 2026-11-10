@@ -32,12 +32,15 @@
     <string name="settings_version_label">目前版本</string>
     <string name="settings_version_check">檢查更新</string>
     <string name="settings_recommended_summary">推薦</string>
-    <string name="settings_display_label">顯示</string>
-    <string name="settings_control_label">操作</string>
-    <string name="settings_download_label">快取</string>
+    <string name="settings_display_label">遊戲畫面顯示</string>
+    <string name="settings_control_label">操作與工具列</string>
+    <string name="settings_download_label">快取設定</string>
     <string name="settings_connection_login_label">登入與連接</string>
     <string name="settings_login_section_header">登入</string>
     <string name="settings_bypass_section_header">登入伺服器封鎖繞行</string>
+    <string name="settings_logout_summary">返回所選登入方式的登入頁面</string>
+    <string name="settings_toolbar_section_header">工具列</string>
+    <string name="settings_game_control_section_header">遊戲操作</string>
     <string name="settings_subtitle_label">字幕設定</string>
     <string name="settings_subtitle_fontsize" >字體大小</string>
     <string name="settings_subtitle_example" formatted="false">文字大小：%d</string>
@@ -52,7 +55,7 @@
     <string name="browser_fontprefetch">預先載入字體</string>
     <string name="browser_enablepipmode">啟用畫中畫模式</string>
     <string name="browser_enablepipmode_summary">開啟後，當您返回主螢幕、向上滑動或在網頁区域使用双指缩小手势时，應用程式將以浮動小窗形式繼續運行。</string>
-    <string name="browser_disable_refresh_dialog">禁用重新加載確認</string>
+    <string name="browser_disable_refresh_dialog">免確認直接重新整理</string>
     <string name="logout_msg">您確定要登出嗎？</string>
     <string name="noti_screenshot_name">GotoBrowser截圖</string>
     <string name="noti_screenshot_title">已儲存螢幕截圖</string>
@@ -67,6 +70,12 @@
     <string name="settings_game_align_center">置中</string>
     <string name="settings_game_align_top">頂部</string>
     <string name="settings_game_align_summary">%1$s（遊戲上下留有空白時適用）</string>
+    <string name="settings_toolbar_position">工具列顯示位置</string>
+    <string name="settings_toolbar_position_center">置中</string>
+    <string name="settings_toolbar_position_top">頂部 · 經典</string>
+    <string name="settings_toolbar_position_summary">%1$s（橫向畫面時適用）</string>
+    <string name="settings_toolbar_swipe">從邊緣滑動顯示工具列</string>
+    <string name="settings_toolbar_swipe_summary">關閉後，邊緣滑動僅用於系統手勢</string>
     <string name="setting_devtools_enable">啟用DevTools除錯</string>
     <string name="connection_use_alter">啟用登入伺服器封鎖繞行</string>
     <string name="connection_use_alter_summary">如果您遇到封鎖外國IP的問題（無限黑螢幕），請使用此設定</string>

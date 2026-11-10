@@ -16,6 +16,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,6 +45,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
@@ -125,6 +127,10 @@ import com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_NAME
 import com.antest1.gotobrowser.Constants.PREF_MULTIWIN_MARGIN
 import com.antest1.gotobrowser.Constants.PREF_PANELSTART
 import com.antest1.gotobrowser.Constants.PREF_PIP_MODE
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION_CENTER
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_POSITION_TOP
+import com.antest1.gotobrowser.Constants.PREF_TOOLBAR_SWIPE
 import com.antest1.gotobrowser.Constants.PREF_SILENT
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE
 import com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE
@@ -562,6 +568,7 @@ fun SettingsContent(
 @Composable
 private fun DisplaySection(viewModel: SettingsViewModel?, onSettingChanged: (String) -> Unit) {
     SwitchRow(viewModel, PREF_LANDSCAPE, R.string.mode_landscape, defaultValue = true, onSettingChanged = onSettingChanged)
+    SwitchRow(viewModel, PREF_ADJUSTMENT, R.string.mode_adjustment, R.string.settings_recommended_summary, defaultValue = true, onSettingChanged = onSettingChanged)
     val gameAlignOptions = gameAlignOptions()
     val gameAlignSummary = stringResource(R.string.settings_game_align_summary)
     ListRow(
@@ -572,7 +579,6 @@ private fun DisplaySection(viewModel: SettingsViewModel?, onSettingChanged: (Str
         },
         onSettingChanged = onSettingChanged
     )
-    SwitchRow(viewModel, PREF_ADJUSTMENT, R.string.mode_adjustment, R.string.settings_recommended_summary, defaultValue = true, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_PIP_MODE, R.string.browser_enablepipmode, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_MULTIWIN_MARGIN, R.string.settings_mw_margin, onSettingChanged = onSettingChanged)
     SwitchRow(viewModel, PREF_LEGACY_RENDERER, R.string.settings_legacy_renderer_enable,
@@ -581,10 +587,25 @@ private fun DisplaySection(viewModel: SettingsViewModel?, onSettingChanged: (Str
 
 @Composable
 private fun ControlSection(viewModel: SettingsViewModel?, onSettingChanged: (String) -> Unit) {
+    SectionHeader(R.string.settings_toolbar_section_header)
+    SwitchRow(viewModel, PREF_PANELSTART, R.string.mode_show_panel, defaultValue = true, onSettingChanged = onSettingChanged)
+    SwitchRow(viewModel, PREF_DISABLE_REFRESH_DIALOG, R.string.browser_disable_refresh_dialog, onSettingChanged = onSettingChanged)
+    val toolbarPositionOptions = toolbarPositionOptions()
+    val toolbarPositionSummary = stringResource(R.string.settings_toolbar_position_summary)
+    ListRow(
+        viewModel, PREF_TOOLBAR_POSITION, R.string.settings_toolbar_position, toolbarPositionOptions,
+        defaultValue = PREF_TOOLBAR_POSITION_CENTER,
+        summaryProvider = { value ->
+            toolbarPositionSummary.format(toolbarPositionOptions.firstOrNull { it.value == value }?.title ?: value)
+        },
+        onSettingChanged = onSettingChanged
+    )
+    SwitchRow(viewModel, PREF_TOOLBAR_SWIPE, R.string.settings_toolbar_swipe, R.string.settings_toolbar_swipe_summary,
+        defaultValue = true, onSettingChanged = onSettingChanged)
+
+    SectionHeader(R.string.settings_game_control_section_header)
     SwitchRow(viewModel, PREF_KEYBOARD, R.string.mode_enable_keyboard, defaultValue = true, onSettingChanged = onSettingChanged)
     ListRow(viewModel, PREF_CURSOR_MODE, R.string.setting_cursor_mode, cursorModeOptions(), onSettingChanged = onSettingChanged)
-    SwitchRow(viewModel, PREF_DISABLE_REFRESH_DIALOG, R.string.browser_disable_refresh_dialog, onSettingChanged = onSettingChanged)
-    SwitchRow(viewModel, PREF_PANELSTART, R.string.mode_show_panel, defaultValue = true, onSettingChanged = onSettingChanged)
 }
 
 @Composable
@@ -700,6 +721,7 @@ private fun ConnectionLoginSection(
 
     ClickRow(
         title = R.string.menu_tooltip_logout,
+        summary = R.string.settings_logout_summary,
         onClick = onLogoutRequest
     )
 
@@ -990,14 +1012,16 @@ private fun AppInfoSection(
  */
 @Composable
 private fun SectionHeader(titleRes: Int) {
-    ListItem(
-        headlineContent = {
-            Text(
-                text = stringResource(titleRes),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
+    // Not a ListItem: its 56dp minimum height centered the small label and left it far from
+    // the rows it introduces. Same background and 16dp inset as the rows below.
+    Text(
+        text = stringResource(titleRes),
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(ListItemDefaults.containerColor)
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp)
     )
 }
 
@@ -1406,6 +1430,12 @@ private fun fpsLimitOptions(context: Context): List<ListOption> {
 private fun gameAlignOptions() = listOf(
     ListOption(PREF_GAME_ALIGN_CENTER, stringResource(R.string.settings_game_align_center)),
     ListOption(PREF_GAME_ALIGN_TOP, stringResource(R.string.settings_game_align_top))
+)
+
+@Composable
+private fun toolbarPositionOptions() = listOf(
+    ListOption(PREF_TOOLBAR_POSITION_CENTER, stringResource(R.string.settings_toolbar_position_center)),
+    ListOption(PREF_TOOLBAR_POSITION_TOP, stringResource(R.string.settings_toolbar_position_top))
 )
 
 private fun cursorModeOptions() = listOf(

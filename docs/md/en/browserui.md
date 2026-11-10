@@ -13,22 +13,24 @@ You can use various functions such as refreshing the game or taking a screenshot
 ##### Show/Hide Toolbar
 - Here are the ways to make the toolbar appear:
   - Touch the black margin outside the game screen (recommended)
-  - Swipe inward from the edge where the toolbar is hidden (portrait: bottom, landscape: left)
-  - Turn on "Show Control Panel on Start" in Settings → Controls to show it on startup
+  - Swipe inward from the edge where the toolbar is hidden (portrait: bottom, landscape: left) (can be turned off in Settings → Controls & Toolbar → "Swipe from Edge to Show Toolbar")
+  - If there is no margin outside the game screen, press the back button (or use the back gesture)
+  - Turn on "Show Control Panel on Start" in Settings → Controls & Toolbar to show it on startup
 - Conversely, here are the ways to make the toolbar disappear:
   - Touch the black margin outside the game screen again
   - Swipe the toolbar toward the edge of the screen
 
 ##### Refresh
-The refresh button at the end of the toolbar offers two methods.
+The refresh button next to the toolbar offers two methods.
+In landscape, setting Settings → Controls & Toolbar → "Toolbar Placement" to "Top · Classic" docks the toolbar at the top of the screen with the refresh button first, as in 3.x.
 
 |  | Button | Description |
 | --- | --- | --- |
 | <span class="material-symbols-outlined">frame_reload</span> | Quick Refresh | Reloads only the game frame instead of the full web page.<br/>It is fast but may not always succeed. If a network error occurs, use Full Refresh. |
 | <span class="material-symbols-outlined">refresh</span> | Full Refresh | Reloads the full web page.<br/>This is the most reliable way to refresh, but it takes longer than Quick Refresh. |
 
-- Press and hold the button and drag upward to choose the other method. The last method used is remembered as the default action of the button.
-- The confirmation dialog shown before refreshing can be disabled in Settings → Controls → "Disable Refresh Warning Dialog".
+- Press and hold the button and drag toward the menu to choose the other method. The menu opens upward with the toolbar at the center, and downward with the toolbar at the top. The last method used is remembered as the default action of the button.
+- Turn on Settings → Controls & Toolbar → "Refresh Without Confirmation" to refresh without the confirmation dialog.
 - If you chose "Change Settings Without Reload" in the "Reload Required" dialog after changing a setting, refreshing with this button also applies the change.
 - After a connection error while loading or a server error during play, the button runs a Full Refresh regardless of the saved method, and "Full Refresh" is shown next to it. The saved method does not change.
 
