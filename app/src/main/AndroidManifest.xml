@@ -10,7 +10,7 @@
     <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" />
 
     <permission
-        android:name="com.antest1.gotobrowser.contentprovider.READ_DATA"
+        android:name="${applicationId}.contentprovider.READ_DATA"
         android:protectionLevel="normal" />
 
     <application
@@ -73,10 +73,10 @@
 
         <provider
             android:name=".ContentProvider.KcaContentProvider"
-            android:authorities="com.antest1.gotobrowser.contentprovider"
+            android:authorities="${applicationId}.contentprovider"
             android:exported="true"
             android:grantUriPermissions="true"
-            android:readPermission="com.antest1.gotobrowser.contentprovider.READ_DATA" />
+            android:readPermission="${applicationId}.contentprovider.READ_DATA" />
 
     </application>
 
