@@ -1,0 +1,63 @@
+package com.antest1.gotobrowser.chs
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class ChsJsonCleanerTest {
+
+    @Test
+    fun `stripJsonComments preserves URLs inside strings and removes comments, BOM, leading zeros, and trailing commas`() {
+        val raw = "\uFEFF" + """
+            {
+              // 单行注释
+              "url": "https://raw.githubusercontent.com/asaico/Kancolle_to_CHS/main/ /* not comment */ // also not",
+              /* 多行注释
+                 第二行 */
+              "api_id": 007,
+              "zero_val": 000,
+              "nested": [
+                "item1",
+                "item2",
+              ],
+            }
+        """.trimIndent()
+
+        val parsed = ChsJsonCleaner.safeParseJson(raw)
+        assertNotNull("应当成功解析含注释与非标语法的 JSON", parsed)
+        assertTrue(parsed!!.isJsonObject)
+
+        val obj = parsed.asJsonObject
+        assertEquals(
+            "https://raw.githubusercontent.com/asaico/Kancolle_to_CHS/main/ /* not comment */ // also not",
+            obj.get("url").asString
+        )
+        assertEquals(7, obj.get("api_id").asInt)
+        assertEquals(0, obj.get("zero_val").asInt)
+        assertEquals(2, obj.getAsJsonArray("nested").size())
+    }
+
+    @Test
+    fun `validateRegexPattern and sanitizeRegexRules filter out invalid regexes without throwing`() {
+        assertTrue(ChsJsonCleaner.validateRegexPattern("""^第(\d+)艦隊$"""))
+        assertFalse(ChsJsonCleaner.validateRegexPattern("""[unclosed group"""))
+        assertFalse(ChsJsonCleaner.validateRegexPattern(""))
+
+        val rawRulesJson = """
+            {
+              "dummy": "forNoComma",
+              "^第(\\d+)艦隊$": "第 $1 舰队",
+              "[invalid_regex": "不应被保留",
+              "獲得経験値\\s*(\\d+)": "获得经验值 $1"
+            }
+        """.trimIndent()
+
+        val el = ChsJsonCleaner.safeParseJson(rawRulesJson)
+        val rules = ChsJsonCleaner.sanitizeRegexRules(el, "test_regex.json")
+        assertEquals(2, rules.size)
+        assertEquals("""^第(\d+)艦隊$""" to "第 $1 舰队", rules[0])
+        assertEquals("""獲得経験値\s*(\d+)""" to "获得经验值 $1", rules[1])
+    }
+}

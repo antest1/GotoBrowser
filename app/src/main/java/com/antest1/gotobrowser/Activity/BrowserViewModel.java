@@ -9,6 +9,7 @@ import com.antest1.gotobrowser.Helpers.FpsPatcher;
 import com.antest1.gotobrowser.Helpers.K3dPatcher;
 import com.antest1.gotobrowser.Helpers.KenPatcher;
 import com.antest1.gotobrowser.R;
+import com.antest1.gotobrowser.chs.ChsConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +74,7 @@ public class BrowserViewModel extends AndroidViewModel {
         kenPatcher.prepare(application);
         critPatcher.prepare(application);
         fpsPatcher.prepare(application);
+        ChsConfig.prepare(application);
     }
 
     public LiveData<Boolean> getIsMuteMode() { return isMuteMode; }

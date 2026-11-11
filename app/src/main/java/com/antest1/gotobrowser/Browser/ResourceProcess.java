@@ -18,6 +18,8 @@ import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleData;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
+import com.antest1.gotobrowser.chs.ChsConfig;
+import com.antest1.gotobrowser.chs.ChsHackResolver;
 import com.antest1.gotobrowser.ui.component.DialogButton;
 import com.antest1.gotobrowser.ui.component.MessageDialog;
 
@@ -258,7 +260,9 @@ public class ResourceProcess {
                     if (is_audio) return processAudioFile(requestInfo, resource_type);
                     if (is_css) return processStylesheet(requestInfo);
                     if (is_font) {
-                        if (sharedPref.getBoolean(PREF_FONT_PREFETCH, true) && !KenPatcher.isPatcherEnabled()) {
+                        if (sharedPref.getBoolean(PREF_FONT_PREFETCH, true)
+                                && !KenPatcher.isPatcherEnabled()
+                                && !ChsConfig.isResPatchActive()) {
                             return getFontFile(filename);
                         } else {
                             return processFontFile(requestInfo);
@@ -353,6 +357,8 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processImageDataResource(ResourceRequestInfo requestInfo, int resource_type) {
+        WebResourceResponse chsHack = ChsHackResolver.resolveWebResponseIfEnabled(context, requestInfo.path);
+        if (chsHack != null) return chsHack;
         File file = new File(requestInfo.outputPath);
         int status = downloadResourceIfMissing(requestInfo, file);
         if (status == RESOURCE_FAILED) return promptForRetry(requestInfo, resource_type);
@@ -573,6 +579,8 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processFontFile(ResourceRequestInfo requestInfo) throws IOException {
+        WebResourceResponse chsHack = ChsHackResolver.resolveWebResponseIfEnabled(context, requestInfo.path);
+        if (chsHack != null) return chsHack;
         File file = new File(requestInfo.outputPath);
         downloadResourceIfMissing(requestInfo, file);
         if (!file.exists()) return null; // let the WebView fetch it itself
@@ -639,7 +647,11 @@ public class ResourceProcess {
 
     private WebResourceResponse getMaintenanceFiles(boolean is_image) {
         try {
-            if (is_image) return new WebResourceResponse("image/png", "utf-8", context.getAssets().open("maintenance.png"));
+            if (is_image) {
+                WebResourceResponse chsHack = ChsHackResolver.resolveWebResponseIfEnabled(context, "/kcs/html/maintenance.png");
+                if (chsHack != null) return chsHack;
+                return new WebResourceResponse("image/png", "utf-8", context.getAssets().open("maintenance.png"));
+            }
             else return new WebResourceResponse("text/html", "utf-8", context.getAssets().open("maintenance.html"));
         } catch (IOException e) { return null; }
     }

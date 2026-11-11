@@ -26,6 +26,8 @@ import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.antest1.gotobrowser.Helpers.KenPatcher;
+import com.antest1.gotobrowser.chs.ChsConfig;
+import com.antest1.gotobrowser.chs.ChsDownloader;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,9 +92,12 @@ public class SettingsViewModel extends AndroidViewModel {
     private final VersionDatabase versionTable;
     private final GotoVersionCheck appCheck;
     private final KcEnUtils enUtils = new KcEnUtils();
+    private final ChsDownloader chsDownloader = new ChsDownloader();
 
     private final MutableLiveData<String> patchUpdateSummary = new MutableLiveData<>("checking updates...");
     private final MutableLiveData<Boolean> patchUpdateEnabled = new MutableLiveData<>(false);
+    private final MutableLiveData<String> chsUpdateSummary = new MutableLiveData<>("checking updates...");
+    private final MutableLiveData<Boolean> chsUpdateEnabled = new MutableLiveData<>(false);
     private final MutableLiveData<String> subtitleUpdateSummary = new MutableLiveData<>(SUBTITLE_UPDATE_LOADING);
     private final MutableLiveData<Boolean> subtitleUpdateEnabled = new MutableLiveData<>(false);
     private final MutableLiveData<Integer> patchAboutTitleRes = new MutableLiveData<>(R.string.settings_mod_kantaien_about);
@@ -175,6 +180,14 @@ public class SettingsViewModel extends AndroidViewModel {
         return patchUpdateEnabled;
     }
 
+    public LiveData<String> getChsUpdateSummary() {
+        return chsUpdateSummary;
+    }
+
+    public LiveData<Boolean> getChsUpdateEnabled() {
+        return chsUpdateEnabled;
+    }
+
     public LiveData<String> getSubtitleUpdateSummary() {
         return subtitleUpdateSummary;
     }
@@ -235,6 +248,10 @@ public class SettingsViewModel extends AndroidViewModel {
         return sharedPref.getBoolean(PREF_MOD_KCCP_LANG_PATCH, false);
     }
 
+    public boolean isChsPatchEnabled() {
+        return ChsConfig.isEnabled(getApplication());
+    }
+
     public boolean isAlterGadgetEnabled() {
         return sharedPref.getBoolean(com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET, false);
     }
@@ -251,17 +268,57 @@ public class SettingsViewModel extends AndroidViewModel {
     // Whether each update check already ran since the settings sheet opened. The checks call
     // GitHub, so revisiting a screen reuses the last result instead of asking again.
     private boolean patchChecked = false;
+    private boolean chsChecked = false;
     private boolean subtitleChecked = false;
 
     /** Called when the settings sheet opens: its update checks run again from scratch. */
     public void onSettingsOpened() {
         patchChecked = false;
+        chsChecked = false;
         subtitleChecked = false;
     }
 
     /** Runs the patch update check unless it already ran since the sheet opened. */
     public void checkPatchUpdateOnce() {
         if (!patchChecked) refreshKccpDependentRows(null);
+    }
+
+    /** Runs the CHS patch update check unless it already ran since the sheet opened. */
+    public void checkChsUpdateOnce() {
+        if (!chsChecked) refreshChsUpdateStatus();
+    }
+
+    public void refreshChsUpdateStatus() {
+        chsChecked = true;
+        chsDownloader.checkUpdate(getApplication(), (summary, canDownload) -> {
+            chsUpdateSummary.setValue(summary);
+            chsUpdateEnabled.setValue(canDownload);
+            return kotlin.Unit.INSTANCE;
+        });
+    }
+
+    public void onChsPatchToggled(boolean enabled) {
+        ChsConfig.setEnabled(getApplication(), enabled);
+        if (enabled) {
+            refreshKccpDependentRows(null);
+        }
+        refreshChsUpdateStatus();
+    }
+
+    public void requestChsPatchUpdate() {
+        chsDownloader.startDownload(host, (summary, canDownload) -> {
+            chsUpdateSummary.setValue(summary);
+            chsUpdateEnabled.setValue(canDownload);
+            return kotlin.Unit.INSTANCE;
+        });
+    }
+
+    public void deleteChsPatch() {
+        chsDownloader.deletePatchData(host, (summary, canDownload) -> {
+            chsUpdateSummary.setValue(summary);
+            chsUpdateEnabled.setValue(canDownload);
+            return kotlin.Unit.INSTANCE;
+        });
     }
 
     /** Runs the subtitle update check unless it already ran since the sheet opened. */
@@ -420,6 +477,10 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     public void onKccpPatchChanged() {
+        if (isKccpPatchEnabled()) {
+            ChsConfig.enforceMutualExclusionWithKccp(getApplication(), false);
+            refreshChsUpdateStatus();
+        }
         refreshKccpDependentRows(null);
     }
 

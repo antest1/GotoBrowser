@@ -141,6 +141,7 @@ import com.antest1.gotobrowser.Helpers.KcUtils
 import com.antest1.gotobrowser.Notification.ScreenshotNotification
 import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils
+import com.antest1.gotobrowser.chs.ChsConfig
 import com.antest1.gotobrowser.ui.component.ControlLayout
 import com.antest1.gotobrowser.ui.component.DialogButton
 import com.antest1.gotobrowser.ui.component.LoadingStatusOverlay
@@ -245,7 +246,7 @@ class BrowserActivity : ComponentActivity() {
         PREF_MOD_KANTAI3D,
         PREF_MOD_KCCP_LANG_PATCH,
         PREF_MOD_KCCP_LANG_PATCH_NAME
-    )
+    ) + ChsConfig.REFRESH_KEYS
 
     @SuppressLint("SourceLockedOrientationActivity", "ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {

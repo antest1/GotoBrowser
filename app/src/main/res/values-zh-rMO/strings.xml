@@ -202,4 +202,38 @@
     <string name="detail_host">主機</string>
     <string name="detail_api">API</string>
     <string name="detail_message">訊息</string>
+
+    <!-- Simplified Chinese Localization (Kancolle_to_CHS / PLUS) -->
+    <string name="settings_mod_group_chs">簡體中文漢化 (砍口壘漢化計劃 PLUS)</string>
+    <string name="settings_mod_chs_enable">啟用簡體中文漢化</string>
+    <string name="settings_mod_chs_summary">提供全介面文本替換、KCSAPI 動態回應合流與 UI 貼圖字體漢化（作者：@asaico）</string>
+    <string name="settings_mod_chs_source">漢化資料源</string>
+    <string name="settings_mod_chs_source_custom">自訂鏡像源</string>
+    <string name="settings_mod_chs_custom_url">自訂資料源根位址</string>
+    <string name="settings_mod_chs_download_mode">漢化資源下載範圍</string>
+    <string name="settings_mod_chs_mode_full">完整漢化包（文本 + UI 貼圖與字體）</string>
+    <string name="settings_mod_chs_mode_text_only">僅文本與 API 資料（輕量快速）</string>
+    <string name="settings_mod_chs_download">下載 / 更新漢化資料</string>
+    <string name="settings_mod_chs_delete">刪除漢化資料</string>
+    <string name="settings_mod_chs_delete_summary">清除本機已下載的簡中漢化文本與貼圖字體檔案。</string>
+    <string name="settings_mod_chs_sub_switches">漢化模組細粒度開關</string>
+    <string name="settings_mod_chs_sub_switches_summary">分別控制文本詞典、貼圖字體及 8 項 KCSAPI 回應合流開關</string>
+    <string name="settings_mod_chs_text_dict">靜態文本詞典替換</string>
+    <string name="settings_mod_chs_text_regex">動態正則文本替換</string>
+    <string name="settings_mod_chs_res_patch">UI 貼圖與中文字體替換</string>
+    <string name="settings_mod_chs_api_quest">任務標題與詳情漢化</string>
+    <string name="settings_mod_chs_api_ship">艦娘、裝備與艦種名稱漢化</string>
+    <string name="settings_mod_chs_api_mission">遠征名稱與詳情漢化</string>
+    <string name="settings_mod_chs_api_furniture">家具標題與介紹漢化</string>
+    <string name="settings_mod_chs_api_mapinfo">海域名稱與作戰情報漢化</string>
+    <string name="settings_mod_chs_api_picturebook">艦娘與裝備圖鑑漢化</string>
+    <string name="settings_mod_chs_api_flavor">海圖海況與深海台詞漢化</string>
+    <string name="settings_mod_chs_api_item">消耗品與商城道具漢化</string>
+    <string name="settings_mod_chs_about">關於砍口壘漢化計劃</string>
+    <string name="chs_status_disabled">未啟用漢化修補程式</string>
+    <string name="chs_status_check_failed">無法連線更新源，點選可重試下載</string>
+    <string name="chs_status_offline_installed" formatted="false">已安裝本機資料 (%1$s)</string>
+    <string name="chs_status_not_installed_format" formatted="false">尚未下載漢化資料（版本 %1$s，共 %2$d 個檔案 / %3$s）</string>
+    <string name="chs_status_update_available_format" formatted="false">發現更新 %1$s（待更新 %2$d 個檔案 / %3$s）</string>
+    <string name="chs_status_up_to_date_format" formatted="false">已是最新版本 (%1$s)</string>
 </resources>

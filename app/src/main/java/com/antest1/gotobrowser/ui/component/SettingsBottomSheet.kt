@@ -96,6 +96,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.antest1.gotobrowser.Activity.PatchDownloadState
 import com.antest1.gotobrowser.Activity.SettingsViewModel
+import com.antest1.gotobrowser.chs.ChsSettingsSection
 import com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT
 import com.antest1.gotobrowser.Constants.PREF_ALTER_AUTO_DISABLE
 import com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT
@@ -902,14 +903,17 @@ private fun ModsSection(
     SectionHeader(R.string.settings_mod_group_kccp)
     // Held as state so the dependent rows follow the switch right away.
     var patchEnabled by remember { mutableStateOf(if (isPreview) false else viewModel.isKccpPatchEnabled()) }
-    SwitchRow(viewModel, PREF_MOD_KCCP_LANG_PATCH, R.string.settings_mod_kccp, R.string.settings_mod_kccp_summary,
-        onChanged = {
-            if (!isPreview) {
-                patchEnabled = viewModel.isKccpPatchEnabled()
-                viewModel.onKccpPatchChanged()
-            }
-        },
-        onSettingChanged = onSettingChanged)
+    var kccpSwitchVersion by remember { mutableIntStateOf(0) }
+    androidx.compose.runtime.key(kccpSwitchVersion) {
+        SwitchRow(viewModel, PREF_MOD_KCCP_LANG_PATCH, R.string.settings_mod_kccp, R.string.settings_mod_kccp_summary,
+            onChanged = {
+                if (!isPreview) {
+                    patchEnabled = viewModel.isKccpPatchEnabled()
+                    viewModel.onKccpPatchChanged()
+                }
+            },
+            onSettingChanged = onSettingChanged)
+    }
 
     ListRow(
         viewModel, PREF_MOD_KCCP_LANG_PATCH_NAME, R.string.settings_mod_kccp_patch_name, kccpLanguageOptions(),
@@ -945,6 +949,18 @@ private fun ModsSection(
         title = patchTitle,
         summaryText = patchUrl,
         onClick = { openUrl(context, patchUrl) }
+    )
+
+    // --- Group 4: Simplified Chinese Patch (PLUS) ---------------------------
+    ChsSettingsSection(
+        viewModel = viewModel,
+        onChsToggled = { enabled ->
+            if (enabled && !isPreview) {
+                patchEnabled = viewModel.isKccpPatchEnabled()
+                kccpSwitchVersion++
+            }
+        },
+        onSettingChanged = onSettingChanged
     )
 }
 

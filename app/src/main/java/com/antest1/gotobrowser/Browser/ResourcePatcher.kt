@@ -9,6 +9,7 @@ import android.util.Log
 import com.antest1.gotobrowser.Activity.BrowserActivity
 import com.antest1.gotobrowser.Helpers.*
 import com.antest1.gotobrowser.Constants.*
+import com.antest1.gotobrowser.chs.ChsTextPatcher
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import java.io.*
@@ -41,6 +42,7 @@ object ResourcePatcher {
     ): String {
         var patchedJs = K3dPatcher.patchKantai3d(context, mainJs)
         patchedJs = KenPatcher.patchKantaiEn(patchedJs, activity)
+        patchedJs = ChsTextPatcher.patchMainJsIfEnabled(context, patchedJs)
         patchedJs = FpsPatcher.patchFps(patchedJs)
         patchedJs = CritPatcher.patchCrit(patchedJs)
 

@@ -218,4 +218,41 @@
     <string name="detail_host">Host</string>
     <string name="detail_api">API</string>
     <string name="detail_message">Message</string>
+
+    <!-- Simplified Chinese Localization (Kancolle_to_CHS / PLUS) -->
+    <string name="settings_mod_group_chs">Simplified Chinese Patch (PLUS)</string>
+    <string name="settings_mod_chs_enable">KanColle Simplified Chinese Patch</string>
+    <string name="settings_mod_chs_summary">Full UI text, KCSAPI response merging and asset localization (Author: @asaico)</string>
+    <string name="settings_mod_chs_source">Patch Data Source</string>
+    <string name="settings_mod_chs_source_github" translatable="false">GitHub Raw</string>
+    <string name="settings_mod_chs_source_jsdelivr" translatable="false">jsDelivr CDN</string>
+    <string name="settings_mod_chs_source_ghproxy" translatable="false">GHProxy Mirror</string>
+    <string name="settings_mod_chs_source_custom">Custom Mirror URL</string>
+    <string name="settings_mod_chs_custom_url">Custom Source Base URL</string>
+    <string name="settings_mod_chs_download_mode">Download Scope</string>
+    <string name="settings_mod_chs_mode_full">Full Package (Text + UI Assets &amp; Fonts)</string>
+    <string name="settings_mod_chs_mode_text_only">Text &amp; API Data Only</string>
+    <string name="settings_mod_chs_download">Download / Update CHS Data</string>
+    <string name="settings_mod_chs_delete">Delete CHS Data</string>
+    <string name="settings_mod_chs_delete_summary">Remove downloaded Simplified Chinese text and image assets.</string>
+    <string name="settings_mod_chs_sub_switches">Localization Module Switches</string>
+    <string name="settings_mod_chs_sub_switches_summary">Configure text, asset and KCSAPI module switches</string>
+    <string name="settings_mod_chs_text_dict">Static Text Dictionary</string>
+    <string name="settings_mod_chs_text_regex">Dynamic Regex Replacement</string>
+    <string name="settings_mod_chs_res_patch">UI Image &amp; Font Replacement</string>
+    <string name="settings_mod_chs_api_quest">Quest Title &amp; Details</string>
+    <string name="settings_mod_chs_api_ship">Ship, Equipment &amp; Type Names</string>
+    <string name="settings_mod_chs_api_mission">Expedition Name &amp; Details</string>
+    <string name="settings_mod_chs_api_furniture">Furniture Title &amp; Description</string>
+    <string name="settings_mod_chs_api_mapinfo">Map Name &amp; Operation Info</string>
+    <string name="settings_mod_chs_api_picturebook">Ship &amp; Equipment Encyclopedia</string>
+    <string name="settings_mod_chs_api_flavor">Map Cell &amp; Abyssal Flavor Text</string>
+    <string name="settings_mod_chs_api_item">Consumables &amp; Shop Items</string>
+    <string name="settings_mod_chs_about">About Kancolle_to_CHS</string>
+    <string name="chs_status_disabled">Mod disabled.</string>
+    <string name="chs_status_check_failed">Could not reach update source, tap to retry</string>
+    <string name="chs_status_offline_installed" formatted="false">Installed (%1$s)</string>
+    <string name="chs_status_not_installed_format" formatted="false">Not installed (Latest %1$s, %2$d files / %3$s)</string>
+    <string name="chs_status_update_available_format" formatted="false">Update available %1$s (%2$d files / %3$s)</string>
+    <string name="chs_status_up_to_date_format" formatted="false">Up to date (%1$s)</string>
 </resources>
