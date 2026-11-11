@@ -2,6 +2,7 @@ package com.antest1.gotobrowser.chs
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -99,26 +100,29 @@ fun ChsSettingsSection(
     )
     HorizontalDivider()
 
-    // 2. 下载更新
-    val canClickDownload = chsEnabled && chsDownloadEnabled
-    val dlColor = if (canClickDownload) MaterialTheme.colorScheme.onSurface
-    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-    ListItem(
-        headlineContent = { Text(stringResource(R.string.settings_mod_chs_download), color = dlColor) },
-        supportingContent = { Text(chsSummary, color = dlColor) },
-        modifier = if (canClickDownload) Modifier.clickable {
-            if (!isPreview) viewModel.requestChsPatchUpdate()
-        } else Modifier
-    )
-    HorizontalDivider()
+    // 2. 启用汉化后展开：下载更新 & 更多设置
+    AnimatedVisibility(visible = chsEnabled) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            val canClickDownload = chsEnabled && chsDownloadEnabled
+            val dlColor = if (canClickDownload) MaterialTheme.colorScheme.onSurface
+            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_mod_chs_download), color = dlColor) },
+                supportingContent = { Text(chsSummary, color = dlColor) },
+                modifier = if (canClickDownload) Modifier.clickable {
+                    if (!isPreview) viewModel.requestChsPatchUpdate()
+                } else Modifier
+            )
+            HorizontalDivider()
 
-    // 3. 更多设置（进入独立二级菜单）
-    ListItem(
-        headlineContent = { Text(stringResource(R.string.settings_mod_chs_more), color = mainColor) },
-        supportingContent = { Text(stringResource(R.string.settings_mod_chs_more_summary), color = mainColor) },
-        modifier = Modifier.clickable(onClick = onOpenMoreSettings)
-    )
-    HorizontalDivider()
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_mod_chs_more), color = mainColor) },
+                supportingContent = { Text(stringResource(R.string.settings_mod_chs_more_summary), color = mainColor) },
+                modifier = Modifier.clickable(onClick = onOpenMoreSettings)
+            )
+            HorizontalDivider()
+        }
+    }
 }
 
 /**

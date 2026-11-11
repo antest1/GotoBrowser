@@ -89,14 +89,14 @@ For information about the function, refer to the <span class="link" data-move="v
 | General Mods | True Critical Hits | Removes some hard-coded obfuscation for hits. Only a critical hit (CL2) will be displayed as such | After reload | [@Oradimi](https://x.com/oradimi) |
 | Kantai3D Mod | Kantai3D v4.0 | Add 3D-like visual effects and jiggle physics to some of your secretaries. Cannot be selected while Legacy Renderer is on | After reload | [@laplamgor](https://x.com/laplamgor) |
 | Kantai3D Mod | About Kantai3D | Opens the [Kantai3D GitHub page](https://github.com/laplamgor/kantai3d) | | |
+| 砍口垒汉化计划 in Goto | Enable Simplified Chinese Patch | Apply Simplified Chinese localization for in-game text, KCSAPI responses, and UI textures (mutually exclusive with KCCP Language Patch) | After reload | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
+| 砍口垒汉化计划 in Goto | Download / Update CHS Data | Incrementally download or update the Simplified Chinese patch data | After reload | |
+| 砍口垒汉化计划 in Goto | More Settings | Open the sub-menu to configure data source (砍口垒汉化计划 @归海原), download scope, 11 module switches, delete patch data, and view About | After reload / Immediately | |
 | Language Patch (KCCP) | KanColle Language Patch (KCCP) | Apply a translation patch to in-game text | After reload | [@Oradimi](https://x.com/oradimi) |
 | Language Patch (KCCP) | Language Patch to Apply | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP) (@Oradimi) or [KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP) (@SLAVUSworks) | After reload | |
 | Language Patch (KCCP) | Download Patch Data | Downloads or updates the data of the selected patch. Refresh the game after it finishes to apply | After reload | |
 | Language Patch (KCCP) | Delete Patch Data | Use this if the patch is presenting unexpected behaviour, or if something went wrong during download | After reload | |
 | Language Patch (KCCP) | About KanColle English/Indonesia Patch | Opens the GitHub page of the selected patch | | |
-| 砍口垒汉化计划 in Goto | Enable Simplified Chinese Patch | Apply Simplified Chinese localization for in-game text, KCSAPI responses, and UI textures (mutually exclusive with KCCP Language Patch) | After reload | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
-| 砍口垒汉化计划 in Goto | Download / Update CHS Data | Incrementally download or update the Simplified Chinese patch data | After reload | |
-| 砍口垒汉化计划 in Goto | More Settings | Open the sub-menu to configure data source, download scope, 11 module switches, delete patch data, and view About | After reload / Immediately | |
 
 ##### App Information
 

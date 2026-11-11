@@ -228,7 +228,7 @@
     <string name="settings_mod_chs_group_data">Data &amp; Update Settings</string>
     <string name="settings_mod_chs_group_modules">Localization Module Switches</string>
     <string name="settings_mod_chs_group_about">About</string>
-    <string name="settings_mod_chs_source">Patch Data Source</string>
+    <string name="settings_mod_chs_source">Patch Data Source (砍口垒汉化计划 @归海原)</string>
     <string name="settings_mod_chs_source_github" translatable="false">GitHub Raw</string>
     <string name="settings_mod_chs_source_jsdelivr" translatable="false">jsDelivr CDN</string>
     <string name="settings_mod_chs_source_ghproxy" translatable="false">GHProxy Mirror</string>

@@ -213,7 +213,7 @@
     <string name="settings_mod_chs_group_data">数据与更新管理</string>
     <string name="settings_mod_chs_group_modules">汉化模块细粒度开关</string>
     <string name="settings_mod_chs_group_about">关于</string>
-    <string name="settings_mod_chs_source">汉化数据源</string>
+    <string name="settings_mod_chs_source">汉化数据源（砍口垒汉化计划 @归海原）</string>
     <string name="settings_mod_chs_source_custom">自定义镜像源</string>
     <string name="settings_mod_chs_custom_url">自定义数据源根地址</string>
     <string name="settings_mod_chs_download_mode">汉化资源下载范围</string>

@@ -917,11 +917,25 @@ private fun ModsSection(
         onClick = { openUrl(context, GITHUB_KANTAI3D) }
     )
 
-    // --- Group 3: English & Language Patches --------------------------------
-    SectionHeader(R.string.settings_mod_group_kccp)
     // Held as state so the dependent rows follow the switch right away.
     var patchEnabled by remember { mutableStateOf(if (isPreview) false else viewModel.isKccpPatchEnabled()) }
     var kccpSwitchVersion by remember { mutableIntStateOf(0) }
+
+    // --- Group 3: 砍口垒汉化计划 in Goto -----------------------------------
+    ChsSettingsSection(
+        viewModel = viewModel,
+        onChsToggled = { enabled ->
+            if (enabled && !isPreview) {
+                patchEnabled = viewModel.isKccpPatchEnabled()
+                kccpSwitchVersion++
+            }
+        },
+        onOpenMoreSettings = onOpenChsMoreSettings,
+        onSettingChanged = onSettingChanged
+    )
+
+    // --- Group 4: English & Language Patches --------------------------------
+    SectionHeader(R.string.settings_mod_group_kccp)
     androidx.compose.runtime.key(kccpSwitchVersion) {
         SwitchRow(viewModel, PREF_MOD_KCCP_LANG_PATCH, R.string.settings_mod_kccp, R.string.settings_mod_kccp_summary,
             onChanged = {
@@ -967,19 +981,6 @@ private fun ModsSection(
         title = patchTitle,
         summaryText = patchUrl,
         onClick = { openUrl(context, patchUrl) }
-    )
-
-    // --- Group 4: 砍口垒汉化计划 in Goto -----------------------------------
-    ChsSettingsSection(
-        viewModel = viewModel,
-        onChsToggled = { enabled ->
-            if (enabled && !isPreview) {
-                patchEnabled = viewModel.isKccpPatchEnabled()
-                kccpSwitchVersion++
-            }
-        },
-        onOpenMoreSettings = onOpenChsMoreSettings,
-        onSettingChanged = onSettingChanged
     )
 }
 
