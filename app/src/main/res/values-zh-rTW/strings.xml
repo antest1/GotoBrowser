@@ -203,17 +203,22 @@
     <string name="detail_api">API</string>
     <string name="detail_message">訊息</string>
 
-    <!-- Simplified Chinese Localization (Kancolle_to_CHS / PLUS) -->
-    <string name="settings_mod_group_chs">簡體中文漢化 (砍口壘漢化計劃 PLUS)</string>
-    <string name="settings_mod_chs_enable">啟用簡體中文漢化</string>
-    <string name="settings_mod_chs_summary">提供全介面文本替換、KCSAPI 動態回應合流與 UI 貼圖字體漢化（作者：@asaico）</string>
+    <!-- Simplified Chinese Localization (Kancolle_to_CHS / 砍口垒汉化计划 in Goto) -->
+    <string name="settings_mod_group_chs">砍口壘漢化計劃 in Goto</string>
+    <string name="settings_mod_chs_enable">啟用漢化</string>
+    <string name="settings_mod_chs_summary">提供全介面文本替換、KCSAPI 動態回應合流與 UI 貼圖字體漢化。作者：@泉浅漪</string>
+    <string name="settings_mod_chs_more">更多設定</string>
+    <string name="settings_mod_chs_more_summary">資料源、下載範圍、漢化模組細粒度開關與關於</string>
+    <string name="settings_mod_chs_group_data">資料與更新管理</string>
+    <string name="settings_mod_chs_group_modules">漢化模組細粒度開關</string>
+    <string name="settings_mod_chs_group_about">關於</string>
     <string name="settings_mod_chs_source">漢化資料源</string>
     <string name="settings_mod_chs_source_custom">自訂鏡像源</string>
     <string name="settings_mod_chs_custom_url">自訂資料源根位址</string>
     <string name="settings_mod_chs_download_mode">漢化資源下載範圍</string>
     <string name="settings_mod_chs_mode_full">完整漢化包（文本 + UI 貼圖與字體）</string>
     <string name="settings_mod_chs_mode_text_only">僅文本與 API 資料（輕量快速）</string>
-    <string name="settings_mod_chs_download">下載 / 更新漢化資料</string>
+    <string name="settings_mod_chs_download">下載更新</string>
     <string name="settings_mod_chs_delete">刪除漢化資料</string>
     <string name="settings_mod_chs_delete_summary">清除本機已下載的簡中漢化文本與貼圖字體檔案。</string>
     <string name="settings_mod_chs_sub_switches">漢化模組細粒度開關</string>
@@ -229,7 +234,7 @@
     <string name="settings_mod_chs_api_picturebook">艦娘與裝備圖鑑漢化</string>
     <string name="settings_mod_chs_api_flavor">海圖海況與深海台詞漢化</string>
     <string name="settings_mod_chs_api_item">消耗品與商城道具漢化</string>
-    <string name="settings_mod_chs_about">關於砍口壘漢化計劃</string>
+    <string name="settings_mod_chs_about">關於砍口壘漢化計劃 in Goto</string>
     <string name="chs_status_disabled">未啟用漢化修補程式</string>
     <string name="chs_status_check_failed">無法連線更新源，點選可重試下載</string>
     <string name="chs_status_offline_installed" formatted="false">已安裝本機資料 (%1$s)</string>

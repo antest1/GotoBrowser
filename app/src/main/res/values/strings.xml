@@ -219,10 +219,15 @@
     <string name="detail_api">API</string>
     <string name="detail_message">Message</string>
 
-    <!-- Simplified Chinese Localization (Kancolle_to_CHS / PLUS) -->
-    <string name="settings_mod_group_chs">Simplified Chinese Patch (PLUS)</string>
-    <string name="settings_mod_chs_enable">KanColle Simplified Chinese Patch</string>
-    <string name="settings_mod_chs_summary">Full UI text, KCSAPI response merging and asset localization (Author: @asaico)</string>
+    <!-- Simplified Chinese Localization (Kancolle_to_CHS / 砍口垒汉化计划 in Goto) -->
+    <string name="settings_mod_group_chs">砍口垒汉化计划 in Goto</string>
+    <string name="settings_mod_chs_enable">Enable Simplified Chinese Patch</string>
+    <string name="settings_mod_chs_summary">Full UI text, KCSAPI response merging and asset localization. Author: @泉浅漪</string>
+    <string name="settings_mod_chs_more">More Settings</string>
+    <string name="settings_mod_chs_more_summary">Data source, download scope, module switches and about</string>
+    <string name="settings_mod_chs_group_data">Data &amp; Update Settings</string>
+    <string name="settings_mod_chs_group_modules">Localization Module Switches</string>
+    <string name="settings_mod_chs_group_about">About</string>
     <string name="settings_mod_chs_source">Patch Data Source</string>
     <string name="settings_mod_chs_source_github" translatable="false">GitHub Raw</string>
     <string name="settings_mod_chs_source_jsdelivr" translatable="false">jsDelivr CDN</string>
@@ -248,7 +253,7 @@
     <string name="settings_mod_chs_api_picturebook">Ship &amp; Equipment Encyclopedia</string>
     <string name="settings_mod_chs_api_flavor">Map Cell &amp; Abyssal Flavor Text</string>
     <string name="settings_mod_chs_api_item">Consumables &amp; Shop Items</string>
-    <string name="settings_mod_chs_about">About Kancolle_to_CHS</string>
+    <string name="settings_mod_chs_about">About 砍口垒汉化计划 in Goto</string>
     <string name="chs_status_disabled">Mod disabled.</string>
     <string name="chs_status_check_failed">Could not reach update source, tap to retry</string>
     <string name="chs_status_offline_installed" formatted="false">Installed (%1$s)</string>

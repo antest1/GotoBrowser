@@ -1,6 +1,5 @@
 package com.antest1.gotobrowser.chs
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -39,16 +38,15 @@ import com.antest1.gotobrowser.Activity.SettingsViewModel
 import com.antest1.gotobrowser.R
 
 /**
- * 简中汉化 (PLUS) 设置分区 Compose 组件
- * 视觉与交互完全对齐 SettingsBottomSheet 现有规范。
+ * 第三方 MOD 页面中的「砍口垒汉化计划 in Goto」精简分区（仅包含：启用汉化、下载更新、更多设置）
  */
 @Composable
 fun ChsSettingsSection(
     viewModel: SettingsViewModel?,
     onChsToggled: (Boolean) -> Unit,
+    onOpenMoreSettings: () -> Unit,
     onSettingChanged: (String) -> Unit
 ) {
-    val context = LocalContext.current
     val isPreview = LocalInspectionMode.current || viewModel == null
 
     val chsSummary = if (isPreview) "checking updates..."
@@ -68,18 +66,10 @@ fun ChsSettingsSection(
         }
     }
 
-    // 分组标题
-    Text(
-        text = stringResource(R.string.settings_mod_group_chs),
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(ListItemDefaults.containerColor)
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp)
-    )
+    // 分组标题：砍口垒汉化计划 in Goto
+    ChsGroupHeader(R.string.settings_mod_group_chs)
 
-    // 1. 汉化总开关
+    // 1. 启用汉化
     val mainColor = MaterialTheme.colorScheme.onSurface
     ListItem(
         headlineContent = { Text(stringResource(R.string.settings_mod_chs_enable), color = mainColor) },
@@ -109,7 +99,48 @@ fun ChsSettingsSection(
     )
     HorizontalDivider()
 
-    // 2. 汉化数据源选择
+    // 2. 下载更新
+    val canClickDownload = chsEnabled && chsDownloadEnabled
+    val dlColor = if (canClickDownload) MaterialTheme.colorScheme.onSurface
+    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.settings_mod_chs_download), color = dlColor) },
+        supportingContent = { Text(chsSummary, color = dlColor) },
+        modifier = if (canClickDownload) Modifier.clickable {
+            if (!isPreview) viewModel.requestChsPatchUpdate()
+        } else Modifier
+    )
+    HorizontalDivider()
+
+    // 3. 更多设置（进入独立二级菜单）
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.settings_mod_chs_more), color = mainColor) },
+        supportingContent = { Text(stringResource(R.string.settings_mod_chs_more_summary), color = mainColor) },
+        modifier = Modifier.clickable(onClick = onOpenMoreSettings)
+    )
+    HorizontalDivider()
+}
+
+/**
+ * 「砍口垒汉化计划 in Goto」独立二级菜单页面：
+ * 包含数据源切换、下载范围、删除汉化数据、全部 11 项细粒度开关以及关于信息。
+ */
+@Composable
+fun ChsMoreSettingsScreen(
+    viewModel: SettingsViewModel?,
+    onSettingChanged: (String) -> Unit
+) {
+    val context = LocalContext.current
+    val isPreview = LocalInspectionMode.current || viewModel == null
+
+    val chsEnabled = if (isPreview) true else viewModel.isChsPatchEnabled
+    val itemColor = if (chsEnabled) MaterialTheme.colorScheme.onSurface
+    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+
+    // --- 分组 1：数据与更新管理 ---
+    ChsGroupHeader(R.string.settings_mod_chs_group_data)
+
+    // 1.1 汉化数据源选择
     val sourceOptions = listOf(
         ChsOption(ChsConfig.SOURCE_GITHUB_RAW, stringResource(R.string.settings_mod_chs_source_github), ChsConfig.URL_GITHUB_RAW),
         ChsOption(ChsConfig.SOURCE_JSDELIVR, stringResource(R.string.settings_mod_chs_source_jsdelivr), ChsConfig.URL_JSDELIVR),
@@ -123,14 +154,12 @@ fun ChsSettingsSection(
         )
     }
     var showSourceDialog by remember { mutableStateOf(false) }
-    val subColor = if (chsEnabled) MaterialTheme.colorScheme.onSurface
-    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
 
     ListItem(
-        headlineContent = { Text(stringResource(R.string.settings_mod_chs_source), color = subColor) },
+        headlineContent = { Text(stringResource(R.string.settings_mod_chs_source), color = itemColor) },
         supportingContent = {
             val label = sourceOptions.firstOrNull { it.value == selectedSource }?.title ?: selectedSource
-            Text(label, color = subColor)
+            Text(label, color = itemColor)
         },
         modifier = if (chsEnabled) Modifier.clickable { showSourceDialog = true } else Modifier
     )
@@ -153,7 +182,7 @@ fun ChsSettingsSection(
         )
     }
 
-    // 2.1 若选择自定义镜像源，显示自定义 URL 编辑项
+    // 1.2 自定义镜像源 URL 编辑项
     if (selectedSource == ChsConfig.SOURCE_CUSTOM) {
         var customUrl by remember(viewModel) {
             mutableStateOf(
@@ -163,8 +192,8 @@ fun ChsSettingsSection(
         }
         var showCustomUrlDialog by remember { mutableStateOf(false) }
         ListItem(
-            headlineContent = { Text(stringResource(R.string.settings_mod_chs_custom_url), color = subColor) },
-            supportingContent = { Text(customUrl.ifEmpty { ChsConfig.URL_GITHUB_RAW }, color = subColor) },
+            headlineContent = { Text(stringResource(R.string.settings_mod_chs_custom_url), color = itemColor) },
+            supportingContent = { Text(customUrl.ifEmpty { ChsConfig.URL_GITHUB_RAW }, color = itemColor) },
             modifier = if (chsEnabled) Modifier.clickable { showCustomUrlDialog = true } else Modifier
         )
         HorizontalDivider()
@@ -187,7 +216,7 @@ fun ChsSettingsSection(
         }
     }
 
-    // 3. 汉化资源下载范围（完整包 vs 仅文本与 API 数据）
+    // 1.3 汉化资源下载范围
     val modeOptions = listOf(
         ChsOption(ChsConfig.DOWNLOAD_MODE_FULL, stringResource(R.string.settings_mod_chs_mode_full), null),
         ChsOption(ChsConfig.DOWNLOAD_MODE_TEXT_ONLY, stringResource(R.string.settings_mod_chs_mode_text_only), null)
@@ -201,10 +230,10 @@ fun ChsSettingsSection(
     var showModeDialog by remember { mutableStateOf(false) }
 
     ListItem(
-        headlineContent = { Text(stringResource(R.string.settings_mod_chs_download_mode), color = subColor) },
+        headlineContent = { Text(stringResource(R.string.settings_mod_chs_download_mode), color = itemColor) },
         supportingContent = {
             val label = modeOptions.firstOrNull { it.value == selectedMode }?.title ?: selectedMode
-            Text(label, color = subColor)
+            Text(label, color = itemColor)
         },
         modifier = if (chsEnabled) Modifier.clickable { showModeDialog = true } else Modifier
     )
@@ -227,41 +256,11 @@ fun ChsSettingsSection(
         )
     }
 
-    // 4. 汉化模块细粒度开关
-    var showSubSwitchesDialog by remember { mutableStateOf(false) }
-    ListItem(
-        headlineContent = { Text(stringResource(R.string.settings_mod_chs_sub_switches), color = subColor) },
-        supportingContent = { Text(stringResource(R.string.settings_mod_chs_sub_switches_summary), color = subColor) },
-        modifier = if (chsEnabled) Modifier.clickable { showSubSwitchesDialog = true } else Modifier
-    )
-    HorizontalDivider()
-
-    if (showSubSwitchesDialog) {
-        ChsSubSwitchesDialog(
-            context = context,
-            onSettingChanged = onSettingChanged,
-            onDismiss = { showSubSwitchesDialog = false }
-        )
-    }
-
-    // 5. 下载 / 更新汉化数据
-    val canClickDownload = chsEnabled && chsDownloadEnabled
-    val dlColor = if (canClickDownload) MaterialTheme.colorScheme.onSurface
-    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-    ListItem(
-        headlineContent = { Text(stringResource(R.string.settings_mod_chs_download), color = dlColor) },
-        supportingContent = { Text(chsSummary, color = dlColor) },
-        modifier = if (canClickDownload) Modifier.clickable {
-            if (!isPreview) viewModel.requestChsPatchUpdate()
-        } else Modifier
-    )
-    HorizontalDivider()
-
-    // 6. 删除汉化数据
+    // 1.4 删除汉化数据
     var showDeleteDialog by remember { mutableStateOf(false) }
     ListItem(
-        headlineContent = { Text(stringResource(R.string.settings_mod_chs_delete), color = subColor) },
-        supportingContent = { Text(stringResource(R.string.settings_mod_chs_delete_summary), color = subColor) },
+        headlineContent = { Text(stringResource(R.string.settings_mod_chs_delete), color = itemColor) },
+        supportingContent = { Text(stringResource(R.string.settings_mod_chs_delete_summary), color = itemColor) },
         modifier = if (chsEnabled) Modifier.clickable { showDeleteDialog = true } else Modifier
     )
     HorizontalDivider()
@@ -287,7 +286,57 @@ fun ChsSettingsSection(
         )
     }
 
-    // 7. 关于砍口垒汉化计划
+    // --- 分组 2：汉化模块细粒度开关 ---
+    ChsGroupHeader(R.string.settings_mod_chs_group_modules)
+
+    val switchItems = listOf(
+        ChsConfig.KEY_ENABLE_TEXT_DICT to R.string.settings_mod_chs_text_dict,
+        ChsConfig.KEY_ENABLE_TEXT_REGEX to R.string.settings_mod_chs_text_regex,
+        ChsConfig.KEY_ENABLE_RES_PATCH to R.string.settings_mod_chs_res_patch,
+        ChsConfig.KEY_API_QUEST to R.string.settings_mod_chs_api_quest,
+        ChsConfig.KEY_API_SHIP to R.string.settings_mod_chs_api_ship,
+        ChsConfig.KEY_API_MISSION to R.string.settings_mod_chs_api_mission,
+        ChsConfig.KEY_API_FURNITURE to R.string.settings_mod_chs_api_furniture,
+        ChsConfig.KEY_API_MAPINFO to R.string.settings_mod_chs_api_mapinfo,
+        ChsConfig.KEY_API_PICTUREBOOK to R.string.settings_mod_chs_api_picturebook,
+        ChsConfig.KEY_API_FLAVOR to R.string.settings_mod_chs_api_flavor,
+        ChsConfig.KEY_API_ITEM to R.string.settings_mod_chs_api_item
+    )
+
+    switchItems.forEach { (key, titleRes) ->
+        var checked by remember(key) {
+            mutableStateOf(if (isPreview) true else ChsConfig.getBoolean(context, key, true))
+        }
+        ListItem(
+            headlineContent = { Text(stringResource(titleRes), color = itemColor) },
+            trailingContent = {
+                Switch(
+                    checked = checked,
+                    enabled = chsEnabled,
+                    onCheckedChange = { next ->
+                        checked = next
+                        if (!isPreview) {
+                            ChsConfig.setBoolean(context, key, next)
+                        }
+                        onSettingChanged(key)
+                    }
+                )
+            },
+            modifier = Modifier.clickable(enabled = chsEnabled) {
+                val next = !checked
+                checked = next
+                if (!isPreview) {
+                    ChsConfig.setBoolean(context, key, next)
+                }
+                onSettingChanged(key)
+            }
+        )
+        HorizontalDivider()
+    }
+
+    // --- 分组 3：关于 ---
+    ChsGroupHeader(R.string.settings_mod_chs_group_about)
+
     ListItem(
         headlineContent = { Text(stringResource(R.string.settings_mod_chs_about)) },
         supportingContent = { Text(ChsConfig.OFFICIAL_GITHUB_URL) },
@@ -297,6 +346,19 @@ fun ChsSettingsSection(
         }
     )
     HorizontalDivider()
+}
+
+@Composable
+private fun ChsGroupHeader(titleRes: Int) {
+    Text(
+        text = stringResource(titleRes),
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(ListItemDefaults.containerColor)
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp)
+    )
 }
 
 private data class ChsOption(val value: String, val title: String, val summary: String?)
@@ -363,71 +425,6 @@ private fun ChsEditUrlDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.text_cancel)) }
-        }
-    )
-}
-
-@Composable
-private fun ChsSubSwitchesDialog(
-    context: Context,
-    onSettingChanged: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val switchItems = listOf(
-        ChsConfig.KEY_ENABLE_TEXT_DICT to R.string.settings_mod_chs_text_dict,
-        ChsConfig.KEY_ENABLE_TEXT_REGEX to R.string.settings_mod_chs_text_regex,
-        ChsConfig.KEY_ENABLE_RES_PATCH to R.string.settings_mod_chs_res_patch,
-        ChsConfig.KEY_API_QUEST to R.string.settings_mod_chs_api_quest,
-        ChsConfig.KEY_API_SHIP to R.string.settings_mod_chs_api_ship,
-        ChsConfig.KEY_API_MISSION to R.string.settings_mod_chs_api_mission,
-        ChsConfig.KEY_API_FURNITURE to R.string.settings_mod_chs_api_furniture,
-        ChsConfig.KEY_API_MAPINFO to R.string.settings_mod_chs_api_mapinfo,
-        ChsConfig.KEY_API_PICTUREBOOK to R.string.settings_mod_chs_api_picturebook,
-        ChsConfig.KEY_API_FLAVOR to R.string.settings_mod_chs_api_flavor,
-        ChsConfig.KEY_API_ITEM to R.string.settings_mod_chs_api_item
-    )
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.settings_mod_chs_sub_switches)) },
-        text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                switchItems.forEach { (key, titleRes) ->
-                    var checked by remember(key) {
-                        mutableStateOf(ChsConfig.getBoolean(context, key, true))
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                val next = !checked
-                                checked = next
-                                ChsConfig.setBoolean(context, key, next)
-                                onSettingChanged(key)
-                            }
-                            .padding(vertical = 6.dp)
-                    ) {
-                        Text(
-                            text = stringResource(titleRes),
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(end = 8.dp)
-                        )
-                        Switch(
-                            checked = checked,
-                            onCheckedChange = { next ->
-                                checked = next
-                                ChsConfig.setBoolean(context, key, next)
-                                onSettingChanged(key)
-                            }
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_ok)) }
         }
     )
 }

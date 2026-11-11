@@ -94,13 +94,9 @@ For information about the function, refer to the <span class="link" data-move="v
 | Language Patch (KCCP) | Download Patch Data | Downloads or updates the data of the selected patch. Refresh the game after it finishes to apply | After reload | |
 | Language Patch (KCCP) | Delete Patch Data | Use this if the patch is presenting unexpected behaviour, or if something went wrong during download | After reload | |
 | Language Patch (KCCP) | About KanColle English/Indonesia Patch | Opens the GitHub page of the selected patch | | |
-| Simplified Chinese Patch (PLUS) | KanColle CHS Patch PLUS | Apply Simplified Chinese localization for in-game text, KCSAPI responses, and UI textures (mutually exclusive with KCCP Language Patch) | After reload | [@asaico](https://github.com/asaico/Kancolle_to_CHS) |
-| Simplified Chinese Patch (PLUS) | Patch Data Source | Choose between GitHub Raw, jsDelivr CDN, GHProxy Mirror, or a Custom Mirror URL | Immediately | |
-| Simplified Chinese Patch (PLUS) | Patch Download Scope | Choose between Full Package (Text + UI Images + Fonts) or Text & API Data Only | Immediately | |
-| Simplified Chinese Patch (PLUS) | Sub-module Switches | Toggle dictionary text, regex rules, UI textures/fonts, and 8 KCSAPI sub-modules individually | After reload | |
-| Simplified Chinese Patch (PLUS) | Download / Update CHS Data | Incrementally download or update the Simplified Chinese patch data | After reload | |
-| Simplified Chinese Patch (PLUS) | Delete CHS Patch Data | Remove all locally downloaded Simplified Chinese patch files | After reload | |
-| Simplified Chinese Patch (PLUS) | About KanColle CHS Patch | Opens the [Kancolle_to_CHS GitHub page](https://github.com/asaico/Kancolle_to_CHS) | | |
+| 砍口垒汉化计划 in Goto | Enable Simplified Chinese Patch | Apply Simplified Chinese localization for in-game text, KCSAPI responses, and UI textures (mutually exclusive with KCCP Language Patch) | After reload | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
+| 砍口垒汉化计划 in Goto | Download / Update CHS Data | Incrementally download or update the Simplified Chinese patch data | After reload | |
+| 砍口垒汉化计划 in Goto | More Settings | Open the sub-menu to configure data source, download scope, 11 module switches, delete patch data, and view About | After reload / Immediately | |
 
 ##### App Information
 

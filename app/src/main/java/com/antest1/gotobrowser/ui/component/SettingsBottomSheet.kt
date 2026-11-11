@@ -96,6 +96,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.antest1.gotobrowser.Activity.PatchDownloadState
 import com.antest1.gotobrowser.Activity.SettingsViewModel
+import com.antest1.gotobrowser.chs.ChsMoreSettingsScreen
 import com.antest1.gotobrowser.chs.ChsSettingsSection
 import com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT
 import com.antest1.gotobrowser.Constants.PREF_ALTER_AUTO_DISABLE
@@ -184,6 +185,7 @@ enum class SettingsScreen {
     SUBTITLE,
     CONNECTION_LOGIN,
     MODS,
+    CHS_MORE,
     APP_INFO
 }
 
@@ -345,7 +347,13 @@ private fun SettingsBottomSheetContent(
             Box(modifier = Modifier.height(48.withDp())) {
                 if (currentScreen != SettingsScreen.MAIN) {
                     IconButton(
-                        onClick = { currentScreen = SettingsScreen.MAIN }
+                        onClick = {
+                            currentScreen = if (currentScreen == SettingsScreen.CHS_MORE) {
+                                SettingsScreen.MODS
+                            } else {
+                                SettingsScreen.MAIN
+                            }
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -366,6 +374,7 @@ private fun SettingsBottomSheetContent(
                     SettingsScreen.SUBTITLE -> stringResource(R.string.settings_subtitle_label)
                     SettingsScreen.CONNECTION_LOGIN -> stringResource(R.string.settings_connection_login_label)
                     SettingsScreen.MODS -> stringResource(R.string.settings_mod_label)
+                    SettingsScreen.CHS_MORE -> stringResource(R.string.settings_mod_group_chs)
                     SettingsScreen.APP_INFO -> stringResource(R.string.settings_appinfo_label)
                 },
                 style = MaterialTheme.typography.titleLarge,
@@ -385,7 +394,8 @@ private fun SettingsBottomSheetContent(
         AnimatedContent(
             targetState = currentScreen,
             transitionSpec = {
-                val isGoingBack = targetState == SettingsScreen.MAIN
+                val isGoingBack = targetState == SettingsScreen.MAIN ||
+                    (initialState == SettingsScreen.CHS_MORE && targetState == SettingsScreen.MODS)
                 if (isGoingBack) {
                     (slideInHorizontally(animationSpec = tween(300)) { -it } + fadeIn(animationSpec = tween(300)))
                         .togetherWith(slideOutHorizontally(animationSpec = tween(300)) { it } + fadeOut(animationSpec = tween(300)))
@@ -551,6 +561,13 @@ fun SettingsContent(
                     patchUrl = patchAboutUrl,
                     patchSummary = patchSummary,
                     patchEnabledState = patchEnabled,
+                    onOpenChsMoreSettings = { onScreenChanged(SettingsScreen.CHS_MORE) },
+                    onSettingChanged = onSettingChanged
+                )
+            }
+            SettingsScreen.CHS_MORE -> {
+                ChsMoreSettingsScreen(
+                    viewModel = viewModel,
                     onSettingChanged = onSettingChanged
                 )
             }
@@ -860,6 +877,7 @@ private fun ModsSection(
     patchUrl: String,
     patchSummary: String,
     patchEnabledState: Boolean,
+    onOpenChsMoreSettings: () -> Unit = {},
     onSettingChanged: (String) -> Unit
 ) {
     val context = LocalContext.current
@@ -951,7 +969,7 @@ private fun ModsSection(
         onClick = { openUrl(context, patchUrl) }
     )
 
-    // --- Group 4: Simplified Chinese Patch (PLUS) ---------------------------
+    // --- Group 4: 砍口垒汉化计划 in Goto -----------------------------------
     ChsSettingsSection(
         viewModel = viewModel,
         onChsToggled = { enabled ->
@@ -960,6 +978,7 @@ private fun ModsSection(
                 kccpSwitchVersion++
             }
         },
+        onOpenMoreSettings = onOpenChsMoreSettings,
         onSettingChanged = onSettingChanged
     )
 }
