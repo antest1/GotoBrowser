@@ -232,4 +232,6 @@
     <string name="chs_status_not_installed_format" formatted="false">설치되지 않음 (최신 %1$s, 파일 %2$d개 / %3$s)</string>
     <string name="chs_status_update_available_format" formatted="false">업데이트 있음 %1$s (파일 %2$d개 / %3$s)</string>
     <string name="chs_status_up_to_date_format" formatted="false">최신 버전입니다 (%1$s)</string>
+    <string name="chs_archive_extracted_with_updates">전체 패키지 압축 해제 완료. 이후 증분 업데이트가 발견되었습니다.</string>
+    <string name="chs_archive_extracted_up_to_date">전체 패키지가 설치되었으며 최신 상태입니다.</string>
 </resources>

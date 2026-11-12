@@ -465,11 +465,20 @@ class ChsDownloader(
                         val f = File(rootDir, entry.path)
                         if (f.isFile && f.length() == entry.size) {
                             localMap[entry.path] = entry.hash
+                        } else {
+                            localMap.remove(entry.path)
                         }
                     }
                     val diff = ChsManifest.computeDiff(remote, rootDir, localMap, textOnly)
-                    ChsConfig.setLocalVersion(tag)
-                    ChsManifest.saveLocalManifestMap(manifestFile, tag, localMap)
+                    if (diff.hasUpdates) {
+                        // 发现有小更新/后续增量：本地版本号标记为 tag，不可直接标记为最新
+                        ChsConfig.setLocalVersion(tag)
+                        ChsManifest.saveLocalManifestMap(manifestFile, tag, localMap)
+                    } else {
+                        // 已经与远端完全一致，没有后续小更新：记录远端真实版本号
+                        ChsConfig.setLocalVersion(remote.version)
+                        ChsManifest.saveLocalManifestMap(manifestFile, remote.version, localMap)
+                    }
                     ChsDataRepository.invalidateCache()
                     ChsHackResolver.rebuildIndexIfNeeded(appContext)
                     ChsConfig.prepare(appContext)
@@ -477,7 +486,7 @@ class ChsDownloader(
                     mainHandler.post {
                         host.setPatchDownloadState(PatchDownloadState.Idle)
                         if (diff.hasUpdates) {
-                            host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
+                            host.showPatchMessage(appContext.getString(R.string.chs_archive_extracted_with_updates))
                             onCompleteSummary(
                                 appContext.getString(
                                     R.string.chs_status_update_available_format,
@@ -488,7 +497,7 @@ class ChsDownloader(
                                 true
                             )
                         } else {
-                            host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
+                            host.showPatchMessage(appContext.getString(R.string.chs_archive_extracted_up_to_date))
                             onCompleteSummary(
                                 appContext.getString(R.string.chs_status_up_to_date_format, remote.version),
                                 true
@@ -496,7 +505,8 @@ class ChsDownloader(
                         }
                     }
                 } else {
-                    ChsConfig.setLocalVersion(tag)
+                    val baseVersion = "$tag (release)"
+                    ChsConfig.setLocalVersion(baseVersion)
                     ChsDataRepository.invalidateCache()
                     ChsHackResolver.rebuildIndexIfNeeded(appContext)
                     ChsConfig.prepare(appContext)
@@ -505,7 +515,7 @@ class ChsDownloader(
                         host.setPatchDownloadState(PatchDownloadState.Idle)
                         host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
                         onCompleteSummary(
-                            appContext.getString(R.string.chs_status_offline_installed, tag),
+                            appContext.getString(R.string.chs_status_offline_installed, baseVersion),
                             true
                         )
                     }

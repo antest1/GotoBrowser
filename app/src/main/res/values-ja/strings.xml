@@ -230,4 +230,6 @@
     <string name="chs_status_not_installed_format" formatted="false">未インストール（最新 %1$s、%2$d ファイル / %3$s）</string>
     <string name="chs_status_update_available_format" formatted="false">更新あり %1$s（%2$d ファイル / %3$s）</string>
     <string name="chs_status_up_to_date_format" formatted="false">最新です (%1$s)</string>
+    <string name="chs_archive_extracted_with_updates">フルパッケージの解凍が完了しました。以降の差分更新が見つかりました。</string>
+    <string name="chs_archive_extracted_up_to_date">フルパッケージがインストールされ、最新の状態です。</string>
 </resources>

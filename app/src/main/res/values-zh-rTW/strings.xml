@@ -228,4 +228,6 @@
     <string name="chs_status_not_installed_format" formatted="false">尚未下載漢化資料（版本 %1$s，共 %2$d 個檔案 / %3$s）</string>
     <string name="chs_status_update_available_format" formatted="false">發現更新 %1$s（待更新 %2$d 個檔案 / %3$s）</string>
     <string name="chs_status_up_to_date_format" formatted="false">已是最新版本 (%1$s)</string>
+    <string name="chs_archive_extracted_with_updates">完整包解壓完成，發現後續增量更新</string>
+    <string name="chs_archive_extracted_up_to_date">完整包解壓完成，資料已是最新</string>
 </resources>

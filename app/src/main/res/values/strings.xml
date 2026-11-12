@@ -247,4 +247,6 @@
     <string name="chs_status_not_installed_format" formatted="false">Not installed (Latest %1$s, %2$d files / %3$s)</string>
     <string name="chs_status_update_available_format" formatted="false">Update available %1$s (%2$d files / %3$s)</string>
     <string name="chs_status_up_to_date_format" formatted="false">Up to date (%1$s)</string>
+    <string name="chs_archive_extracted_with_updates">Full package extracted. Subsequent incremental updates found.</string>
+    <string name="chs_archive_extracted_up_to_date">Full package installed and up to date.</string>
 </resources>
