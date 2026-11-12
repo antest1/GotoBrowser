@@ -16,7 +16,7 @@ import com.antest1.gotobrowser.ContentProvider.KcaPacketStore;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
-import com.antest1.gotobrowser.chs.ChsApiMerger;
+import com.antest1.gotobrowser.Helpers.chs.ChsApiMerger;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 

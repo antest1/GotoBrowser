@@ -221,13 +221,8 @@
 
     <!-- Simplified Chinese Localization (Kancolle_to_CHS / 砍口垒汉化计划 in Goto) -->
     <string name="settings_mod_group_chs">砍口垒汉化计划 in Goto</string>
-    <string name="settings_mod_chs_enable">Enable Simplified Chinese Patch</string>
+    <string name="settings_mod_chs_enable">Simplified Chinese Patch</string>
     <string name="settings_mod_chs_summary">Full UI text, KCSAPI response merging and asset localization. Author: @泉浅漪</string>
-    <string name="settings_mod_chs_more">More Settings</string>
-    <string name="settings_mod_chs_more_summary">Data source, download scope, module switches and about</string>
-    <string name="settings_mod_chs_group_data">Data &amp; Update Settings</string>
-    <string name="settings_mod_chs_group_modules">Localization Module Switches</string>
-    <string name="settings_mod_chs_group_about">About</string>
     <string name="settings_mod_chs_source">Patch Data Source (砍口垒汉化计划 @归海原)</string>
     <string name="settings_mod_chs_source_github" translatable="false">GitHub Raw</string>
     <string name="settings_mod_chs_source_jsdelivr" translatable="false">jsDelivr CDN</string>
@@ -240,20 +235,6 @@
     <string name="settings_mod_chs_download">Download / Update CHS Data</string>
     <string name="settings_mod_chs_delete">Delete CHS Data</string>
     <string name="settings_mod_chs_delete_summary">Remove downloaded Simplified Chinese text and image assets.</string>
-    <string name="settings_mod_chs_sub_switches">Localization Module Switches</string>
-    <string name="settings_mod_chs_sub_switches_summary">Configure text, asset and KCSAPI module switches</string>
-    <string name="settings_mod_chs_text_dict">Static Text Dictionary</string>
-    <string name="settings_mod_chs_text_regex">Dynamic Regex Replacement</string>
-    <string name="settings_mod_chs_res_patch">UI Image &amp; Font Replacement</string>
-    <string name="settings_mod_chs_api_quest">Quest Title &amp; Details</string>
-    <string name="settings_mod_chs_api_ship">Ship, Equipment &amp; Type Names</string>
-    <string name="settings_mod_chs_api_mission">Expedition Name &amp; Details</string>
-    <string name="settings_mod_chs_api_furniture">Furniture Title &amp; Description</string>
-    <string name="settings_mod_chs_api_mapinfo">Map Name &amp; Operation Info</string>
-    <string name="settings_mod_chs_api_picturebook">Ship &amp; Equipment Encyclopedia</string>
-    <string name="settings_mod_chs_api_flavor">Map Cell &amp; Abyssal Flavor Text</string>
-    <string name="settings_mod_chs_api_item">Consumables &amp; Shop Items</string>
-    <string name="settings_mod_chs_about">About 砍口垒汉化计划 in Goto</string>
     <string name="chs_status_disabled">Mod disabled.</string>
     <string name="chs_status_check_failed">Could not reach update source, tap to retry</string>
     <string name="chs_status_offline_installed" formatted="false">Installed (%1$s)</string>

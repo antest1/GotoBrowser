@@ -1,4 +1,4 @@
-package com.antest1.gotobrowser.chs
+package com.antest1.gotobrowser.Helpers.chs
 
 import android.content.Context
 import com.google.gson.Gson

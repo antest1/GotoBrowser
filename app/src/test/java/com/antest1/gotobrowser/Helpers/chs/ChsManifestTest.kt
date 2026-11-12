@@ -1,4 +1,4 @@
-package com.antest1.gotobrowser.chs
+package com.antest1.gotobrowser.Helpers.chs
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

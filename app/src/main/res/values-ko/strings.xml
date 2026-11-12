@@ -206,4 +206,24 @@
     <string name="detail_host">주소</string>
     <string name="detail_api">API</string>
     <string name="detail_message">메시지</string>
+
+    <!-- Simplified Chinese Localization (Kancolle_to_CHS / 砍口垒汉化计划 in Goto) -->
+    <string name="settings_mod_group_chs">砍口垒汉化计划 in Goto</string>
+    <string name="settings_mod_chs_enable">중국어 간체 번역 패치</string>
+    <string name="settings_mod_chs_summary">게임 내 텍스트, KCSAPI 응답, UI 이미지·글꼴을 중국어 간체로 바꿉니다. 제작자: @泉浅漪</string>
+    <string name="settings_mod_chs_source">번역 데이터 출처 (砍口垒汉化计划 @归海原)</string>
+    <string name="settings_mod_chs_source_custom">사용자 지정 미러 URL</string>
+    <string name="settings_mod_chs_custom_url">출처 기본 URL</string>
+    <string name="settings_mod_chs_download_mode">다운로드 범위</string>
+    <string name="settings_mod_chs_mode_full">전체 패키지 (텍스트 및 API 데이터 + UI 이미지·글꼴)</string>
+    <string name="settings_mod_chs_mode_text_only">텍스트 및 API 데이터만</string>
+    <string name="settings_mod_chs_download">번역 데이터 업데이트</string>
+    <string name="settings_mod_chs_delete">번역 데이터 삭제</string>
+    <string name="settings_mod_chs_delete_summary">다운로드한 중국어 간체 텍스트와 이미지·글꼴을 삭제합니다.</string>
+    <string name="chs_status_disabled">패치가 꺼져 있습니다</string>
+    <string name="chs_status_check_failed">업데이트 서버에 연결할 수 없습니다. 눌러서 다시 시도</string>
+    <string name="chs_status_offline_installed" formatted="false">설치됨 (%1$s)</string>
+    <string name="chs_status_not_installed_format" formatted="false">설치되지 않음 (최신 %1$s, 파일 %2$d개 / %3$s)</string>
+    <string name="chs_status_update_available_format" formatted="false">업데이트 있음 %1$s (파일 %2$d개 / %3$s)</string>
+    <string name="chs_status_up_to_date_format" formatted="false">최신 버전입니다 (%1$s)</string>
 </resources>

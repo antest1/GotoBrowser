@@ -206,13 +206,8 @@
 
     <!-- Simplified Chinese Localization (Kancolle_to_CHS / 砍口垒汉化计划 in Goto) -->
     <string name="settings_mod_group_chs">砍口垒汉化计划 in Goto</string>
-    <string name="settings_mod_chs_enable">启用汉化</string>
+    <string name="settings_mod_chs_enable">汉化</string>
     <string name="settings_mod_chs_summary">提供全界面文本替换、KCSAPI 动态响应合流与 UI 贴图字体汉化。作者：@泉浅漪</string>
-    <string name="settings_mod_chs_more">更多设置</string>
-    <string name="settings_mod_chs_more_summary">数据源、下载范围、汉化模块细粒度开关与关于</string>
-    <string name="settings_mod_chs_group_data">数据与更新管理</string>
-    <string name="settings_mod_chs_group_modules">汉化模块细粒度开关</string>
-    <string name="settings_mod_chs_group_about">关于</string>
     <string name="settings_mod_chs_source">汉化数据源（砍口垒汉化计划 @归海原）</string>
     <string name="settings_mod_chs_source_custom">自定义镜像源</string>
     <string name="settings_mod_chs_custom_url">自定义数据源根地址</string>
@@ -222,20 +217,6 @@
     <string name="settings_mod_chs_download">下载更新</string>
     <string name="settings_mod_chs_delete">删除汉化数据</string>
     <string name="settings_mod_chs_delete_summary">清除本地已下载的简中汉化文本与贴图字体文件。</string>
-    <string name="settings_mod_chs_sub_switches">汉化模块细粒度开关</string>
-    <string name="settings_mod_chs_sub_switches_summary">分别控制文本词典、贴图字体及 8 项 KCSAPI 响应合流开关</string>
-    <string name="settings_mod_chs_text_dict">静态文本词典替换</string>
-    <string name="settings_mod_chs_text_regex">动态正则文本替换</string>
-    <string name="settings_mod_chs_res_patch">UI 贴图与中文字体替换</string>
-    <string name="settings_mod_chs_api_quest">任务标题与详情汉化</string>
-    <string name="settings_mod_chs_api_ship">舰娘、装备与舰种名称汉化</string>
-    <string name="settings_mod_chs_api_mission">远征名称与详情汉化</string>
-    <string name="settings_mod_chs_api_furniture">家具标题与介绍汉化</string>
-    <string name="settings_mod_chs_api_mapinfo">海域名称与作战情报汉化</string>
-    <string name="settings_mod_chs_api_picturebook">舰娘与装备图鉴汉化</string>
-    <string name="settings_mod_chs_api_flavor">海图海况与深海台词汉化</string>
-    <string name="settings_mod_chs_api_item">消耗品与商城道具汉化</string>
-    <string name="settings_mod_chs_about">关于砍口垒汉化计划 in Goto</string>
     <string name="chs_status_disabled">未启用汉化补丁</string>
     <string name="chs_status_check_failed">无法连接更新源，点击可重试下载</string>
     <string name="chs_status_offline_installed" formatted="false">已安装本地数据 (%1$s)</string>

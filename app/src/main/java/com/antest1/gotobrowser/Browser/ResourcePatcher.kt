@@ -9,7 +9,7 @@ import android.util.Log
 import com.antest1.gotobrowser.Activity.BrowserActivity
 import com.antest1.gotobrowser.Helpers.*
 import com.antest1.gotobrowser.Constants.*
-import com.antest1.gotobrowser.chs.ChsTextPatcher
+import com.antest1.gotobrowser.Helpers.chs.ChsTextPatcher
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import java.io.*

@@ -89,9 +89,11 @@ PIP/多窗口相关内容请参阅<span class="link" data-move="pipmode">PIP/多
 | 常规 | 真正的Critical hit | 移除硬编码的伤害混淆。仅在发生 CL2 时显示 Critical hit | 重新加载 | [@Oradimi](https://x.com/oradimi) |
 | Kantai3D 视觉补丁 | Kantai3D v4.0 | 为部分秘书舰添加 3D 效果。使用旧式渲染器时无法选择 | 重新加载 | [@laplamgor](https://x.com/laplamgor) |
 | Kantai3D 视觉补丁 | 关于Kantai3D | 打开 [Kantai3D GitHub 页面](https://github.com/laplamgor/kantai3d) | | |
-| 砍口垒汉化计划 in Goto | 启用汉化 | 为游戏内文本、KCSAPI 数据（含转发给 Kcanotify 的广播数据）及 UI 贴图应用简体中文汉化（开启时会自动关闭 KCCP 语言翻译补丁并展开下方选项） | 重新加载 | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
+| 砍口垒汉化计划 in Goto | 汉化 | 为游戏内文本、KCSAPI 数据（含转发给 Kcanotify 的广播数据）及 UI 贴图应用简体中文汉化（开启时会自动关闭 KCCP 语言翻译补丁并展开下方选项） | 重新加载 | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
 | 砍口垒汉化计划 in Goto | 下载更新 | 增量下载或更新简体中文汉化包数据，完成后刷新游戏生效 | 重新加载 | |
-| 砍口垒汉化计划 in Goto | 更多设置 | 进入独立二级设置页，配置汉化数据源（砍口垒汉化计划 @归海原）、下载范围、11 项汉化模块细粒度开关、删除汉化数据及查看关于页面 | 重新加载 / 立即 | |
+| 砍口垒汉化计划 in Goto | 汉化数据源 | 选择汉化数据的下载来源：GitHub Raw、jsDelivr CDN、GHProxy 镜像或自定义地址（数据来自 砍口垒汉化计划 @归海原） | 立即 | |
+| 砍口垒汉化计划 in Goto | 汉化资源下载范围 | 完整汉化包（文本、API 数据、UI 贴图与字体）或仅文本与 API 数据 | 立即 | |
+| 砍口垒汉化计划 in Goto | 删除汉化数据 | 清除已下载的汉化数据 | 重新加载 | |
 | 语言翻译补丁 | KanColle Language Patch (KCCP) | 为游戏内文本应用翻译补丁 | 重新加载 | [@Oradimi](https://x.com/oradimi) |
 | 语言翻译补丁 | 要使用的补丁 | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP)（@Oradimi）或 [KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP)（@SLAVUSworks） | 重新加载 | |
 | 语言翻译补丁 | 下载补丁资料 | 下载或更新所选补丁的数据。完成后需刷新游戏才能生效 | 重新加载 | |

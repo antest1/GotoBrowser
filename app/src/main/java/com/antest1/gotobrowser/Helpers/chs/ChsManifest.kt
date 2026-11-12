@@ -1,4 +1,4 @@
-package com.antest1.gotobrowser.chs
+package com.antest1.gotobrowser.Helpers.chs
 
 import com.google.gson.Gson
 import com.google.gson.JsonObject

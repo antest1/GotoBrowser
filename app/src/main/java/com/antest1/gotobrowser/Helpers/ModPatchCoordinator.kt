@@ -3,7 +3,7 @@ package com.antest1.gotobrowser.Helpers
 import android.content.Context
 import com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH
 import com.antest1.gotobrowser.R
-import com.antest1.gotobrowser.chs.ChsConfig
+import com.antest1.gotobrowser.Helpers.chs.ChsConfig
 
 /**
  * 跨语言补丁协调器：负责简中汉化 (ChsConfig) 与英/印尼语补丁 (KenPatcher) 的互斥策略与状态同步。

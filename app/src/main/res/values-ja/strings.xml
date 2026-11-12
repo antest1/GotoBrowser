@@ -204,4 +204,24 @@
     <string name="detail_host">ホスト</string>
     <string name="detail_api">API</string>
     <string name="detail_message">メッセージ</string>
+
+    <!-- Simplified Chinese Localization (Kancolle_to_CHS / 砍口垒汉化计划 in Goto) -->
+    <string name="settings_mod_group_chs">砍口垒汉化计划 in Goto</string>
+    <string name="settings_mod_chs_enable">簡体字中国語化パッチ</string>
+    <string name="settings_mod_chs_summary">ゲーム内テキスト、KCSAPI 応答、UI 画像・フォントを簡体字中国語に置き換えます。作者：@泉浅漪</string>
+    <string name="settings_mod_chs_source">翻訳データの取得元（砍口垒汉化计划 @归海原）</string>
+    <string name="settings_mod_chs_source_custom">カスタムミラー URL</string>
+    <string name="settings_mod_chs_custom_url">取得元のベース URL</string>
+    <string name="settings_mod_chs_download_mode">ダウンロード範囲</string>
+    <string name="settings_mod_chs_mode_full">フルパッケージ（テキストと API データ + UI 画像・フォント）</string>
+    <string name="settings_mod_chs_mode_text_only">テキストと API データのみ</string>
+    <string name="settings_mod_chs_download">翻訳データを更新</string>
+    <string name="settings_mod_chs_delete">翻訳データを削除</string>
+    <string name="settings_mod_chs_delete_summary">ダウンロード済みの簡体字中国語テキストと画像・フォントを削除します。</string>
+    <string name="chs_status_disabled">パッチは無効です</string>
+    <string name="chs_status_check_failed">更新元に接続できません。タップして再試行</string>
+    <string name="chs_status_offline_installed" formatted="false">インストール済み (%1$s)</string>
+    <string name="chs_status_not_installed_format" formatted="false">未インストール（最新 %1$s、%2$d ファイル / %3$s）</string>
+    <string name="chs_status_update_available_format" formatted="false">更新あり %1$s（%2$d ファイル / %3$s）</string>
+    <string name="chs_status_up_to_date_format" formatted="false">最新です (%1$s)</string>
 </resources>

@@ -143,7 +143,7 @@ import com.antest1.gotobrowser.Helpers.KcUtils
 import com.antest1.gotobrowser.Notification.ScreenshotNotification
 import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils
-import com.antest1.gotobrowser.chs.ChsConfig
+import com.antest1.gotobrowser.Helpers.chs.ChsConfig
 import com.antest1.gotobrowser.ui.component.ControlLayout
 import com.antest1.gotobrowser.ui.component.DialogButton
 import com.antest1.gotobrowser.ui.component.LoadingStatusOverlay

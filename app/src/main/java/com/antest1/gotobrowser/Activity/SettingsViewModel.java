@@ -27,8 +27,8 @@ import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.antest1.gotobrowser.Helpers.KenPatcher;
 import com.antest1.gotobrowser.Helpers.ModPatchCoordinator;
-import com.antest1.gotobrowser.chs.ChsConfig;
-import com.antest1.gotobrowser.chs.ChsDownloader;
+import com.antest1.gotobrowser.Helpers.chs.ChsConfig;
+import com.antest1.gotobrowser.Helpers.chs.ChsDownloader;
 
 import java.io.File;
 import java.io.IOException;
