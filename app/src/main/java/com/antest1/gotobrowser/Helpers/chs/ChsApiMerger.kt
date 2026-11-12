@@ -34,7 +34,6 @@ object ChsApiMerger {
      * @param options 8 个 API 模块独立开关
      * @param inlineApiTables 可选内联表（用于 Node/JVM 测试或离线注入；为 null 时通过 GotoBrowser.chs_get_api_table 懒加载）
      */
-    @JvmStatic
     fun generateApiPatcherScript(
         options: ChsConfig.ApiOptions,
         inlineApiTables: Map<String, JsonObject>? = null

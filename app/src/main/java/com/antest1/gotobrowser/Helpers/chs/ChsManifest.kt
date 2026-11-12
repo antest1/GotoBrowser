@@ -43,7 +43,6 @@ object ChsManifest {
     /**
      * 解析 manifest.json 内容
      */
-    @JvmStatic
     fun parseManifestJson(rawJson: String?): ManifestData? {
         val el = ChsJsonCleaner.safeParseJson(rawJson) ?: return null
         if (!el.isJsonObject) return null
@@ -76,7 +75,6 @@ object ChsManifest {
     /**
      * 解析 GitHub Git Trees API (?recursive=1) 响应作为无缝回退
      */
-    @JvmStatic
     fun parseGithubTreeJson(rawJson: String?): ManifestData? {
         val el = ChsJsonCleaner.safeParseJson(rawJson) ?: return null
         if (!el.isJsonObject) return null
@@ -100,7 +98,6 @@ object ChsManifest {
         return ManifestData(version = treeSha, files = entries)
     }
 
-    @JvmStatic
     fun isSupportedRepoPath(path: String): Boolean {
         if (path.contains("..")) return false
         if (path.startsWith("text/text/subtitles/")) return false // GotoBrowser 使用自带字幕，无需下载字幕子目录
@@ -110,7 +107,6 @@ object ChsManifest {
     /**
      * 计算远端清单与本地目录/本地清单的增量差分
      */
-    @JvmStatic
     fun computeDiff(
         remote: ManifestData,
         localRootDir: File,
@@ -152,7 +148,6 @@ object ChsManifest {
         )
     }
 
-    @JvmStatic
     fun loadLocalManifestMap(manifestFile: File): MutableMap<String, String> {
         val map = LinkedHashMap<String, String>()
         if (!manifestFile.isFile) return map
@@ -171,7 +166,6 @@ object ChsManifest {
         return map
     }
 
-    @JvmStatic
     fun saveLocalManifestMap(manifestFile: File, version: String, filesMap: Map<String, String>) {
         val tempFile = File(manifestFile.parentFile, "${manifestFile.name}.tmp")
         try {
@@ -197,7 +191,6 @@ object ChsManifest {
         }
     }
 
-    @JvmStatic
     fun sha256Hex(file: File): String {
         val digest = MessageDigest.getInstance("SHA-256")
         file.inputStream().buffered().use { fis ->

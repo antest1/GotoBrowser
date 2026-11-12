@@ -31,7 +31,6 @@ object ChsTextPatcher {
     /**
      * 在原生 main.js 上应用简中汉化补丁（当汉化未启用时原样返回 mainJs）
      */
-    @JvmStatic
     fun patchChs(context: Context, mainJs: String): String {
         if (!ChsConfig.isPatcherEnabled()) {
             return mainJs
@@ -60,7 +59,6 @@ object ChsTextPatcher {
     /**
      * 纯函数入口：便于 JVM 单元测试与 Node VM 门禁验证
      */
-    @JvmStatic
     fun patchMainJsWithData(
         mainJs: String,
         textDict: Map<String, String>,
@@ -97,7 +95,6 @@ object ChsTextPatcher {
     /**
      * 注入打字机组件前置预翻译锚点；若官方更新导致混淆模式变化則静默跳过，不抛异常。
      */
-    @JvmStatic
     fun injectTypewriterAnchors(mainJs: String): String {
         var js = mainJs
         try {
@@ -144,7 +141,6 @@ object ChsTextPatcher {
     /**
      * 生成 PIXI.Text 词典、动态正则与打字机预翻译脚本
      */
-    @JvmStatic
     fun generateTextPatcherScript(
         textDict: Map<String, String>,
         regexRules: List<Pair<String, String>>,

@@ -11,31 +11,24 @@ object ChsPaths {
     const val ROOT_FOLDER_NAME = "chs_patch"
     const val LOCAL_MANIFEST_FILE = "manifest.local.json"
 
-    @JvmStatic
     fun getRootDir(context: Context): File {
         val base = context.getExternalFilesDir(null) ?: context.filesDir
         return File(base, ROOT_FOLDER_NAME)
     }
 
-    @JvmStatic
     fun getTextDictDir(context: Context): File = File(getRootDir(context), "text/text")
 
-    @JvmStatic
     fun getTextRegexDir(context: Context): File = File(getRootDir(context), "text/text_regex")
 
-    @JvmStatic
     fun getApiDir(context: Context): File = File(getRootDir(context), "text/api")
 
-    @JvmStatic
     fun getCacheDir(context: Context): File = File(getRootDir(context), "cache")
 
-    @JvmStatic
     fun getLocalManifestFile(context: Context): File = File(getRootDir(context), LOCAL_MANIFEST_FILE)
 
     /**
      * 检查是否至少已下载核心文本或 API 字典数据
      */
-    @JvmStatic
     fun hasInstalledData(context: Context): Boolean {
         val apiDir = getApiDir(context)
         val textDir = getTextDictDir(context)

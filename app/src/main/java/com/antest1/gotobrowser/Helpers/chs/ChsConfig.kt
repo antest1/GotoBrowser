@@ -48,7 +48,6 @@ object ChsConfig {
     /**
      * 所有会触发页面重载才生效的汉化配置键集合
      */
-    @JvmField
     val REFRESH_KEYS: Set<String> = setOf(
         KEY_ENABLED,
         KEY_ENABLE_TEXT_DICT,

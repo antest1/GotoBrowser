@@ -16,6 +16,7 @@ object ChsJsonCleaner {
     private const val TAG = "GOTO-CHS"
 
     private fun logWarn(msg: String) {
+        // 在脱离 Android 运行时的纯 JVM 单元测试中，android.util.Log 会抛出 Method not mocked 运行时异常
         try {
             Log.w(TAG, msg)
         } catch (_: Throwable) {
@@ -29,7 +30,6 @@ object ChsJsonCleaner {
      * 状态机逐字符剥除 JSON 中的 BOM、单行与多行注释、非标前导零与尾随逗号。
      * 确保字符串字面量内部出现的单行或多行注释符号（如 URL）不被误删。
      */
-    @JvmStatic
     fun stripJsonComments(str: String?): String {
         if (str.isNullOrEmpty()) return ""
 
@@ -199,7 +199,6 @@ object ChsJsonCleaner {
     /**
      * 安全解析可能包含注释、BOM、前导零与尾随逗号的 JSON 文本
      */
-    @JvmStatic
     fun safeParseJson(jsonText: String?): JsonElement? {
         if (jsonText.isNullOrBlank()) return null
         val trimmed = if (jsonText[0] == '\uFEFF') jsonText.substring(1) else jsonText
@@ -219,7 +218,6 @@ object ChsJsonCleaner {
     /**
      * 校验正则表达式模式是否合法
      */
-    @JvmStatic
     fun validateRegexPattern(pattern: String?): Boolean {
         if (pattern.isNullOrBlank()) return false
         return try {
@@ -233,7 +231,6 @@ object ChsJsonCleaner {
     /**
      * 校验并提取合法的正则替换规则列表 (同时兼容 JsonObject 与 JsonArray)
      */
-    @JvmStatic
     fun sanitizeRegexRules(rawElement: JsonElement?, sourceFileName: String = ""): List<Pair<String, String>> {
         val validRules = mutableListOf<Pair<String, String>>()
         if (rawElement == null || rawElement.isJsonNull) return validRules

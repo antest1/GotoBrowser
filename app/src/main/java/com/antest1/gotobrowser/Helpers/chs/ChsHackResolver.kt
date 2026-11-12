@@ -26,7 +26,6 @@ object ChsHackResolver {
     @Volatile
     private var indexedLastModified: Long = -1L
 
-    @JvmStatic
     fun invalidateIndex() {
         indexedCacheRoot = ""
         indexedLastModified = -1L
@@ -34,7 +33,6 @@ object ChsHackResolver {
         fontNameIndex.clear()
     }
 
-    @JvmStatic
     fun rebuildIndexIfNeeded(context: Context) {
         val cacheDir = ChsPaths.getCacheDir(context)
         rebuildIndexFromDir(cacheDir)
@@ -43,7 +41,6 @@ object ChsHackResolver {
     /**
      * 从指定 cache 目录构建请求路径映射表（可供单元测试直接调用）
      */
-    @JvmStatic
     fun rebuildIndexFromDir(cacheDir: File) {
         if (!cacheDir.isDirectory) {
             pathIndex.clear()
@@ -109,7 +106,6 @@ object ChsHackResolver {
     /**
      * 将 /kcs2/img/port/port_main.hack.png 规范化为 /kcs2/img/port/port_main.png
      */
-    @JvmStatic
     fun normalizeHackPath(path: String): String {
         val clean = path.substringBefore('?').replace('\\', '/')
         val withSlash = if (clean.startsWith("/")) clean else "/$clean"
@@ -119,7 +115,6 @@ object ChsHackResolver {
     /**
      * 根据请求路径查找对应的本地 hack 文件（仅在内存中 O(1) 查找）
      */
-    @JvmStatic
     fun findHackFile(requestPath: String?): File? {
         if (requestPath.isNullOrEmpty()) return null
         val clean = normalizeHackPath(requestPath)

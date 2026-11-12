@@ -31,7 +31,6 @@ object ChsDataRepository {
     @Volatile
     private var cachedRootStamp: String = ""
 
-    @JvmStatic
     fun invalidateCache() {
         cachedBundle = null
         cachedRootStamp = ""
@@ -40,7 +39,6 @@ object ChsDataRepository {
     /**
      * 获取或加载完整汉化数据包（带目录时间戳缓存，避免重复磁盘读取）
      */
-    @JvmStatic
     fun getOrLoad(context: Context): LoadedBundle {
         val rootDir = ChsPaths.getRootDir(context)
         val stamp = computeDirStamp(rootDir)
@@ -57,7 +55,6 @@ object ChsDataRepository {
     /**
      * 从指定根目录加载所有文本词典、正则规则与 API 补丁表（可供 JVM 单元测试直接调用）
      */
-    @JvmStatic
     fun loadFromDirectory(sourceDir: File): LoadedBundle {
         val textDict = LinkedHashMap<String, String>()
         val regexRules = ArrayList<Pair<String, String>>()
