@@ -315,6 +315,10 @@ public class SettingsViewModel extends AndroidViewModel {
         });
     }
 
+    public void cancelChsPatchUpdate() {
+        chsDownloader.cancelDownload();
+    }
+
     public void deleteChsPatch() {
         chsDownloader.deletePatchData(host, (summary, canDownload) -> {
             chsUpdateSummary.setValue(summary);

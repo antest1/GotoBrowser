@@ -127,6 +127,7 @@
     <string name="patch_download_extracting">파일 압축 해제 중…</string>
     <string name="patch_download_updated">패치가 업데이트되었습니다. 게임을 새로고침해주세요.</string>
     <string name="patch_download_failed">업데이트에 실패했습니다</string>
+    <string name="patch_download_cancelled">다운로드가 취소되었습니다</string>
     <string name="patch_download_error">다운로드 중 오류가 발생했습니다</string>
     <string name="patch_download_zip_not_deleted">다운로드는 완료되었지만 zip 파일을 삭제하지 못했습니다</string>
     <string name="patch_deleted">패치 데이터가 삭제되었습니다. 게임을 새로고침해주세요.</string>

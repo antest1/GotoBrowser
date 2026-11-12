@@ -124,6 +124,7 @@
     <string name="patch_download_extracting">正在解压文件…</string>
     <string name="patch_download_updated">补丁已更新，请重新加载游戏。</string>
     <string name="patch_download_failed">更新失败</string>
+    <string name="patch_download_cancelled">已取消下载</string>
     <string name="patch_download_error">下载时发生错误</string>
     <string name="patch_download_zip_not_deleted">下载完成，但无法删除 zip 文件</string>
     <string name="patch_deleted">补丁资料已删除，请重新加载游戏。</string>

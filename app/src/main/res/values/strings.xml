@@ -140,6 +140,7 @@
     <string name="patch_download_extracting">Extracting files…</string>
     <string name="patch_download_updated">Patch updated. Please reload the game.</string>
     <string name="patch_download_failed">Update failed</string>
+    <string name="patch_download_cancelled">Download cancelled</string>
     <string name="patch_download_error">Error occurred while downloading</string>
     <string name="patch_download_zip_not_deleted">Download finished, but the zip file could not be deleted</string>
     <string name="patch_deleted">Patch deleted. Please reload the game.</string>

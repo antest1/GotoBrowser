@@ -126,6 +126,7 @@
     <string name="patch_download_extracting">ファイルを展開中…</string>
     <string name="patch_download_updated">パッチを更新しました。ゲームを再読み込みしてください。</string>
     <string name="patch_download_failed">更新に失敗しました</string>
+    <string name="patch_download_cancelled">ダウンロードをキャンセルしました</string>
     <string name="patch_download_error">ダウンロード中にエラーが発生しました</string>
     <string name="patch_download_zip_not_deleted">ダウンロードは完了しましたが、zipファイルを削除できませんでした</string>
     <string name="patch_deleted">パッチデータを削除しました。ゲームを再読み込みしてください。</string>

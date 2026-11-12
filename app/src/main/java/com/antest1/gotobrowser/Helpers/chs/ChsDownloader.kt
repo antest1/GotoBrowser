@@ -6,28 +6,30 @@ import android.os.Looper
 import android.util.Log
 import com.antest1.gotobrowser.Activity.PatchDownloadState
 import com.antest1.gotobrowser.Activity.SettingsStatusHost
-import com.antest1.gotobrowser.Helpers.KcUtils
 import com.antest1.gotobrowser.R
+import okhttp3.ConnectionPool
+import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.Locale
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 
 /**
- * 简中汉化包 (PLUS) 增量检查、并发下载、SHA-256 校验与清理工具
- * 支持从 manifest.json 或 GitHub Trees API 自动获取远端清单，并支持多镜像源切换。
+ * 简中汉化包 (PLUS) 增量检查、高并发多路复用下载、SHA-256 校验与清理工具
+ * 支持可取消操作、主线程高频节流与多镜像源自动回退。
  */
 class ChsDownloader(
-    private val httpClient: OkHttpClient = KcUtils.getSharedHttpClient().newBuilder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
+    private val httpClient: OkHttpClient = createDefaultHttpClient()
 ) {
     companion object {
         private const val TAG = "GOTO-CHS"
@@ -35,16 +37,74 @@ class ChsDownloader(
             "https://api.github.com/repos/asaico/Kancolle_to_CHS/git/trees/main?recursive=1"
         private const val MAX_MANIFEST_BYTES = 16L * 1024 * 1024 // 16 MB 清单响应大小上限
         private const val MAX_SINGLE_FILE_BYTES = 32L * 1024 * 1024 // 32 MB 单文件下载大小上限
+        private const val CONCURRENCY = 8 // 提升为 8 线程高并发下载
+        private const val BUFFER_SIZE = 32768 // 32 KB I/O 缓冲区
+
+        private fun createDefaultHttpClient(): OkHttpClient {
+            val dispatcher = Dispatcher().apply {
+                maxRequests = 64
+                maxRequestsPerHost = 16 // 单 Host 连接池并发数提升为 16
+            }
+            val pool = ConnectionPool(16, 5, TimeUnit.MINUTES)
+            return OkHttpClient.Builder()
+                .dispatcher(dispatcher)
+                .connectionPool(pool)
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .build()
+        }
     }
 
-    private val mainHandler = Handler(Looper.getMainLooper())
+    private val mainHandler: Handler by lazy {
+        try {
+            Handler(Looper.getMainLooper())
+        } catch (_: Throwable) {
+            Handler(Looper.myLooper() ?: Looper.getMainLooper())
+        }
+    }
     private val workerExecutor = Executors.newSingleThreadExecutor()
 
+    private val isCancelled = AtomicBoolean(false)
+    @Volatile
+    private var activeDownloadPool: ExecutorService? = null
+    @Volatile
+    private var currentDownloadHost: SettingsStatusHost? = null
+    @Volatile
+    private var currentOnComplete: ((summary: String, canDownload: Boolean) -> Unit)? = null
+
     /**
-     * 在宿主 ViewModel 销毁时关闭后台工作线程
+     * 在宿主 ViewModel 销毁时关闭后台工作线程并释放网络资源
      */
     fun shutdown() {
+        cancelDownload()
         workerExecutor.shutdownNow()
+    }
+
+    /**
+     * 主动取消正在进行的汉化数据包下载与更新
+     */
+    fun cancelDownload() {
+        if (!isCancelled.compareAndSet(false, true)) {
+            return
+        }
+        try {
+            httpClient.dispatcher.cancelAll()
+        } catch (_: Exception) {}
+        try {
+            activeDownloadPool?.shutdownNow()
+        } catch (_: Exception) {}
+
+        val host = currentDownloadHost
+        val onComplete = currentOnComplete
+        val appContext = host?.getContext()?.applicationContext
+
+        mainHandler.post {
+            host?.setPatchDownloadState(PatchDownloadState.Idle)
+            if (appContext != null) {
+                host.showPatchMessage(appContext.getString(R.string.patch_download_cancelled))
+                onComplete?.invoke(appContext.getString(R.string.patch_download_cancelled), true)
+            }
+        }
     }
 
     @Volatile
@@ -119,18 +179,26 @@ class ChsDownloader(
     }
 
     /**
-     * 执行增量下载更新，复用 GotoBrowser 的 PatchDownloadState 展示 Material 3 进度弹窗
+     * 执行增量下载更新，复用 GotoBrowser 的 PatchDownloadState 展示 Material 3 进度弹窗并支持取消
      */
     fun startDownload(
         host: SettingsStatusHost,
         onCompleteSummary: (summary: String, canDownload: Boolean) -> Unit
     ) {
         val appContext = host.getContext()?.applicationContext ?: return
+        isCancelled.set(false)
+        currentDownloadHost = host
+        currentOnComplete = onCompleteSummary
+
+        val modTitle = appContext.getString(R.string.settings_mod_chs_download)
+
         mainHandler.post {
             host.setPatchDownloadState(
                 PatchDownloadState.Running(
-                    appContext.getString(R.string.patch_download_checking),
-                    null
+                    message = appContext.getString(R.string.patch_download_checking),
+                    progress = null,
+                    title = modTitle,
+                    onCancel = { cancelDownload() }
                 )
             )
         }
@@ -143,8 +211,13 @@ class ChsDownloader(
                 val localMap = ChsManifest.loadLocalManifestMap(manifestFile)
                 val textOnly = ChsConfig.isTextOnlyDownloadMode()
 
+                if (isCancelled.get()) return@execute
+
                 val remote = fetchRemoteManifest()
                     ?: throw IOException(appContext.getString(R.string.chs_status_check_failed))
+
+                if (isCancelled.get()) return@execute
+
                 val diff = ChsManifest.computeDiff(remote, rootDir, localMap, textOnly)
 
                 if (diff.toDownload.isEmpty()) {
@@ -155,15 +228,19 @@ class ChsDownloader(
                     ChsConfig.prepare(appContext)
 
                     mainHandler.post {
-                        host.setPatchDownloadState(PatchDownloadState.Idle)
-                        host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
-                        onCompleteSummary(
-                            appContext.getString(R.string.chs_status_up_to_date_format, remote.version),
-                            true
-                        )
+                        if (!isCancelled.get()) {
+                            host.setPatchDownloadState(PatchDownloadState.Idle)
+                            host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
+                            onCompleteSummary(
+                                appContext.getString(R.string.chs_status_up_to_date_format, remote.version),
+                                true
+                            )
+                        }
                     }
                     return@execute
                 }
+
+                if (isCancelled.get()) return@execute
 
                 val baseUrl = ChsConfig.resolveRawBaseUrl()
                 downloadEntriesIncrementally(
@@ -174,6 +251,7 @@ class ChsDownloader(
                     manifestFile = manifestFile,
                     remoteVersion = remote.version,
                     onProgress = { current, total, fileName, downloadedBytes ->
+                        if (isCancelled.get()) return@downloadEntriesIncrementally
                         val fraction = if (total > 0) current.toFloat() / total.toFloat() else null
                         val msg = String.format(
                             Locale.US,
@@ -184,10 +262,21 @@ class ChsDownloader(
                             formatSize(downloadedBytes)
                         )
                         mainHandler.post {
-                            host.setPatchDownloadState(PatchDownloadState.Running(msg, fraction))
+                            if (!isCancelled.get()) {
+                                host.setPatchDownloadState(
+                                    PatchDownloadState.Running(
+                                        message = msg,
+                                        progress = fraction,
+                                        title = modTitle,
+                                        onCancel = { cancelDownload() }
+                                    )
+                                )
+                            }
                         }
                     }
                 )
+
+                if (isCancelled.get()) return@execute
 
                 ChsConfig.setLocalVersion(remote.version)
                 ChsManifest.saveLocalManifestMap(manifestFile, remote.version, localMap)
@@ -196,14 +285,20 @@ class ChsDownloader(
                 ChsConfig.prepare(appContext)
 
                 mainHandler.post {
-                    host.setPatchDownloadState(PatchDownloadState.Idle)
-                    host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
-                    onCompleteSummary(
-                        appContext.getString(R.string.chs_status_up_to_date_format, remote.version),
-                        true
-                    )
+                    if (!isCancelled.get()) {
+                        host.setPatchDownloadState(PatchDownloadState.Idle)
+                        host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
+                        onCompleteSummary(
+                            appContext.getString(R.string.chs_status_up_to_date_format, remote.version),
+                            true
+                        )
+                    }
                 }
             } catch (e: Exception) {
+                if (isCancelled.get()) {
+                    Log.i(TAG, "下载已由用户取消")
+                    return@execute
+                }
                 Log.e(TAG, "下载简中汉化包异常: ${e.message}")
                 mainHandler.post {
                     host.setPatchDownloadState(PatchDownloadState.Idle)
@@ -212,12 +307,15 @@ class ChsDownloader(
                     )
                     onCompleteSummary(appContext.getString(R.string.patch_download_failed), true)
                 }
+            } finally {
+                currentDownloadHost = null
+                currentOnComplete = null
             }
         }
     }
 
     /**
-     * 供单元测试与正式环境共用的增量下载执行器（支持断点持久化与 SHA-256 原子替换）
+     * 供单元测试与正式环境共用的增量下载执行器（支持断点持久化、高并发、SHA-256 原子替换与节流上报）
      */
     fun downloadEntriesIncrementally(
         baseUrl: String,
@@ -232,15 +330,17 @@ class ChsDownloader(
         val total = entries.size
         val completedCount = AtomicInteger(0)
         val totalDownloadedBytes = AtomicLong(0L)
+        val lastReportTime = AtomicLong(0L)
 
-        // 使用 4 线程并发加速大量小文件下载
-        val pool = Executors.newFixedThreadPool(4)
-        val firstError = java.util.concurrent.atomic.AtomicReference<Exception?>(null)
+        // 使用 8 线程并发大幅提升小文件下载流水线吞吐量
+        val pool = Executors.newFixedThreadPool(CONCURRENCY)
+        activeDownloadPool = pool
+        val firstError = AtomicReference<Exception?>(null)
 
         try {
             val futures = entries.map { entry ->
                 pool.submit {
-                    if (firstError.get() != null) return@submit
+                    if (isCancelled.get() || firstError.get() != null) return@submit
                     val targetFile = File(rootDir, entry.path)
                     val tempFile = File(rootDir, "${entry.path}.part")
                     try {
@@ -249,12 +349,22 @@ class ChsDownloader(
                         val fileUrl = normalizedBase + entry.path
                         downloadSingleFile(fileUrl, tempFile)
 
+                        if (isCancelled.get()) {
+                            tempFile.delete()
+                            return@submit
+                        }
+
                         if (entry.hashType == "sha256" && entry.hash.length == 64) {
                             val actualSha256 = ChsManifest.sha256Hex(tempFile)
                             if (!actualSha256.equals(entry.hash, ignoreCase = true)) {
                                 tempFile.delete()
                                 throw IOException("SHA-256 校验不匹配: ${entry.path}")
                             }
+                        }
+
+                        if (isCancelled.get()) {
+                            tempFile.delete()
+                            return@submit
                         }
 
                         targetFile.parentFile?.mkdirs()
@@ -274,21 +384,40 @@ class ChsDownloader(
                                 ChsManifest.saveLocalManifestMap(manifestFile, remoteVersion, localMap)
                             }
                         }
-                        onProgress(done, total, entry.path.substringAfterLast('/'), bytes)
+
+                        // UI 进度汇报节流控制（100ms 刷新一次或在完成时立即刷新，避免主线程 Compose 过度重组）
+                        val now = System.currentTimeMillis()
+                        val last = lastReportTime.get()
+                        if (done == total || now - last >= 100L) {
+                            if (lastReportTime.compareAndSet(last, now) || done == total) {
+                                onProgress(done, total, entry.path.substringAfterLast('/'), bytes)
+                            }
+                        }
                     } catch (e: Exception) {
                         try {
                             if (tempFile.exists()) tempFile.delete()
                         } catch (_: Exception) {
                         }
-                        firstError.compareAndSet(null, e)
+                        if (!isCancelled.get()) {
+                            firstError.compareAndSet(null, e)
+                        }
                     }
                 }
             }
             for (f in futures) {
-                f.get()
+                try {
+                    f.get()
+                } catch (_: Exception) {
+                }
+                if (isCancelled.get()) break
             }
         } finally {
+            activeDownloadPool = null
             pool.shutdownNow()
+        }
+
+        if (isCancelled.get()) {
+            return
         }
 
         synchronized(localMap) {
@@ -361,13 +490,16 @@ class ChsDownloader(
             if (contentLen > MAX_MANIFEST_BYTES) {
                 throw IOException("Manifest exceeds maximum allowed size ($contentLen bytes): $url")
             }
-            body.byteStream().use { input ->
+            body.byteStream().buffered(BUFFER_SIZE).use { input ->
                 val out = java.io.ByteArrayOutputStream(
-                    if (contentLen in 1..65536) contentLen.toInt() else 32768
+                    if (contentLen in 1..65536) contentLen.toInt() else BUFFER_SIZE
                 )
-                val buffer = ByteArray(16384)
+                val buffer = ByteArray(BUFFER_SIZE)
                 var totalRead = 0L
                 while (true) {
+                    if (isCancelled.get()) {
+                        throw IOException("Download cancelled")
+                    }
                     val read = input.read(buffer)
                     if (read == -1) break
                     totalRead += read
@@ -392,11 +524,15 @@ class ChsDownloader(
             if (contentLen > MAX_SINGLE_FILE_BYTES) {
                 throw IOException("File exceeds maximum allowed size ($contentLen bytes): $url")
             }
-            FileOutputStream(destFile).use { fos ->
-                body.byteStream().use { input ->
-                    val buffer = ByteArray(16384)
+            destFile.parentFile?.mkdirs()
+            BufferedOutputStream(FileOutputStream(destFile), BUFFER_SIZE).use { fos ->
+                body.byteStream().buffered(BUFFER_SIZE).use { input ->
+                    val buffer = ByteArray(BUFFER_SIZE)
                     var totalRead = 0L
                     while (true) {
+                        if (isCancelled.get()) {
+                            throw IOException("Download cancelled")
+                        }
                         val read = input.read(buffer)
                         if (read == -1) break
                         totalRead += read
@@ -405,6 +541,7 @@ class ChsDownloader(
                         }
                         fos.write(buffer, 0, read)
                     }
+                    fos.flush()
                 }
             }
         }

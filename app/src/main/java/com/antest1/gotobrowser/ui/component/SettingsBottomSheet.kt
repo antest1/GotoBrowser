@@ -1299,12 +1299,14 @@ private fun SubtitleSizeDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PatchDownloadDialog(state: PatchDownloadState.Running) {
-    // BasicAlertDialog instead of AlertDialog: there are no buttons, and AlertDialog
-    // keeps padding for its (empty) button row, leaving a blank band at the bottom.
+    // BasicAlertDialog instead of AlertDialog: keeps padding tidy and follows
+    // the settings sheet's Material 3 theme.
     BasicAlertDialog(
-        // The download cannot be cancelled midway, same as before.
-        onDismissRequest = {},
-        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+        onDismissRequest = { state.onCancel?.invoke() },
+        properties = DialogProperties(
+            dismissOnBackPress = state.onCancel != null,
+            dismissOnClickOutside = false
+        )
     ) {
         Surface(
             shape = AlertDialogDefaults.shape,
@@ -1313,7 +1315,7 @@ internal fun PatchDownloadDialog(state: PatchDownloadState.Running) {
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
                 Text(
-                    text = stringResource(R.string.settings_mod_kantaien_download),
+                    text = state.title ?: stringResource(R.string.settings_mod_kantaien_download),
                     style = MaterialTheme.typography.headlineSmall,
                     color = AlertDialogDefaults.titleContentColor
                 )
@@ -1336,6 +1338,17 @@ internal fun PatchDownloadDialog(state: PatchDownloadState.Running) {
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (state.onCancel != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = state.onCancel) {
+                            Text(stringResource(R.string.action_cancel))
+                        }
+                    }
+                }
             }
         }
     }
