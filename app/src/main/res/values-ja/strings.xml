@@ -217,8 +217,13 @@
     <string name="settings_mod_chs_mode_full">フルパッケージ（テキストと API データ + UI 画像・フォント）</string>
     <string name="settings_mod_chs_mode_text_only">テキストと API データのみ</string>
     <string name="settings_mod_chs_download">翻訳データを更新</string>
+    <string name="settings_mod_chs_download_archive">フルパッケージをダウンロード (Release Zip)</string>
+    <string name="settings_mod_chs_download_archive_summary">最新Releaseのzipを一括ダウンロード・解凍して差分を検証します。</string>
     <string name="settings_mod_chs_delete">翻訳データを削除</string>
     <string name="settings_mod_chs_delete_summary">ダウンロード済みの簡体字中国語テキストと画像・フォントを削除します。</string>
+    <string name="settings_mod_chs_about">砍口垒汉化计划 in Goto について</string>
+    <string name="settings_mod_chs_about_summary">作者、データソースおよび謝辞</string>
+    <string name="settings_mod_chs_about_dialog_text">開発者：@泉浅漪\n翻訳データ源：砍口垒汉化计划 @归海原\nリポジトリ：https://github.com/asaico/Kancolle_to_CHS</string>
     <string name="chs_status_disabled">パッチは無効です</string>
     <string name="chs_status_check_failed">更新元に接続できません。タップして再試行</string>
     <string name="chs_status_offline_installed" formatted="false">インストール済み (%1$s)</string>

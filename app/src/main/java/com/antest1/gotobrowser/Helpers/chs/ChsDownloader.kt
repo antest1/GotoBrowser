@@ -37,6 +37,9 @@ class ChsDownloader(
             "https://api.github.com/repos/asaico/Kancolle_to_CHS/git/trees/main?recursive=1"
         private const val MAX_MANIFEST_BYTES = 16L * 1024 * 1024 // 16 MB 清单响应大小上限
         private const val MAX_SINGLE_FILE_BYTES = 32L * 1024 * 1024 // 32 MB 单文件下载大小上限
+        private const val MAX_ARCHIVE_BYTES = 1024L * 1024 * 1024 // 1 GB 全量包大小上限
+        private const val GITHUB_RELEASES_LATEST =
+            "https://github.com/asaico/Kancolle_to_CHS/releases/latest"
         private const val CONCURRENCY = 8 // 提升为 8 线程高并发下载
         private const val BUFFER_SIZE = 32768 // 32 KB I/O 缓冲区
 
@@ -315,6 +318,221 @@ class ChsDownloader(
     }
 
     /**
+     * 一键下载官方最新 Release 全量压缩包、流式解压并自动比对后续增量更新
+     */
+    fun startDownloadReleaseArchive(
+        host: SettingsStatusHost,
+        onCompleteSummary: (summary: String, canDownload: Boolean) -> Unit
+    ) {
+        val appContext = host.getContext()?.applicationContext ?: return
+        isCancelled.set(false)
+        currentDownloadHost = host
+        currentOnComplete = onCompleteSummary
+
+        val title = appContext.getString(R.string.settings_mod_chs_download_archive)
+
+        mainHandler.post {
+            host.setPatchDownloadState(
+                PatchDownloadState.Running(
+                    message = appContext.getString(R.string.patch_download_checking),
+                    progress = null,
+                    title = title,
+                    onCancel = { cancelDownload() }
+                )
+            )
+        }
+
+        workerExecutor.execute {
+            var archivePartFile: File? = null
+            var archiveZipFile: File? = null
+            try {
+                ChsConfig.init(appContext)
+                val rootDir = ChsPaths.getRootDir(appContext)
+                rootDir.mkdirs()
+
+                if (isCancelled.get()) return@execute
+
+                // 1. 获取最新 Release Tag
+                val tag = fetchLatestReleaseTag()
+                    ?: throw IOException(appContext.getString(R.string.chs_status_check_failed))
+
+                if (isCancelled.get()) return@execute
+
+                val candidateUrls = resolveReleaseArchiveUrls(tag)
+                archiveZipFile = File(rootDir, "release_$tag.zip")
+                archivePartFile = File(rootDir, "release_$tag.zip.part")
+
+                // 2. 流式下载 Release Zip 并实时展示进度
+                downloadArchiveFile(
+                    candidateUrls = candidateUrls,
+                    destFile = archivePartFile,
+                    onProgress = { downloaded, total ->
+                        if (isCancelled.get()) return@downloadArchiveFile
+                        val fraction = if (total > 0L) (downloaded.toFloat() / total.toFloat()).coerceIn(0f, 1f) else null
+                        val msg = if (total > 0L) {
+                            String.format(Locale.US, "%s / %s", formatSize(downloaded), formatSize(total))
+                        } else {
+                            formatSize(downloaded)
+                        }
+                        mainHandler.post {
+                            if (!isCancelled.get()) {
+                                host.setPatchDownloadState(
+                                    PatchDownloadState.Running(
+                                        message = msg,
+                                        progress = fraction,
+                                        title = title,
+                                        onCancel = { cancelDownload() }
+                                    )
+                                )
+                            }
+                        }
+                    }
+                )
+
+                if (isCancelled.get()) {
+                    archivePartFile.delete()
+                    return@execute
+                }
+
+                if (!archivePartFile.renameTo(archiveZipFile)) {
+                    archivePartFile.copyTo(archiveZipFile, overwrite = true)
+                    archivePartFile.delete()
+                }
+
+                // 3. 流式解压 Zip 包并展示解压进度
+                mainHandler.post {
+                    if (!isCancelled.get()) {
+                        host.setPatchDownloadState(
+                            PatchDownloadState.Running(
+                                message = appContext.getString(R.string.patch_download_extracting),
+                                progress = null,
+                                title = title,
+                                onCancel = { cancelDownload() }
+                            )
+                        )
+                    }
+                }
+
+                extractZipArchive(archiveZipFile, rootDir) { extractedCount, fileName ->
+                    if (isCancelled.get()) return@extractZipArchive
+                    val msg = String.format(
+                        Locale.US,
+                        "%s (%d)\n%s",
+                        appContext.getString(R.string.patch_download_extracting),
+                        extractedCount,
+                        fileName
+                    )
+                    mainHandler.post {
+                        if (!isCancelled.get()) {
+                            host.setPatchDownloadState(
+                                PatchDownloadState.Running(
+                                    message = msg,
+                                    progress = null,
+                                    title = title,
+                                    onCancel = { cancelDownload() }
+                                )
+                            )
+                        }
+                    }
+                }
+
+                if (isCancelled.get()) return@execute
+
+                // 解压完成，安全删除压缩包
+                archiveZipFile.delete()
+
+                // 4. 清单与增量更新比对：检查是否有后续增量更新
+                mainHandler.post {
+                    if (!isCancelled.get()) {
+                        host.setPatchDownloadState(
+                            PatchDownloadState.Running(
+                                message = appContext.getString(R.string.patch_download_checking),
+                                progress = null,
+                                title = title,
+                                onCancel = { cancelDownload() }
+                            )
+                        )
+                    }
+                }
+
+                val manifestFile = ChsPaths.getLocalManifestFile(appContext)
+                val localMap = ChsManifest.loadLocalManifestMap(manifestFile)
+                val textOnly = ChsConfig.isTextOnlyDownloadMode()
+
+                val remote = fetchRemoteManifest()
+                if (remote != null) {
+                    for (entry in remote.files) {
+                        val f = File(rootDir, entry.path)
+                        if (f.isFile && f.length() == entry.size) {
+                            localMap[entry.path] = entry.hash
+                        }
+                    }
+                    val diff = ChsManifest.computeDiff(remote, rootDir, localMap, textOnly)
+                    ChsConfig.setLocalVersion(tag)
+                    ChsManifest.saveLocalManifestMap(manifestFile, tag, localMap)
+                    ChsDataRepository.invalidateCache()
+                    ChsHackResolver.rebuildIndexIfNeeded(appContext)
+                    ChsConfig.prepare(appContext)
+
+                    mainHandler.post {
+                        host.setPatchDownloadState(PatchDownloadState.Idle)
+                        if (diff.hasUpdates) {
+                            host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
+                            onCompleteSummary(
+                                appContext.getString(
+                                    R.string.chs_status_update_available_format,
+                                    remote.version,
+                                    diff.toDownload.size,
+                                    formatSize(diff.totalDownloadBytes)
+                                ),
+                                true
+                            )
+                        } else {
+                            host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
+                            onCompleteSummary(
+                                appContext.getString(R.string.chs_status_up_to_date_format, remote.version),
+                                true
+                            )
+                        }
+                    }
+                } else {
+                    ChsConfig.setLocalVersion(tag)
+                    ChsDataRepository.invalidateCache()
+                    ChsHackResolver.rebuildIndexIfNeeded(appContext)
+                    ChsConfig.prepare(appContext)
+
+                    mainHandler.post {
+                        host.setPatchDownloadState(PatchDownloadState.Idle)
+                        host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
+                        onCompleteSummary(
+                            appContext.getString(R.string.chs_status_offline_installed, tag),
+                            true
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                archivePartFile?.delete()
+                archiveZipFile?.delete()
+                if (isCancelled.get()) {
+                    Log.i(TAG, "全量包下载已由用户取消")
+                    return@execute
+                }
+                Log.e(TAG, "下载全量包异常: ${e.message}")
+                mainHandler.post {
+                    host.setPatchDownloadState(PatchDownloadState.Idle)
+                    host.showPatchMessage(
+                        appContext.getString(R.string.patch_download_error) + ": " + (e.message ?: "")
+                    )
+                    onCompleteSummary(appContext.getString(R.string.patch_download_failed), true)
+                }
+            } finally {
+                currentDownloadHost = null
+                currentOnComplete = null
+            }
+        }
+    }
+
+    /**
      * 供单元测试与正式环境共用的增量下载执行器（支持断点持久化、高并发、SHA-256 原子替换与节流上报）
      */
     fun downloadEntriesIncrementally(
@@ -555,5 +773,147 @@ class ChsDownloader(
         } else {
             String.format(Locale.US, "%.2f MB", kb / 1024.0)
         }
+    }
+
+    fun fetchLatestReleaseTag(): String? {
+        val req = Request.Builder().url(GITHUB_RELEASES_LATEST).head().build()
+        val noRedirectClient = httpClient.newBuilder().followRedirects(false).build()
+        return try {
+            noRedirectClient.newCall(req).execute().use { resp ->
+                val location = resp.header("Location") ?: ""
+                val tag = location.substringAfterLast('/').trim()
+                tag.takeIf { it.isNotEmpty() && it != "latest" }
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun resolveReleaseArchiveUrls(tag: String): List<String> {
+        val isGhProxy = ChsConfig.getString(ChsConfig.KEY_DATA_SOURCE, ChsConfig.SOURCE_GITHUB_RAW) == ChsConfig.SOURCE_GHPROXY
+        val directRaw = "https://github.com/asaico/Kancolle_to_CHS/releases/download/$tag/Kancolle_to_CHS_$tag.zip"
+        val fallbackRaw = "https://github.com/asaico/Kancolle_to_CHS/archive/refs/tags/$tag.zip"
+        return if (isGhProxy) {
+            listOf(
+                "https://mirror.ghproxy.com/$directRaw",
+                "https://mirror.ghproxy.com/$fallbackRaw",
+                directRaw,
+                fallbackRaw
+            )
+        } else {
+            listOf(directRaw, fallbackRaw)
+        }
+    }
+
+    private fun downloadArchiveFile(
+        candidateUrls: List<String>,
+        destFile: File,
+        onProgress: (downloadedBytes: Long, totalBytes: Long) -> Unit
+    ) {
+        var lastException: Exception? = null
+        for (url in candidateUrls) {
+            if (isCancelled.get()) return
+            try {
+                val req = Request.Builder().url(url).build()
+                httpClient.newCall(req).execute().use { resp ->
+                    if (!resp.isSuccessful) {
+                        throw IOException("HTTP ${resp.code}: $url")
+                    }
+                    val body = resp.body ?: throw IOException("Empty body: $url")
+                    val totalBytes = body.contentLength()
+                    if (totalBytes > MAX_ARCHIVE_BYTES) {
+                        throw IOException("Archive size exceeds limit: $totalBytes")
+                    }
+                    destFile.parentFile?.mkdirs()
+                    BufferedOutputStream(FileOutputStream(destFile), BUFFER_SIZE).use { fos ->
+                        body.byteStream().buffered(BUFFER_SIZE).use { input ->
+                            val buffer = ByteArray(BUFFER_SIZE)
+                            var totalRead = 0L
+                            var lastReportTime = 0L
+                            while (true) {
+                                if (isCancelled.get()) {
+                                    throw IOException("Download cancelled")
+                                }
+                                val read = input.read(buffer)
+                                if (read == -1) break
+                                totalRead += read
+                                if (totalRead > MAX_ARCHIVE_BYTES) {
+                                    throw IOException("Archive stream exceeds limit")
+                                }
+                                fos.write(buffer, 0, read)
+
+                                val now = System.currentTimeMillis()
+                                if (now - lastReportTime >= 100L) {
+                                    lastReportTime = now
+                                    onProgress(totalRead, totalBytes)
+                                }
+                            }
+                            fos.flush()
+                            onProgress(totalRead, totalBytes)
+                        }
+                    }
+                }
+                // 成功下载
+                return
+            } catch (e: Exception) {
+                destFile.delete()
+                if (isCancelled.get()) throw e
+                lastException = e
+            }
+        }
+        throw lastException ?: IOException("Failed to download release archive from all candidate URLs")
+    }
+
+    fun extractZipArchive(
+        zipFile: File,
+        targetDir: File,
+        onProgress: (extractedCount: Int, fileName: String) -> Unit
+    ): Int {
+        var count = 0
+        val buffer = ByteArray(BUFFER_SIZE)
+        val canonicalDest = targetDir.canonicalPath + File.separator
+
+        java.util.zip.ZipInputStream(java.io.BufferedInputStream(java.io.FileInputStream(zipFile), BUFFER_SIZE)).use { zis ->
+            var entry: java.util.zip.ZipEntry? = zis.nextEntry
+            while (entry != null) {
+                if (isCancelled.get()) {
+                    throw IOException("Extraction cancelled")
+                }
+                val name = entry.name.replace('\\', '/')
+                val normalizedPath = when {
+                    name.startsWith("cache/") || name.startsWith("text/") -> name
+                    name.contains("/cache/") -> name.substring(name.indexOf("/cache/") + 1)
+                    name.contains("/text/") -> name.substring(name.indexOf("/text/") + 1)
+                    else -> ""
+                }
+
+                if (normalizedPath.isNotEmpty() && !normalizedPath.startsWith("text/text/subtitles/")) {
+                    val outFile = File(targetDir, normalizedPath)
+                    val canonicalOut = outFile.canonicalPath
+                    if (!canonicalOut.startsWith(canonicalDest)) {
+                        throw SecurityException("Zip Slip detected: $name")
+                    }
+                    if (entry.isDirectory) {
+                        outFile.mkdirs()
+                    } else {
+                        outFile.parentFile?.mkdirs()
+                        FileOutputStream(outFile).buffered(BUFFER_SIZE).use { fos ->
+                            var len: Int
+                            while (zis.read(buffer).also { len = it } > 0) {
+                                if (isCancelled.get()) throw IOException("Extraction cancelled")
+                                fos.write(buffer, 0, len)
+                            }
+                        }
+                        count++
+                        if (count % 25 == 0) {
+                            onProgress(count, normalizedPath.substringAfterLast('/'))
+                        }
+                    }
+                }
+                zis.closeEntry()
+                entry = zis.nextEntry
+            }
+        }
+        return count
     }
 }

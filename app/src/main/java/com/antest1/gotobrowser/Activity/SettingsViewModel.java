@@ -315,6 +315,14 @@ public class SettingsViewModel extends AndroidViewModel {
         });
     }
 
+    public void requestChsReleaseArchiveUpdate() {
+        chsDownloader.startDownloadReleaseArchive(host, (summary, canDownload) -> {
+            chsUpdateSummary.setValue(summary);
+            chsUpdateEnabled.setValue(canDownload);
+            return kotlin.Unit.INSTANCE;
+        });
+    }
+
     public void cancelChsPatchUpdate() {
         chsDownloader.cancelDownload();
     }

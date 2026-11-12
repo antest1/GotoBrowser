@@ -216,8 +216,13 @@
     <string name="settings_mod_chs_mode_full">完整漢化包（文本與 API 資料 + UI 貼圖與字體）</string>
     <string name="settings_mod_chs_mode_text_only">僅文本與 API 資料（輕量快速）</string>
     <string name="settings_mod_chs_download">下載更新</string>
+    <string name="settings_mod_chs_download_archive">下載完整包 (Release Zip)</string>
+    <string name="settings_mod_chs_download_archive_summary">一鍵下載官方最新 Release 壓縮包並自動解壓比對，大幅節省時間。</string>
     <string name="settings_mod_chs_delete">刪除漢化資料</string>
     <string name="settings_mod_chs_delete_summary">清除本機已下載的簡中漢化文本與貼圖字體檔案。</string>
+    <string name="settings_mod_chs_about">關於砍口壘漢化計劃 in Goto</string>
+    <string name="settings_mod_chs_about_summary">作者、資料源與開源鳴謝</string>
+    <string name="settings_mod_chs_about_dialog_text">開發者：@泉浅漪\n漢化資料源：砍口壘漢化計劃 @歸海原\n開源倉庫：https://github.com/asaico/Kancolle_to_CHS</string>
     <string name="chs_status_disabled">未啟用漢化修補程式</string>
     <string name="chs_status_check_failed">無法連線更新源，點選可重試下載</string>
     <string name="chs_status_offline_installed" formatted="false">已安裝本機資料 (%1$s)</string>

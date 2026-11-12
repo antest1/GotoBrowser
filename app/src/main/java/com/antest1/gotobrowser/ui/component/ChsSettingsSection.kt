@@ -1,5 +1,7 @@
 package com.antest1.gotobrowser.ui.component
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -115,6 +118,15 @@ private fun ChsExpandedRows(
         supportingContent = { Text(chsSummary, color = dlColor) },
         modifier = if (chsDownloadEnabled) Modifier.clickable {
             if (!isPreview) viewModel?.requestChsPatchUpdate()
+        } else Modifier
+    )
+    HorizontalDivider()
+
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.settings_mod_chs_download_archive), color = dlColor) },
+        supportingContent = { Text(stringResource(R.string.settings_mod_chs_download_archive_summary), color = dlColor) },
+        modifier = if (chsDownloadEnabled) Modifier.clickable {
+            if (!isPreview) viewModel?.requestChsReleaseArchiveUpdate()
         } else Modifier
     )
     HorizontalDivider()
@@ -251,6 +263,37 @@ private fun ChsExpandedRows(
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
                     Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
+    }
+
+    // 关于
+    var showAboutDialog by remember { mutableStateOf(false) }
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.settings_mod_chs_about), color = mainColor) },
+        supportingContent = { Text(stringResource(R.string.settings_mod_chs_about_summary), color = mainColor) },
+        modifier = Modifier.clickable { showAboutDialog = true }
+    )
+    HorizontalDivider()
+
+    if (showAboutDialog) {
+        val context = LocalContext.current
+        AlertDialog(
+            onDismissRequest = { showAboutDialog = false },
+            title = { Text(stringResource(R.string.settings_mod_chs_about)) },
+            text = { Text(stringResource(R.string.settings_mod_chs_about_dialog_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(ChsConfig.OFFICIAL_GITHUB_URL))
+                    context.startActivity(intent)
+                }) {
+                    Text("GitHub")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAboutDialog = false }) {
+                    Text(stringResource(R.string.action_ok))
                 }
             }
         )

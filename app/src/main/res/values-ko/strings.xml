@@ -219,8 +219,13 @@
     <string name="settings_mod_chs_mode_full">전체 패키지 (텍스트 및 API 데이터 + UI 이미지·글꼴)</string>
     <string name="settings_mod_chs_mode_text_only">텍스트 및 API 데이터만</string>
     <string name="settings_mod_chs_download">번역 데이터 업데이트</string>
+    <string name="settings_mod_chs_download_archive">전체 패키지 다운로드 (Release Zip)</string>
+    <string name="settings_mod_chs_download_archive_summary">최신 Release의 zip을 일괄 다운로드 및 압축 해제하여 차이를 확인합니다.</string>
     <string name="settings_mod_chs_delete">번역 데이터 삭제</string>
     <string name="settings_mod_chs_delete_summary">다운로드한 중국어 간체 텍스트와 이미지·글꼴을 삭제합니다.</string>
+    <string name="settings_mod_chs_about">砍口垒汉化计划 in Goto 정보</string>
+    <string name="settings_mod_chs_about_summary">작성자, 데이터 소스 및 오픈소스 감사</string>
+    <string name="settings_mod_chs_about_dialog_text">개발자: @泉浅漪\n번역 데이터 소스: 砍口垒汉化计划 @归海原\n저장소: https://github.com/asaico/Kancolle_to_CHS</string>
     <string name="chs_status_disabled">패치가 꺼져 있습니다</string>
     <string name="chs_status_check_failed">업데이트 서버에 연결할 수 없습니다. 눌러서 다시 시도</string>
     <string name="chs_status_offline_installed" formatted="false">설치됨 (%1$s)</string>
