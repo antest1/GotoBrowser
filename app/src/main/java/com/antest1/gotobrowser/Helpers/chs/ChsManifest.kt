@@ -6,8 +6,8 @@ import java.io.File
 import java.security.MessageDigest
 
 /**
- * 简中汉化包远端/本地清单模型与增量差分计算
- * 同时兼容仓库根部的 manifest.json (sha256) 与 GitHub Trees API (git blob sha)
+ * Remote/local manifest model and incremental diff calculation for Kancolle_to_CHS.
+ * Supports both root manifest.json (SHA-256) and GitHub Git Trees API fallback (git blob SHA-1).
  */
 object ChsManifest {
     private val gson = Gson()
@@ -15,8 +15,8 @@ object ChsManifest {
     data class FileEntry(
         val path: String,
         val size: Long,
-        val hash: String, // sha256 或 git blob sha
-        val hashType: String = "sha256" // "sha256" 或 "git_sha"
+        val hash: String, // 64-char sha256 or 40-char git blob sha-1
+        val hashType: String = "sha256" // "sha256" or "git_sha"
     ) {
         val isTextFile: Boolean
             get() = path.startsWith("text/")
@@ -41,7 +41,7 @@ object ChsManifest {
     }
 
     /**
-     * 解析 manifest.json 内容
+     * Parses repository manifest.json payload.
      */
     fun parseManifestJson(rawJson: String?): ManifestData? {
         val el = ChsJsonCleaner.safeParseJson(rawJson) ?: return null
@@ -73,7 +73,7 @@ object ChsManifest {
     }
 
     /**
-     * 解析 GitHub Git Trees API (?recursive=1) 响应作为无缝回退
+     * Parses GitHub Git Trees API (?recursive=1) response as fallback when manifest.json is unavailable.
      */
     fun parseGithubTreeJson(rawJson: String?): ManifestData? {
         val el = ChsJsonCleaner.safeParseJson(rawJson) ?: return null
@@ -100,12 +100,13 @@ object ChsManifest {
 
     fun isSupportedRepoPath(path: String): Boolean {
         if (path.contains("..")) return false
-        if (path.startsWith("text/text/subtitles/")) return false // GotoBrowser 使用自带字幕，无需下载字幕子目录
+        // GotoBrowser uses its own subtitle system; skip subtitle sub-directory.
+        if (path.startsWith("text/text/subtitles/")) return false
         return path.startsWith("text/") || path.startsWith("cache/")
     }
 
     /**
-     * 计算远端清单与本地目录/本地清单的增量差分
+     * Computes incremental diff between [remote] manifest and local directory / recorded hashes.
      */
     fun computeDiff(
         remote: ManifestData,
@@ -186,8 +187,31 @@ object ChsManifest {
         }
     }
 
-    fun sha256Hex(file: File): String {
-        val digest = MessageDigest.getInstance("SHA-256")
+    fun sha256Hex(file: File): String = digestFileHex(file, "SHA-256")
+
+    fun gitBlobSha1Hex(file: File): String {
+        val header = "blob ${file.length()}\u0000".toByteArray(Charsets.UTF_8)
+        return digestFileHex(file, "SHA-1", header)
+    }
+
+    /**
+     * Verifies [file] against [expectedHash] using [hashType] ("sha256" or "git_sha").
+     */
+    fun verifyFileHash(file: File, expectedHash: String, hashType: String): Boolean {
+        if (!file.isFile || expectedHash.isBlank()) return false
+        val actual = when (hashType.lowercase()) {
+            "sha256" -> if (expectedHash.length == 64) sha256Hex(file) else return false
+            "git_sha" -> if (expectedHash.length == 40) gitBlobSha1Hex(file) else return false
+            else -> return false
+        }
+        return actual.equals(expectedHash, ignoreCase = true)
+    }
+
+    private fun digestFileHex(file: File, algorithm: String, header: ByteArray? = null): String {
+        val digest = MessageDigest.getInstance(algorithm)
+        if (header != null) {
+            digest.update(header)
+        }
         file.inputStream().buffered().use { fis ->
             val buf = ByteArray(16384)
             while (true) {

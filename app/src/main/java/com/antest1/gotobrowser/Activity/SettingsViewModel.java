@@ -99,6 +99,7 @@ public class SettingsViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> patchUpdateEnabled = new MutableLiveData<>(false);
     private final MutableLiveData<String> chsUpdateSummary = new MutableLiveData<>("checking updates...");
     private final MutableLiveData<Boolean> chsUpdateEnabled = new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> chsEnabledState = new MutableLiveData<>(false);
     private final MutableLiveData<String> subtitleUpdateSummary = new MutableLiveData<>(SUBTITLE_UPDATE_LOADING);
     private final MutableLiveData<Boolean> subtitleUpdateEnabled = new MutableLiveData<>(false);
     private final MutableLiveData<Integer> patchAboutTitleRes = new MutableLiveData<>(R.string.settings_mod_kantaien_about);
@@ -115,6 +116,7 @@ public class SettingsViewModel extends AndroidViewModel {
         Context context = application.getApplicationContext();
         sharedPref = context.getSharedPreferences(context.getString(R.string.preference_key), Context.MODE_PRIVATE);
         ChsConfig.INSTANCE.init(context);
+        chsEnabledState.setValue(ChsConfig.INSTANCE.isEnabled());
         versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
         appCheck = getRetrofitAdapter(context, GITHUB_ROOT, false).create(GotoVersionCheck.class);
 
@@ -188,6 +190,10 @@ public class SettingsViewModel extends AndroidViewModel {
 
     public LiveData<Boolean> getChsUpdateEnabled() {
         return chsUpdateEnabled;
+    }
+
+    public LiveData<Boolean> getChsEnabledState() {
+        return chsEnabledState;
     }
 
     public LiveData<String> getSubtitleUpdateSummary() {
@@ -292,6 +298,7 @@ public class SettingsViewModel extends AndroidViewModel {
 
     public void refreshChsUpdateStatus() {
         chsChecked = true;
+        chsEnabledState.setValue(ChsConfig.INSTANCE.isEnabled());
         chsDownloader.checkUpdate(getApplication(), (summary, canDownload) -> {
             chsUpdateSummary.setValue(summary);
             chsUpdateEnabled.setValue(canDownload);
@@ -301,6 +308,7 @@ public class SettingsViewModel extends AndroidViewModel {
 
     public void onChsPatchToggled(boolean enabled) {
         ModPatchCoordinator.INSTANCE.onChsToggled(getApplication(), enabled);
+        chsEnabledState.setValue(ChsConfig.INSTANCE.isEnabled());
         if (enabled) {
             refreshKccpDependentRows(null);
         }
@@ -492,6 +500,7 @@ public class SettingsViewModel extends AndroidViewModel {
 
     public void onKccpPatchChanged() {
         ModPatchCoordinator.INSTANCE.onKccpToggled(getApplication(), isKccpPatchEnabled());
+        chsEnabledState.setValue(ChsConfig.INSTANCE.isEnabled());
         if (isKccpPatchEnabled()) {
             refreshChsUpdateStatus();
         }

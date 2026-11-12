@@ -74,10 +74,25 @@ class ChsPatcherTest {
             mainPref.getBoolean(com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH, false)
         )
 
-        // 再重新开启 KCCP 并执行互斥检查 -> 简中汉化应自动关闭
+        // Enabling KCCP automatically disables CHS
         mainPref.edit().putBoolean(com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH, true).commit()
         ModPatchCoordinator.onKccpToggled(context, true)
         assertFalse("开启 KCCP 时应自动关闭简中汉化", ChsConfig.isEnabled())
         assertFalse(ChsConfig.isPatcherEnabled())
+    }
+
+    @Test
+    fun `ChsApiMerger injects only Axios interceptor without XHR prototype hooks`() {
+        val textResult = ChsTextPatcher.patchMainJsWithData(
+            mainJs = "function gameMain() {}",
+            textDict = mapOf("k" to "v"),
+            regexRules = emptyList()
+        )
+        assertFalse(textResult.contains("mergeSvdataString"))
+        assertFalse(textResult.contains("XMLHttpRequest"))
+
+        val apiScript = ChsApiMerger.generateApiPatcherScript(inlineApiTables = null)
+        assertTrue(apiScript.contains("axios.interceptors.response.use"))
+        assertFalse(apiScript.contains("XMLHttpRequest"))
     }
 }

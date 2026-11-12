@@ -4,8 +4,8 @@ import android.content.Context
 import java.io.File
 
 /**
- * 简中汉化 (PLUS) 本地数据存储路径管理
- * 与 GotoBrowser 原有缓存和 KCCP 补丁完全隔离，存放在 externalFilesDir/chs_patch 下。
+ * Local storage layout for Kancolle_to_CHS under externalFilesDir/chs_patch,
+ * isolated from GotoBrowser's native cache and KCCP data.
  */
 object ChsPaths {
     const val ROOT_FOLDER_NAME = "chs_patch"
@@ -27,7 +27,7 @@ object ChsPaths {
     fun getLocalManifestFile(context: Context): File = File(getRootDir(context), LOCAL_MANIFEST_FILE)
 
     /**
-     * 检查是否至少已下载核心文本或 API 字典数据
+     * Returns true when core text dictionary or API translation JSON files exist locally.
      */
     fun hasInstalledData(context: Context): Boolean {
         val apiDir = getApiDir(context)

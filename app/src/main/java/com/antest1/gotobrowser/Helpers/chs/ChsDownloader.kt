@@ -25,8 +25,8 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * 简中汉化包 (PLUS) 增量检查、高并发多路复用下载、SHA-256 校验与清理工具
- * 支持可取消操作、主线程高频节流与多镜像源自动回退。
+ * Handles update checks, concurrent incremental downloads, Release archive extraction,
+ * cryptographic hash verification, and cleanup for Kancolle_to_CHS.
  */
 class ChsDownloader(
     private val httpClient: OkHttpClient = createDefaultHttpClient()
@@ -35,18 +35,18 @@ class ChsDownloader(
         private const val TAG = "GOTO-CHS"
         private const val GITHUB_TREES_API =
             "https://api.github.com/repos/asaico/Kancolle_to_CHS/git/trees/main?recursive=1"
-        private const val MAX_MANIFEST_BYTES = 16L * 1024 * 1024 // 16 MB 清单响应大小上限
-        private const val MAX_SINGLE_FILE_BYTES = 32L * 1024 * 1024 // 32 MB 单文件下载大小上限
-        private const val MAX_ARCHIVE_BYTES = 1024L * 1024 * 1024 // 1 GB 全量包大小上限
+        private const val MAX_MANIFEST_BYTES = 16L * 1024 * 1024
+        private const val MAX_SINGLE_FILE_BYTES = 32L * 1024 * 1024
+        private const val MAX_ARCHIVE_BYTES = 1024L * 1024 * 1024
         private const val GITHUB_RELEASES_LATEST =
             "https://github.com/asaico/Kancolle_to_CHS/releases/latest"
-        private const val CONCURRENCY = 8 // 提升为 8 线程高并发下载
-        private const val BUFFER_SIZE = 32768 // 32 KB I/O 缓冲区
+        private const val CONCURRENCY = 8
+        private const val BUFFER_SIZE = 32768
 
         private fun createDefaultHttpClient(): OkHttpClient {
             val dispatcher = Dispatcher().apply {
                 maxRequests = 64
-                maxRequestsPerHost = 16 // 单 Host 连接池并发数提升为 16
+                maxRequestsPerHost = 16
             }
             val pool = ConnectionPool(16, 5, TimeUnit.MINUTES)
             return OkHttpClient.Builder()
@@ -75,17 +75,13 @@ class ChsDownloader(
     @Volatile
     private var currentOnComplete: ((summary: String, canDownload: Boolean) -> Unit)? = null
 
-    /**
-     * 在宿主 ViewModel 销毁时关闭后台工作线程并释放网络资源
-     */
+    /** Shuts down background executors and cancels any active download. */
     fun shutdown() {
         cancelDownload()
         workerExecutor.shutdownNow()
     }
 
-    /**
-     * 主动取消正在进行的汉化数据包下载与更新
-     */
+    /** Cancels an in-flight download or archive extraction. */
     fun cancelDownload() {
         if (!isCancelled.compareAndSet(false, true)) {
             return
@@ -113,9 +109,7 @@ class ChsDownloader(
     @Volatile
     private var lastDiffResult: ChsManifest.DiffResult? = null
 
-    /**
-     * 检查汉化包远端更新并在主线程更新设置页状态
-     */
+    /** Checks remote updates and posts status summary on the main thread. */
     fun checkUpdate(context: Context, onStatusResult: (summary: String, canDownload: Boolean) -> Unit) {
         val appContext = context.applicationContext
         ChsConfig.init(appContext)
@@ -172,7 +166,7 @@ class ChsDownloader(
                     onStatusResult(summary, true)
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "检查简中汉化更新失败: ${e.message}")
+                Log.w(TAG, "Failed to check CHS update: ${e.message}")
                 mainHandler.post {
                     onStatusResult(appContext.getString(R.string.chs_status_check_failed), true)
                 }
@@ -180,9 +174,7 @@ class ChsDownloader(
         }
     }
 
-    /**
-     * 执行增量下载更新，复用 GotoBrowser 的 PatchDownloadState 展示 Material 3 进度弹窗并支持取消
-     */
+    /** Runs incremental patch update using GotoBrowser PatchDownloadState progress dialog. */
     fun startDownload(
         host: SettingsStatusHost,
         onCompleteSummary: (summary: String, canDownload: Boolean) -> Unit
@@ -297,10 +289,10 @@ class ChsDownloader(
                 }
             } catch (e: Exception) {
                 if (isCancelled.get()) {
-                    Log.i(TAG, "下载已由用户取消")
+                    Log.i(TAG, "CHS download cancelled by user")
                     return@execute
                 }
-                Log.e(TAG, "下载简中汉化包异常: ${e.message}")
+                Log.e(TAG, "CHS incremental download failed: ${e.message}")
                 mainHandler.post {
                     host.setPatchDownloadState(PatchDownloadState.Idle)
                     host.showPatchMessage(appContext.getString(R.string.chs_download_failed))
@@ -434,10 +426,9 @@ class ChsDownloader(
 
                 if (isCancelled.get()) return@execute
 
-                // 解压完成，安全删除压缩包
                 archiveZipFile.delete()
 
-                // 4. 清单与增量更新比对：检查是否有后续增量更新
+                // Verify extracted files against remote hashes before checking remaining incremental updates.
                 mainHandler.post {
                     if (!isCancelled.get()) {
                         host.setPatchDownloadState(
@@ -456,26 +447,18 @@ class ChsDownloader(
 
                 val remote = fetchRemoteManifest()
                 if (remote != null) {
-                    for (entry in remote.files) {
-                        val f = File(rootDir, entry.path)
-                        if (f.isFile && f.length() == entry.size) {
-                            localMap[entry.path] = entry.hash
-                        } else {
-                            localMap.remove(entry.path)
-                        }
-                    }
+                    reconcileExtractedFilesWithRemote(remote, rootDir, localMap)
                     val diff = ChsManifest.computeDiff(remote, rootDir, localMap)
                     if (diff.hasUpdates) {
-                        // 发现有小更新/后续增量：本地版本号标记为 tag，不可直接标记为最新
+                        // Record release tag so remaining incremental files still trigger an update prompt.
                         ChsConfig.setLocalVersion(tag)
                         ChsManifest.saveLocalManifestMap(manifestFile, tag, localMap)
                     } else {
-                        // 已经与远端完全一致，没有后续小更新：记录远端真实版本号
                         ChsConfig.setLocalVersion(remote.version)
                         ChsManifest.saveLocalManifestMap(manifestFile, remote.version, localMap)
                     }
                     ChsDataRepository.invalidateCache()
-                    ChsHackResolver.rebuildIndexIfNeeded(appContext)
+                    ChsHackResolver.invalidateIndex()
                     ChsConfig.prepare(appContext)
 
                     mainHandler.post {
@@ -503,7 +486,7 @@ class ChsDownloader(
                     val baseVersion = "$tag (release)"
                     ChsConfig.setLocalVersion(baseVersion)
                     ChsDataRepository.invalidateCache()
-                    ChsHackResolver.rebuildIndexIfNeeded(appContext)
+                    ChsHackResolver.invalidateIndex()
                     ChsConfig.prepare(appContext)
 
                     mainHandler.post {
@@ -519,10 +502,10 @@ class ChsDownloader(
                 archivePartFile?.delete()
                 archiveZipFile?.delete()
                 if (isCancelled.get()) {
-                    Log.i(TAG, "全量包下载已由用户取消")
+                    Log.i(TAG, "CHS release archive download cancelled by user")
                     return@execute
                 }
-                Log.e(TAG, "下载全量包异常: ${e.message}")
+                Log.e(TAG, "CHS release archive download failed: ${e.message}")
                 mainHandler.post {
                     host.setPatchDownloadState(PatchDownloadState.Idle)
                     host.showPatchMessage(appContext.getString(R.string.chs_download_failed))
@@ -536,7 +519,28 @@ class ChsDownloader(
     }
 
     /**
-     * 供单元测试与正式环境共用的增量下载执行器（支持断点持久化、高并发、SHA-256 原子替换与节流上报）
+     * Verifies extracted archive files against [remote] hashes before updating [localMap].
+     * Any missing, size-mismatched, or hash-mismatched file is excluded so it will be repaired
+     * by incremental download.
+     */
+    fun reconcileExtractedFilesWithRemote(
+        remote: ChsManifest.ManifestData,
+        rootDir: File,
+        localMap: MutableMap<String, String>
+    ) {
+        for (entry in remote.files) {
+            val f = File(rootDir, entry.path)
+            val sizeMatches = entry.size <= 0L || f.length() == entry.size
+            if (f.isFile && sizeMatches && ChsManifest.verifyFileHash(f, entry.hash, entry.hashType)) {
+                localMap[entry.path] = entry.hash
+            } else {
+                localMap.remove(entry.path)
+            }
+        }
+    }
+
+    /**
+     * Downloads files concurrently, verifying either SHA-256 or git_sha before atomic replacement.
      */
     fun downloadEntriesIncrementally(
         baseUrl: String,
@@ -553,7 +557,6 @@ class ChsDownloader(
         val totalDownloadedBytes = AtomicLong(0L)
         val lastReportTime = AtomicLong(0L)
 
-        // 使用 8 线程并发大幅提升小文件下载流水线吞吐量
         val pool = Executors.newFixedThreadPool(CONCURRENCY)
         activeDownloadPool = pool
         val firstError = AtomicReference<Exception?>(null)
@@ -575,12 +578,9 @@ class ChsDownloader(
                             return@submit
                         }
 
-                        if (entry.hashType == "sha256" && entry.hash.length == 64) {
-                            val actualSha256 = ChsManifest.sha256Hex(tempFile)
-                            if (!actualSha256.equals(entry.hash, ignoreCase = true)) {
-                                tempFile.delete()
-                                throw IOException("SHA-256 校验不匹配: ${entry.path}")
-                            }
+                        if (!ChsManifest.verifyFileHash(tempFile, entry.hash, entry.hashType)) {
+                            tempFile.delete()
+                            throw IOException("Hash mismatch (${entry.hashType}): ${entry.path}")
                         }
 
                         if (isCancelled.get()) {
@@ -590,7 +590,7 @@ class ChsDownloader(
 
                         targetFile.parentFile?.mkdirs()
                         if (targetFile.exists() && !targetFile.delete()) {
-                            throw IOException("无法替换目标文件: ${entry.path}")
+                            throw IOException("Failed to replace target file: ${entry.path}")
                         }
                         if (!tempFile.renameTo(targetFile)) {
                             tempFile.copyTo(targetFile, overwrite = true)
@@ -606,7 +606,7 @@ class ChsDownloader(
                             }
                         }
 
-                        // UI 进度汇报节流控制（100ms 刷新一次或在完成时立即刷新，避免主线程 Compose 过度重组）
+                        // Throttle UI progress updates to at most once every 100ms except on completion.
                         val now = System.currentTimeMillis()
                         val last = lastReportTime.get()
                         if (done == total || now - last >= 100L) {
@@ -648,9 +648,7 @@ class ChsDownloader(
         firstError.get()?.let { throw it }
     }
 
-    /**
-     * 删除本地已下载的简中汉化数据
-     */
+    /** Deletes locally cached localization files. */
     fun deletePatchData(
         host: SettingsStatusHost,
         onCompleteSummary: (summary: String, canDownload: Boolean) -> Unit
@@ -674,7 +672,8 @@ class ChsDownloader(
     }
 
     /**
-     * 优先获取远端 manifest.json；若返回 404 或不可用，自动回退到 GitHub Trees API
+     * Fetches manifest.json from the selected mirror; falls back to GitHub Trees API (unproxied)
+     * when manifest.json is missing or unreachable.
      */
     fun fetchRemoteManifest(): ChsManifest.ManifestData? {
         val baseUrl = ChsConfig.resolveRawBaseUrl()
@@ -689,12 +688,12 @@ class ChsDownloader(
         } catch (_: Exception) {
         }
 
-        // 回退到 GitHub Trees API (?recursive=1)
+        // Fall back to GitHub Git Trees API (?recursive=1) which provides git blob SHA-1 hashes.
         return try {
             val treeRaw = fetchUrlString(GITHUB_TREES_API)
             ChsManifest.parseGithubTreeJson(treeRaw)?.takeIf { it.files.isNotEmpty() }
         } catch (e: Exception) {
-            Log.w(TAG, "回退获取 GitHub Trees API 失败: ${e.message}")
+            Log.w(TAG, "GitHub Trees API fallback failed: ${e.message}")
             null
         }
     }
@@ -856,7 +855,7 @@ class ChsDownloader(
                         }
                     }
                 }
-                // 成功下载
+                // Archive downloaded successfully.
                 return
             } catch (e: Exception) {
                 destFile.delete()

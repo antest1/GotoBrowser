@@ -206,8 +206,8 @@
     <string name="detail_api">API</string>
     <string name="detail_message">メッセージ</string>
 
-    <!-- Simplified Chinese Localization (Kancolle_to_CHS / 砍口垒汉化计划 in Goto) -->
-    <string name="settings_mod_group_chs">砍口垒汉化计划 in Goto</string>
+    <!-- Simplified Chinese Localization (Kancolle_to_CHS) -->
+    <string name="settings_mod_group_chs">Kancolle_to_CHS</string>
     <string name="settings_mod_chs_enable">簡体字中国語化パッチ</string>
     <string name="settings_mod_chs_summary">ゲーム内テキスト、KCSAPI 応答、UI 画像・フォントを簡体字中国語に置き換えます。作者：@泉浅漪</string>
     <string name="settings_mod_chs_source">翻訳データの取得元（砍口垒汉化计划 @归海原）</string>
@@ -223,7 +223,7 @@
     <string name="settings_mod_chs_download_patch_desc">変更された差分ファイルのみをダウンロードします。日常の更新に推奨。</string>
     <string name="settings_mod_chs_delete">翻訳データを削除</string>
     <string name="settings_mod_chs_delete_summary">ダウンロード済みの簡体字中国語テキストと画像・フォントを削除します。</string>
-    <string name="settings_mod_chs_about">砍口垒汉化计划 in Goto について</string>
+    <string name="settings_mod_chs_about">Kancolle_to_CHS について</string>
     <string name="settings_mod_chs_about_summary">作者、データソースおよび謝辞</string>
     <string name="settings_mod_chs_about_dialog_text">開発者：@泉浅漪\n翻訳データ源：砍口垒汉化计划 @归海原\nリポジトリ：https://github.com/asaico/Kancolle_to_CHS</string>
     <string name="chs_status_disabled">パッチは無効です</string>

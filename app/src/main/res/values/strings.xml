@@ -220,8 +220,8 @@
     <string name="detail_api">API</string>
     <string name="detail_message">Message</string>
 
-    <!-- Simplified Chinese Localization (Kancolle_to_CHS / 砍口垒汉化计划 in Goto) -->
-    <string name="settings_mod_group_chs">砍口垒汉化计划 in Goto</string>
+    <!-- Simplified Chinese Localization (Kancolle_to_CHS) -->
+    <string name="settings_mod_group_chs">Kancolle_to_CHS</string>
     <string name="settings_mod_chs_enable">Simplified Chinese Patch</string>
     <string name="settings_mod_chs_summary">Full UI text, KCSAPI response merging and asset localization. Author: @泉浅漪</string>
     <string name="settings_mod_chs_source">Patch Data Source (砍口垒汉化计划 @归海原)</string>
@@ -240,7 +240,7 @@
     <string name="settings_mod_chs_download_patch_desc">Compare local files with remote and only download updated files.</string>
     <string name="settings_mod_chs_delete">Delete CHS Data</string>
     <string name="settings_mod_chs_delete_summary">Remove downloaded Simplified Chinese text and image assets.</string>
-    <string name="settings_mod_chs_about">About 砍口垒汉化计划 in Goto</string>
+    <string name="settings_mod_chs_about">About Kancolle_to_CHS</string>
     <string name="settings_mod_chs_about_summary">Author, data source and open-source acknowledgements</string>
     <string name="settings_mod_chs_about_dialog_text">Developer: @泉浅漪\nData Source: 砍口垒汉化计划 @归海原\nRepository: https://github.com/asaico/Kancolle_to_CHS</string>
     <string name="chs_status_disabled">Mod disabled.</string>

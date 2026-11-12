@@ -6,13 +6,13 @@ import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.Helpers.chs.ChsConfig
 
 /**
- * 跨语言补丁协调器：负责简中汉化 (ChsConfig) 与英/印尼语补丁 (KenPatcher) 的互斥策略与状态同步。
- * 由 BrowserViewModel.prepareModPatchers() 在启动/重载时调用，以及 SettingsViewModel 在用户切换开关时调用。
+ * Coordinates mutual exclusion and runtime state synchronization between
+ * Kancolle_to_CHS ([ChsConfig]) and KCCP ([KenPatcher]).
  */
 object ModPatchCoordinator {
 
     /**
-     * 在浏览器启动或页面刷新时同步并准备语言类补丁（若两者同时处于开启状态，优先保留简中汉化并关闭 KCCP）
+     * Synchronizes language patches on startup/reload; CHS takes precedence if both were enabled.
      */
     fun prepareLanguagePatches(context: Context, kenPatcher: KenPatcher) {
         ChsConfig.init(context)
@@ -28,7 +28,7 @@ object ModPatchCoordinator {
     }
 
     /**
-     * 当用户在设置中切换简中汉化总开关时调用
+     * Invoked when the CHS master switch is toggled in settings.
      */
     fun onChsToggled(context: Context, enabled: Boolean) {
         ChsConfig.init(context)
@@ -47,7 +47,7 @@ object ModPatchCoordinator {
     }
 
     /**
-     * 当用户在设置中切换 KCCP 语言补丁开关时调用
+     * Invoked when the KCCP patch switch is toggled in settings.
      */
     fun onKccpToggled(context: Context, enabled: Boolean) {
         ChsConfig.init(context)

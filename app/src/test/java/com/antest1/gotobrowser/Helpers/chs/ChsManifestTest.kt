@@ -78,11 +78,27 @@ class ChsManifestTest {
         assertEquals(2, diff.toDownload.size)
         assertEquals(4296L, diff.totalDownloadBytes)
 
-        // 2. 保存并重新读取本地清单
+        // 2. Save and reload local manifest map.
         val manifestFile = File(rootDir, ".local_manifest.json")
         ChsManifest.saveLocalManifestMap(manifestFile, "v2.0", localMap)
         val reloaded = ChsManifest.loadLocalManifestMap(manifestFile)
         assertEquals(sha, reloaded["text/version.json"])
         assertFalse(reloaded.containsKey("non_existent"))
+    }
+
+    @Test
+    fun `verifyFileHash supports both sha256 and git_sha blob hashes`() {
+        val emptyFile = tempFolder.newFile("empty.txt").apply { writeBytes(ByteArray(0)) }
+        assertEquals("e69de29bb2d1d6434b8b29ae775ad8c2e48c5391", ChsManifest.gitBlobSha1Hex(emptyFile))
+        assertTrue(ChsManifest.verifyFileHash(emptyFile, "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391", "git_sha"))
+
+        val helloFile = tempFolder.newFile("hello.txt").apply { writeText("hello\n") }
+        assertEquals("ce013625030ba8dba906f756967f9e9ca394464a", ChsManifest.gitBlobSha1Hex(helloFile))
+        assertTrue(ChsManifest.verifyFileHash(helloFile, "ce013625030ba8dba906f756967f9e9ca394464a", "git_sha"))
+        assertFalse(ChsManifest.verifyFileHash(helloFile, "0000000000000000000000000000000000000000", "git_sha"))
+
+        val sha256 = ChsManifest.sha256Hex(helloFile)
+        assertTrue(ChsManifest.verifyFileHash(helloFile, sha256, "sha256"))
+        assertFalse(ChsManifest.verifyFileHash(helloFile, sha256.replaceFirstChar { if (it == 'a') 'b' else 'a' }, "sha256"))
     }
 }

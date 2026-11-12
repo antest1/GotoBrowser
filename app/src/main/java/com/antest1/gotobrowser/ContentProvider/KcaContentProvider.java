@@ -17,7 +17,7 @@ import static com.antest1.gotobrowser.ContentProvider.KcaPacketStore.PACKETSTORE
 public class KcaContentProvider extends ContentProvider {
     public static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".contentprovider";
     public static final String PATH  = "/request";
-    public static final String BROADCAST_ACTION = "com.antest1.gotobrowser.broadcast";
+    public static final String BROADCAST_ACTION = BuildConfig.APPLICATION_ID + ".broadcast";
 
     private KcaPacketStore packetTable;
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);

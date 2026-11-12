@@ -173,7 +173,7 @@ private val BlockSheetDragConnection = object : NestedScrollConnection {
         Velocity(0f, available.y)
 }
 
-private data class ListOption(val value: String, val title: String, val summary: String? = null)
+internal data class ListOption(val value: String, val title: String, val summary: String? = null)
 
 enum class SettingsScreen {
     MAIN,
@@ -904,7 +904,7 @@ private fun ModsSection(
     var patchEnabled by remember { mutableStateOf(if (isPreview) false else viewModel.isKccpPatchEnabled()) }
     var kccpSwitchVersion by remember { mutableIntStateOf(0) }
 
-    // --- Group 3: 砍口垒汉化计划 in Goto -----------------------------------
+    // --- Group 3: Kancolle_to_CHS --------------------------------------------
     ChsSettingsSection(
         viewModel = viewModel,
         onChsToggled = { enabled ->
@@ -1032,7 +1032,7 @@ private fun AppInfoSection(
  * related settings can stay together without adding another navigation level.
  */
 @Composable
-private fun SectionHeader(titleRes: Int) {
+internal fun SectionHeader(titleRes: Int) {
     // Not a ListItem: its 56dp minimum height centered the small label and left it far from
     // the rows it introduces. Same background and 16dp inset as the rows below.
     Text(
@@ -1098,7 +1098,7 @@ private fun SwitchRow(
 }
 
 @Composable
-private fun ClickRow(
+internal fun ClickRow(
     title: Int,
     summary: Int? = null,
     summaryText: String? = null,
@@ -1176,7 +1176,7 @@ private fun ListRow(
 }
 
 @Composable
-private fun ListOptionDialog(
+internal fun ListOptionDialog(
     title: String,
     options: List<ListOption>,
     selected: String,
@@ -1217,7 +1217,7 @@ private fun ListOptionDialog(
 }
 
 @Composable
-private fun EditTextDialog(
+internal fun EditTextDialog(
     title: Int,
     initialValue: String,
     onSave: (String) -> Unit,

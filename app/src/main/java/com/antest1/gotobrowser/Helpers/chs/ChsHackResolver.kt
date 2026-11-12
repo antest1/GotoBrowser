@@ -6,105 +6,93 @@ import android.webkit.WebResourceResponse
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
-import java.util.concurrent.ConcurrentHashMap
 
 /**
- * 简中汉化 (PLUS) .hack 贴图与中文字体资源映射器
- * 在内存中维护请求路径 -> 本地 hack 文件的 HashMap 索引，命中时直接返回 WebResourceResponse，
- * 不写入 GotoBrowser 原生缓存目录，确保关闭汉化后立即恢复原版资源且无残留。
+ * Resolves .hack image and font overrides from the isolated CHS cache directory.
+ *
+ * Maintains an in-memory request-path index built lazily on WebView interception threads
+ * so original GotoBrowser cache files are never modified.
  */
 object ChsHackResolver {
     private const val TAG = "GOTO-CHS"
     private val HACK_SUFFIX_REGEX = Regex("""\.hack(\.[^./\\]+)$""", RegexOption.IGNORE_CASE)
 
-    private val pathIndex = ConcurrentHashMap<String, File>()
-    private val fontNameIndex = ConcurrentHashMap<String, File>()
+    private val indexLock = Any()
+
+    @Volatile
+    private var pathIndex: Map<String, File> = emptyMap()
+
+    @Volatile
+    private var fontNameIndex: Map<String, File> = emptyMap()
 
     @Volatile
     private var indexedCacheRoot: String = ""
 
     @Volatile
-    private var indexedLastModified: Long = -1L
+    private var indexBuilt: Boolean = false
 
     fun invalidateIndex() {
-        indexedCacheRoot = ""
-        indexedLastModified = -1L
-        pathIndex.clear()
-        fontNameIndex.clear()
-    }
-
-    fun rebuildIndexIfNeeded(context: Context) {
-        val cacheDir = ChsPaths.getCacheDir(context)
-        rebuildIndexFromDir(cacheDir)
+        synchronized(indexLock) {
+            indexBuilt = false
+            indexedCacheRoot = ""
+            pathIndex = emptyMap()
+            fontNameIndex = emptyMap()
+        }
     }
 
     /**
-     * 从指定 cache 目录构建请求路径映射表（可供单元测试直接调用）
+     * Rebuilds the lookup maps from [cacheDir] synchronously (also invoked directly by tests).
      */
     fun rebuildIndexFromDir(cacheDir: File) {
-        if (!cacheDir.isDirectory) {
-            pathIndex.clear()
-            fontNameIndex.clear()
+        synchronized(indexLock) {
+            if (!cacheDir.isDirectory) {
+                pathIndex = emptyMap()
+                fontNameIndex = emptyMap()
+                indexedCacheRoot = cacheDir.absolutePath
+                indexBuilt = true
+                return
+            }
+
+            if (indexBuilt && cacheDir.absolutePath == indexedCacheRoot) {
+                return
+            }
+
+            val newPathMap = HashMap<String, File>(3096)
+            val newFontMap = HashMap<String, File>(8)
+
+            val basePath = cacheDir.canonicalFile.path
+            cacheDir.walkTopDown().forEach { file ->
+                if (!file.isFile || file.length() <= 0L) return@forEach
+                val relPath = file.canonicalFile.path
+                    .removePrefix(basePath)
+                    .replace('\\', '/')
+                    .let { if (it.startsWith("/")) it else "/$it" }
+
+                val normalizedPath = normalizeHackPath(relPath)
+                newPathMap[normalizedPath] = file
+                // Also index the raw .hack path as an exact-match fallback.
+                newPathMap[relPath] = file
+
+                if (normalizedPath.endsWith(".woff2", ignoreCase = true)) {
+                    val fileName = normalizedPath.substringAfterLast('/')
+                    newFontMap[fileName] = file
+                }
+            }
+
+            pathIndex = newPathMap
+            fontNameIndex = newFontMap
             indexedCacheRoot = cacheDir.absolutePath
-            indexedLastModified = 0L
-            return
-        }
-
-        val dirStamp = computeDirTreeStamp(cacheDir)
-        if (cacheDir.absolutePath == indexedCacheRoot && dirStamp == indexedLastModified && pathIndex.isNotEmpty()) {
-            return
-        }
-
-        val newPathMap = HashMap<String, File>(3096)
-        val newFontMap = HashMap<String, File>(8)
-
-        val basePath = cacheDir.canonicalFile.path
-        cacheDir.walkTopDown().forEach { file ->
-            if (!file.isFile || file.length() <= 0L) return@forEach
-            val relPath = file.canonicalFile.path
-                .removePrefix(basePath)
-                .replace('\\', '/')
-                .let { if (it.startsWith("/")) it else "/$it" }
-
-            val normalizedPath = normalizeHackPath(relPath)
-            newPathMap[normalizedPath] = file
-            // 同时支持原始带 .hack 的路径
-            newPathMap[relPath] = file
-
-            if (normalizedPath.endsWith(".woff2", ignoreCase = true)) {
-                val fileName = normalizedPath.substringAfterLast('/')
-                newFontMap[fileName] = file
+            indexBuilt = true
+            try {
+                Log.i(TAG, "Indexed CHS asset overrides: ${newPathMap.size / 2} files")
+            } catch (_: Throwable) {
             }
-        }
-
-        pathIndex.clear()
-        pathIndex.putAll(newPathMap)
-        fontNameIndex.clear()
-        fontNameIndex.putAll(newFontMap)
-
-        indexedCacheRoot = cacheDir.absolutePath
-        indexedLastModified = dirStamp
-        try {
-            Log.i(TAG, "已构建简中贴图/字体索引: ${newPathMap.size / 2} 个文件")
-        } catch (_: Throwable) {
         }
     }
 
     /**
-     * 汇总 cache 目录及其全部子目录的修改时间戳，以便检测任意子目录下的文件增删
-     */
-    private fun computeDirTreeStamp(cacheDir: File): Long {
-        var stamp = cacheDir.lastModified()
-        cacheDir.walkTopDown().forEach { f ->
-            if (f.isDirectory) {
-                stamp = stamp * 31L + f.lastModified()
-            }
-        }
-        return stamp
-    }
-
-    /**
-     * 将 /kcs2/img/port/port_main.hack.png 规范化为 /kcs2/img/port/port_main.png
+     * Strips the ".hack" marker and query string, e.g.
+     * `/kcs2/img/port/port_main.hack.png?v=1` -> `/kcs2/img/port/port_main.png`.
      */
     fun normalizeHackPath(path: String): String {
         val clean = path.substringBefore('?').replace('\\', '/')
@@ -113,16 +101,16 @@ object ChsHackResolver {
     }
 
     /**
-     * 根据请求路径查找对应的本地 hack 文件（仅在内存中 O(1) 查找）
+     * Looks up a matching local override file using lock-free snapshot maps.
      */
     fun findHackFile(requestPath: String?): File? {
         if (requestPath.isNullOrEmpty()) return null
         val clean = normalizeHackPath(requestPath)
-        pathIndex[clean]?.takeIf { it.isFile && it.canRead() }?.let { return it }
+        val currentPaths = pathIndex
+        currentPaths[clean]?.takeIf { it.isFile && it.canRead() }?.let { return it }
 
-        // 兼容 maintenance.png 等短路径匹配
         if (clean.endsWith("/html/maintenance.png")) {
-            pathIndex["/kcs/html/maintenance.png"]?.takeIf { it.isFile && it.canRead() }?.let { return it }
+            currentPaths["/kcs/html/maintenance.png"]?.takeIf { it.isFile && it.canRead() }?.let { return it }
         }
         if (clean.endsWith(".woff2", ignoreCase = true)) {
             val fileName = clean.substringAfterLast('/')
@@ -132,14 +120,13 @@ object ChsHackResolver {
     }
 
     /**
-     * 若简中贴图/字体替换已启用且存在匹配的本地 hack 文件，则直接返回 WebResourceResponse；
-     * 否则返回 null，交由 GotoBrowser 原生流程处理。
+     * Lazily indexes on the WebView interception thread and serves matching CHS asset overrides.
      */
     @JvmStatic
     fun resolveWebResponse(context: Context, requestPath: String?): WebResourceResponse? {
         if (!ChsConfig.isResPatchActive()) return null
-        if (indexedCacheRoot.isEmpty()) {
-            rebuildIndexIfNeeded(context)
+        if (!indexBuilt) {
+            rebuildIndexFromDir(ChsPaths.getCacheDir(context))
         }
         val file = findHackFile(requestPath) ?: return null
         return try {
@@ -147,7 +134,7 @@ object ChsHackResolver {
             val encoding = if (mimeType.startsWith("application/json")) "utf-8" else "binary"
             WebResourceResponse(mimeType, encoding, BufferedInputStream(FileInputStream(file)))
         } catch (e: Exception) {
-            Log.w(TAG, "读取 hack 资源失败 ($requestPath): ${e.message}")
+            Log.w(TAG, "Failed to read CHS override asset ($requestPath): ${e.message}")
             null
         }
     }

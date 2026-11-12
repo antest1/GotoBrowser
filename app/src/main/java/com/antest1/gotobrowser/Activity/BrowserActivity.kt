@@ -1,7 +1,5 @@
 package com.antest1.gotobrowser.Activity
 
-import com.antest1.gotobrowser.Constants
-
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
@@ -169,7 +167,7 @@ import java.util.concurrent.Executors
 
 class BrowserActivity : ComponentActivity() {
     companion object {
-        const val FOREGROUND_ACTION = "com.antest1.gotobrowser.foreground"
+        const val FOREGROUND_ACTION = "${BuildConfig.APPLICATION_ID}.foreground"
         const val MULTIWIN_MARGIN_DP = 24
     }
 
@@ -950,20 +948,6 @@ class BrowserActivity : ComponentActivity() {
         val intent = Intent(FOREGROUND_ACTION)
         intent.putExtra("is_front", isFront)
         sendBroadcast(intent)
-        if (BuildConfig.APPLICATION_ID != "com.antest1.gotobrowser") {
-            try {
-                val debugIntent = Intent("${BuildConfig.APPLICATION_ID}.foreground")
-                debugIntent.putExtra("is_front", isFront)
-                sendBroadcast(debugIntent)
-            } catch (_: Exception) {}
-        }
-        try {
-            val explicitIntent = Intent(FOREGROUND_ACTION).apply {
-                setPackage(Constants.KCANOTIFY_PACKAGE_NAME)
-                putExtra("is_front", isFront)
-            }
-            sendBroadcast(explicitIntent)
-        } catch (_: Exception) {}
     }
 
     fun supportsPiPMode(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O

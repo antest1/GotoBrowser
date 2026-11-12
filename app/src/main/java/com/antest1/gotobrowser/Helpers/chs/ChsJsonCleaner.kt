@@ -9,14 +9,14 @@ import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 
 /**
- * 健壮的 JSON 清洗器与正则表达式校验器
- * 移植自 poi-plugin-kancolle-chs 的 json-cleaner.es 与 regex-validator.es
+ * Lenient JSON cleaner (comments, trailing commas, leading zeros) and regex rule validator.
+ * Ported from poi-plugin-kancolle-chs (json-cleaner.es / regex-validator.es).
  */
 object ChsJsonCleaner {
     private const val TAG = "GOTO-CHS"
 
     private fun logWarn(msg: String) {
-        // 在脱离 Android 运行时的纯 JVM 单元测试中，android.util.Log 会抛出 Method not mocked 运行时异常
+        // Ignore unmocked android.util.Log in pure JVM unit tests.
         try {
             Log.w(TAG, msg)
         } catch (_: Throwable) {
@@ -27,8 +27,7 @@ object ChsJsonCleaner {
     private val LEADING_ZERO_ONLY_REGEX = Regex(""":\s*0+\b""")
 
     /**
-     * 状态机逐字符剥除 JSON 中的 BOM、单行与多行注释、非标前导零与尾随逗号。
-     * 确保字符串字面量内部出现的单行或多行注释符号（如 URL）不被误删。
+     * Strips BOM, comments, non-standard leading zeros, and trailing commas without altering strings.
      */
     fun stripJsonComments(str: String?): String {
         if (str.isNullOrEmpty()) return ""

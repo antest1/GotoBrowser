@@ -5,16 +5,18 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 
 /**
- * KCSAPI 动态响应拦截合流引擎
- * 完整移植自 poi-plugin-kancolle-chs 的 src/core/api-merger.es
- * 支持按需通过 JS Bridge 拉取已预序列化的分表数据，并在 XHR 与 Axios 响应边界完成中文数据合流
- * （启用后游戏本体与 Kcanotify 广播均直接获取汉化后的中文响应数据）。
+ * KCSAPI response localization merger.
+ * Ported from poi-plugin-kancolle-chs (src/core/api-merger.es).
+ *
+ * Lazily fetches pre-serialized translation tables via the JS bridge and registers an Axios
+ * response interceptor AFTER KcsInterface.AXIOS_INTERCEPT_SCRIPT so Kcanotify receives raw
+ * Japanese server responses while the game UI renders Simplified Chinese payloads.
  */
 object ChsApiMerger {
     private val gson = Gson()
 
     /**
-     * 供 KcsInterface.@JavascriptInterface 调用：按表名返回预序列化的 JSON 字符串（O(1) 内存读取）
+     * Exposed to JS via KcsInterface.@JavascriptInterface to fetch pre-serialized tables on demand.
      */
     @JvmStatic
     fun getApiTableJson(context: Context, tableName: String?): String {
@@ -30,18 +32,23 @@ object ChsApiMerger {
     }
 
     /**
-     * 生成 KCSAPI 动态响应合流注入脚本
-     * @param options 8 个 API 模块独立开关
-     * @param inlineApiTables 可选内联表（用于 Node/JVM 测试或离线注入；为 null 时通过 GotoBrowser.chs_get_api_table 懒加载）
+     * Returns the runtime Axios response-merging script when CHS patching is active.
      */
-    fun generateApiPatcherScript(
-        options: ChsConfig.ApiOptions,
-        inlineApiTables: Map<String, JsonObject>? = null
-    ): String {
-        if (!options.anyEnabled) {
+    @JvmStatic
+    fun patchChsApi(context: Context): String {
+        if (!ChsConfig.isPatcherEnabled()) {
             return ""
         }
+        return generateApiPatcherScript(inlineApiTables = null)
+    }
 
+    /**
+     * Generates the KCSAPI response-merging script.
+     * When [inlineApiTables] is null, tables are loaded lazily via GotoBrowser.chs_get_api_table.
+     */
+    fun generateApiPatcherScript(
+        inlineApiTables: Map<String, JsonObject>? = null
+    ): String {
         val inlineDataJson = if (inlineApiTables != null) {
             gson.toJson(inlineApiTables)
         } else {
@@ -49,28 +56,11 @@ object ChsApiMerger {
         }
 
         return """
-/* === 砍口垒汉化计划PLUS: KCSAPI 动态响应拦截合流引擎 === */
+/* === Kancolle_to_CHS: KCSAPI response merger (runs after KcsInterface Axios hook) === */
 (function() {
   if (typeof window === 'undefined') return;
   window.__kanchs_dynamic_dict = window.__kanchs_dynamic_dict || {};
-
-  window.__kanchs_api_options = Object.assign({
-    enableApiQuest: ${options.enableApiQuest},
-    enableApiShip: ${options.enableApiShip},
-    enableApiMission: ${options.enableApiMission},
-    enableApiFurniture: ${options.enableApiFurniture},
-    enableApiMapInfo: ${options.enableApiMapInfo},
-    enableApiPictureBook: ${options.enableApiPictureBook},
-    enableApiFlavor: ${options.enableApiFlavor},
-    enableApiItem: ${options.enableApiItem}
-  }, window.__kanchs_api_options || {});
-
   window.__kanchs_api_data = Object.assign($inlineDataJson, window.__kanchs_api_data || {});
-
-  function getOpt(key) {
-    var opts = window.__kanchs_api_options;
-    return opts && typeof opts[key] === 'boolean' ? opts[key] : true;
-  }
 
   function getData(table) {
     var d = window.__kanchs_api_data;
@@ -89,7 +79,7 @@ object ChsApiMerger {
         }
       }
     } catch (e) {
-      console.warn('[KanCHS] 加载 API 分表失败:', table, e);
+      console.warn('[KanCHS] Failed to load API table:', table, e);
     }
     d[table] = {};
     return d[table];
@@ -108,8 +98,8 @@ object ChsApiMerger {
     if (!data || typeof data !== 'object') return false;
     var modified = false;
 
-    // 1. 舰船名称与初始入手台词
-    if (getOpt('enableApiShip') && Array.isArray(data.api_mst_ship)) {
+    // 1. Ship names and acquisition lines
+    if (Array.isArray(data.api_mst_ship)) {
       var SHIP_DATA = getData('ship');
       for (var i = 0; i < data.api_mst_ship.length; i++) {
         var s = data.api_mst_ship[i];
@@ -127,8 +117,8 @@ object ChsApiMerger {
       }
     }
 
-    // 2. 远征信息
-    if (getOpt('enableApiMission') && Array.isArray(data.api_mst_mission)) {
+    // 2. Expedition details
+    if (Array.isArray(data.api_mst_mission)) {
       var MISSION_DATA = getData('mission');
       for (var mIdx = 0; mIdx < data.api_mst_mission.length; mIdx++) {
         var m = data.api_mst_mission[mIdx];
@@ -156,8 +146,8 @@ object ChsApiMerger {
       }
     }
 
-    // 3. 家具信息
-    if (getOpt('enableApiFurniture') && Array.isArray(data.api_mst_furniture)) {
+    // 3. Furniture titles and descriptions
+    if (Array.isArray(data.api_mst_furniture)) {
       var FURNITURE_DATA = getData('furniture');
       for (var fIdx = 0; fIdx < data.api_mst_furniture.length; fIdx++) {
         var f = data.api_mst_furniture[fIdx];
@@ -171,8 +161,8 @@ object ChsApiMerger {
       }
     }
 
-    // 4. 海图作战情报
-    if (getOpt('enableApiMapInfo') && Array.isArray(data.api_mst_mapinfo)) {
+    // 4. Map info
+    if (Array.isArray(data.api_mst_mapinfo)) {
       var MAP_DATA = getData('mapinfo');
       for (var mapIdx = 0; mapIdx < data.api_mst_mapinfo.length; mapIdx++) {
         var map = data.api_mst_mapinfo[mapIdx];
@@ -199,8 +189,8 @@ object ChsApiMerger {
       }
     }
 
-    // 5. 装备名称
-    if (getOpt('enableApiShip') && Array.isArray(data.api_mst_slotitem)) {
+    // 5. Equipment names
+    if (Array.isArray(data.api_mst_slotitem)) {
       var SLOT_DATA = getData('slotitem');
       for (var sIdx = 0; sIdx < data.api_mst_slotitem.length; sIdx++) {
         var slot = data.api_mst_slotitem[sIdx];
@@ -213,8 +203,8 @@ object ChsApiMerger {
       }
     }
 
-    // 6. 装备类型分类母表
-    if (getOpt('enableApiShip') && Array.isArray(data.api_mst_slotitem_equiptype)) {
+    // 6. Equipment categories
+    if (Array.isArray(data.api_mst_slotitem_equiptype)) {
       var EQUIPTYPE_DATA = getData('slotitemEquiptype');
       for (var eqIdx = 0; eqIdx < data.api_mst_slotitem_equiptype.length; eqIdx++) {
         var eq = data.api_mst_slotitem_equiptype[eqIdx];
@@ -231,8 +221,8 @@ object ChsApiMerger {
       }
     }
 
-    // 7. 基础舰种母表
-    if (getOpt('enableApiShip') && Array.isArray(data.api_mst_stype)) {
+    // 7. Ship types
+    if (Array.isArray(data.api_mst_stype)) {
       var STYPE_DATA = getData('stype');
       for (var stIdx = 0; stIdx < data.api_mst_stype.length; stIdx++) {
         var st = data.api_mst_stype[stIdx];
@@ -249,8 +239,8 @@ object ChsApiMerger {
       }
     }
 
-    // 8. 消耗道具母表
-    if (getOpt('enableApiItem') && Array.isArray(data.api_mst_useitem)) {
+    // 8. Consumable items
+    if (Array.isArray(data.api_mst_useitem)) {
       var USEITEM_DATA = getData('useitem');
       for (var uIdx = 0; uIdx < data.api_mst_useitem.length; uIdx++) {
         var u = data.api_mst_useitem[uIdx];
@@ -282,8 +272,8 @@ object ChsApiMerger {
       }
     }
 
-    // 9. 商城与点券道具母表
-    if (getOpt('enableApiItem') && Array.isArray(data.api_mst_payitem)) {
+    // 9. Cash shop items
+    if (Array.isArray(data.api_mst_payitem)) {
       var PAYITEM_DATA = getData('payitem');
       for (var pIdx = 0; pIdx < data.api_mst_payitem.length; pIdx++) {
         var p = data.api_mst_payitem[pIdx];
@@ -316,7 +306,7 @@ object ChsApiMerger {
   }
 
   function patchPictureBook(data, reqBody) {
-    if (!getOpt('enableApiPictureBook') || !data || !Array.isArray(data.api_list)) return false;
+    if (!data || !Array.isArray(data.api_list)) return false;
     var modified = false;
     var PB_SHIP_DATA = getData('pictureBookShip');
     var PB_SLOT_DATA = getData('pictureBookSlot');
@@ -374,7 +364,7 @@ object ChsApiMerger {
   }
 
   function patchQuestlist(data) {
-    if (!getOpt('enableApiQuest') || !data) return false;
+    if (!data) return false;
     var modified = false;
     var QUEST_DATA = getData('questlist');
 
@@ -400,7 +390,7 @@ object ChsApiMerger {
   }
 
   function patchFlavor(data) {
-    if (!getOpt('enableApiFlavor') || !data || typeof data !== 'object') return false;
+    if (!data || typeof data !== 'object') return false;
     var modified = false;
     var FLAVOR_DATA = getData('flavorInfo');
     var SHIP_DATA = getData('ship');
@@ -545,142 +535,17 @@ object ChsApiMerger {
     return null;
   }
 
-  // 导出纯函数供单元测试直接验证
+  // Export pure merge function for unit verification.
   window.__kanchs_merge_svdata = mergeSvdataString;
 
-  // 1. 钩取 XMLHttpRequest 原型链 (与 PLUS 保持一致，使游戏本体与 Kcanotify 均能直接获得中文响应)
-  if (window.XMLHttpRequest && !window.__kanchs_xhr_installed) {
-    window.__kanchs_xhr_installed = true;
-    var proto = window.XMLHttpRequest.prototype;
-
-    function handleIntercept(target) {
-      if (!target || target._kanchs_done) return;
-      target._kanchs_done = true;
-
-      var url = target._kanchs_url || target.requestURL || target.responseURL || '';
-      if (!isTargetApi(url)) return;
-
-      try {
-        var raw = null;
-        var rType = target.responseType || '';
-        if (rType === '' || rType === 'text') {
-          raw = target.responseText;
-        } else {
-          raw = target.response;
-        }
-        if (!raw || typeof raw !== 'string' || !raw.startsWith('svdata=')) return;
-
-        var patched = mergeSvdataString(url, raw, target._kanchs_body);
-        if (patched) {
-          target._kanchs_patched = true;
-          try {
-            Object.defineProperty(target, 'responseText', { get: function() { return patched; }, configurable: true });
-            Object.defineProperty(target, 'response', { get: function() { return patched; }, configurable: true });
-          } catch (_) {}
-        }
-      } catch (e) {
-        console.warn('[KanCHS] XHR 拦截合流异常:', e);
-      }
-    }
-
-    var origOpen = proto.open;
-    proto.open = function(method, url) {
-      try {
-        var sUrl = url ? String(url) : '';
-        this._kanchs_url = sUrl;
-        this._kanchs_is_target = isTargetApi(sUrl);
-      } catch (_) {}
-      return origOpen.apply(this, arguments);
-    };
-
-    var onReadyDesc = Object.getOwnPropertyDescriptor(proto, 'onreadystatechange') ||
-                      Object.getOwnPropertyDescriptor(Object.getPrototypeOf(proto), 'onreadystatechange');
-    if (onReadyDesc && onReadyDesc.set) {
-      var origReadySet = onReadyDesc.set;
-      var origReadyGet = onReadyDesc.get;
-      Object.defineProperty(proto, 'onreadystatechange', {
-        get: function() {
-          return origReadyGet ? origReadyGet.call(this) : this._kanchs_onready;
-        },
-        set: function(fn) {
-          if (!this._kanchs_is_target) {
-            return origReadySet.call(this, fn);
-          }
-          this._kanchs_onready = fn;
-          var self = this;
-          return origReadySet.call(this, function() {
-            if (self.readyState === 4 && (self.status === 200 || self.status === 0)) {
-              handleIntercept(self);
-            }
-            if (typeof fn === 'function') {
-              return fn.apply(this, arguments);
-            }
-          });
-        },
-        configurable: true,
-        enumerable: true
-      });
-    }
-
-    var onLoadDesc = Object.getOwnPropertyDescriptor(proto, 'onload') ||
-                     Object.getOwnPropertyDescriptor(Object.getPrototypeOf(proto), 'onload');
-    if (onLoadDesc && onLoadDesc.set) {
-      var origLoadSet = onLoadDesc.set;
-      var origLoadGet = onLoadDesc.get;
-      Object.defineProperty(proto, 'onload', {
-        get: function() {
-          return origLoadGet ? origLoadGet.call(this) : this._kanchs_onload;
-        },
-        set: function(fn) {
-          if (!this._kanchs_is_target) {
-            return origLoadSet.call(this, fn);
-          }
-          this._kanchs_onload = fn;
-          var self = this;
-          return origLoadSet.call(this, function() {
-            if (self.readyState === 4 && (self.status === 200 || self.status === 0)) {
-              handleIntercept(self);
-            }
-            if (typeof fn === 'function') {
-              return fn.apply(this, arguments);
-            }
-          });
-        },
-        configurable: true,
-        enumerable: true
-      });
-    }
-
-    var origSend = proto.send;
-    proto.send = function(body) {
-      if (this._kanchs_is_target) {
-        try {
-          this._kanchs_body = body ? String(body) : '';
-        } catch (_) {}
-        var self = this;
-        var doCheck = function() {
-          if (self.readyState === 4 && (self.status === 200 || self.status === 0)) {
-            handleIntercept(self);
-          }
-        };
-        try {
-          this.addEventListener('readystatechange', doCheck, true);
-          this.addEventListener('load', doCheck, true);
-        } catch (_) {}
-      }
-      return origSend.apply(this, arguments);
-    };
-  }
-
-  // 2. axios 响应拦截器兜底 (若底层 XHR 因只读属性等原因未能覆盖 responseText，则在 axios 层完成合流)
+  // Register Axios response interceptor AFTER KcsInterface.AXIOS_INTERCEPT_SCRIPT so Kcanotify
+  // receives the original Japanese response while the game UI renders localized text.
   if (typeof axios !== 'undefined' && axios && axios.interceptors && axios.interceptors.response) {
     if (!axios.__kanchs_axios_hooked) {
       axios.__kanchs_axios_hooked = true;
       axios.interceptors.response.use(function(response) {
         try {
           if (response && response.config && response.config.url && typeof response.data === 'string') {
-            var xhr = response.request;
-            if (xhr && xhr._kanchs_patched) return response;
             var url = response.config.url;
             var reqBody = response.config.data || '';
             var patched = mergeSvdataString(url, response.data, reqBody);
@@ -689,7 +554,7 @@ object ChsApiMerger {
             }
           }
         } catch (e) {
-          console.warn('[KanCHS] axios 响应合流异常:', e);
+          console.warn('[KanCHS] Axios response merge error:', e);
         }
         return response;
       });

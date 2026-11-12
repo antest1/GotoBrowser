@@ -10,8 +10,8 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 
 /**
- * 简中汉化数据加载与内存缓存仓库
- * 完整移植自 poi-plugin-kancolle-chs 的 src/loaders/data-loader.es
+ * Loads and caches Simplified Chinese localization data in memory.
+ * Ported from poi-plugin-kancolle-chs (src/loaders/data-loader.es).
  */
 object ChsDataRepository {
     private const val TAG = "GOTO-CHS"
@@ -37,7 +37,7 @@ object ChsDataRepository {
     }
 
     /**
-     * 获取或加载完整汉化数据包（带目录时间戳缓存，避免重复磁盘读取）
+     * Returns cached bundle or loads from disk when directory timestamps change.
      */
     fun getOrLoad(context: Context): LoadedBundle {
         val rootDir = ChsPaths.getRootDir(context)
@@ -53,7 +53,7 @@ object ChsDataRepository {
     }
 
     /**
-     * 从指定根目录加载所有文本词典、正则规则与 API 补丁表（可供 JVM 单元测试直接调用）
+     * Loads dictionaries, regex rules, and API patch tables from [sourceDir].
      */
     fun loadFromDirectory(sourceDir: File): LoadedBundle {
         val textDict = LinkedHashMap<String, String>()
@@ -75,7 +75,7 @@ object ChsDataRepository {
             return LoadedBundle(textDict, regexRules, apiTables, emptySerialized)
         }
 
-        // 1. 加载 text/text/*.json 精确字典
+        // 1. Load exact dictionaries from text/text/*.json
         val textDir = File(sourceDir, "text/text")
         if (textDir.isDirectory) {
             val files = textDir.listFiles { f -> f.isFile && f.name.endsWith(".json") }
@@ -94,7 +94,7 @@ object ChsDataRepository {
             }
         }
 
-        // 2. 加载 text/text_regex/*.json 正则替换规则
+        // 2. Load regex rules from text/text_regex/*.json
         val regexDir = File(sourceDir, "text/text_regex")
         if (regexDir.isDirectory) {
             val files = regexDir.listFiles { f -> f.isFile && f.name.endsWith(".json") }
@@ -107,10 +107,10 @@ object ChsDataRepository {
             }
         }
 
-        // 3. 加载 text/api/*.json
+        // 3. Load text/api/*.json tables
         loadApiTables(sourceDir, apiTables, textDict)
 
-        // 4. 在后台加载线程预先序列化各分表 JSON，避免在 JavaBridge 线程上发生阻塞与序列化开销
+        // 4. Pre-serialize tables off the JS bridge thread
         val serializedTables = LinkedHashMap<String, String>(apiTables.size)
         for ((k, v) in apiTables) {
             serializedTables[k] = gson.toJson(v)
@@ -144,7 +144,7 @@ object ChsDataRepository {
             return null
         }
 
-        // 3.1 舰船与入手台词 (start2.api_mst_ship.json)
+        // 3.1 Ships and acquisition lines (start2.api_mst_ship.json)
         readApiArray("start2.api_mst_ship.json")?.let { list ->
             val shipTable = apiTables["ship"]!!
             for (el in list) {
@@ -158,7 +158,7 @@ object ChsDataRepository {
             }
         }
 
-        // 3.2 远征数据 (start2.api_mst_mission.json)
+        // 3.2 Expeditions (start2.api_mst_mission.json)
         readApiArray("start2.api_mst_mission.json")?.let { list ->
             val missionTable = apiTables["mission"]!!
             for (el in list) {
@@ -192,7 +192,7 @@ object ChsDataRepository {
             }
         }
 
-        // 3.3 家具数据 (start2.api_mst_furniture.json)
+        // 3.3 Furniture (start2.api_mst_furniture.json)
         readApiArray("start2.api_mst_furniture.json")?.let { list ->
             val furnitureTable = apiTables["furniture"]!!
             for (el in list) {
@@ -207,7 +207,7 @@ object ChsDataRepository {
             }
         }
 
-        // 3.4 海图数据 (start2.api_mst_mapinfo.json)
+        // 3.4 Maps (start2.api_mst_mapinfo.json)
         readApiArray("start2.api_mst_mapinfo.json")?.let { list ->
             val mapTable = apiTables["mapinfo"]!!
             for (el in list) {
@@ -233,7 +233,7 @@ object ChsDataRepository {
             }
         }
 
-        // 3.5 装备静态数据 (start2.api_mst_slotitem.json)
+        // 3.5 Equipment (start2.api_mst_slotitem.json)
         readApiArray("start2.api_mst_slotitem.json")?.let { list ->
             val slotTable = apiTables["slotitem"]!!
             for (el in list) {
@@ -246,7 +246,7 @@ object ChsDataRepository {
             }
         }
 
-        // 3.6 装备类型分类母表 (start2.api_mst_slotitem_equiptype.json)
+        // 3.6 Equipment categories (start2.api_mst_slotitem_equiptype.json)
         readApiArray("start2.api_mst_slotitem_equiptype.json")?.let { list ->
             val eqTable = apiTables["slotitemEquiptype"]!!
             for (el in list) {
@@ -260,7 +260,7 @@ object ChsDataRepository {
             }
         }
 
-        // 3.7 基础舰种母表 (start2.api_mst_stype.json)
+        // 3.7 Ship types (start2.api_mst_stype.json)
         readApiArray("start2.api_mst_stype.json")?.let { list ->
             val stypeTable = apiTables["stype"]!!
             for (el in list) {
@@ -274,7 +274,7 @@ object ChsDataRepository {
             }
         }
 
-        // 3.8 消耗道具母表 (start2.api_mst_useitem.json)
+        // 3.8 Consumable items (start2.api_mst_useitem.json)
         readApiArray("start2.api_mst_useitem.json")?.let { list ->
             val useitemTable = apiTables["useitem"]!!
             for (el in list) {
@@ -289,7 +289,7 @@ object ChsDataRepository {
             }
         }
 
-        // 3.9 商城与点券道具母表 (start2.api_mst_payitem.json)
+        // 3.9 Cash shop items (start2.api_mst_payitem.json)
         readApiArray("start2.api_mst_payitem.json")?.let { list ->
             val payitemTable = apiTables["payitem"]!!
             for (el in list) {
@@ -305,7 +305,7 @@ object ChsDataRepository {
             }
         }
 
-        // 3.10 任务数据 (questlist.json)
+        // 3.10 Quests (questlist.json)
         readApiArray("questlist.json")?.let { list ->
             val questTable = apiTables["questlist"]!!
             for (el in list) {
@@ -320,7 +320,7 @@ object ChsDataRepository {
             }
         }
 
-        // 3.11 舰船图鉴 (picture_book.ship.json)
+        // 3.11 Ship picture book (picture_book.ship.json)
         readApiArray("picture_book.ship.json")?.let { list ->
             val pbShipTable = apiTables["pictureBookShip"]!!
             for (el in list) {
@@ -335,7 +335,7 @@ object ChsDataRepository {
             }
         }
 
-        // 3.12 装备图鉴 (picture_book.slotitem.json)
+        // 3.12 Equipment picture book (picture_book.slotitem.json)
         readApiArray("picture_book.slotitem.json")?.let { list ->
             val pbSlotTable = apiTables["pictureBookSlot"]!!
             for (el in list) {
@@ -349,7 +349,7 @@ object ChsDataRepository {
             }
         }
 
-        // 3.13 进点台词与海况 (battle.api_flavor_info.json)
+        // 3.13 Node flavor lines (battle.api_flavor_info.json)
         readApiArray("battle.api_flavor_info.json")?.let { list ->
             val flavorTable = apiTables["flavorInfo"]!!
             for (el in list) {
