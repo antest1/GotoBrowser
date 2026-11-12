@@ -14,18 +14,18 @@ class ChsDataRepositoryTest {
     val tempFolder = TemporaryFolder()
 
     @Test
-    fun `loadFromDirectory loads text dictionaries, regex rules, 13 API tables, and pre-populates ja_maps`() {
+    fun `loadFromDirectory loads text dictionaries, regex rules, and 13 API tables`() {
         val root = tempFolder.newFolder("chs_patch")
         val textDir = File(root, "text/text").apply { mkdirs() }
         val regexDir = File(root, "text/text_regex").apply { mkdirs() }
         val apiDir = File(root, "text/api").apply { mkdirs() }
 
-        // 1. 写入含注释与 dummy 的字典文件
+        // 1. 写入含注释与 dummy 的字典文件（使用非版权合成测试字符串）
         File(textDir, "01_ui.json").writeText(
             """
             {
               // 顶部注释
-              "艦隊これくしょん": "舰队Collection",
+              "raw_ui_title": "translated_ui_title",
               "dummy": "forNoComma",
             }
             """.trimIndent()
@@ -35,7 +35,7 @@ class ChsDataRepositoryTest {
         File(regexDir, "01_regex.json").writeText(
             """
             {
-              "^第(\\d+)艦隊$": "第 $1 舰队",
+              "^Unit_(\\d+)$": "Unit #$1",
               "[broken": "skip"
             }
             """.trimIndent()
@@ -43,77 +43,47 @@ class ChsDataRepositoryTest {
 
         // 3. 写入 API 分表
         File(apiDir, "start2.api_mst_ship.json").writeText(
-            """[{"api_id": 1, "api_name": "睦月", "api_getmes": "睦月です！<br>がんばります！"}]"""
+            """[{"api_id": 1, "api_name": "Ship_01_CHS", "api_getmes": "Line_A_CHS<br>Line_B_CHS"}]"""
         )
         File(apiDir, "start2.api_mst_mission.json").writeText(
-            """[{"api_id": 1, "api_disp_no": "01", "api_name": "练习航海", "api_details": "在镇守府近海进行航海练习。<br>提升舰队熟练度吧！"}]"""
+            """[{"api_id": 1, "api_disp_no": "01", "api_name": "Mission_01_CHS", "api_details": "Mission_Detail_1_CHS<br>Mission_Detail_2_CHS"}]"""
         )
         File(apiDir, "start2.api_mst_mapinfo.json").writeText(
-            """[{"api_id": 11, "api_maparea_id": 1, "api_no": 1, "api_name": "镇守府正面海域", "api_opetext": "近海警备", "api_infotext": "出动进行镇守府正面近海的<br>警备工作！"}]"""
+            """[{"api_id": 11, "api_maparea_id": 1, "api_no": 1, "api_name": "Map_11_CHS", "api_opetext": "Ope_11_CHS", "api_infotext": "Map_Info_1_CHS<br>Map_Info_2_CHS"}]"""
         )
         File(apiDir, "questlist.json").writeText(
-            """[{"api_no": 201, "api_title": "击破敌方舰队！", "api_detail": "消灭敌方舰队！"}]"""
+            """[{"api_no": 201, "api_title": "Quest_201_Title_CHS", "api_detail": "Quest_201_Detail_CHS"}]"""
         )
 
-        val sampleJaMaps = """
-            {
-              "expedition": {
-                "01": {
-                  "id": 1,
-                  "name": "練習航海",
-                  "details": "鎮守府近海を航海し、艦隊の練度<br>を高めよう！"
-                }
-              },
-              "map": {
-                "11": {
-                  "name": "鎮守府正面海域",
-                  "opetext": "近海警備",
-                  "infotext": "鎮守府正面近海の<br>警備に出動せよ！"
-                }
-              }
-            }
-        """.trimIndent()
+        val bundle = ChsDataRepository.loadFromDirectory(root)
 
-        val bundle = ChsDataRepository.loadFromDirectory(root, sampleJaMaps)
-
-        // 验证静态字典与 ja_maps 预填充（包含 4 种 <br> 变体）
-        assertEquals("舰队Collection", bundle.textDict["艦隊これくしょん"])
-        assertEquals("练习航海", bundle.textDict["練習航海"])
-        assertEquals(
-            "在镇守府近海进行航海练习。\n提升舰队熟练度吧！",
-            bundle.textDict["鎮守府近海を航海し、艦隊の練度\nを高めよう！"]
-        )
-        assertEquals("镇守府正面海域", bundle.textDict["鎮守府正面海域"])
-        assertEquals("近海警备", bundle.textDict["近海警備"])
-        assertEquals(
-            "出动进行镇守府正面近海的警备工作！",
-            bundle.textDict["鎮守府正面近海の警備に出動せよ！"]
-        )
+        // 验证静态字典
+        assertEquals("translated_ui_title", bundle.textDict["raw_ui_title"])
 
         // 验证正则加载
         assertEquals(1, bundle.regexRules.size)
-        assertEquals("""^第(\d+)艦隊$""", bundle.regexRules[0].first)
+        assertEquals("""^Unit_(\d+)$""", bundle.regexRules[0].first)
 
         // 验证 API 表索引
         val shipEntry = bundle.apiTables["ship"]?.getAsJsonObject("1")
         assertNotNull(shipEntry)
-        assertEquals("睦月", shipEntry!!.get("api_name").asString)
+        assertEquals("Ship_01_CHS", shipEntry!!.get("api_name").asString)
 
         val missionByDisp = bundle.apiTables["mission"]?.getAsJsonObject("01")
         val missionByInt = bundle.apiTables["mission"]?.getAsJsonObject("1")
         assertNotNull(missionByDisp)
         assertNotNull(missionByInt)
-        assertEquals("练习航海", missionByInt!!.get("api_name").asString)
+        assertEquals("Mission_01_CHS", missionByInt!!.get("api_name").asString)
 
         val mapById = bundle.apiTables["mapinfo"]?.getAsJsonObject("11")
         val mapByKey = bundle.apiTables["mapinfo"]?.getAsJsonObject("1_1")
         assertNotNull(mapById)
         assertNotNull(mapByKey)
-        assertEquals("镇守府正面海域", mapByKey!!.get("api_name").asString)
+        assertEquals("Map_11_CHS", mapByKey!!.get("api_name").asString)
 
         val questEntry = bundle.apiTables["questlist"]?.getAsJsonObject("201")
         assertNotNull(questEntry)
-        assertEquals("击破敌方舰队！", questEntry!!.get("api_title").asString)
+        assertEquals("Quest_201_Title_CHS", questEntry!!.get("api_title").asString)
         assertTrue(bundle.apiTables.keys.containsAll(listOf(
             "ship", "mission", "furniture", "mapinfo", "slotitem",
             "slotitemEquiptype", "stype", "useitem", "payitem",

@@ -7,13 +7,14 @@ import com.google.gson.JsonObject
 /**
  * KCSAPI 动态响应拦截合流引擎
  * 完整移植自 poi-plugin-kancolle-chs 的 src/core/api-merger.es
- * 支持按需通过 JS Bridge 拉取分表数据，并确保 Kcanotify 广播始终保持服务器原始报文。
+ * 支持按需通过 JS Bridge 拉取已预序列化的分表数据，并在 XHR 与 Axios 响应边界完成中文数据合流
+ * （启用后游戏本体与 Kcanotify 广播均直接获取汉化后的中文响应数据）。
  */
 object ChsApiMerger {
     private val gson = Gson()
 
     /**
-     * 供 KcsInterface.@JavascriptInterface 调用：按表名返回 JSON 字符串
+     * 供 KcsInterface.@JavascriptInterface 调用：按表名返回预序列化的 JSON 字符串（O(1) 内存读取）
      */
     @JvmStatic
     fun getApiTableJson(context: Context, tableName: String?): String {
@@ -22,8 +23,7 @@ object ChsApiMerger {
         }
         return try {
             val bundle = ChsDataRepository.getOrLoad(context)
-            val table = bundle.apiTables[tableName] ?: return "{}"
-            gson.toJson(table)
+            bundle.apiTableJsonStrings[tableName] ?: "{}"
         } catch (_: Exception) {
             "{}"
         }
@@ -54,7 +54,6 @@ object ChsApiMerger {
 (function() {
   if (typeof window === 'undefined') return;
   window.__kanchs_dynamic_dict = window.__kanchs_dynamic_dict || {};
-  window.__kanchs_orig_svdata = window.__kanchs_orig_svdata || {};
 
   window.__kanchs_api_options = Object.assign({
     enableApiQuest: ${options.enableApiQuest},

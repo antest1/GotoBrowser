@@ -235,7 +235,7 @@
     <string name="settings_mod_chs_source_custom">Custom Mirror URL</string>
     <string name="settings_mod_chs_custom_url">Custom Source Base URL</string>
     <string name="settings_mod_chs_download_mode">Download Scope</string>
-    <string name="settings_mod_chs_mode_full">Full Package (Text + UI Assets &amp; Fonts)</string>
+    <string name="settings_mod_chs_mode_full">Full Package (Text &amp; API Data + UI Assets &amp; Fonts)</string>
     <string name="settings_mod_chs_mode_text_only">Text &amp; API Data Only</string>
     <string name="settings_mod_chs_download">Download / Update CHS Data</string>
     <string name="settings_mod_chs_delete">Delete CHS Data</string>

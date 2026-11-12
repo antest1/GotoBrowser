@@ -32,14 +32,14 @@ object ChsTextPatcher {
      * 在原生 main.js 上应用简中汉化补丁（当汉化未启用时原样返回 mainJs）
      */
     @JvmStatic
-    fun patchMainJsIfEnabled(context: Context, mainJs: String): String {
+    fun patchChs(context: Context, mainJs: String): String {
         if (!ChsConfig.isPatcherEnabled()) {
             return mainJs
         }
         return try {
-            val enableDict = ChsConfig.getBoolean(context, ChsConfig.KEY_ENABLE_TEXT_DICT, true)
-            val enableRegex = ChsConfig.getBoolean(context, ChsConfig.KEY_ENABLE_TEXT_REGEX, true)
-            val apiOptions = ChsConfig.getApiOptions(context)
+            val enableDict = ChsConfig.getBoolean(ChsConfig.KEY_ENABLE_TEXT_DICT, true)
+            val enableRegex = ChsConfig.getBoolean(ChsConfig.KEY_ENABLE_TEXT_REGEX, true)
+            val apiOptions = ChsConfig.getApiOptions()
 
             val bundle = ChsDataRepository.getOrLoad(context)
             patchMainJsWithData(
@@ -248,20 +248,6 @@ object ChsTextPatcher {
           replaced = replaced.replace(KCT_REPLACEMENTS[i][0], KCT_REPLACEMENTS[i][1]);
         }
         if (replaced !== clean) return replaced;
-      }
-      var mSlot = clean.match(/^(.+?)(?:\s+(★(?:MAX|\+\d+)))?を(\d+個)?手に入れました。$/);
-      if (mSlot) {
-        var itemName = mSlot[1];
-        var star = mSlot[2] ? ' ' + mSlot[2] : '';
-        var count = mSlot[3] ? ' ' + mSlot[3] : '';
-        var transItem = (ENABLE_DICT && (KCT_TLS[itemName] || (window.__kanchs_dynamic_dict && window.__kanchs_dynamic_dict[itemName]))) || itemName;
-        return '获得了 ' + transItem + star + count + '。';
-      }
-      if (clean.indexOf('近代化改修（合成）に失敗しました。') !== -1) {
-        return clean.replace('近代化改修（合成）に失敗しました。', '近代化改装（合成）失败了。');
-      }
-      if (clean.indexOf('近代化改修（合成）が成功しました。') !== -1) {
-        return clean.replace('近代化改修（合成）が成功しました。', '近代化改装（合成）成功了。');
       }
       return clean;
     } catch (_err) {

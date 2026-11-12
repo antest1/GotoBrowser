@@ -33,10 +33,19 @@ class ChsDownloader(
         private const val TAG = "GOTO-CHS"
         private const val GITHUB_TREES_API =
             "https://api.github.com/repos/asaico/Kancolle_to_CHS/git/trees/main?recursive=1"
+        private const val MAX_MANIFEST_BYTES = 16L * 1024 * 1024 // 16 MB 清单响应大小上限
+        private const val MAX_SINGLE_FILE_BYTES = 32L * 1024 * 1024 // 32 MB 单文件下载大小上限
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val workerExecutor = Executors.newSingleThreadExecutor()
+
+    /**
+     * 在宿主 ViewModel 销毁时关闭后台工作线程
+     */
+    fun shutdown() {
+        workerExecutor.shutdownNow()
+    }
 
     @Volatile
     private var lastDiffResult: ChsManifest.DiffResult? = null
@@ -46,7 +55,8 @@ class ChsDownloader(
      */
     fun checkUpdate(context: Context, onStatusResult: (summary: String, canDownload: Boolean) -> Unit) {
         val appContext = context.applicationContext
-        if (!ChsConfig.isEnabled(appContext)) {
+        ChsConfig.init(appContext)
+        if (!ChsConfig.isEnabled()) {
             mainHandler.post {
                 onStatusResult(appContext.getString(R.string.chs_status_disabled), false)
             }
@@ -59,10 +69,10 @@ class ChsDownloader(
 
         workerExecutor.execute {
             try {
-                val remote = fetchRemoteManifest(appContext)
+                val remote = fetchRemoteManifest()
                 if (remote == null || remote.files.isEmpty()) {
                     val hasLocal = ChsPaths.hasInstalledData(appContext)
-                    val localVer = ChsConfig.getLocalVersion(appContext)
+                    val localVer = ChsConfig.getLocalVersion()
                     val fallbackMsg = if (hasLocal) {
                         appContext.getString(R.string.chs_status_offline_installed, localVer.ifEmpty { "local" })
                     } else {
@@ -74,7 +84,7 @@ class ChsDownloader(
 
                 val rootDir = ChsPaths.getRootDir(appContext)
                 val localMap = ChsManifest.loadLocalManifestMap(ChsPaths.getLocalManifestFile(appContext))
-                val textOnly = ChsConfig.isTextOnlyDownloadMode(appContext)
+                val textOnly = ChsConfig.isTextOnlyDownloadMode()
                 val diff = ChsManifest.computeDiff(remote, rootDir, localMap, textOnly)
                 lastDiffResult = diff
 
@@ -127,17 +137,18 @@ class ChsDownloader(
 
         workerExecutor.execute {
             try {
+                ChsConfig.init(appContext)
                 val rootDir = ChsPaths.getRootDir(appContext)
                 val manifestFile = ChsPaths.getLocalManifestFile(appContext)
                 val localMap = ChsManifest.loadLocalManifestMap(manifestFile)
-                val textOnly = ChsConfig.isTextOnlyDownloadMode(appContext)
+                val textOnly = ChsConfig.isTextOnlyDownloadMode()
 
-                val remote = fetchRemoteManifest(appContext)
+                val remote = fetchRemoteManifest()
                     ?: throw IOException(appContext.getString(R.string.chs_status_check_failed))
                 val diff = ChsManifest.computeDiff(remote, rootDir, localMap, textOnly)
 
                 if (diff.toDownload.isEmpty()) {
-                    ChsConfig.setLocalVersion(appContext, remote.version)
+                    ChsConfig.setLocalVersion(remote.version)
                     ChsManifest.saveLocalManifestMap(manifestFile, remote.version, localMap)
                     ChsDataRepository.invalidateCache()
                     ChsHackResolver.invalidateIndex()
@@ -154,7 +165,7 @@ class ChsDownloader(
                     return@execute
                 }
 
-                val baseUrl = ChsConfig.resolveRawBaseUrl(appContext)
+                val baseUrl = ChsConfig.resolveRawBaseUrl()
                 downloadEntriesIncrementally(
                     baseUrl = baseUrl,
                     entries = diff.toDownload,
@@ -178,7 +189,7 @@ class ChsDownloader(
                     }
                 )
 
-                ChsConfig.setLocalVersion(appContext, remote.version)
+                ChsConfig.setLocalVersion(remote.version)
                 ChsManifest.saveLocalManifestMap(manifestFile, remote.version, localMap)
                 ChsDataRepository.invalidateCache()
                 ChsHackResolver.invalidateIndex()
@@ -230,9 +241,9 @@ class ChsDownloader(
             val futures = entries.map { entry ->
                 pool.submit {
                     if (firstError.get() != null) return@submit
+                    val targetFile = File(rootDir, entry.path)
+                    val tempFile = File(rootDir, "${entry.path}.part")
                     try {
-                        val targetFile = File(rootDir, entry.path)
-                        val tempFile = File(rootDir, "${entry.path}.part")
                         tempFile.parentFile?.mkdirs()
 
                         val fileUrl = normalizedBase + entry.path
@@ -265,6 +276,10 @@ class ChsDownloader(
                         }
                         onProgress(done, total, entry.path.substringAfterLast('/'), bytes)
                     } catch (e: Exception) {
+                        try {
+                            if (tempFile.exists()) tempFile.delete()
+                        } catch (_: Exception) {
+                        }
                         firstError.compareAndSet(null, e)
                     }
                 }
@@ -292,11 +307,12 @@ class ChsDownloader(
     ) {
         val appContext = host.getContext()?.applicationContext ?: return
         workerExecutor.execute {
+            ChsConfig.init(appContext)
             val rootDir = ChsPaths.getRootDir(appContext)
             if (rootDir.exists()) {
                 rootDir.deleteRecursively()
             }
-            ChsConfig.setLocalVersion(appContext, "")
+            ChsConfig.setLocalVersion("")
             ChsDataRepository.invalidateCache()
             ChsHackResolver.invalidateIndex()
 
@@ -310,8 +326,8 @@ class ChsDownloader(
     /**
      * 优先获取远端 manifest.json；若返回 404 或不可用，自动回退到 GitHub Trees API
      */
-    fun fetchRemoteManifest(context: Context): ChsManifest.ManifestData? {
-        val baseUrl = ChsConfig.resolveRawBaseUrl(context)
+    fun fetchRemoteManifest(): ChsManifest.ManifestData? {
+        val baseUrl = ChsConfig.resolveRawBaseUrl()
         val manifestUrl = "${baseUrl}manifest.json"
         try {
             val raw = fetchUrlString(manifestUrl)
@@ -340,7 +356,28 @@ class ChsDownloader(
             .build()
         httpClient.newCall(req).execute().use { resp ->
             if (!resp.isSuccessful) return null
-            return resp.body?.string()
+            val body = resp.body ?: return null
+            val contentLen = body.contentLength()
+            if (contentLen > MAX_MANIFEST_BYTES) {
+                throw IOException("Manifest exceeds maximum allowed size ($contentLen bytes): $url")
+            }
+            body.byteStream().use { input ->
+                val out = java.io.ByteArrayOutputStream(
+                    if (contentLen in 1..65536) contentLen.toInt() else 32768
+                )
+                val buffer = ByteArray(16384)
+                var totalRead = 0L
+                while (true) {
+                    val read = input.read(buffer)
+                    if (read == -1) break
+                    totalRead += read
+                    if (totalRead > MAX_MANIFEST_BYTES) {
+                        throw IOException("Manifest stream exceeds maximum allowed size: $url")
+                    }
+                    out.write(buffer, 0, read)
+                }
+                return out.toString(Charsets.UTF_8.name())
+            }
         }
     }
 
@@ -351,12 +388,21 @@ class ChsDownloader(
                 throw IOException("HTTP ${resp.code}: $url")
             }
             val body = resp.body ?: throw IOException("Empty body: $url")
+            val contentLen = body.contentLength()
+            if (contentLen > MAX_SINGLE_FILE_BYTES) {
+                throw IOException("File exceeds maximum allowed size ($contentLen bytes): $url")
+            }
             FileOutputStream(destFile).use { fos ->
                 body.byteStream().use { input ->
                     val buffer = ByteArray(16384)
+                    var totalRead = 0L
                     while (true) {
                         val read = input.read(buffer)
                         if (read == -1) break
+                        totalRead += read
+                        if (totalRead > MAX_SINGLE_FILE_BYTES) {
+                            throw IOException("File stream exceeds maximum allowed size: $url")
+                        }
                         fos.write(buffer, 0, read)
                     }
                 }

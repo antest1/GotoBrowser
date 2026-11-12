@@ -217,7 +217,7 @@
     <string name="settings_mod_chs_source_custom">自定义镜像源</string>
     <string name="settings_mod_chs_custom_url">自定义数据源根地址</string>
     <string name="settings_mod_chs_download_mode">汉化资源下载范围</string>
-    <string name="settings_mod_chs_mode_full">完整汉化包（文本 + UI 贴图与字体）</string>
+    <string name="settings_mod_chs_mode_full">完整汉化包（文本与 API 数据 + UI 贴图与字体）</string>
     <string name="settings_mod_chs_mode_text_only">仅文本与 API 数据（轻量快速）</string>
     <string name="settings_mod_chs_download">下载更新</string>
     <string name="settings_mod_chs_delete">删除汉化数据</string>

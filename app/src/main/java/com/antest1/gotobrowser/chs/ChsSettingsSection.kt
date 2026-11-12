@@ -154,7 +154,7 @@ fun ChsMoreSettingsScreen(
     var selectedSource by remember(viewModel) {
         mutableStateOf(
             if (isPreview) ChsConfig.SOURCE_GITHUB_RAW
-            else ChsConfig.getString(context, ChsConfig.KEY_DATA_SOURCE, ChsConfig.SOURCE_GITHUB_RAW)
+            else ChsConfig.getString(ChsConfig.KEY_DATA_SOURCE, ChsConfig.SOURCE_GITHUB_RAW)
         )
     }
     var showSourceDialog by remember { mutableStateOf(false) }
@@ -177,7 +177,7 @@ fun ChsMoreSettingsScreen(
             onSelect = { value ->
                 selectedSource = value
                 if (!isPreview) {
-                    ChsConfig.setString(context, ChsConfig.KEY_DATA_SOURCE, value)
+                    ChsConfig.setString(ChsConfig.KEY_DATA_SOURCE, value)
                     viewModel.refreshChsUpdateStatus()
                 }
                 showSourceDialog = false
@@ -191,7 +191,7 @@ fun ChsMoreSettingsScreen(
         var customUrl by remember(viewModel) {
             mutableStateOf(
                 if (isPreview) ChsConfig.URL_GITHUB_RAW
-                else ChsConfig.getString(context, ChsConfig.KEY_CUSTOM_SOURCE_URL, ChsConfig.URL_GITHUB_RAW)
+                else ChsConfig.getString(ChsConfig.KEY_CUSTOM_SOURCE_URL, ChsConfig.URL_GITHUB_RAW)
             )
         }
         var showCustomUrlDialog by remember { mutableStateOf(false) }
@@ -210,7 +210,7 @@ fun ChsMoreSettingsScreen(
                     val normalized = newUrl.trim().ifEmpty { ChsConfig.URL_GITHUB_RAW }
                     customUrl = normalized
                     if (!isPreview) {
-                        ChsConfig.setString(context, ChsConfig.KEY_CUSTOM_SOURCE_URL, normalized)
+                        ChsConfig.setString(ChsConfig.KEY_CUSTOM_SOURCE_URL, normalized)
                         viewModel.refreshChsUpdateStatus()
                     }
                     showCustomUrlDialog = false
@@ -228,7 +228,7 @@ fun ChsMoreSettingsScreen(
     var selectedMode by remember(viewModel) {
         mutableStateOf(
             if (isPreview) ChsConfig.DOWNLOAD_MODE_FULL
-            else ChsConfig.getString(context, ChsConfig.KEY_DOWNLOAD_MODE, ChsConfig.DOWNLOAD_MODE_FULL)
+            else ChsConfig.getString(ChsConfig.KEY_DOWNLOAD_MODE, ChsConfig.DOWNLOAD_MODE_FULL)
         )
     }
     var showModeDialog by remember { mutableStateOf(false) }
@@ -251,7 +251,7 @@ fun ChsMoreSettingsScreen(
             onSelect = { value ->
                 selectedMode = value
                 if (!isPreview) {
-                    ChsConfig.setString(context, ChsConfig.KEY_DOWNLOAD_MODE, value)
+                    ChsConfig.setString(ChsConfig.KEY_DOWNLOAD_MODE, value)
                     viewModel.refreshChsUpdateStatus()
                 }
                 showModeDialog = false
@@ -309,7 +309,7 @@ fun ChsMoreSettingsScreen(
 
     switchItems.forEach { (key, titleRes) ->
         var checked by remember(key) {
-            mutableStateOf(if (isPreview) true else ChsConfig.getBoolean(context, key, true))
+            mutableStateOf(if (isPreview) true else ChsConfig.getBoolean(key, true))
         }
         ListItem(
             headlineContent = { Text(stringResource(titleRes), color = itemColor) },
@@ -320,7 +320,7 @@ fun ChsMoreSettingsScreen(
                     onCheckedChange = { next ->
                         checked = next
                         if (!isPreview) {
-                            ChsConfig.setBoolean(context, key, next)
+                            ChsConfig.setBoolean(key, next)
                         }
                         onSettingChanged(key)
                     }
@@ -330,7 +330,7 @@ fun ChsMoreSettingsScreen(
                 val next = !checked
                 checked = next
                 if (!isPreview) {
-                    ChsConfig.setBoolean(context, key, next)
+                    ChsConfig.setBoolean(key, next)
                 }
                 onSettingChanged(key)
             }

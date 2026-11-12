@@ -2,13 +2,10 @@ package com.antest1.gotobrowser.chs
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH
-import com.antest1.gotobrowser.Helpers.KenPatcher
-import com.antest1.gotobrowser.R
 
 /**
- * 简中汉化 (PLUS) 独立配置管理
- * 使用独立的 SharedPreferences 文件 (chs_prefs)，并与 KCCP 英/印尼语补丁保持互斥。
+ * 简中汉化独立配置管理
+ * 持有独立的 SharedPreferences 实例 (chs_prefs)，仅负责自身模块的配置读写与运行态准备。
  */
 object ChsConfig {
     const val PREFS_NAME = "chs_prefs"
@@ -42,9 +39,6 @@ object ChsConfig {
     const val DOWNLOAD_MODE_FULL = "full"
     const val DOWNLOAD_MODE_TEXT_ONLY = "text_only"
 
-    const val OFFICIAL_REPO_OWNER = "asaico"
-    const val OFFICIAL_REPO_NAME = "Kancolle_to_CHS"
-    const val OFFICIAL_BRANCH = "main"
     const val OFFICIAL_GITHUB_URL = "https://github.com/asaico/Kancolle_to_CHS"
 
     const val URL_GITHUB_RAW = "https://raw.githubusercontent.com/asaico/Kancolle_to_CHS/main/"
@@ -86,137 +80,105 @@ object ChsConfig {
                 enableApiFlavor || enableApiItem
     }
 
+    private lateinit var sharedPref: SharedPreferences
+
     @Volatile
     private var preparedEnabled: Boolean = false
 
     @Volatile
     private var preparedResPatchEnabled: Boolean = true
 
-    @JvmStatic
-    fun prefs(context: Context): SharedPreferences {
-        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    fun init(context: Context) {
+        sharedPref = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
-    @JvmStatic
-    fun isEnabled(context: Context): Boolean {
-        return prefs(context).getBoolean(KEY_ENABLED, false)
+    private fun ensureInitialized(context: Context) {
+        if (!::sharedPref.isInitialized) {
+            init(context)
+        }
+    }
+
+    fun isEnabled(): Boolean {
+        return sharedPref.getBoolean(KEY_ENABLED, false)
     }
 
     /**
      * 热路径读取：是否在当前会话启用了简中汉化补丁
      */
-    @JvmStatic
     fun isPatcherEnabled(): Boolean = preparedEnabled
 
     /**
      * 热路径读取：是否启用了贴图与字体替换
      */
-    @JvmStatic
     fun isResPatchActive(): Boolean = preparedEnabled && preparedResPatchEnabled
 
     /**
      * 在浏览器启动或页面刷新前同步最新配置状态并构建资源索引
      */
-    @JvmStatic
     fun prepare(context: Context) {
-        val p = prefs(context)
-        val enabled = p.getBoolean(KEY_ENABLED, false)
+        ensureInitialized(context)
+        val enabled = sharedPref.getBoolean(KEY_ENABLED, false)
         preparedEnabled = enabled
-        preparedResPatchEnabled = p.getBoolean(KEY_ENABLE_RES_PATCH, true)
+        preparedResPatchEnabled = sharedPref.getBoolean(KEY_ENABLE_RES_PATCH, true)
         if (enabled) {
-            enforceMutualExclusionWithKccp(context, true)
             ChsHackResolver.rebuildIndexIfNeeded(context)
         }
     }
 
     /**
-     * 设置汉化总开关，并在开启时自动关闭 KCCP 英/印尼语补丁
+     * 设置简中汉化总开关（仅操作自身配置；跨 Mod 互斥由 ModPatchCoordinator 协调）
      */
-    @JvmStatic
-    fun setEnabled(context: Context, enabled: Boolean) {
-        prefs(context).edit().putBoolean(KEY_ENABLED, enabled).apply()
+    fun setEnabled(enabled: Boolean) {
+        sharedPref.edit().putBoolean(KEY_ENABLED, enabled).apply()
         preparedEnabled = enabled
-        if (enabled) {
-            enforceMutualExclusionWithKccp(context, true)
-        }
     }
 
-    /**
-     * 当开启简中汉化时自动关闭 KCCP；当开启 KCCP 时自动关闭简中汉化
-     */
-    @JvmStatic
-    fun enforceMutualExclusionWithKccp(context: Context, chsJustEnabled: Boolean) {
-        val mainPref = context.getSharedPreferences(
-            context.getString(R.string.preference_key),
-            Context.MODE_PRIVATE
-        )
-        if (chsJustEnabled) {
-            if (mainPref.getBoolean(PREF_MOD_KCCP_LANG_PATCH, false)) {
-                mainPref.edit().putBoolean(PREF_MOD_KCCP_LANG_PATCH, false).apply()
-                KenPatcher().prepare(context)
-            }
-        } else {
-            if (mainPref.getBoolean(PREF_MOD_KCCP_LANG_PATCH, false) && isEnabled(context)) {
-                prefs(context).edit().putBoolean(KEY_ENABLED, false).apply()
-                preparedEnabled = false
-            }
-        }
-    }
-
-    @JvmStatic
-    fun getBoolean(context: Context, key: String, defValue: Boolean = true): Boolean {
+    fun getBoolean(key: String, defValue: Boolean = true): Boolean {
         val defaultVal = if (key == KEY_ENABLED) false else defValue
-        return prefs(context).getBoolean(key, defaultVal)
+        return sharedPref.getBoolean(key, defaultVal)
     }
 
-    @JvmStatic
-    fun setBoolean(context: Context, key: String, value: Boolean) {
+    fun setBoolean(key: String, value: Boolean) {
         if (key == KEY_ENABLED) {
-            setEnabled(context, value)
+            setEnabled(value)
             return
         }
-        prefs(context).edit().putBoolean(key, value).apply()
+        sharedPref.edit().putBoolean(key, value).apply()
         if (key == KEY_ENABLE_RES_PATCH) {
             preparedResPatchEnabled = value
         }
     }
 
-    @JvmStatic
-    fun getString(context: Context, key: String, defValue: String = ""): String {
-        return prefs(context).getString(key, defValue) ?: defValue
+    fun getString(key: String, defValue: String = ""): String {
+        return sharedPref.getString(key, defValue) ?: defValue
     }
 
-    @JvmStatic
-    fun setString(context: Context, key: String, value: String) {
-        prefs(context).edit().putString(key, value).apply()
+    fun setString(key: String, value: String) {
+        sharedPref.edit().putString(key, value).apply()
     }
 
-    @JvmStatic
-    fun getApiOptions(context: Context): ApiOptions {
-        val p = prefs(context)
+    fun getApiOptions(): ApiOptions {
         return ApiOptions(
-            enableApiQuest = p.getBoolean(KEY_API_QUEST, true),
-            enableApiShip = p.getBoolean(KEY_API_SHIP, true),
-            enableApiMission = p.getBoolean(KEY_API_MISSION, true),
-            enableApiFurniture = p.getBoolean(KEY_API_FURNITURE, true),
-            enableApiMapInfo = p.getBoolean(KEY_API_MAPINFO, true),
-            enableApiPictureBook = p.getBoolean(KEY_API_PICTUREBOOK, true),
-            enableApiFlavor = p.getBoolean(KEY_API_FLAVOR, true),
-            enableApiItem = p.getBoolean(KEY_API_ITEM, true)
+            enableApiQuest = sharedPref.getBoolean(KEY_API_QUEST, true),
+            enableApiShip = sharedPref.getBoolean(KEY_API_SHIP, true),
+            enableApiMission = sharedPref.getBoolean(KEY_API_MISSION, true),
+            enableApiFurniture = sharedPref.getBoolean(KEY_API_FURNITURE, true),
+            enableApiMapInfo = sharedPref.getBoolean(KEY_API_MAPINFO, true),
+            enableApiPictureBook = sharedPref.getBoolean(KEY_API_PICTUREBOOK, true),
+            enableApiFlavor = sharedPref.getBoolean(KEY_API_FLAVOR, true),
+            enableApiItem = sharedPref.getBoolean(KEY_API_ITEM, true)
         )
     }
 
     /**
      * 解析当前生效的远程仓库文件下载根地址（末尾固定带 '/'）
      */
-    @JvmStatic
-    fun resolveRawBaseUrl(context: Context): String {
-        val p = prefs(context)
-        return when (p.getString(KEY_DATA_SOURCE, SOURCE_GITHUB_RAW)) {
+    fun resolveRawBaseUrl(): String {
+        return when (sharedPref.getString(KEY_DATA_SOURCE, SOURCE_GITHUB_RAW)) {
             SOURCE_JSDELIVR -> URL_JSDELIVR
             SOURCE_GHPROXY -> URL_GHPROXY
             SOURCE_CUSTOM -> {
-                val custom = p.getString(KEY_CUSTOM_SOURCE_URL, "")?.trim().orEmpty()
+                val custom = sharedPref.getString(KEY_CUSTOM_SOURCE_URL, "")?.trim().orEmpty()
                 if (custom.isEmpty()) URL_GITHUB_RAW
                 else if (custom.endsWith("/")) custom else "$custom/"
             }
@@ -224,18 +186,15 @@ object ChsConfig {
         }
     }
 
-    @JvmStatic
-    fun isTextOnlyDownloadMode(context: Context): Boolean {
-        return prefs(context).getString(KEY_DOWNLOAD_MODE, DOWNLOAD_MODE_FULL) == DOWNLOAD_MODE_TEXT_ONLY
+    fun isTextOnlyDownloadMode(): Boolean {
+        return sharedPref.getString(KEY_DOWNLOAD_MODE, DOWNLOAD_MODE_FULL) == DOWNLOAD_MODE_TEXT_ONLY
     }
 
-    @JvmStatic
-    fun getLocalVersion(context: Context): String {
-        return prefs(context).getString(KEY_LOCAL_VERSION, "") ?: ""
+    fun getLocalVersion(): String {
+        return sharedPref.getString(KEY_LOCAL_VERSION, "") ?: ""
     }
 
-    @JvmStatic
-    fun setLocalVersion(context: Context, version: String) {
-        prefs(context).edit().putString(KEY_LOCAL_VERSION, version).apply()
+    fun setLocalVersion(version: String) {
+        sharedPref.edit().putString(KEY_LOCAL_VERSION, version).apply()
     }
 }

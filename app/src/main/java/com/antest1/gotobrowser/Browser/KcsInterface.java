@@ -12,7 +12,6 @@ import android.util.Log;
 import android.webkit.JavascriptInterface;
 
 import com.antest1.gotobrowser.Activity.BrowserActivity;
-import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.ContentProvider.KcaPacketStore;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.R;
@@ -24,7 +23,6 @@ import com.google.gson.JsonParser;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.antest1.gotobrowser.Constants.KCANOTIFY_PACKAGE_NAME;
 import static com.antest1.gotobrowser.Constants.PREF_BROADCAST;
 import static com.antest1.gotobrowser.Constants.PREF_DEVTOOLS_DEBUG;
 import static com.antest1.gotobrowser.ContentProvider.KcaContentProvider.BROADCAST_ACTION;
@@ -184,18 +182,5 @@ public class KcsInterface {
         intent.putExtras(bundle);
         Log.e("GOTO", "broadcast sent: " + url);
         activity.sendBroadcast(intent);
-
-        if (!"com.antest1.gotobrowser".equals(BuildConfig.APPLICATION_ID)) {
-            try {
-                Intent debugIntent = new Intent(intent);
-                debugIntent.setAction(BuildConfig.APPLICATION_ID + ".broadcast");
-                activity.sendBroadcast(debugIntent);
-            } catch (Exception ignored) {}
-        }
-        try {
-            Intent explicitIntent = new Intent(intent);
-            explicitIntent.setPackage(KCANOTIFY_PACKAGE_NAME);
-            activity.sendBroadcast(explicitIntent);
-        } catch (Exception ignored) {}
     }
 }

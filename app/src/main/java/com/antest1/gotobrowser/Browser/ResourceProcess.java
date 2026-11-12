@@ -262,7 +262,7 @@ public class ResourceProcess {
                     if (is_font) {
                         if (sharedPref.getBoolean(PREF_FONT_PREFETCH, true)
                                 && !KenPatcher.isPatcherEnabled()
-                                && !ChsConfig.isResPatchActive()) {
+                                && !ChsConfig.INSTANCE.isResPatchActive()) {
                             return getFontFile(filename);
                         } else {
                             return processFontFile(requestInfo);
@@ -357,7 +357,7 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processImageDataResource(ResourceRequestInfo requestInfo, int resource_type) {
-        WebResourceResponse chsHack = ChsHackResolver.resolveWebResponseIfEnabled(context, requestInfo.path);
+        WebResourceResponse chsHack = ChsHackResolver.resolveWebResponse(context, requestInfo.path);
         if (chsHack != null) return chsHack;
         File file = new File(requestInfo.outputPath);
         int status = downloadResourceIfMissing(requestInfo, file);
@@ -579,7 +579,7 @@ public class ResourceProcess {
     }
 
     private WebResourceResponse processFontFile(ResourceRequestInfo requestInfo) throws IOException {
-        WebResourceResponse chsHack = ChsHackResolver.resolveWebResponseIfEnabled(context, requestInfo.path);
+        WebResourceResponse chsHack = ChsHackResolver.resolveWebResponse(context, requestInfo.path);
         if (chsHack != null) return chsHack;
         File file = new File(requestInfo.outputPath);
         downloadResourceIfMissing(requestInfo, file);
@@ -648,7 +648,7 @@ public class ResourceProcess {
     private WebResourceResponse getMaintenanceFiles(boolean is_image) {
         try {
             if (is_image) {
-                WebResourceResponse chsHack = ChsHackResolver.resolveWebResponseIfEnabled(context, "/kcs/html/maintenance.png");
+                WebResourceResponse chsHack = ChsHackResolver.resolveWebResponse(context, "/kcs/html/maintenance.png");
                 if (chsHack != null) return chsHack;
                 return new WebResourceResponse("image/png", "utf-8", context.getAssets().open("maintenance.png"));
             }

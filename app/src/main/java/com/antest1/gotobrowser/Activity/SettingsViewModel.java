@@ -26,6 +26,7 @@ import com.antest1.gotobrowser.Helpers.VersionDatabase;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
 import com.antest1.gotobrowser.Helpers.KenPatcher;
+import com.antest1.gotobrowser.Helpers.ModPatchCoordinator;
 import com.antest1.gotobrowser.chs.ChsConfig;
 import com.antest1.gotobrowser.chs.ChsDownloader;
 
@@ -113,6 +114,7 @@ public class SettingsViewModel extends AndroidViewModel {
         super(application);
         Context context = application.getApplicationContext();
         sharedPref = context.getSharedPreferences(context.getString(R.string.preference_key), Context.MODE_PRIVATE);
+        ChsConfig.INSTANCE.init(context);
         versionTable = new VersionDatabase(context, null, VERSION_TABLE_VERSION);
         appCheck = getRetrofitAdapter(context, GITHUB_ROOT, false).create(GotoVersionCheck.class);
 
@@ -249,7 +251,7 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     public boolean isChsPatchEnabled() {
-        return ChsConfig.isEnabled(getApplication());
+        return ChsConfig.INSTANCE.isEnabled();
     }
 
     public boolean isAlterGadgetEnabled() {
@@ -298,7 +300,7 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     public void onChsPatchToggled(boolean enabled) {
-        ChsConfig.setEnabled(getApplication(), enabled);
+        ModPatchCoordinator.INSTANCE.onChsToggled(getApplication(), enabled);
         if (enabled) {
             refreshKccpDependentRows(null);
         }
@@ -477,8 +479,8 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     public void onKccpPatchChanged() {
+        ModPatchCoordinator.INSTANCE.onKccpToggled(getApplication(), isKccpPatchEnabled());
         if (isKccpPatchEnabled()) {
-            ChsConfig.enforceMutualExclusionWithKccp(getApplication(), false);
             refreshChsUpdateStatus();
         }
         refreshKccpDependentRows(null);
@@ -573,6 +575,12 @@ public class SettingsViewModel extends AndroidViewModel {
 
     public static String formatSubtitleExample(Context context, int size) {
         return String.format(Locale.US, context.getString(R.string.settings_subtitle_example), size);
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        chsDownloader.shutdown();
     }
 
     public void setSubtitleLoaded(boolean value) {

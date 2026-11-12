@@ -15,14 +15,14 @@ import java.nio.charset.StandardCharsets
  */
 object ChsDataRepository {
     private const val TAG = "GOTO-CHS"
-    private val BR_REGEX = Regex("""<br\s*/?>""", RegexOption.IGNORE_CASE)
     private val DIGITS_ONLY_REGEX = Regex("""^\d+$""")
     private val gson = Gson()
 
     data class LoadedBundle(
         val textDict: Map<String, String>,
         val regexRules: List<Pair<String, String>>,
-        val apiTables: Map<String, JsonObject>
+        val apiTables: Map<String, JsonObject>,
+        val apiTableJsonStrings: Map<String, String> = emptyMap()
     )
 
     @Volatile
@@ -48,8 +48,7 @@ object ChsDataRepository {
         if (current != null && stamp == cachedRootStamp) {
             return current
         }
-        val jaMapsJson = readAssetText(context, "chs/ja_maps.json")
-        val loaded = loadFromDirectory(rootDir, jaMapsJson)
+        val loaded = loadFromDirectory(rootDir)
         cachedBundle = loaded
         cachedRootStamp = stamp
         return loaded
@@ -59,7 +58,7 @@ object ChsDataRepository {
      * 从指定根目录加载所有文本词典、正则规则与 API 补丁表（可供 JVM 单元测试直接调用）
      */
     @JvmStatic
-    fun loadFromDirectory(sourceDir: File, jaMapsRawJson: String? = null): LoadedBundle {
+    fun loadFromDirectory(sourceDir: File): LoadedBundle {
         val textDict = LinkedHashMap<String, String>()
         val regexRules = ArrayList<Pair<String, String>>()
         val apiTables = LinkedHashMap<String, JsonObject>()
@@ -75,7 +74,8 @@ object ChsDataRepository {
         }
 
         if (!sourceDir.exists() || !sourceDir.isDirectory) {
-            return LoadedBundle(textDict, regexRules, apiTables)
+            val emptySerialized = apiTables.mapValues { "{}" }
+            return LoadedBundle(textDict, regexRules, apiTables, emptySerialized)
         }
 
         // 1. 加载 text/text/*.json 精确字典
@@ -110,23 +110,22 @@ object ChsDataRepository {
             }
         }
 
-        // 解析原生日文远征/海图对照表 (ja_maps.json)
-        val jaMapsObj = ChsJsonCleaner.safeParseJson(jaMapsRawJson)?.takeIf { it.isJsonObject }?.asJsonObject
-        val expeditionJaMap = jaMapsObj?.getAsJsonObject("expedition")
-        val mapJaMap = jaMapsObj?.getAsJsonObject("map")
-
         // 3. 加载 text/api/*.json
-        loadApiTables(sourceDir, apiTables, textDict, expeditionJaMap, mapJaMap)
+        loadApiTables(sourceDir, apiTables, textDict)
 
-        return LoadedBundle(textDict, regexRules, apiTables)
+        // 4. 在后台加载线程预先序列化各分表 JSON，避免在 JavaBridge 线程上发生阻塞与序列化开销
+        val serializedTables = LinkedHashMap<String, String>(apiTables.size)
+        for ((k, v) in apiTables) {
+            serializedTables[k] = gson.toJson(v)
+        }
+
+        return LoadedBundle(textDict, regexRules, apiTables, serializedTables)
     }
 
     private fun loadApiTables(
         sourceDir: File,
         apiTables: MutableMap<String, JsonObject>,
-        textDict: MutableMap<String, String>,
-        expeditionJaMap: JsonObject?,
-        mapJaMap: JsonObject?
+        textDict: MutableMap<String, String>
     ) {
         val apiDir = File(sourceDir, "text/api")
 
@@ -186,18 +185,6 @@ object ChsDataRepository {
                             missionTable.add(intNo, entry)
                         }
                     }
-                    // 预填充静态词典
-                    val ja = expeditionJaMap?.getAsJsonObject(dispNo)
-                    if (ja != null) {
-                        val jaName = ja.optString("name")
-                        val jaDetails = ja.optString("details")
-                        if (jaName.isNotEmpty() && cleanName.isNotEmpty()) {
-                            textDict[jaName] = cleanName
-                        }
-                        if (jaDetails.isNotEmpty() && cleanDetails.isNotEmpty()) {
-                            putBrVariants(textDict, jaDetails, cleanDetails)
-                        }
-                    }
                 }
                 if (cleanName.isNotEmpty()) {
                     missionTable.add(cleanName, entry)
@@ -244,21 +231,6 @@ object ChsDataRepository {
                     mapTable.add(mapId.toString(), entry)
                     if (areaId != null && mapNo != null) {
                         mapTable.add("${areaId}_${mapNo}", entry)
-                    }
-
-                    val ja = mapJaMap?.getAsJsonObject(mapId.toString())
-                    if (ja != null) {
-                        val jaName = ja.optString("name")
-                        val jaOpe = ja.optString("opetext")
-                        val jaInfo = ja.optString("infotext")
-                        val chsName = obj.optString("api_name")
-                        val chsOpe = obj.optString("api_opetext")
-                        val chsInfo = obj.optString("api_infotext")
-                        if (jaName.isNotEmpty() && chsName.isNotEmpty()) textDict[jaName] = chsName
-                        if (jaOpe.isNotEmpty() && chsOpe.isNotEmpty()) textDict[jaOpe] = chsOpe
-                        if (jaInfo.isNotEmpty() && chsInfo.isNotEmpty()) {
-                            putBrVariants(textDict, jaInfo, chsInfo)
-                        }
                     }
                 }
             }
@@ -409,27 +381,12 @@ object ChsDataRepository {
         }
     }
 
-    private fun putBrVariants(dict: MutableMap<String, String>, orig: String, patch: String) {
-        dict[orig] = patch
-        dict[BR_REGEX.replace(orig, "\n")] = BR_REGEX.replace(patch, "\n")
-        dict[BR_REGEX.replace(orig, "\r\n")] = BR_REGEX.replace(patch, "\r\n")
-        dict[BR_REGEX.replace(orig, "")] = BR_REGEX.replace(patch, "")
-    }
-
     private fun readJsonFileSafe(file: File): JsonElement? {
         return try {
             val raw = file.readText(StandardCharsets.UTF_8)
             ChsJsonCleaner.safeParseJson(raw)
         } catch (e: Exception) {
             Log.w(TAG, "读取 JSON 文件失败 (${file.name}): ${e.message}")
-            null
-        }
-    }
-
-    private fun readAssetText(context: Context, assetPath: String): String? {
-        return try {
-            context.assets.open(assetPath).bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
-        } catch (_: Exception) {
             null
         }
     }

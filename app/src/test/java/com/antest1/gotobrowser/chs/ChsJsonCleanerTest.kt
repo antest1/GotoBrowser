@@ -41,23 +41,23 @@ class ChsJsonCleanerTest {
 
     @Test
     fun `validateRegexPattern and sanitizeRegexRules filter out invalid regexes without throwing`() {
-        assertTrue(ChsJsonCleaner.validateRegexPattern("""^第(\d+)艦隊$"""))
+        assertTrue(ChsJsonCleaner.validateRegexPattern("""^Item_(\d+)$"""))
         assertFalse(ChsJsonCleaner.validateRegexPattern("""[unclosed group"""))
         assertFalse(ChsJsonCleaner.validateRegexPattern(""))
 
         val rawRulesJson = """
             {
               "dummy": "forNoComma",
-              "^第(\\d+)艦隊$": "第 $1 舰队",
-              "[invalid_regex": "不应被保留",
-              "獲得経験値\\s*(\\d+)": "获得经验值 $1"
+              "^Item_(\\d+)$": "Item #$1",
+              "[invalid_regex": "should_be_skipped",
+              "Score\\s*(\\d+)": "Points: $1"
             }
         """.trimIndent()
 
         val el = ChsJsonCleaner.safeParseJson(rawRulesJson)
         val rules = ChsJsonCleaner.sanitizeRegexRules(el, "test_regex.json")
         assertEquals(2, rules.size)
-        assertEquals("""^第(\d+)艦隊$""" to "第 $1 舰队", rules[0])
-        assertEquals("""獲得経験値\s*(\d+)""" to "获得经验值 $1", rules[1])
+        assertEquals("""^Item_(\d+)$""" to "Item #$1", rules[0])
+        assertEquals("""Score\s*(\d+)""" to "Points: $1", rules[1])
     }
 }

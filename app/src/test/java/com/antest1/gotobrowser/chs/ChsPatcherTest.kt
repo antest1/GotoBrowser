@@ -3,6 +3,7 @@ package com.antest1.gotobrowser.chs
 import android.app.Application
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.antest1.gotobrowser.Helpers.ModPatchCoordinator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -16,9 +17,10 @@ import org.robolectric.annotation.Config
 class ChsPatcherTest {
 
     @Test
-    fun `when CHS patch is disabled, patchMainJsIfEnabled returns byte-for-byte identical script`() {
+    fun `when CHS patch is disabled, patchChs returns byte-for-byte identical script`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        ChsConfig.setEnabled(context, false)
+        ChsConfig.init(context)
+        ChsConfig.setEnabled(false)
         ChsConfig.prepare(context)
 
         val originalMainJs = """
@@ -28,7 +30,7 @@ class ChsPatcherTest {
             }
         """.trimIndent()
 
-        val result = ChsTextPatcher.patchMainJsIfEnabled(context, originalMainJs)
+        val result = ChsTextPatcher.patchChs(context, originalMainJs)
         assertEquals("关闭汉化开关时 main.js 必须逐字节保持原样", originalMainJs, result)
         assertFalse(result.contains("__kanchs_"))
     }
@@ -56,7 +58,7 @@ class ChsPatcherTest {
     }
 
     @Test
-    fun `mutual exclusion between CHS and KCCP works in both directions`() {
+    fun `mutual exclusion between CHS and KCCP works in both directions via ModPatchCoordinator`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val mainPref = context.getSharedPreferences(
             context.getString(com.antest1.gotobrowser.R.string.preference_key),
@@ -65,8 +67,8 @@ class ChsPatcherTest {
 
         // 先开启 KCCP，再开启简中汉化 -> KCCP 应自动关闭
         mainPref.edit().putBoolean(com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH, true).commit()
-        ChsConfig.setEnabled(context, true)
-        assertTrue(ChsConfig.isEnabled(context))
+        ModPatchCoordinator.onChsToggled(context, true)
+        assertTrue(ChsConfig.isEnabled())
         assertFalse(
             "开启简中汉化时应自动关闭 KCCP",
             mainPref.getBoolean(com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH, false)
@@ -74,8 +76,8 @@ class ChsPatcherTest {
 
         // 再重新开启 KCCP 并执行互斥检查 -> 简中汉化应自动关闭
         mainPref.edit().putBoolean(com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH, true).commit()
-        ChsConfig.enforceMutualExclusionWithKccp(context, chsJustEnabled = false)
-        assertFalse("开启 KCCP 时应自动关闭简中汉化", ChsConfig.isEnabled(context))
+        ModPatchCoordinator.onKccpToggled(context, true)
+        assertFalse("开启 KCCP 时应自动关闭简中汉化", ChsConfig.isEnabled())
         assertFalse(ChsConfig.isPatcherEnabled())
     }
 }

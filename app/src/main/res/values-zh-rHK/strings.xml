@@ -217,7 +217,7 @@
     <string name="settings_mod_chs_source_custom">自訂鏡像源</string>
     <string name="settings_mod_chs_custom_url">自訂資料源根位址</string>
     <string name="settings_mod_chs_download_mode">漢化資源下載範圍</string>
-    <string name="settings_mod_chs_mode_full">完整漢化包（文本 + UI 貼圖與字體）</string>
+    <string name="settings_mod_chs_mode_full">完整漢化包（文本與 API 資料 + UI 貼圖與字體）</string>
     <string name="settings_mod_chs_mode_text_only">僅文本與 API 資料（輕量快速）</string>
     <string name="settings_mod_chs_download">下載更新</string>
     <string name="settings_mod_chs_delete">刪除漢化資料</string>

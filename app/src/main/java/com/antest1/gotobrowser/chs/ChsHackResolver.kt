@@ -53,8 +53,8 @@ object ChsHackResolver {
             return
         }
 
-        val dirMod = cacheDir.lastModified()
-        if (cacheDir.absolutePath == indexedCacheRoot && dirMod == indexedLastModified && pathIndex.isNotEmpty()) {
+        val dirStamp = computeDirTreeStamp(cacheDir)
+        if (cacheDir.absolutePath == indexedCacheRoot && dirStamp == indexedLastModified && pathIndex.isNotEmpty()) {
             return
         }
 
@@ -86,11 +86,24 @@ object ChsHackResolver {
         fontNameIndex.putAll(newFontMap)
 
         indexedCacheRoot = cacheDir.absolutePath
-        indexedLastModified = dirMod
+        indexedLastModified = dirStamp
         try {
             Log.i(TAG, "已构建简中贴图/字体索引: ${newPathMap.size / 2} 个文件")
         } catch (_: Throwable) {
         }
+    }
+
+    /**
+     * 汇总 cache 目录及其全部子目录的修改时间戳，以便检测任意子目录下的文件增删
+     */
+    private fun computeDirTreeStamp(cacheDir: File): Long {
+        var stamp = cacheDir.lastModified()
+        cacheDir.walkTopDown().forEach { f ->
+            if (f.isDirectory) {
+                stamp = stamp * 31L + f.lastModified()
+            }
+        }
+        return stamp
     }
 
     /**
@@ -128,7 +141,7 @@ object ChsHackResolver {
      * 否则返回 null，交由 GotoBrowser 原生流程处理。
      */
     @JvmStatic
-    fun resolveWebResponseIfEnabled(context: Context, requestPath: String?): WebResourceResponse? {
+    fun resolveWebResponse(context: Context, requestPath: String?): WebResourceResponse? {
         if (!ChsConfig.isResPatchActive()) return null
         if (indexedCacheRoot.isEmpty()) {
             rebuildIndexIfNeeded(context)

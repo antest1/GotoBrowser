@@ -42,7 +42,7 @@ object ResourcePatcher {
     ): String {
         var patchedJs = K3dPatcher.patchKantai3d(context, mainJs)
         patchedJs = KenPatcher.patchKantaiEn(patchedJs, activity)
-        patchedJs = ChsTextPatcher.patchMainJsIfEnabled(context, patchedJs)
+        patchedJs = ChsTextPatcher.patchChs(context, patchedJs)
         patchedJs = FpsPatcher.patchFps(patchedJs)
         patchedJs = CritPatcher.patchCrit(patchedJs)
 

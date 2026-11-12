@@ -173,6 +173,7 @@ object ChsManifest {
 
     @JvmStatic
     fun saveLocalManifestMap(manifestFile: File, version: String, filesMap: Map<String, String>) {
+        val tempFile = File(manifestFile.parentFile, "${manifestFile.name}.tmp")
         try {
             manifestFile.parentFile?.mkdirs()
             val root = JsonObject().apply {
@@ -183,8 +184,16 @@ object ChsManifest {
                 }
                 add("files", fObj)
             }
-            manifestFile.writeText(gson.toJson(root), Charsets.UTF_8)
+            tempFile.writeText(gson.toJson(root), Charsets.UTF_8)
+            if (!tempFile.renameTo(manifestFile)) {
+                tempFile.copyTo(manifestFile, overwrite = true)
+                tempFile.delete()
+            }
         } catch (_: Exception) {
+            try {
+                if (tempFile.exists()) tempFile.delete()
+            } catch (_: Exception) {
+            }
         }
     }
 
