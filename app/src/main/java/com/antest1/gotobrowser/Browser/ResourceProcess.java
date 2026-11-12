@@ -262,7 +262,7 @@ public class ResourceProcess {
                     if (is_font) {
                         if (sharedPref.getBoolean(PREF_FONT_PREFETCH, true)
                                 && !KenPatcher.isPatcherEnabled()
-                                && !ChsConfig.INSTANCE.isResPatchActive()) {
+                                && !ChsConfig.INSTANCE.isPatcherEnabled()) {
                             return getFontFile(filename);
                         } else {
                             return processFontFile(requestInfo);

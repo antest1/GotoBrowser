@@ -56,11 +56,6 @@ object ChsConfig {
     fun isPatcherEnabled(): Boolean = preparedEnabled
 
     /**
-     * Alias for WebView asset override checks (text/API/asset patching toggle together).
-     */
-    fun isResPatchActive(): Boolean = preparedEnabled
-
-    /**
      * Syncs runtime flags before page load without performing filesystem I/O on the main thread.
      */
     fun prepare(context: Context) {
@@ -74,19 +69,6 @@ object ChsConfig {
     fun setEnabled(enabled: Boolean) {
         sharedPref.edit().putBoolean(KEY_ENABLED, enabled).apply()
         preparedEnabled = enabled
-    }
-
-    fun getBoolean(key: String, defValue: Boolean = false): Boolean {
-        val defaultVal = if (key == KEY_ENABLED) false else defValue
-        return sharedPref.getBoolean(key, defaultVal)
-    }
-
-    fun setBoolean(key: String, value: Boolean) {
-        if (key == KEY_ENABLED) {
-            setEnabled(value)
-            return
-        }
-        sharedPref.edit().putBoolean(key, value).apply()
     }
 
     fun getString(key: String, defValue: String = ""): String {

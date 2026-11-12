@@ -383,7 +383,7 @@ object ChsDataRepository {
             val raw = file.readText(StandardCharsets.UTF_8)
             ChsJsonCleaner.safeParseJson(raw)
         } catch (e: Exception) {
-            Log.w(TAG, "读取 JSON 文件失败 (${file.name}): ${e.message}")
+            Log.w(TAG, "Failed to read JSON file (${file.name}): ${e.message}")
             null
         }
     }

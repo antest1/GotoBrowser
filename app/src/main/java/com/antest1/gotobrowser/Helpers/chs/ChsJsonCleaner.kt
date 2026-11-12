@@ -102,16 +102,16 @@ object ChsJsonCleaner {
             i++
         }
 
-        // 在非字符串区域修复前导零与尾随逗号
+        // Strip leading zeros and trailing commas only outside string literals.
         val stripped = stripTrailingCommasAndLeadingZerosOutsideStrings(sb.toString())
         return stripped
     }
 
     /**
-     * 仅在字符串外部修复前导零数值与尾随逗号，防止破坏字符串内容
+     * Strips non-standard leading zeros and trailing commas outside quoted strings.
      */
     private fun stripTrailingCommasAndLeadingZerosOutsideStrings(input: String): String {
-        // 先分段处理字符串内外区域
+        // Split input into inside-string and outside-string segments first.
         val segments = mutableListOf<Pair<Boolean, String>>()
         val current = StringBuilder()
         var inStr = false
@@ -156,7 +156,7 @@ object ChsJsonCleaner {
             }
         }
 
-        // 移除尾随逗号（扫描非字符串区的逗号后仅跟空白并紧随 ] 或 }）
+        // Remove trailing commas immediately preceding ']' or '}' outside strings.
         val s = reassembled.toString()
         val out = StringBuilder(s.length)
         inStr = false
@@ -184,7 +184,7 @@ object ChsJsonCleaner {
                     lookahead++
                 }
                 if (lookahead < s.length && (s[lookahead] == ']' || s[lookahead] == '}')) {
-                    // 跳过该尾随逗号
+                    // Skip trailing comma.
                     idx++
                     continue
                 }
@@ -196,7 +196,7 @@ object ChsJsonCleaner {
     }
 
     /**
-     * 安全解析可能包含注释、BOM、前导零与尾随逗号的 JSON 文本
+     * Parses JSON safely, falling back to comment/BOM/comma cleanup when strict parsing fails.
      */
     fun safeParseJson(jsonText: String?): JsonElement? {
         if (jsonText.isNullOrBlank()) return null
@@ -208,14 +208,14 @@ object ChsJsonCleaner {
                 val cleaned = stripJsonComments(trimmed)
                 JsonParser.parseString(cleaned)
             } catch (e: Exception) {
-                logWarn("JSON 解析失败: ${e.message}")
+                logWarn("Failed to parse JSON: ${e.message}")
                 null
             }
         }
     }
 
     /**
-     * 校验正则表达式模式是否合法
+     * Returns true when [pattern] compiles cleanly under multiline regex mode.
      */
     fun validateRegexPattern(pattern: String?): Boolean {
         if (pattern.isNullOrBlank()) return false
@@ -228,7 +228,7 @@ object ChsJsonCleaner {
     }
 
     /**
-     * 校验并提取合法的正则替换规则列表 (同时兼容 JsonObject 与 JsonArray)
+     * Validates and extracts regex replacement pairs from either a JsonObject or JsonArray.
      */
     fun sanitizeRegexRules(rawElement: JsonElement?, sourceFileName: String = ""): List<Pair<String, String>> {
         val validRules = mutableListOf<Pair<String, String>>()
@@ -276,7 +276,7 @@ object ChsJsonCleaner {
         if (validateRegexPattern(pattern)) {
             target.add(pattern to replacement)
         } else {
-            logWarn("[$sourceTag] 跳过非法正则: $pattern")
+            logWarn("[$sourceTag] Skipped invalid regex: $pattern")
         }
     }
 }

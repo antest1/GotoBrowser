@@ -124,7 +124,7 @@ object ChsHackResolver {
      */
     @JvmStatic
     fun resolveWebResponse(context: Context, requestPath: String?): WebResourceResponse? {
-        if (!ChsConfig.isResPatchActive()) return null
+        if (!ChsConfig.isPatcherEnabled()) return null
         if (!indexBuilt) {
             rebuildIndexFromDir(ChsPaths.getCacheDir(context))
         }

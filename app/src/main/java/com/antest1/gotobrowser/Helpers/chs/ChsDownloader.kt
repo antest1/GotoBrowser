@@ -73,7 +73,7 @@ class ChsDownloader(
     @Volatile
     private var currentDownloadHost: SettingsStatusHost? = null
     @Volatile
-    private var currentOnComplete: ((summary: String, canDownload: Boolean) -> Unit)? = null
+    private var currentOnComplete: ((summary: String) -> Unit)? = null
 
     /** Shuts down background executors and cancels any active download. */
     fun shutdown() {
@@ -101,27 +101,24 @@ class ChsDownloader(
             host?.setPatchDownloadState(PatchDownloadState.Idle)
             if (appContext != null) {
                 host.showPatchMessage(appContext.getString(R.string.patch_download_cancelled))
-                onComplete?.invoke(appContext.getString(R.string.patch_download_cancelled), true)
+                onComplete?.invoke(appContext.getString(R.string.patch_download_cancelled))
             }
         }
     }
 
-    @Volatile
-    private var lastDiffResult: ChsManifest.DiffResult? = null
-
     /** Checks remote updates and posts status summary on the main thread. */
-    fun checkUpdate(context: Context, onStatusResult: (summary: String, canDownload: Boolean) -> Unit) {
+    fun checkUpdate(context: Context, onStatusResult: (summary: String) -> Unit) {
         val appContext = context.applicationContext
         ChsConfig.init(appContext)
         if (!ChsConfig.isEnabled()) {
             mainHandler.post {
-                onStatusResult(appContext.getString(R.string.chs_status_disabled), false)
+                onStatusResult(appContext.getString(R.string.chs_status_disabled))
             }
             return
         }
 
         mainHandler.post {
-            onStatusResult(appContext.getString(R.string.patch_download_checking), false)
+            onStatusResult(appContext.getString(R.string.patch_download_checking))
         }
 
         workerExecutor.execute {
@@ -135,14 +132,13 @@ class ChsDownloader(
                     } else {
                         appContext.getString(R.string.chs_status_check_failed)
                     }
-                    mainHandler.post { onStatusResult(fallbackMsg, true) }
+                    mainHandler.post { onStatusResult(fallbackMsg) }
                     return@execute
                 }
 
                 val rootDir = ChsPaths.getRootDir(appContext)
                 val localMap = ChsManifest.loadLocalManifestMap(ChsPaths.getLocalManifestFile(appContext))
                 val diff = ChsManifest.computeDiff(remote, rootDir, localMap)
-                lastDiffResult = diff
 
                 val summary = if (!ChsPaths.hasInstalledData(appContext)) {
                     appContext.getString(
@@ -163,12 +159,12 @@ class ChsDownloader(
                 }
 
                 mainHandler.post {
-                    onStatusResult(summary, true)
+                    onStatusResult(summary)
                 }
             } catch (e: Exception) {
                 Log.w(TAG, "Failed to check CHS update: ${e.message}")
                 mainHandler.post {
-                    onStatusResult(appContext.getString(R.string.chs_status_check_failed), true)
+                    onStatusResult(appContext.getString(R.string.chs_status_check_failed))
                 }
             }
         }
@@ -177,7 +173,7 @@ class ChsDownloader(
     /** Runs incremental patch update using GotoBrowser PatchDownloadState progress dialog. */
     fun startDownload(
         host: SettingsStatusHost,
-        onCompleteSummary: (summary: String, canDownload: Boolean) -> Unit
+        onCompleteSummary: (summary: String) -> Unit
     ) {
         val appContext = host.getContext()?.applicationContext ?: return
         isCancelled.set(false)
@@ -225,8 +221,7 @@ class ChsDownloader(
                             host.setPatchDownloadState(PatchDownloadState.Idle)
                             host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
                             onCompleteSummary(
-                                appContext.getString(R.string.chs_status_up_to_date_format, remote.version),
-                                true
+                                appContext.getString(R.string.chs_status_up_to_date_format, remote.version)
                             )
                         }
                     }
@@ -282,8 +277,7 @@ class ChsDownloader(
                         host.setPatchDownloadState(PatchDownloadState.Idle)
                         host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
                         onCompleteSummary(
-                            appContext.getString(R.string.chs_status_up_to_date_format, remote.version),
-                            true
+                            appContext.getString(R.string.chs_status_up_to_date_format, remote.version)
                         )
                     }
                 }
@@ -296,7 +290,7 @@ class ChsDownloader(
                 mainHandler.post {
                     host.setPatchDownloadState(PatchDownloadState.Idle)
                     host.showPatchMessage(appContext.getString(R.string.chs_download_failed))
-                    onCompleteSummary(appContext.getString(R.string.chs_download_failed_summary), true)
+                    onCompleteSummary(appContext.getString(R.string.chs_download_failed_summary))
                 }
             } finally {
                 currentDownloadHost = null
@@ -306,11 +300,11 @@ class ChsDownloader(
     }
 
     /**
-     * 一键下载官方最新 Release 全量压缩包、流式解压并自动比对后续增量更新
+     * Downloads the latest official release archive, extracts it, and reconciles against incremental updates.
      */
     fun startDownloadReleaseArchive(
         host: SettingsStatusHost,
-        onCompleteSummary: (summary: String, canDownload: Boolean) -> Unit
+        onCompleteSummary: (summary: String) -> Unit
     ) {
         val appContext = host.getContext()?.applicationContext ?: return
         isCancelled.set(false)
@@ -340,7 +334,7 @@ class ChsDownloader(
 
                 if (isCancelled.get()) return@execute
 
-                // 1. 获取最新 Release Tag
+                // 1. Fetch latest release tag
                 val tag = fetchLatestReleaseTag()
                     ?: throw IOException(appContext.getString(R.string.chs_status_check_failed))
 
@@ -350,7 +344,7 @@ class ChsDownloader(
                 archiveZipFile = File(rootDir, "release_$tag.zip")
                 archivePartFile = File(rootDir, "release_$tag.zip.part")
 
-                // 2. 流式下载 Release Zip 并实时展示进度
+                // 2. Stream-download release archive with progress updates
                 downloadArchiveFile(
                     candidateUrls = candidateUrls,
                     destFile = archivePartFile,
@@ -387,7 +381,7 @@ class ChsDownloader(
                     archivePartFile.delete()
                 }
 
-                // 3. 流式解压 Zip 包并展示解压进度
+                // 3. Extract zip archive with progress updates
                 mainHandler.post {
                     if (!isCancelled.get()) {
                         host.setPatchDownloadState(
@@ -471,14 +465,12 @@ class ChsDownloader(
                                     remote.version,
                                     diff.toDownload.size,
                                     formatSize(diff.totalDownloadBytes)
-                                ),
-                                true
+                                )
                             )
                         } else {
                             host.showPatchMessage(appContext.getString(R.string.chs_archive_extracted_up_to_date))
                             onCompleteSummary(
-                                appContext.getString(R.string.chs_status_up_to_date_format, remote.version),
-                                true
+                                appContext.getString(R.string.chs_status_up_to_date_format, remote.version)
                             )
                         }
                     }
@@ -493,8 +485,7 @@ class ChsDownloader(
                         host.setPatchDownloadState(PatchDownloadState.Idle)
                         host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
                         onCompleteSummary(
-                            appContext.getString(R.string.chs_status_offline_installed, baseVersion),
-                            true
+                            appContext.getString(R.string.chs_status_offline_installed, baseVersion)
                         )
                     }
                 }
@@ -509,7 +500,7 @@ class ChsDownloader(
                 mainHandler.post {
                     host.setPatchDownloadState(PatchDownloadState.Idle)
                     host.showPatchMessage(appContext.getString(R.string.chs_download_failed))
-                    onCompleteSummary(appContext.getString(R.string.chs_download_failed_summary), true)
+                    onCompleteSummary(appContext.getString(R.string.chs_download_failed_summary))
                 }
             } finally {
                 currentDownloadHost = null
@@ -651,7 +642,7 @@ class ChsDownloader(
     /** Deletes locally cached localization files. */
     fun deletePatchData(
         host: SettingsStatusHost,
-        onCompleteSummary: (summary: String, canDownload: Boolean) -> Unit
+        onCompleteSummary: (summary: String) -> Unit
     ) {
         val appContext = host.getContext()?.applicationContext ?: return
         workerExecutor.execute {

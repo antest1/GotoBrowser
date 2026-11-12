@@ -98,7 +98,6 @@ public class SettingsViewModel extends AndroidViewModel {
     private final MutableLiveData<String> patchUpdateSummary = new MutableLiveData<>("checking updates...");
     private final MutableLiveData<Boolean> patchUpdateEnabled = new MutableLiveData<>(false);
     private final MutableLiveData<String> chsUpdateSummary = new MutableLiveData<>("checking updates...");
-    private final MutableLiveData<Boolean> chsUpdateEnabled = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> chsEnabledState = new MutableLiveData<>(false);
     private final MutableLiveData<String> subtitleUpdateSummary = new MutableLiveData<>(SUBTITLE_UPDATE_LOADING);
     private final MutableLiveData<Boolean> subtitleUpdateEnabled = new MutableLiveData<>(false);
@@ -188,12 +187,14 @@ public class SettingsViewModel extends AndroidViewModel {
         return chsUpdateSummary;
     }
 
-    public LiveData<Boolean> getChsUpdateEnabled() {
-        return chsUpdateEnabled;
-    }
-
     public LiveData<Boolean> getChsEnabledState() {
         return chsEnabledState;
+    }
+
+    @Override
+    protected void onCleared() {
+        chsDownloader.shutdown();
+        super.onCleared();
     }
 
     public LiveData<String> getSubtitleUpdateSummary() {
@@ -299,9 +300,8 @@ public class SettingsViewModel extends AndroidViewModel {
     public void refreshChsUpdateStatus() {
         chsChecked = true;
         chsEnabledState.setValue(ChsConfig.INSTANCE.isEnabled());
-        chsDownloader.checkUpdate(getApplication(), (summary, canDownload) -> {
+        chsDownloader.checkUpdate(getApplication(), summary -> {
             chsUpdateSummary.setValue(summary);
-            chsUpdateEnabled.setValue(canDownload);
             return kotlin.Unit.INSTANCE;
         });
     }
@@ -316,17 +316,15 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     public void requestChsPatchUpdate() {
-        chsDownloader.startDownload(host, (summary, canDownload) -> {
+        chsDownloader.startDownload(host, summary -> {
             chsUpdateSummary.setValue(summary);
-            chsUpdateEnabled.setValue(canDownload);
             return kotlin.Unit.INSTANCE;
         });
     }
 
     public void requestChsReleaseArchiveUpdate() {
-        chsDownloader.startDownloadReleaseArchive(host, (summary, canDownload) -> {
+        chsDownloader.startDownloadReleaseArchive(host, summary -> {
             chsUpdateSummary.setValue(summary);
-            chsUpdateEnabled.setValue(canDownload);
             return kotlin.Unit.INSTANCE;
         });
     }
@@ -336,9 +334,8 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     public void deleteChsPatch() {
-        chsDownloader.deletePatchData(host, (summary, canDownload) -> {
+        chsDownloader.deletePatchData(host, summary -> {
             chsUpdateSummary.setValue(summary);
-            chsUpdateEnabled.setValue(canDownload);
             return kotlin.Unit.INSTANCE;
         });
     }
@@ -596,12 +593,6 @@ public class SettingsViewModel extends AndroidViewModel {
 
     public static String formatSubtitleExample(Context context, int size) {
         return String.format(Locale.US, context.getString(R.string.settings_subtitle_example), size);
-    }
-
-    @Override
-    protected void onCleared() {
-        super.onCleared();
-        chsDownloader.shutdown();
     }
 
     public void setSubtitleLoaded(boolean value) {

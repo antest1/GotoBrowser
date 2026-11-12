@@ -58,7 +58,7 @@ class ChsSettingsSectionTest {
 
     @Test
     fun testExpandedRowsAndDownloadDialog() {
-        ChsConfig.setBoolean(ChsConfig.KEY_ENABLED, true)
+        ChsConfig.setEnabled(true)
 
         scenario = ActivityScenario.launch(ComponentActivity::class.java).also { s ->
             s.onActivity { a ->
