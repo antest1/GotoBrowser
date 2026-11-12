@@ -230,21 +230,25 @@
     <string name="settings_mod_chs_source_ghproxy" translatable="false">GHProxy Mirror</string>
     <string name="settings_mod_chs_source_custom">Custom Mirror URL</string>
     <string name="settings_mod_chs_custom_url">Custom Source Base URL</string>
-    <string name="settings_mod_chs_download_mode">Download Scope</string>
-    <string name="settings_mod_chs_mode_full">Full Package (Text &amp; API Data + UI Assets &amp; Fonts)</string>
-    <string name="settings_mod_chs_mode_text_only">Text &amp; API Data Only</string>
     <string name="settings_mod_chs_download">Download / Update CHS Data</string>
-    <string name="settings_mod_chs_download_archive">Download Full Package (Release Zip)</string>
-    <string name="settings_mod_chs_download_archive_summary">Download and extract latest release zip, then verify incremental updates.</string>
+    <string name="settings_mod_chs_download_dialog_title">Download CHS Data</string>
+    <string name="settings_mod_chs_download_archive_recommended">Full Package (Release Zip) — Recommended</string>
+    <string name="settings_mod_chs_download_archive_option">Full Package (Release Zip)</string>
+    <string name="settings_mod_chs_download_archive_desc">Download and extract the official release zip directly. Faster and recommended for first-time setup.</string>
+    <string name="settings_mod_chs_download_patch_recommended">Incremental Update — Recommended</string>
+    <string name="settings_mod_chs_download_patch_option">Incremental Update</string>
+    <string name="settings_mod_chs_download_patch_desc">Compare local files with remote and only download updated files.</string>
     <string name="settings_mod_chs_delete">Delete CHS Data</string>
     <string name="settings_mod_chs_delete_summary">Remove downloaded Simplified Chinese text and image assets.</string>
     <string name="settings_mod_chs_about">About 砍口垒汉化计划 in Goto</string>
     <string name="settings_mod_chs_about_summary">Author, data source and open-source acknowledgements</string>
     <string name="settings_mod_chs_about_dialog_text">Developer: @泉浅漪\nData Source: 砍口垒汉化计划 @归海原\nRepository: https://github.com/asaico/Kancolle_to_CHS</string>
     <string name="chs_status_disabled">Mod disabled.</string>
-    <string name="chs_status_check_failed">Could not reach update source, tap to retry</string>
+    <string name="chs_status_check_failed">Could not reach update source. Try changing data source.</string>
+    <string name="chs_download_failed">Download failed. Please try changing the data source.</string>
+    <string name="chs_download_failed_summary">Download failed, please try changing data source and retry</string>
     <string name="chs_status_offline_installed" formatted="false">Installed (%1$s)</string>
-    <string name="chs_status_not_installed_format" formatted="false">Not installed (Latest %1$s, %2$d files / %3$s)</string>
+    <string name="chs_status_not_installed_format" formatted="false">Not installed (Full package recommended, latest %1$s, %2$d files / %3$s)</string>
     <string name="chs_status_update_available_format" formatted="false">Update available %1$s (%2$d files / %3$s)</string>
     <string name="chs_status_up_to_date_format" formatted="false">Up to date (%1$s)</string>
     <string name="chs_archive_extracted_with_updates">Full package extracted. Subsequent incremental updates found.</string>

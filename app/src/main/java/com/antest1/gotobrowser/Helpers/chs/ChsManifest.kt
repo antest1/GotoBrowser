@@ -110,14 +110,9 @@ object ChsManifest {
     fun computeDiff(
         remote: ManifestData,
         localRootDir: File,
-        localManifest: Map<String, String>,
-        textOnly: Boolean
+        localManifest: Map<String, String>
     ): DiffResult {
-        val candidates = if (textOnly) {
-            remote.files.filter { it.isTextFile }
-        } else {
-            remote.files.filter { it.isTextFile || it.isCacheFile }
-        }
+        val candidates = remote.files.filter { it.isTextFile || it.isCacheFile }
 
         val toDownload = ArrayList<FileEntry>()
         var upToDate = 0

@@ -71,22 +71,14 @@ class ChsManifestTest {
 
         val localMap = mapOf("text/version.json" to sha)
 
-        // 1. 完整包模式：text/version.json 已最新，其余 2 个文件待下载
-        val fullDiff = ChsManifest.computeDiff(remote, rootDir, localMap, textOnly = false)
-        assertTrue(fullDiff.hasUpdates)
-        assertEquals(1, fullDiff.upToDateCount)
-        assertEquals(2, fullDiff.toDownload.size)
-        assertEquals(4296L, fullDiff.totalDownloadBytes)
+        // 1. 差分计算：text/version.json 已最新，其余 2 个文件待下载
+        val diff = ChsManifest.computeDiff(remote, rootDir, localMap)
+        assertTrue(diff.hasUpdates)
+        assertEquals(1, diff.upToDateCount)
+        assertEquals(2, diff.toDownload.size)
+        assertEquals(4296L, diff.totalDownloadBytes)
 
-        // 2. 仅文本模式：忽略 cache/ 下的图片，仅需下载 1 个文本文件
-        val textOnlyDiff = ChsManifest.computeDiff(remote, rootDir, localMap, textOnly = true)
-        assertTrue(textOnlyDiff.hasUpdates)
-        assertEquals(1, textOnlyDiff.upToDateCount)
-        assertEquals(1, textOnlyDiff.toDownload.size)
-        assertEquals("text/api/questlist.json", textOnlyDiff.toDownload[0].path)
-        assertEquals(200L, textOnlyDiff.totalDownloadBytes)
-
-        // 3. 保存并重新读取本地清单
+        // 2. 保存并重新读取本地清单
         val manifestFile = File(rootDir, ".local_manifest.json")
         ChsManifest.saveLocalManifestMap(manifestFile, "v2.0", localMap)
         val reloaded = ChsManifest.loadLocalManifestMap(manifestFile)

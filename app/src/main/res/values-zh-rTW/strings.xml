@@ -211,21 +211,25 @@
     <string name="settings_mod_chs_source">漢化資料源（砍口壘漢化計劃 @歸海原）</string>
     <string name="settings_mod_chs_source_custom">自訂鏡像源</string>
     <string name="settings_mod_chs_custom_url">自訂資料源根位址</string>
-    <string name="settings_mod_chs_download_mode">漢化資源下載範圍</string>
-    <string name="settings_mod_chs_mode_full">完整漢化包（文本與 API 資料 + UI 貼圖與字體）</string>
-    <string name="settings_mod_chs_mode_text_only">僅文本與 API 資料（輕量快速）</string>
-    <string name="settings_mod_chs_download">下載更新</string>
-    <string name="settings_mod_chs_download_archive">下載完整包 (Release Zip)</string>
-    <string name="settings_mod_chs_download_archive_summary">一鍵下載官方最新 Release 壓縮包並自動解壓比對，大幅節省時間。</string>
+    <string name="settings_mod_chs_download">下載與更新</string>
+    <string name="settings_mod_chs_download_dialog_title">下載漢化資料</string>
+    <string name="settings_mod_chs_download_archive_recommended">下載完整包 (Release Zip) — 推薦</string>
+    <string name="settings_mod_chs_download_archive_option">下載完整包 (Release Zip)</string>
+    <string name="settings_mod_chs_download_archive_desc">一鍵下載官方發布頁完整壓縮包並自動解壓比對，耗時更短、更穩定。</string>
+    <string name="settings_mod_chs_download_patch_recommended">增量更新 — 推薦</string>
+    <string name="settings_mod_chs_download_patch_option">增量更新</string>
+    <string name="settings_mod_chs_download_patch_desc">僅檢測並下載變動的差異檔案，適合已有本機資料時日常更新。</string>
     <string name="settings_mod_chs_delete">刪除漢化資料</string>
     <string name="settings_mod_chs_delete_summary">清除本機已下載的簡中漢化文本與貼圖字體檔案。</string>
     <string name="settings_mod_chs_about">關於砍口壘漢化計劃 in Goto</string>
     <string name="settings_mod_chs_about_summary">作者、資料源與開源鳴謝</string>
     <string name="settings_mod_chs_about_dialog_text">開發者：@泉浅漪\n漢化資料源：砍口壘漢化計劃 @歸海原\n開源倉庫：https://github.com/asaico/Kancolle_to_CHS</string>
     <string name="chs_status_disabled">未啟用漢化修補程式</string>
-    <string name="chs_status_check_failed">無法連線更新源，點選可重試下載</string>
+    <string name="chs_status_check_failed">無法連線更新源，建議更換漢化資料源後重試</string>
+    <string name="chs_download_failed">下載失敗，請嘗試更換漢化資料源</string>
+    <string name="chs_download_failed_summary">下載失敗，建議更換漢化資料源後重試</string>
     <string name="chs_status_offline_installed" formatted="false">已安裝本機資料 (%1$s)</string>
-    <string name="chs_status_not_installed_format" formatted="false">尚未下載漢化資料（版本 %1$s，共 %2$d 個檔案 / %3$s）</string>
+    <string name="chs_status_not_installed_format" formatted="false">尚未下載漢化資料（推薦下載完整包，版本 %1$s，共 %2$d 個檔案 / %3$s）</string>
     <string name="chs_status_update_available_format" formatted="false">發現更新 %1$s（待更新 %2$d 個檔案 / %3$s）</string>
     <string name="chs_status_up_to_date_format" formatted="false">已是最新版本 (%1$s)</string>
     <string name="chs_archive_extracted_with_updates">完整包解壓完成，發現後續增量更新</string>

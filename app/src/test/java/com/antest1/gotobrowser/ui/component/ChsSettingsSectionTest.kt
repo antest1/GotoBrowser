@@ -57,7 +57,7 @@ class ChsSettingsSectionTest {
     }
 
     @Test
-    fun testExpandedRowsDisplayDownloadArchiveAndAbout() {
+    fun testExpandedRowsAndDownloadDialog() {
         ChsConfig.setBoolean(ChsConfig.KEY_ENABLED, true)
 
         scenario = ActivityScenario.launch(ComponentActivity::class.java).also { s ->
@@ -76,13 +76,26 @@ class ChsSettingsSectionTest {
 
         compose.waitForIdle()
 
-        val archiveTitle = app.getString(R.string.settings_mod_chs_download_archive)
+        val downloadTitle = app.getString(R.string.settings_mod_chs_download)
         val aboutTitle = app.getString(R.string.settings_mod_chs_about)
 
-        compose.onNodeWithText(archiveTitle).assertIsDisplayed()
+        compose.onNodeWithText(downloadTitle).assertIsDisplayed()
         compose.onNodeWithText(aboutTitle).assertIsDisplayed()
 
-        // 点击关于，验证弹窗内容显示
+        // 点击下载，验证弹窗标题与初次下载推荐全量包选项
+        compose.onNodeWithText(downloadTitle).performClick()
+        compose.waitForIdle()
+
+        val dialogTitle = app.getString(R.string.settings_mod_chs_download_dialog_title)
+        val recommendedArchive = app.getString(R.string.settings_mod_chs_download_archive_recommended)
+        compose.onNodeWithText(dialogTitle).assertIsDisplayed()
+        compose.onNodeWithText(recommendedArchive).assertIsDisplayed()
+
+        // 取消弹窗
+        compose.onNodeWithText(app.getString(R.string.action_cancel)).performClick()
+        compose.waitForIdle()
+
+        // 点击关于，验证关于弹窗内容显示
         compose.onNodeWithText(aboutTitle).performClick()
         compose.waitForIdle()
         val dialogContent = app.getString(R.string.settings_mod_chs_about_dialog_text)

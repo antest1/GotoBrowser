@@ -213,21 +213,25 @@
     <string name="settings_mod_chs_source">翻訳データの取得元（砍口垒汉化计划 @归海原）</string>
     <string name="settings_mod_chs_source_custom">カスタムミラー URL</string>
     <string name="settings_mod_chs_custom_url">取得元のベース URL</string>
-    <string name="settings_mod_chs_download_mode">ダウンロード範囲</string>
-    <string name="settings_mod_chs_mode_full">フルパッケージ（テキストと API データ + UI 画像・フォント）</string>
-    <string name="settings_mod_chs_mode_text_only">テキストと API データのみ</string>
-    <string name="settings_mod_chs_download">翻訳データを更新</string>
-    <string name="settings_mod_chs_download_archive">フルパッケージをダウンロード (Release Zip)</string>
-    <string name="settings_mod_chs_download_archive_summary">最新Releaseのzipを一括ダウンロード・解凍して差分を検証します。</string>
+    <string name="settings_mod_chs_download">翻訳データをダウンロード・更新</string>
+    <string name="settings_mod_chs_download_dialog_title">翻訳データのダウンロード</string>
+    <string name="settings_mod_chs_download_archive_recommended">フルパッケージ (Release Zip) — 推奨</string>
+    <string name="settings_mod_chs_download_archive_option">フルパッケージ (Release Zip)</string>
+    <string name="settings_mod_chs_download_archive_desc">公式Releaseのzipを一括ダウンロード・解凍します。初回ダウンロードに推奨。</string>
+    <string name="settings_mod_chs_download_patch_recommended">差分更新 — 推奨</string>
+    <string name="settings_mod_chs_download_patch_option">差分更新</string>
+    <string name="settings_mod_chs_download_patch_desc">変更された差分ファイルのみをダウンロードします。日常の更新に推奨。</string>
     <string name="settings_mod_chs_delete">翻訳データを削除</string>
     <string name="settings_mod_chs_delete_summary">ダウンロード済みの簡体字中国語テキストと画像・フォントを削除します。</string>
     <string name="settings_mod_chs_about">砍口垒汉化计划 in Goto について</string>
     <string name="settings_mod_chs_about_summary">作者、データソースおよび謝辞</string>
     <string name="settings_mod_chs_about_dialog_text">開発者：@泉浅漪\n翻訳データ源：砍口垒汉化计划 @归海原\nリポジトリ：https://github.com/asaico/Kancolle_to_CHS</string>
     <string name="chs_status_disabled">パッチは無効です</string>
-    <string name="chs_status_check_failed">更新元に接続できません。タップして再試行</string>
+    <string name="chs_status_check_failed">更新元に接続できません。データソースの変更をお試しください</string>
+    <string name="chs_download_failed">ダウンロードに失敗しました。データソースの変更をお試しください</string>
+    <string name="chs_download_failed_summary">ダウンロードに失敗しました。データソースを変更して再試行してください</string>
     <string name="chs_status_offline_installed" formatted="false">インストール済み (%1$s)</string>
-    <string name="chs_status_not_installed_format" formatted="false">未インストール（最新 %1$s、%2$d ファイル / %3$s）</string>
+    <string name="chs_status_not_installed_format" formatted="false">未インストール（フルパッケージ推奨、最新 %1$s、%2$d ファイル / %3$s）</string>
     <string name="chs_status_update_available_format" formatted="false">更新あり %1$s（%2$d ファイル / %3$s）</string>
     <string name="chs_status_up_to_date_format" formatted="false">最新です (%1$s)</string>
     <string name="chs_archive_extracted_with_updates">フルパッケージの解凍が完了しました。以降の差分更新が見つかりました。</string>

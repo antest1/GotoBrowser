@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.antest1.gotobrowser.Activity.SettingsViewModel
 import com.antest1.gotobrowser.Helpers.chs.ChsConfig
+import com.antest1.gotobrowser.Helpers.chs.ChsPaths
 import com.antest1.gotobrowser.R
 
 /**
@@ -97,7 +98,7 @@ fun ChsSettingsSection(
 
     AnimatedVisibility(visible = chsEnabled) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            ChsExpandedRows(viewModel, isPreview, chsSummary, chsDownloadEnabled)
+            ChsExpandedRows(viewModel, isPreview, chsSummary)
         }
     }
 }
@@ -106,30 +107,35 @@ fun ChsSettingsSection(
 private fun ChsExpandedRows(
     viewModel: SettingsViewModel?,
     isPreview: Boolean,
-    chsSummary: String,
-    chsDownloadEnabled: Boolean
+    chsSummary: String
 ) {
+    val context = LocalContext.current
     val mainColor = MaterialTheme.colorScheme.onSurface
+    val hasInstalledData = if (isPreview) false else ChsPaths.hasInstalledData(context)
 
-    // 下载更新
-    val dlColor = if (chsDownloadEnabled) mainColor else mainColor.copy(alpha = 0.38f)
+    // 下载与更新（点击弹出全量包 / 增量更新选项）
+    var showDownloadDialog by remember { mutableStateOf(false) }
     ListItem(
-        headlineContent = { Text(stringResource(R.string.settings_mod_chs_download), color = dlColor) },
-        supportingContent = { Text(chsSummary, color = dlColor) },
-        modifier = if (chsDownloadEnabled) Modifier.clickable {
-            if (!isPreview) viewModel?.requestChsPatchUpdate()
-        } else Modifier
+        headlineContent = { Text(stringResource(R.string.settings_mod_chs_download), color = mainColor) },
+        supportingContent = { Text(chsSummary, color = mainColor) },
+        modifier = Modifier.clickable { showDownloadDialog = true }
     )
     HorizontalDivider()
 
-    ListItem(
-        headlineContent = { Text(stringResource(R.string.settings_mod_chs_download_archive), color = mainColor) },
-        supportingContent = { Text(stringResource(R.string.settings_mod_chs_download_archive_summary), color = mainColor) },
-        modifier = Modifier.clickable {
-            if (!isPreview) viewModel?.requestChsReleaseArchiveUpdate()
-        }
-    )
-    HorizontalDivider()
+    if (showDownloadDialog) {
+        ChsDownloadDialog(
+            hasInstalledData = hasInstalledData,
+            onDownloadArchive = {
+                showDownloadDialog = false
+                if (!isPreview) viewModel?.requestChsReleaseArchiveUpdate()
+            },
+            onDownloadPatch = {
+                showDownloadDialog = false
+                if (!isPreview) viewModel?.requestChsPatchUpdate()
+            },
+            onDismiss = { showDownloadDialog = false }
+        )
+    }
 
     // 数据源
     val sourceOptions = listOf(
@@ -200,43 +206,6 @@ private fun ChsExpandedRows(
                 onDismiss = { showCustomUrlDialog = false }
             )
         }
-    }
-
-    // 下载范围
-    val modeOptions = listOf(
-        ChsOption(ChsConfig.DOWNLOAD_MODE_FULL, stringResource(R.string.settings_mod_chs_mode_full)),
-        ChsOption(ChsConfig.DOWNLOAD_MODE_TEXT_ONLY, stringResource(R.string.settings_mod_chs_mode_text_only))
-    )
-    var selectedMode by remember(viewModel) {
-        mutableStateOf(
-            if (isPreview) ChsConfig.DOWNLOAD_MODE_FULL
-            else ChsConfig.getString(ChsConfig.KEY_DOWNLOAD_MODE, ChsConfig.DOWNLOAD_MODE_FULL)
-        )
-    }
-    var showModeDialog by remember { mutableStateOf(false) }
-    ListItem(
-        headlineContent = { Text(stringResource(R.string.settings_mod_chs_download_mode), color = mainColor) },
-        supportingContent = {
-            Text(modeOptions.firstOrNull { it.value == selectedMode }?.title ?: selectedMode, color = mainColor)
-        },
-        modifier = Modifier.clickable { showModeDialog = true }
-    )
-    HorizontalDivider()
-    if (showModeDialog) {
-        ChsOptionDialog(
-            title = stringResource(R.string.settings_mod_chs_download_mode),
-            options = modeOptions,
-            selected = selectedMode,
-            onSelect = { value ->
-                selectedMode = value
-                if (!isPreview) {
-                    ChsConfig.setString(ChsConfig.KEY_DOWNLOAD_MODE, value)
-                    viewModel?.refreshChsUpdateStatus()
-                }
-                showModeDialog = false
-            },
-            onDismiss = { showModeDialog = false }
-        )
     }
 
     // 删除数据
@@ -374,4 +343,83 @@ private fun ChsEditUrlDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.text_cancel)) }
         }
     )
+}
+
+@Composable
+private fun ChsDownloadDialog(
+    hasInstalledData: Boolean,
+    onDownloadArchive: () -> Unit,
+    onDownloadPatch: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_mod_chs_download_dialog_title)) },
+        text = {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                if (!hasInstalledData) {
+                    ChsDownloadOptionItem(
+                        title = stringResource(R.string.settings_mod_chs_download_archive_recommended),
+                        description = stringResource(R.string.settings_mod_chs_download_archive_desc),
+                        isRecommended = true,
+                        onClick = onDownloadArchive
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    ChsDownloadOptionItem(
+                        title = stringResource(R.string.settings_mod_chs_download_patch_option),
+                        description = stringResource(R.string.settings_mod_chs_download_patch_desc),
+                        isRecommended = false,
+                        onClick = onDownloadPatch
+                    )
+                } else {
+                    ChsDownloadOptionItem(
+                        title = stringResource(R.string.settings_mod_chs_download_patch_recommended),
+                        description = stringResource(R.string.settings_mod_chs_download_patch_desc),
+                        isRecommended = true,
+                        onClick = onDownloadPatch
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                    ChsDownloadOptionItem(
+                        title = stringResource(R.string.settings_mod_chs_download_archive_option),
+                        description = stringResource(R.string.settings_mod_chs_download_archive_desc),
+                        isRecommended = false,
+                        onClick = onDownloadArchive
+                    )
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        }
+    )
+}
+
+@Composable
+private fun ChsDownloadOptionItem(
+    title: String,
+    description: String,
+    isRecommended: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = if (isRecommended) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp)
+        )
+    }
 }

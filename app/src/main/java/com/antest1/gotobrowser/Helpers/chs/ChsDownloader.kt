@@ -147,8 +147,7 @@ class ChsDownloader(
 
                 val rootDir = ChsPaths.getRootDir(appContext)
                 val localMap = ChsManifest.loadLocalManifestMap(ChsPaths.getLocalManifestFile(appContext))
-                val textOnly = ChsConfig.isTextOnlyDownloadMode()
-                val diff = ChsManifest.computeDiff(remote, rootDir, localMap, textOnly)
+                val diff = ChsManifest.computeDiff(remote, rootDir, localMap)
                 lastDiffResult = diff
 
                 val summary = if (!ChsPaths.hasInstalledData(appContext)) {
@@ -212,7 +211,6 @@ class ChsDownloader(
                 val rootDir = ChsPaths.getRootDir(appContext)
                 val manifestFile = ChsPaths.getLocalManifestFile(appContext)
                 val localMap = ChsManifest.loadLocalManifestMap(manifestFile)
-                val textOnly = ChsConfig.isTextOnlyDownloadMode()
 
                 if (isCancelled.get()) return@execute
 
@@ -221,7 +219,7 @@ class ChsDownloader(
 
                 if (isCancelled.get()) return@execute
 
-                val diff = ChsManifest.computeDiff(remote, rootDir, localMap, textOnly)
+                val diff = ChsManifest.computeDiff(remote, rootDir, localMap)
 
                 if (diff.toDownload.isEmpty()) {
                     ChsConfig.setLocalVersion(remote.version)
@@ -305,10 +303,8 @@ class ChsDownloader(
                 Log.e(TAG, "下载简中汉化包异常: ${e.message}")
                 mainHandler.post {
                     host.setPatchDownloadState(PatchDownloadState.Idle)
-                    host.showPatchMessage(
-                        appContext.getString(R.string.patch_download_error) + ": " + (e.message ?: "")
-                    )
-                    onCompleteSummary(appContext.getString(R.string.patch_download_failed), true)
+                    host.showPatchMessage(appContext.getString(R.string.chs_download_failed))
+                    onCompleteSummary(appContext.getString(R.string.chs_download_failed_summary), true)
                 }
             } finally {
                 currentDownloadHost = null
@@ -329,7 +325,7 @@ class ChsDownloader(
         currentDownloadHost = host
         currentOnComplete = onCompleteSummary
 
-        val title = appContext.getString(R.string.settings_mod_chs_download_archive)
+        val title = appContext.getString(R.string.settings_mod_chs_download_archive_option)
 
         mainHandler.post {
             host.setPatchDownloadState(
@@ -457,7 +453,6 @@ class ChsDownloader(
 
                 val manifestFile = ChsPaths.getLocalManifestFile(appContext)
                 val localMap = ChsManifest.loadLocalManifestMap(manifestFile)
-                val textOnly = ChsConfig.isTextOnlyDownloadMode()
 
                 val remote = fetchRemoteManifest()
                 if (remote != null) {
@@ -469,7 +464,7 @@ class ChsDownloader(
                             localMap.remove(entry.path)
                         }
                     }
-                    val diff = ChsManifest.computeDiff(remote, rootDir, localMap, textOnly)
+                    val diff = ChsManifest.computeDiff(remote, rootDir, localMap)
                     if (diff.hasUpdates) {
                         // 发现有小更新/后续增量：本地版本号标记为 tag，不可直接标记为最新
                         ChsConfig.setLocalVersion(tag)
@@ -530,10 +525,8 @@ class ChsDownloader(
                 Log.e(TAG, "下载全量包异常: ${e.message}")
                 mainHandler.post {
                     host.setPatchDownloadState(PatchDownloadState.Idle)
-                    host.showPatchMessage(
-                        appContext.getString(R.string.patch_download_error) + ": " + (e.message ?: "")
-                    )
-                    onCompleteSummary(appContext.getString(R.string.patch_download_failed), true)
+                    host.showPatchMessage(appContext.getString(R.string.chs_download_failed))
+                    onCompleteSummary(appContext.getString(R.string.chs_download_failed_summary), true)
                 }
             } finally {
                 currentDownloadHost = null

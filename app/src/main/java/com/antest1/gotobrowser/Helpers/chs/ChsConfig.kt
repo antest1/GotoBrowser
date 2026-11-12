@@ -25,19 +25,15 @@ object ChsConfig {
     const val KEY_API_FLAVOR = "pref_chs_api_flavor"
     const val KEY_API_ITEM = "pref_chs_api_item"
 
-    // 数据源与下载模式配置
+    // 数据源配置
     const val KEY_DATA_SOURCE = "pref_chs_data_source"
     const val KEY_CUSTOM_SOURCE_URL = "pref_chs_custom_source_url"
-    const val KEY_DOWNLOAD_MODE = "pref_chs_download_mode"
     const val KEY_LOCAL_VERSION = "pref_chs_local_version"
 
     const val SOURCE_GITHUB_RAW = "github_raw"
     const val SOURCE_JSDELIVR = "jsdelivr"
     const val SOURCE_GHPROXY = "ghproxy"
     const val SOURCE_CUSTOM = "custom"
-
-    const val DOWNLOAD_MODE_FULL = "full"
-    const val DOWNLOAD_MODE_TEXT_ONLY = "text_only"
 
     const val OFFICIAL_GITHUB_URL = "https://github.com/asaico/Kancolle_to_CHS"
 
@@ -183,10 +179,6 @@ object ChsConfig {
             }
             else -> URL_GITHUB_RAW
         }
-    }
-
-    fun isTextOnlyDownloadMode(): Boolean {
-        return sharedPref.getString(KEY_DOWNLOAD_MODE, DOWNLOAD_MODE_FULL) == DOWNLOAD_MODE_TEXT_ONLY
     }
 
     fun getLocalVersion(): String {
