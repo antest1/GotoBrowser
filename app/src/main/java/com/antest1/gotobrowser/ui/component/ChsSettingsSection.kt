@@ -123,11 +123,11 @@ private fun ChsExpandedRows(
     HorizontalDivider()
 
     ListItem(
-        headlineContent = { Text(stringResource(R.string.settings_mod_chs_download_archive), color = dlColor) },
-        supportingContent = { Text(stringResource(R.string.settings_mod_chs_download_archive_summary), color = dlColor) },
-        modifier = if (chsDownloadEnabled) Modifier.clickable {
+        headlineContent = { Text(stringResource(R.string.settings_mod_chs_download_archive), color = mainColor) },
+        supportingContent = { Text(stringResource(R.string.settings_mod_chs_download_archive_summary), color = mainColor) },
+        modifier = Modifier.clickable {
             if (!isPreview) viewModel?.requestChsReleaseArchiveUpdate()
-        } else Modifier
+        }
     )
     HorizontalDivider()
 
