@@ -148,7 +148,7 @@ class ChsDownloader(
                         formatSize(diff.totalDownloadBytes)
                     )
                 } else if (diff.hasUpdates) {
-                    val changeCount = if (diff.toDownload.isNotEmpty()) diff.toDownload.size else diff.toDelete.size
+                    val changeCount = diff.toDownload.size + diff.toDelete.size
                     appContext.getString(
                         R.string.chs_status_update_available_format,
                         remote.version,
@@ -466,7 +466,7 @@ class ChsDownloader(
                     mainHandler.post {
                         host.setPatchDownloadState(PatchDownloadState.Idle)
                         if (diff.hasUpdates) {
-                            val changeCount = if (diff.toDownload.isNotEmpty()) diff.toDownload.size else diff.toDelete.size
+                            val changeCount = diff.toDownload.size + diff.toDelete.size
                             host.showPatchMessage(appContext.getString(R.string.chs_archive_extracted_with_updates))
                             onCompleteSummary(
                                 appContext.getString(
