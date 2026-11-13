@@ -31,7 +31,7 @@ class ChsPatcherTest {
         """.trimIndent()
 
         val result = ChsTextPatcher.patchChs(context, originalMainJs)
-        assertEquals("关闭汉化开关时 main.js 必须逐字节保持原样", originalMainJs, result)
+        assertEquals("main.js must remain byte-for-byte identical when CHS is disabled", originalMainJs, result)
         assertFalse(result.contains("__kanchs_"))
     }
 
@@ -48,11 +48,11 @@ class ChsPatcherTest {
         """.trimIndent()
 
         val injected = ChsTextPatcher.injectTypewriterAnchors(obfuscatedSample)
-        assertTrue("应当注入通用消息框预翻译钩子", injected.contains("this[_0x12ab(0x1f)]=window.__kanchs_translate_typewriter(this[_0x12ab(0x1f)])"))
-        assertTrue("应当注入改装消息框预翻译钩子", injected.contains("_msgText=window.__kanchs_translate_typewriter(_msgText)"))
-        assertTrue("应当注入战况消息组件预翻译钩子", injected.contains("_viewText=window.__kanchs_translate_typewriter(_viewText)"))
+        assertTrue("Should inject MessageBox pre-translation hook", injected.contains("this[_0x12ab(0x1f)]=window.__kanchs_translate_typewriter(this[_0x12ab(0x1f)])"))
+        assertTrue("Should inject ModelChangeMessageBox pre-translation hook", injected.contains("_msgText=window.__kanchs_translate_typewriter(_msgText)"))
+        assertTrue("Should inject MessageBoxView pre-translation hook", injected.contains("_viewText=window.__kanchs_translate_typewriter(_viewText)"))
 
-        // 当游戏更新导致混淆结构变化时，应静默返回原脚本而不报错
+        // Degrade gracefully when obfuscated signatures change
         val unknownJs = "function completelyChangedMainJs() { return 42; }"
         assertEquals(unknownJs, ChsTextPatcher.injectTypewriterAnchors(unknownJs))
     }
@@ -65,19 +65,19 @@ class ChsPatcherTest {
             Context.MODE_PRIVATE
         )
 
-        // 先开启 KCCP，再开启简中汉化 -> KCCP 应自动关闭
+        // Enabling CHS automatically disables KCCP
         mainPref.edit().putBoolean(com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH, true).commit()
         ModPatchCoordinator.onChsToggled(context, true)
         assertTrue(ChsConfig.isEnabled())
         assertFalse(
-            "开启简中汉化时应自动关闭 KCCP",
+            "Enabling CHS should disable KCCP",
             mainPref.getBoolean(com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH, false)
         )
 
         // Enabling KCCP automatically disables CHS
         mainPref.edit().putBoolean(com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH, true).commit()
         ModPatchCoordinator.onKccpToggled(context, true)
-        assertFalse("开启 KCCP 时应自动关闭简中汉化", ChsConfig.isEnabled())
+        assertFalse("Enabling KCCP should disable CHS", ChsConfig.isEnabled())
         assertFalse(ChsConfig.isPatcherEnabled())
     }
 

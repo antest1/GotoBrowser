@@ -12,10 +12,10 @@ class ChsJsonCleanerTest {
     fun `stripJsonComments preserves URLs inside strings and removes comments, BOM, leading zeros, and trailing commas`() {
         val raw = "\uFEFF" + """
             {
-              // 单行注释
+              // single-line comment
               "url": "https://raw.githubusercontent.com/asaico/Kancolle_to_CHS/main/ /* not comment */ // also not",
-              /* 多行注释
-                 第二行 */
+              /* multi-line comment
+                 second line */
               "api_id": 007,
               "zero_val": 000,
               "nested": [
@@ -26,7 +26,7 @@ class ChsJsonCleanerTest {
         """.trimIndent()
 
         val parsed = ChsJsonCleaner.safeParseJson(raw)
-        assertNotNull("应当成功解析含注释与非标语法的 JSON", parsed)
+        assertNotNull("Should parse JSON containing comments and relaxed syntax", parsed)
         assertTrue(parsed!!.isJsonObject)
 
         val obj = parsed.asJsonObject

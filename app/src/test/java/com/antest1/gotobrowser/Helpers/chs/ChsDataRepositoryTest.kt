@@ -20,18 +20,18 @@ class ChsDataRepositoryTest {
         val regexDir = File(root, "text/text_regex").apply { mkdirs() }
         val apiDir = File(root, "text/api").apply { mkdirs() }
 
-        // 1. 写入含注释与 dummy 的字典文件（使用非版权合成测试字符串）
+        // 1. Write dictionary file with comments and dummy entry (synthetic non-copyright strings)
         File(textDir, "01_ui.json").writeText(
             """
             {
-              // 顶部注释
+              // top-level comment
               "raw_ui_title": "translated_ui_title",
               "dummy": "forNoComma",
             }
             """.trimIndent()
         )
 
-        // 2. 写入正则文件
+        // 2. Write regex file
         File(regexDir, "01_regex.json").writeText(
             """
             {
@@ -41,7 +41,7 @@ class ChsDataRepositoryTest {
             """.trimIndent()
         )
 
-        // 3. 写入 API 分表
+        // 3. Write API tables
         File(apiDir, "start2.api_mst_ship.json").writeText(
             """[{"api_id": 1, "api_name": "Ship_01_CHS", "api_getmes": "Line_A_CHS<br>Line_B_CHS"}]"""
         )
@@ -57,14 +57,14 @@ class ChsDataRepositoryTest {
 
         val bundle = ChsDataRepository.loadFromDirectory(root)
 
-        // 验证静态字典
+        // Verify static dictionary
         assertEquals("translated_ui_title", bundle.textDict["raw_ui_title"])
 
-        // 验证正则加载
+        // Verify regex loading
         assertEquals(1, bundle.regexRules.size)
         assertEquals("""^Unit_(\d+)$""", bundle.regexRules[0].first)
 
-        // 验证 API 表索引
+        // Verify API table indexing
         val shipEntry = bundle.apiTables["ship"]?.getAsJsonObject("1")
         assertNotNull(shipEntry)
         assertEquals("Ship_01_CHS", shipEntry!!.get("api_name").asString)

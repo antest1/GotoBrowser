@@ -43,10 +43,10 @@ class ChsHackResolverTest {
         ChsHackResolver.invalidateIndex()
         ChsHackResolver.rebuildIndexFromDir(cacheDir)
 
-        // 1. 命中常规游戏贴图路径
+        // 1. Match standard game image path
         assertEquals(portPng.canonicalFile, ChsHackResolver.findHackFile("/kcs2/img/port/port_main.png?version=1.2")?.canonicalFile)
 
-        // 2. 命中字体文件（支持完整路径或仅文件名）
+        // 2. Match font file (by full path or filename)
         assertEquals(
             fontWoff2.canonicalFile,
             ChsHackResolver.findHackFile("/kcs2/resources/font/A-OTF-UDShinGoPro-Regular.woff2")?.canonicalFile
@@ -56,13 +56,13 @@ class ChsHackResolverTest {
             ChsHackResolver.findHackFile("/any/custom/path/A-OTF-UDShinGoPro-Regular.woff2")?.canonicalFile
         )
 
-        // 3. 命中维护图路径
+        // 3. Match maintenance image path
         assertEquals(maintPng.canonicalFile, ChsHackResolver.findHackFile("/html/maintenance.png")?.canonicalFile)
 
-        // 4. 未汉化资源返回 null
+        // 4. Unpatched asset returns null
         assertNull(ChsHackResolver.findHackFile("/kcs2/img/port/non_existent.png"))
 
-        // 5. 清空索引后不再命中
+        // 5. Invalidating index clears matches
         ChsHackResolver.invalidateIndex()
         assertNull(ChsHackResolver.findHackFile("/kcs2/img/port/port_main.png"))
     }

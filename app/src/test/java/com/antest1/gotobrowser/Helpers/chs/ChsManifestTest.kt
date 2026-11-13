@@ -30,7 +30,7 @@ class ChsManifestTest {
         val manifest = ChsManifest.parseManifestJson(manifestRaw)
         assertNotNull(manifest)
         assertEquals("2026.11.11", manifest!!.version)
-        assertEquals("应自动过滤 text/text/subtitles/ 下的文件", 2, manifest.files.size)
+        assertEquals("Should skip files under text/text/subtitles/", 2, manifest.files.size)
         assertTrue(manifest.files[0].isTextFile)
         assertTrue(manifest.files[1].isCacheFile)
 
@@ -71,7 +71,7 @@ class ChsManifestTest {
 
         val localMap = mapOf("text/version.json" to sha)
 
-        // 1. 差分计算：text/version.json 已最新，其余 2 个文件待下载
+        // 1. Incremental diff: text/version.json is current, 2 remaining files to download
         val diff = ChsManifest.computeDiff(remote, rootDir, localMap)
         assertTrue(diff.hasUpdates)
         assertEquals(1, diff.upToDateCount)

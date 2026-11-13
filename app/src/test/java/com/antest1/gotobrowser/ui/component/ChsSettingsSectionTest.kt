@@ -82,7 +82,7 @@ class ChsSettingsSectionTest {
         compose.onNodeWithText(downloadTitle).assertIsDisplayed()
         compose.onNodeWithText(aboutTitle).assertIsDisplayed()
 
-        // 点击下载，验证弹窗标题与初次下载推荐全量包选项
+        // Click download and verify dialog title and recommended full-archive option
         compose.onNodeWithText(downloadTitle).performClick()
         compose.waitForIdle()
 
@@ -91,11 +91,11 @@ class ChsSettingsSectionTest {
         compose.onNodeWithText(dialogTitle).assertIsDisplayed()
         compose.onNodeWithText(recommendedArchive).assertIsDisplayed()
 
-        // 取消弹窗
+        // Dismiss dialog
         compose.onNodeWithText(app.getString(R.string.action_cancel)).performClick()
         compose.waitForIdle()
 
-        // 点击关于，验证关于弹窗内容显示
+        // Click about and verify about dialog content
         compose.onNodeWithText(aboutTitle).performClick()
         compose.waitForIdle()
         val dialogContent = app.getString(R.string.settings_mod_chs_about_dialog_text)
