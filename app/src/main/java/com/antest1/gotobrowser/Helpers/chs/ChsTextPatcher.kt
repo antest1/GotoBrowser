@@ -230,59 +230,66 @@ object ChsTextPatcher {
     if (PIXI.Text.prototype.__kanchs_text_hooked) {
       return true;
     }
-    PIXI.Text.prototype.__kanchs_text_hooked = true;
 
-    var origText = Object.getOwnPropertyDescriptor(PIXI.Text.prototype, 'text');
+    try {
+      var origText = Object.getOwnPropertyDescriptor(PIXI.Text.prototype, 'text');
 
-    Object.defineProperty(PIXI.Text.prototype, 'text', {
-      get: origText && origText.get ? origText.get : function() { return this._text; },
-      set: function(val) {
-        var text = (val === null || val === undefined) ? '' : String(val);
+      Object.defineProperty(PIXI.Text.prototype, 'text', {
+        get: origText && origText.get ? origText.get : function() { return this._text; },
+        set: function(val) {
+          var text = (val === null || val === undefined) ? '' : String(val);
 
-        var replaced = KCT_TLS[text];
-        if (replaced === undefined && window.__kanchs_dynamic_dict) {
-          replaced = window.__kanchs_dynamic_dict[text];
-        }
-        if (replaced !== undefined) {
-          text = replaced;
-        }
-
-        if (text) {
-          for (var i = 0; i < KCT_REPLACEMENTS.length; i++) {
-            text = text.replace(KCT_REPLACEMENTS[i][0], KCT_REPLACEMENTS[i][1]);
+          var replaced = KCT_TLS[text];
+          if (replaced === undefined && window.__kanchs_dynamic_dict) {
+            replaced = window.__kanchs_dynamic_dict[text];
           }
-        }
-
-        var parsed = parseTags(text);
-        if (parsed.hasTags && typeof PIXI.TextStyle === 'function' && this.style) {
-          if (!this._kctBaseStyle) {
-            this._kctBaseStyle = new PIXI.TextStyle(this.style);
+          if (replaced !== undefined) {
+            text = replaced;
           }
-          var base = this._kctBaseStyle;
-          var next = new PIXI.TextStyle(base);
-          if (parsed.scale !== 1) next.fontSize = base.fontSize * parsed.scale;
-          if (parsed.color) next.fill = parsed.color;
-          if (parsed.weight) next.fontWeight = parsed.weight;
-          if (parsed.line) { next.wordWrap = true; next.wordWrapWidth = parsed.line; }
-          if (parsed.leading) next.leading = parsed.leading;
-          this.style = next;
-          text = parsed.text;
-        } else if (this._kctBaseStyle) {
-          this.style = this._kctBaseStyle;
-        }
 
-        if (origText && origText.set) {
-          origText.set.call(this, text);
-        } else {
-          if (this._text === text) return;
-          this._text = text;
-          this.dirty = true;
-        }
-      },
-      configurable: true,
-      enumerable: true
-    });
-    return true;
+          if (text) {
+            for (var i = 0; i < KCT_REPLACEMENTS.length; i++) {
+              text = text.replace(KCT_REPLACEMENTS[i][0], KCT_REPLACEMENTS[i][1]);
+            }
+          }
+
+          var parsed = parseTags(text);
+          if (parsed.hasTags && typeof PIXI.TextStyle === 'function' && this.style) {
+            if (!this._kctBaseStyle) {
+              this._kctBaseStyle = new PIXI.TextStyle(this.style);
+            }
+            var base = this._kctBaseStyle;
+            var next = new PIXI.TextStyle(base);
+            if (parsed.scale !== 1) next.fontSize = base.fontSize * parsed.scale;
+            if (parsed.color) next.fill = parsed.color;
+            if (parsed.weight) next.fontWeight = parsed.weight;
+            if (parsed.line) { next.wordWrap = true; next.wordWrapWidth = parsed.line; }
+            if (parsed.leading) next.leading = parsed.leading;
+            this.style = next;
+            text = parsed.text;
+          } else if (this._kctBaseStyle) {
+            this.style = this._kctBaseStyle;
+          }
+
+          if (origText && origText.set) {
+            origText.set.call(this, text);
+          } else {
+            if (this._text === text) return;
+            this._text = text;
+            this.dirty = true;
+          }
+        },
+        configurable: true,
+        enumerable: true
+      });
+      PIXI.Text.prototype.__kanchs_text_hooked = true;
+      return true;
+    } catch (e) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('[KanCHS] Failed to hook PIXI.Text:', e);
+      }
+      return false;
+    }
   }
 
   if (!hookPixiText()) {

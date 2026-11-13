@@ -25,10 +25,12 @@ class ChsDownloaderTest {
         val localMap = mutableMapOf<String, String>()
 
         val downloader = ChsDownloader()
-        // Cancel should be idempotent and callable anytime
+        val token1 = downloader.beginDownloadTask()
+        assertFalse(downloader.isTaskCancelled(token1))
         downloader.cancelDownload()
+        assertTrue("Active task token should be marked cancelled", downloader.isTaskCancelled(token1))
 
-        // Calling downloadEntriesIncrementally after cancellation should exit immediately
+        // Calling downloadEntriesIncrementally with cancelled token check should exit immediately
         val entries = listOf(
             ChsManifest.FileEntry("text/sample.json", 100L, "dummyhash", "sha256")
         )
@@ -38,12 +40,60 @@ class ChsDownloaderTest {
             rootDir = rootDir,
             localMap = localMap,
             manifestFile = manifestFile,
-            remoteVersion = "test-ver"
+            remoteVersion = "test-ver",
+            isCancelledCheck = { downloader.isTaskCancelled(token1) }
         )
 
         // No files should be written because it was cancelled
         assertFalse(File(rootDir, "text/sample.json").exists())
         assertFalse(File(rootDir, "text/sample.json.part").exists())
+
+        // A subsequent task token must not be poisoned by the earlier cancelDownload()
+        val token2 = downloader.beginDownloadTask()
+        assertFalse("Subsequent task token must not be poisoned by prior cancel", downloader.isTaskCancelled(token2))
+    }
+
+    @Test
+    fun testCommitStagingDirectoryReplacesTargetsAndRejectsEmptyStaging() {
+        val rootDir = tempFolder.newFolder("chs_staging_root")
+        val oldText = File(rootDir, "text/old.json").apply {
+            parentFile?.mkdirs()
+            writeText("old")
+        }
+        val oldHack = File(rootDir, "cache/old.hack").apply {
+            parentFile?.mkdirs()
+            writeText("old_hack")
+        }
+
+        // Empty staging directory must fail without touching existing rootDir contents
+        val emptyStaging = tempFolder.newFolder("empty_staging")
+        val downloader = ChsDownloader()
+        var threw = false
+        try {
+            downloader.commitStagingDirectory(emptyStaging, rootDir)
+        } catch (_: java.io.IOException) {
+            threw = true
+        }
+        assertTrue("Empty staging directory should throw IOException", threw)
+        assertTrue("Existing text/ must be preserved on empty staging failure", oldText.exists())
+        assertTrue("Existing cache/ must be preserved on empty staging failure", oldHack.exists())
+
+        // Valid staging directory atomically swaps text/ and cache/, removing untracked old files
+        val validStaging = tempFolder.newFolder("valid_staging")
+        File(validStaging, "text/new.json").apply {
+            parentFile?.mkdirs()
+            writeText("new")
+        }
+        File(validStaging, "cache/new.hack").apply {
+            parentFile?.mkdirs()
+            writeText("new_hack")
+        }
+        downloader.commitStagingDirectory(validStaging, rootDir)
+
+        assertFalse("Old untracked text file should be gone after staging swap", oldText.exists())
+        assertFalse("Old untracked cache file should be gone after staging swap", oldHack.exists())
+        assertTrue(File(rootDir, "text/new.json").exists())
+        assertTrue(File(rootDir, "cache/new.hack").exists())
     }
 
     @Test

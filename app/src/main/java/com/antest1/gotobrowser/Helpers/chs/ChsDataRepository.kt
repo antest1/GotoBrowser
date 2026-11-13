@@ -391,9 +391,11 @@ object ChsDataRepository {
     private fun computeDirStamp(rootDir: File): String {
         if (!rootDir.isDirectory) return "empty"
         val sb = StringBuilder()
-        for (sub in listOf("text/text", "text/text_regex", "text/api")) {
+        for (sub in listOf("text/text", "text/text_regex", "text/api", "text", "api")) {
             val d = File(rootDir, sub)
-            val files = d.listFiles()?.sortedBy { it.name }.orEmpty()
+            val files = d.listFiles { f -> f.isFile && f.name.endsWith(".json") }
+                ?.sortedBy { it.name }
+                .orEmpty()
             sb.append(sub).append(':').append(files.size).append(';')
             for (f in files) {
                 sb.append(f.name).append('=').append(f.length()).append('@').append(f.lastModified()).append(',')

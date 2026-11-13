@@ -19,7 +19,6 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
@@ -67,13 +66,27 @@ class ChsDownloader(
     }
     private val workerExecutor = Executors.newSingleThreadExecutor()
 
-    private val isCancelled = AtomicBoolean(false)
+    private val nextTaskToken = AtomicLong(0L)
+    @Volatile
+    private var activeDownloadToken: Long = 0L
+    @Volatile
+    private var cancelledUpToToken: Long = 0L
     @Volatile
     private var activeDownloadPool: ExecutorService? = null
     @Volatile
     private var currentDownloadHost: SettingsStatusHost? = null
     @Volatile
     private var currentOnComplete: ((summary: String) -> Unit)? = null
+
+    internal fun beginDownloadTask(): Long {
+        val token = nextTaskToken.incrementAndGet()
+        activeDownloadToken = token
+        return token
+    }
+
+    internal fun isTaskCancelled(token: Long): Boolean {
+        return token != 0L && cancelledUpToToken >= token
+    }
 
     /** Shuts down background executors and cancels any active download. */
     fun shutdown() {
@@ -83,9 +96,11 @@ class ChsDownloader(
 
     /** Cancels an in-flight download or archive extraction. */
     fun cancelDownload() {
-        if (!isCancelled.compareAndSet(false, true)) {
+        val token = activeDownloadToken
+        if (token == 0L || cancelledUpToToken >= token) {
             return
         }
+        cancelledUpToToken = token
         try {
             httpClient.dispatcher.cancelAll()
         } catch (_: Exception) {}
@@ -177,21 +192,23 @@ class ChsDownloader(
         onCompleteSummary: (summary: String) -> Unit
     ) {
         val appContext = host.getContext()?.applicationContext ?: return
-        isCancelled.set(false)
+        val token = beginDownloadTask()
         currentDownloadHost = host
         currentOnComplete = onCompleteSummary
 
         val modTitle = appContext.getString(R.string.settings_mod_chs_download)
 
         mainHandler.post {
-            host.setPatchDownloadState(
-                PatchDownloadState.Running(
-                    message = appContext.getString(R.string.patch_download_checking),
-                    progress = null,
-                    title = modTitle,
-                    onCancel = { cancelDownload() }
+            if (!isTaskCancelled(token)) {
+                host.setPatchDownloadState(
+                    PatchDownloadState.Running(
+                        message = appContext.getString(R.string.patch_download_checking),
+                        progress = null,
+                        title = modTitle,
+                        onCancel = { cancelDownload() }
+                    )
                 )
-            )
+            }
         }
 
         workerExecutor.execute {
@@ -201,23 +218,25 @@ class ChsDownloader(
                 val manifestFile = ChsPaths.getLocalManifestFile(appContext)
                 val localMap = ChsManifest.loadLocalManifestMap(manifestFile)
 
-                if (isCancelled.get()) return@execute
+                if (isTaskCancelled(token)) return@execute
 
-                val remote = fetchRemoteManifest()
+                val remote = fetchRemoteManifest { isTaskCancelled(token) }
                     ?: throw IOException(appContext.getString(R.string.chs_status_check_failed))
 
-                if (isCancelled.get()) return@execute
+                if (isTaskCancelled(token)) return@execute
 
                 val diff = ChsManifest.computeDiff(remote, rootDir, localMap)
 
                 // Delete orphaned/stale files removed from upstream repo
                 for (relPath in diff.toDelete) {
+                    if (isTaskCancelled(token)) return@execute
                     if (deleteStaleFile(rootDir, relPath)) {
                         localMap.remove(relPath)
                     }
                 }
 
                 if (diff.toDownload.isEmpty()) {
+                    if (isTaskCancelled(token)) return@execute
                     ChsConfig.setLocalVersion(remote.version)
                     ChsManifest.saveLocalManifestMap(manifestFile, remote.version, localMap)
                     ChsDataRepository.invalidateCache()
@@ -225,7 +244,7 @@ class ChsDownloader(
                     ChsConfig.prepare(appContext)
 
                     mainHandler.post {
-                        if (!isCancelled.get()) {
+                        if (!isTaskCancelled(token)) {
                             host.setPatchDownloadState(PatchDownloadState.Idle)
                             host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
                             onCompleteSummary(
@@ -236,7 +255,7 @@ class ChsDownloader(
                     return@execute
                 }
 
-                if (isCancelled.get()) return@execute
+                if (isTaskCancelled(token)) return@execute
 
                 val baseUrl = ChsConfig.resolveRawBaseUrl()
                 downloadEntriesIncrementally(
@@ -246,8 +265,9 @@ class ChsDownloader(
                     localMap = localMap,
                     manifestFile = manifestFile,
                     remoteVersion = remote.version,
+                    isCancelledCheck = { isTaskCancelled(token) },
                     onProgress = { current, total, fileName, downloadedBytes ->
-                        if (isCancelled.get()) return@downloadEntriesIncrementally
+                        if (isTaskCancelled(token)) return@downloadEntriesIncrementally
                         val fraction = if (total > 0) current.toFloat() / total.toFloat() else null
                         val msg = String.format(
                             Locale.US,
@@ -258,7 +278,7 @@ class ChsDownloader(
                             formatSize(downloadedBytes)
                         )
                         mainHandler.post {
-                            if (!isCancelled.get()) {
+                            if (!isTaskCancelled(token)) {
                                 host.setPatchDownloadState(
                                     PatchDownloadState.Running(
                                         message = msg,
@@ -272,7 +292,7 @@ class ChsDownloader(
                     }
                 )
 
-                if (isCancelled.get()) return@execute
+                if (isTaskCancelled(token)) return@execute
 
                 ChsConfig.setLocalVersion(remote.version)
                 ChsManifest.saveLocalManifestMap(manifestFile, remote.version, localMap)
@@ -281,7 +301,7 @@ class ChsDownloader(
                 ChsConfig.prepare(appContext)
 
                 mainHandler.post {
-                    if (!isCancelled.get()) {
+                    if (!isTaskCancelled(token)) {
                         host.setPatchDownloadState(PatchDownloadState.Idle)
                         host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
                         onCompleteSummary(
@@ -290,7 +310,7 @@ class ChsDownloader(
                     }
                 }
             } catch (e: Exception) {
-                if (isCancelled.get()) {
+                if (isTaskCancelled(token)) {
                     Log.i(TAG, "CHS download cancelled by user")
                     return@execute
                 }
@@ -301,6 +321,9 @@ class ChsDownloader(
                     onCompleteSummary(appContext.getString(R.string.chs_download_failed_summary))
                 }
             } finally {
+                if (activeDownloadToken == token) {
+                    activeDownloadToken = 0L
+                }
                 currentDownloadHost = null
                 currentOnComplete = null
             }
@@ -315,49 +338,58 @@ class ChsDownloader(
         onCompleteSummary: (summary: String) -> Unit
     ) {
         val appContext = host.getContext()?.applicationContext ?: return
-        isCancelled.set(false)
+        val token = beginDownloadTask()
         currentDownloadHost = host
         currentOnComplete = onCompleteSummary
 
         val title = appContext.getString(R.string.settings_mod_chs_download_archive_option)
 
         mainHandler.post {
-            host.setPatchDownloadState(
-                PatchDownloadState.Running(
-                    message = appContext.getString(R.string.patch_download_checking),
-                    progress = null,
-                    title = title,
-                    onCancel = { cancelDownload() }
+            if (!isTaskCancelled(token)) {
+                host.setPatchDownloadState(
+                    PatchDownloadState.Running(
+                        message = appContext.getString(R.string.patch_download_checking),
+                        progress = null,
+                        title = title,
+                        onCancel = { cancelDownload() }
+                    )
                 )
-            )
+            }
         }
 
         workerExecutor.execute {
             var archivePartFile: File? = null
             var archiveZipFile: File? = null
+            var stagingDir: File? = null
             try {
                 ChsConfig.init(appContext)
                 val rootDir = ChsPaths.getRootDir(appContext)
                 rootDir.mkdirs()
 
-                if (isCancelled.get()) return@execute
+                if (isTaskCancelled(token)) return@execute
 
                 // 1. Fetch latest release tag
                 val tag = fetchLatestReleaseTag()
                     ?: throw IOException(appContext.getString(R.string.chs_status_check_failed))
 
-                if (isCancelled.get()) return@execute
+                if (isTaskCancelled(token)) return@execute
 
                 val candidateUrls = resolveReleaseArchiveUrls(tag)
                 archiveZipFile = File(rootDir, "release_$tag.zip")
                 archivePartFile = File(rootDir, "release_$tag.zip.part")
+                stagingDir = File(rootDir, ".staging_$token")
+                if (stagingDir.exists()) {
+                    stagingDir.deleteRecursively()
+                }
+                stagingDir.mkdirs()
 
                 // 2. Stream-download release archive with progress updates
                 downloadArchiveFile(
                     candidateUrls = candidateUrls,
                     destFile = archivePartFile,
+                    isCancelledCheck = { isTaskCancelled(token) },
                     onProgress = { downloaded, total ->
-                        if (isCancelled.get()) return@downloadArchiveFile
+                        if (isTaskCancelled(token)) return@downloadArchiveFile
                         val fraction = if (total > 0L) (downloaded.toFloat() / total.toFloat()).coerceIn(0f, 1f) else null
                         val msg = if (total > 0L) {
                             String.format(Locale.US, "%s / %s", formatSize(downloaded), formatSize(total))
@@ -365,7 +397,7 @@ class ChsDownloader(
                             formatSize(downloaded)
                         }
                         mainHandler.post {
-                            if (!isCancelled.get()) {
+                            if (!isTaskCancelled(token)) {
                                 host.setPatchDownloadState(
                                     PatchDownloadState.Running(
                                         message = msg,
@@ -379,7 +411,7 @@ class ChsDownloader(
                     }
                 )
 
-                if (isCancelled.get()) {
+                if (isTaskCancelled(token)) {
                     archivePartFile.delete()
                     return@execute
                 }
@@ -389,9 +421,9 @@ class ChsDownloader(
                     archivePartFile.delete()
                 }
 
-                // 3. Extract zip archive with progress updates
+                // 3. Extract zip archive into isolated staging directory before touching rootDir
                 mainHandler.post {
-                    if (!isCancelled.get()) {
+                    if (!isTaskCancelled(token)) {
                         host.setPatchDownloadState(
                             PatchDownloadState.Running(
                                 message = appContext.getString(R.string.patch_download_extracting),
@@ -403,17 +435,21 @@ class ChsDownloader(
                     }
                 }
 
-                extractZipArchive(archiveZipFile, rootDir) { extractedCount, fileName ->
-                    if (isCancelled.get()) return@extractZipArchive
+                val extractedCount = extractZipArchive(
+                    zipFile = archiveZipFile,
+                    targetDir = stagingDir,
+                    isCancelledCheck = { isTaskCancelled(token) }
+                ) { count, fileName ->
+                    if (isTaskCancelled(token)) return@extractZipArchive
                     val msg = String.format(
                         Locale.US,
                         "%s (%d)\n%s",
                         appContext.getString(R.string.patch_download_extracting),
-                        extractedCount,
+                        count,
                         fileName
                     )
                     mainHandler.post {
-                        if (!isCancelled.get()) {
+                        if (!isTaskCancelled(token)) {
                             host.setPatchDownloadState(
                                 PatchDownloadState.Running(
                                     message = msg,
@@ -426,13 +462,19 @@ class ChsDownloader(
                     }
                 }
 
-                if (isCancelled.get()) return@execute
+                if (isTaskCancelled(token)) return@execute
+                if (extractedCount <= 0) {
+                    throw IOException("Archive contained no supported CHS patch files")
+                }
 
                 archiveZipFile.delete()
+                commitStagingDirectory(stagingDir, rootDir)
+
+                if (isTaskCancelled(token)) return@execute
 
                 // Verify extracted files against remote hashes before checking remaining incremental updates.
                 mainHandler.post {
-                    if (!isCancelled.get()) {
+                    if (!isTaskCancelled(token)) {
                         host.setPatchDownloadState(
                             PatchDownloadState.Running(
                                 message = appContext.getString(R.string.patch_download_checking),
@@ -447,10 +489,16 @@ class ChsDownloader(
                 val manifestFile = ChsPaths.getLocalManifestFile(appContext)
                 val localMap = ChsManifest.loadLocalManifestMap(manifestFile)
 
-                val remote = fetchRemoteManifest()
+                val remote = fetchRemoteManifest { isTaskCancelled(token) }
+                if (isTaskCancelled(token)) return@execute
+
                 if (remote != null) {
-                    reconcileExtractedFilesWithRemote(remote, rootDir, localMap)
+                    reconcileExtractedFilesWithRemote(remote, rootDir, localMap) { isTaskCancelled(token) }
+                    if (isTaskCancelled(token)) return@execute
+
                     val diff = ChsManifest.computeDiff(remote, rootDir, localMap)
+                    if (isTaskCancelled(token)) return@execute
+
                     if (diff.hasUpdates) {
                         // Record release tag so remaining incremental files still trigger an update prompt.
                         ChsConfig.setLocalVersion(tag)
@@ -464,23 +512,25 @@ class ChsDownloader(
                     ChsConfig.prepare(appContext)
 
                     mainHandler.post {
-                        host.setPatchDownloadState(PatchDownloadState.Idle)
-                        if (diff.hasUpdates) {
-                            val changeCount = diff.toDownload.size + diff.toDelete.size
-                            host.showPatchMessage(appContext.getString(R.string.chs_archive_extracted_with_updates))
-                            onCompleteSummary(
-                                appContext.getString(
-                                    R.string.chs_status_update_available_format,
-                                    remote.version,
-                                    changeCount,
-                                    formatSize(diff.totalDownloadBytes)
+                        if (!isTaskCancelled(token)) {
+                            host.setPatchDownloadState(PatchDownloadState.Idle)
+                            if (diff.hasUpdates) {
+                                val changeCount = diff.toDownload.size + diff.toDelete.size
+                                host.showPatchMessage(appContext.getString(R.string.chs_archive_extracted_with_updates))
+                                onCompleteSummary(
+                                    appContext.getString(
+                                        R.string.chs_status_update_available_format,
+                                        remote.version,
+                                        changeCount,
+                                        formatSize(diff.totalDownloadBytes)
+                                    )
                                 )
-                            )
-                        } else {
-                            host.showPatchMessage(appContext.getString(R.string.chs_archive_extracted_up_to_date))
-                            onCompleteSummary(
-                                appContext.getString(R.string.chs_status_up_to_date_format, remote.version)
-                            )
+                            } else {
+                                host.showPatchMessage(appContext.getString(R.string.chs_archive_extracted_up_to_date))
+                                onCompleteSummary(
+                                    appContext.getString(R.string.chs_status_up_to_date_format, remote.version)
+                                )
+                            }
                         }
                     }
                 } else {
@@ -488,11 +538,14 @@ class ChsDownloader(
                     // When remote manifest is unreachable, compute SHA-256 hashes (matching manifest.json)
                     // for all extracted files and persist to local manifest map.
                     rootDir.walkTopDown().filter { it.isFile }.forEach { f ->
+                        if (isTaskCancelled(token)) return@execute
                         val relPath = f.relativeTo(rootDir).path.replace('\\', '/')
                         if (ChsManifest.isSupportedRepoPath(relPath)) {
                             localMap[relPath] = ChsManifest.sha256Hex(f)
                         }
                     }
+                    if (isTaskCancelled(token)) return@execute
+
                     ChsConfig.setLocalVersion(baseVersion)
                     ChsManifest.saveLocalManifestMap(manifestFile, baseVersion, localMap)
                     ChsDataRepository.invalidateCache()
@@ -500,17 +553,19 @@ class ChsDownloader(
                     ChsConfig.prepare(appContext)
 
                     mainHandler.post {
-                        host.setPatchDownloadState(PatchDownloadState.Idle)
-                        host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
-                        onCompleteSummary(
-                            appContext.getString(R.string.chs_status_offline_installed, baseVersion)
-                        )
+                        if (!isTaskCancelled(token)) {
+                            host.setPatchDownloadState(PatchDownloadState.Idle)
+                            host.showPatchMessage(appContext.getString(R.string.patch_download_updated))
+                            onCompleteSummary(
+                                appContext.getString(R.string.chs_status_offline_installed, baseVersion)
+                            )
+                        }
                     }
                 }
             } catch (e: Exception) {
                 archivePartFile?.delete()
                 archiveZipFile?.delete()
-                if (isCancelled.get()) {
+                if (isTaskCancelled(token)) {
                     Log.i(TAG, "CHS release archive download cancelled by user")
                     return@execute
                 }
@@ -521,6 +576,12 @@ class ChsDownloader(
                     onCompleteSummary(appContext.getString(R.string.chs_download_failed_summary))
                 }
             } finally {
+                try {
+                    stagingDir?.deleteRecursively()
+                } catch (_: Exception) {}
+                if (activeDownloadToken == token) {
+                    activeDownloadToken = 0L
+                }
                 currentDownloadHost = null
                 currentOnComplete = null
             }
@@ -528,25 +589,94 @@ class ChsDownloader(
     }
 
     /**
+     * Atomically replaces `text/` and `cache/` inside [rootDir] from [stagingDir],
+     * restoring backups if swapping fails so [rootDir] is never left half-written.
+     */
+    internal fun commitStagingDirectory(stagingDir: File, rootDir: File) {
+        val stagedDirs = listOf("text", "cache").filter { File(stagingDir, it).isDirectory }
+        if (stagedDirs.isEmpty()) {
+            throw IOException("Staging directory contains neither text/ nor cache/")
+        }
+        val backups = mutableListOf<Pair<File, File>>()
+        try {
+            for (name in stagedDirs) {
+                val stagedSub = File(stagingDir, name)
+                val targetSub = File(rootDir, name)
+                if (targetSub.exists()) {
+                    val backupSub = File(rootDir, ".backup_${name}_${System.nanoTime()}")
+                    if (backupSub.exists()) {
+                        backupSub.deleteRecursively()
+                    }
+                    if (!targetSub.renameTo(backupSub)) {
+                        targetSub.copyRecursively(backupSub, overwrite = true)
+                        if (!targetSub.deleteRecursively()) {
+                            throw IOException("Failed to prepare backup for $name")
+                        }
+                    }
+                    backups.add(targetSub to backupSub)
+                }
+                if (!stagedSub.renameTo(targetSub)) {
+                    stagedSub.copyRecursively(targetSub, overwrite = true)
+                    stagedSub.deleteRecursively()
+                }
+            }
+            for ((_, backupSub) in backups) {
+                backupSub.deleteRecursively()
+            }
+        } catch (e: Exception) {
+            for ((targetSub, backupSub) in backups) {
+                try {
+                    if (targetSub.exists()) {
+                        targetSub.deleteRecursively()
+                    }
+                    if (backupSub.exists() && !backupSub.renameTo(targetSub)) {
+                        backupSub.copyRecursively(targetSub, overwrite = true)
+                        backupSub.deleteRecursively()
+                    }
+                } catch (_: Exception) {}
+            }
+            throw e
+        }
+    }
+
+    /**
      * Verifies extracted archive files against [remote] hashes before updating [localMap].
      * Any missing, size-mismatched, or hash-mismatched file is excluded so it will be repaired
-     * by incremental download. Files deleted upstream are removed from disk.
+     * by incremental download. Files deleted upstream or untracked in [rootDir] are removed.
      */
     fun reconcileExtractedFilesWithRemote(
         remote: ChsManifest.ManifestData,
         rootDir: File,
-        localMap: MutableMap<String, String>
+        localMap: MutableMap<String, String>,
+        isCancelledCheck: () -> Boolean = { false }
     ) {
         val remotePaths = remote.files.map { it.path }.toSet()
         val iterator = localMap.entries.iterator()
         while (iterator.hasNext()) {
+            if (isCancelledCheck()) throw IOException("Download cancelled")
             val entry = iterator.next()
             if (!remotePaths.contains(entry.key) && deleteStaleFile(rootDir, entry.key)) {
                 iterator.remove()
             }
         }
 
+        // Purge any untracked supported files extracted from the archive that are absent from remote manifest.
+        for (subName in listOf("text", "cache")) {
+            val subDir = File(rootDir, subName)
+            if (subDir.isDirectory) {
+                subDir.walkTopDown().filter { it.isFile }.forEach { f ->
+                    if (isCancelledCheck()) throw IOException("Download cancelled")
+                    val relPath = f.relativeTo(rootDir).path.replace('\\', '/')
+                    if (ChsManifest.isSupportedRepoPath(relPath) && !remotePaths.contains(relPath)) {
+                        f.delete()
+                        localMap.remove(relPath)
+                    }
+                }
+            }
+        }
+
         for (entry in remote.files) {
+            if (isCancelledCheck()) throw IOException("Download cancelled")
             val f = File(rootDir, entry.path)
             val sizeMatches = entry.size <= 0L || f.length() == entry.size
             if (f.isFile && sizeMatches && ChsManifest.verifyFileHash(f, entry.hash, entry.hashType)) {
@@ -580,6 +710,7 @@ class ChsDownloader(
         localMap: MutableMap<String, String>,
         manifestFile: File,
         remoteVersion: String,
+        isCancelledCheck: () -> Boolean = { false },
         onProgress: (completed: Int, total: Int, currentFile: String, totalBytes: Long) -> Unit = { _, _, _, _ -> }
     ) {
         val normalizedBase = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
@@ -595,16 +726,16 @@ class ChsDownloader(
         try {
             val futures = entries.map { entry ->
                 pool.submit {
-                    if (isCancelled.get() || firstError.get() != null) return@submit
+                    if (isCancelledCheck() || firstError.get() != null) return@submit
                     val targetFile = File(rootDir, entry.path)
                     val tempFile = File(rootDir, "${entry.path}.part")
                     try {
                         tempFile.parentFile?.mkdirs()
 
                         val fileUrl = normalizedBase + entry.path
-                        downloadSingleFile(fileUrl, tempFile)
+                        downloadSingleFile(fileUrl, tempFile, isCancelledCheck)
 
-                        if (isCancelled.get()) {
+                        if (isCancelledCheck()) {
                             tempFile.delete()
                             return@submit
                         }
@@ -614,7 +745,7 @@ class ChsDownloader(
                             throw IOException("Hash mismatch (${entry.hashType}): ${entry.path}")
                         }
 
-                        if (isCancelled.get()) {
+                        if (isCancelledCheck()) {
                             tempFile.delete()
                             return@submit
                         }
@@ -650,7 +781,7 @@ class ChsDownloader(
                             if (tempFile.exists()) tempFile.delete()
                         } catch (_: Exception) {
                         }
-                        if (!isCancelled.get()) {
+                        if (!isCancelledCheck()) {
                             firstError.compareAndSet(null, e)
                         }
                     }
@@ -661,14 +792,14 @@ class ChsDownloader(
                     f.get()
                 } catch (_: Exception) {
                 }
-                if (isCancelled.get()) break
+                if (isCancelledCheck()) break
             }
         } finally {
             activeDownloadPool = null
             pool.shutdownNow()
         }
 
-        if (isCancelled.get()) {
+        if (isCancelledCheck()) {
             return
         }
 
@@ -706,11 +837,11 @@ class ChsDownloader(
      * Fetches manifest.json from the selected mirror; falls back to GitHub Trees API (unproxied)
      * when manifest.json is missing or unreachable.
      */
-    fun fetchRemoteManifest(): ChsManifest.ManifestData? {
+    fun fetchRemoteManifest(isCancelledCheck: () -> Boolean = { false }): ChsManifest.ManifestData? {
         val baseUrl = ChsConfig.resolveRawBaseUrl()
         val manifestUrl = "${baseUrl}manifest.json"
         try {
-            val raw = fetchUrlString(manifestUrl)
+            val raw = fetchUrlString(manifestUrl, isCancelledCheck)
             if (!raw.isNullOrBlank()) {
                 ChsManifest.parseManifestJson(raw)?.takeIf { it.files.isNotEmpty() }?.let {
                     return it
@@ -719,9 +850,11 @@ class ChsDownloader(
         } catch (_: Exception) {
         }
 
+        if (isCancelledCheck()) return null
+
         // Fall back to GitHub Git Trees API (?recursive=1) which provides git blob SHA-1 hashes.
         return try {
-            val treeRaw = fetchUrlString(GITHUB_TREES_API)
+            val treeRaw = fetchUrlString(GITHUB_TREES_API, isCancelledCheck)
             ChsManifest.parseGithubTreeJson(treeRaw)?.takeIf { it.files.isNotEmpty() }
         } catch (e: Exception) {
             Log.w(TAG, "GitHub Trees API fallback failed: ${e.message}")
@@ -729,7 +862,7 @@ class ChsDownloader(
         }
     }
 
-    private fun fetchUrlString(url: String): String? {
+    private fun fetchUrlString(url: String, isCancelledCheck: () -> Boolean = { false }): String? {
         val req = Request.Builder()
             .url(url)
             .header("Accept", "application/json")
@@ -748,7 +881,7 @@ class ChsDownloader(
                 val buffer = ByteArray(BUFFER_SIZE)
                 var totalRead = 0L
                 while (true) {
-                    if (isCancelled.get()) {
+                    if (isCancelledCheck()) {
                         throw IOException("Download cancelled")
                     }
                     val read = input.read(buffer)
@@ -764,7 +897,11 @@ class ChsDownloader(
         }
     }
 
-    private fun downloadSingleFile(url: String, destFile: File) {
+    private fun downloadSingleFile(
+        url: String,
+        destFile: File,
+        isCancelledCheck: () -> Boolean = { false }
+    ) {
         val req = Request.Builder().url(url).build()
         httpClient.newCall(req).execute().use { resp ->
             if (!resp.isSuccessful) {
@@ -781,7 +918,7 @@ class ChsDownloader(
                     val buffer = ByteArray(BUFFER_SIZE)
                     var totalRead = 0L
                     while (true) {
-                        if (isCancelled.get()) {
+                        if (isCancelledCheck()) {
                             throw IOException("Download cancelled")
                         }
                         val read = input.read(buffer)
@@ -841,11 +978,12 @@ class ChsDownloader(
     private fun downloadArchiveFile(
         candidateUrls: List<String>,
         destFile: File,
+        isCancelledCheck: () -> Boolean = { false },
         onProgress: (downloadedBytes: Long, totalBytes: Long) -> Unit
     ) {
         var lastException: Exception? = null
         for (url in candidateUrls) {
-            if (isCancelled.get()) return
+            if (isCancelledCheck()) return
             try {
                 val req = Request.Builder().url(url).build()
                 httpClient.newCall(req).execute().use { resp ->
@@ -864,7 +1002,7 @@ class ChsDownloader(
                             var totalRead = 0L
                             var lastReportTime = 0L
                             while (true) {
-                                if (isCancelled.get()) {
+                                if (isCancelledCheck()) {
                                     throw IOException("Download cancelled")
                                 }
                                 val read = input.read(buffer)
@@ -890,7 +1028,7 @@ class ChsDownloader(
                 return
             } catch (e: Exception) {
                 destFile.delete()
-                if (isCancelled.get()) throw e
+                if (isCancelledCheck()) throw e
                 lastException = e
             }
         }
@@ -900,6 +1038,7 @@ class ChsDownloader(
     fun extractZipArchive(
         zipFile: File,
         targetDir: File,
+        isCancelledCheck: () -> Boolean = { false },
         onProgress: (extractedCount: Int, fileName: String) -> Unit
     ): Int {
         var count = 0
@@ -909,7 +1048,7 @@ class ChsDownloader(
         java.util.zip.ZipInputStream(java.io.BufferedInputStream(java.io.FileInputStream(zipFile), BUFFER_SIZE)).use { zis ->
             var entry: java.util.zip.ZipEntry? = zis.nextEntry
             while (entry != null) {
-                if (isCancelled.get()) {
+                if (isCancelledCheck()) {
                     throw IOException("Extraction cancelled")
                 }
                 val name = entry.name.replace('\\', '/')
@@ -933,7 +1072,7 @@ class ChsDownloader(
                         FileOutputStream(outFile).buffered(BUFFER_SIZE).use { fos ->
                             var len: Int
                             while (zis.read(buffer).also { len = it } > 0) {
-                                if (isCancelled.get()) throw IOException("Extraction cancelled")
+                                if (isCancelledCheck()) throw IOException("Extraction cancelled")
                                 fos.write(buffer, 0, len)
                             }
                         }

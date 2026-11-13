@@ -95,4 +95,21 @@ class ChsPatcherTest {
         assertTrue(apiScript.contains("axios.interceptors.response.use"))
         assertFalse(apiScript.contains("XMLHttpRequest"))
     }
+
+    @Test
+    fun `PIXI text hook wraps defineProperty in try-catch and sets hooked flag after success`() {
+        val textResult = ChsTextPatcher.patchMainJsWithData(
+            mainJs = "function gameMain() {}",
+            textDict = mapOf("k" to "v"),
+            regexRules = emptyList()
+        )
+        val hookIdx = textResult.indexOf("function hookPixiText()")
+        val tryIdx = textResult.indexOf("try {", hookIdx)
+        val defIdx = textResult.indexOf("Object.defineProperty(PIXI.Text.prototype, 'text'", hookIdx)
+        val flagIdx = textResult.indexOf("PIXI.Text.prototype.__kanchs_text_hooked = true;", hookIdx)
+        val catchIdx = textResult.indexOf("} catch (e) {", hookIdx)
+        assertTrue("Expected hookPixiText() in generated script", hookIdx >= 0)
+        assertTrue("Expected try block around Object.defineProperty", tryIdx in (hookIdx + 1) until defIdx)
+        assertTrue("Expected __kanchs_text_hooked = true after defineProperty", defIdx < flagIdx && flagIdx < catchIdx)
+    }
 }
