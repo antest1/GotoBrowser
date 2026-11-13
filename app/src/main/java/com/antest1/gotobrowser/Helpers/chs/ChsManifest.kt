@@ -140,11 +140,18 @@ object ChsManifest {
         for (entry in candidates) {
             val localFile = File(localRootDir, entry.path)
             val recordedHash = localManifest[entry.path]
-            val isSameHash = recordedHash != null && recordedHash.equals(entry.hash, ignoreCase = true)
             val isFileValid = localFile.isFile && localFile.length() > 0L &&
                 (entry.size <= 0L || localFile.length() == entry.size)
+            val isSameHash = when {
+                !isFileValid -> false
+                recordedHash != null && recordedHash.equals(entry.hash, ignoreCase = true) -> true
+                // Handle migration between 40-char git_sha and 64-char sha256 without re-downloading valid files.
+                recordedHash != null && recordedHash.length != entry.hash.length ->
+                    verifyFileHash(localFile, entry.hash, entry.hashType)
+                else -> false
+            }
 
-            if (isSameHash && isFileValid) {
+            if (isSameHash) {
                 upToDate++
             } else {
                 toDownload.add(entry)

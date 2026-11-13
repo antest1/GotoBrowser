@@ -148,10 +148,11 @@ class ChsDownloader(
                         formatSize(diff.totalDownloadBytes)
                     )
                 } else if (diff.hasUpdates) {
+                    val changeCount = if (diff.toDownload.isNotEmpty()) diff.toDownload.size else diff.toDelete.size
                     appContext.getString(
                         R.string.chs_status_update_available_format,
                         remote.version,
-                        diff.toDownload.size,
+                        changeCount,
                         formatSize(diff.totalDownloadBytes)
                     )
                 } else {
@@ -465,12 +466,13 @@ class ChsDownloader(
                     mainHandler.post {
                         host.setPatchDownloadState(PatchDownloadState.Idle)
                         if (diff.hasUpdates) {
+                            val changeCount = if (diff.toDownload.isNotEmpty()) diff.toDownload.size else diff.toDelete.size
                             host.showPatchMessage(appContext.getString(R.string.chs_archive_extracted_with_updates))
                             onCompleteSummary(
                                 appContext.getString(
                                     R.string.chs_status_update_available_format,
                                     remote.version,
-                                    diff.toDownload.size,
+                                    changeCount,
                                     formatSize(diff.totalDownloadBytes)
                                 )
                             )
@@ -483,12 +485,12 @@ class ChsDownloader(
                     }
                 } else {
                     val baseVersion = "$tag (release)"
-                    // When remote manifest is unreachable, compute git blob SHA-1 hashes
+                    // When remote manifest is unreachable, compute SHA-256 hashes (matching manifest.json)
                     // for all extracted files and persist to local manifest map.
                     rootDir.walkTopDown().filter { it.isFile }.forEach { f ->
                         val relPath = f.relativeTo(rootDir).path.replace('\\', '/')
-                        if (relPath.startsWith("text/") || relPath.startsWith("cache/")) {
-                            localMap[relPath] = ChsManifest.gitBlobSha1Hex(f)
+                        if (ChsManifest.isSupportedRepoPath(relPath)) {
+                            localMap[relPath] = ChsManifest.sha256Hex(f)
                         }
                     }
                     ChsConfig.setLocalVersion(baseVersion)

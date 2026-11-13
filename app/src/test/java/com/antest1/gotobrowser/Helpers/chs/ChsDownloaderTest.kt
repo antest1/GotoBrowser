@@ -80,7 +80,7 @@ class ChsDownloaderTest {
         val localMap = mutableMapOf(
             "text/corrupt.txt" to ChsManifest.gitBlobSha1Hex(validFile),
             "text/old_stale.txt" to "stale_hash",
-            "text/../outside_do_not_delete.txt" to "evil_hash"
+            "text/../../outside_do_not_delete.txt" to "evil_hash"
         )
         val staleFile = File(rootDir, "text/old_stale.txt").apply { writeText("stale") }
 
@@ -89,7 +89,7 @@ class ChsDownloaderTest {
 
         assertFalse(localMap.containsKey("text/corrupt.txt"))
         assertFalse(localMap.containsKey("text/old_stale.txt"))
-        assertFalse(localMap.containsKey("text/../outside_do_not_delete.txt"))
+        assertFalse(localMap.containsKey("text/../../outside_do_not_delete.txt"))
         assertFalse("Stale file should be deleted from disk", staleFile.exists())
         assertTrue("Traversal target outside rootDir must NOT be deleted", outsideFile.exists())
         assertFalse(localMap["text/valid.txt"].isNullOrEmpty())

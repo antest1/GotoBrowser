@@ -116,4 +116,26 @@ class ChsManifestTest {
         assertTrue(ChsManifest.verifyFileHash(helloFile, sha256, "sha256"))
         assertFalse(ChsManifest.verifyFileHash(helloFile, sha256.replaceFirstChar { if (it == 'a') 'b' else 'a' }, "sha256"))
     }
+
+    @Test
+    fun `computeDiff avoids redundant download when migrating from git_sha to sha256`() {
+        val rootDir = tempFolder.newFolder("chs_migrate")
+        val textFile = File(rootDir, "text/sample.json").apply {
+            parentFile?.mkdirs()
+            writeText("{\"k\":\"v\"}")
+        }
+        val gitSha = ChsManifest.gitBlobSha1Hex(textFile)
+        val sha256 = ChsManifest.sha256Hex(textFile)
+
+        val remote = ChsManifest.ManifestData(
+            version = "v2.1",
+            files = listOf(ChsManifest.FileEntry("text/sample.json", textFile.length(), sha256, "sha256"))
+        )
+        val localMap = mapOf("text/sample.json" to gitSha)
+
+        val diff = ChsManifest.computeDiff(remote, rootDir, localMap)
+        assertFalse(diff.hasUpdates)
+        assertEquals(1, diff.upToDateCount)
+        assertTrue(diff.toDownload.isEmpty())
+    }
 }
