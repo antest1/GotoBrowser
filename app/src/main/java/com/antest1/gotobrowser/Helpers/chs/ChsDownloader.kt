@@ -211,11 +211,9 @@ class ChsDownloader(
 
                 // Delete orphaned/stale files removed from upstream repo
                 for (relPath in diff.toDelete) {
-                    val deadFile = File(rootDir, relPath)
-                    if (deadFile.exists()) {
-                        deadFile.delete()
+                    if (deleteStaleFile(rootDir, relPath)) {
+                        localMap.remove(relPath)
                     }
-                    localMap.remove(relPath)
                 }
 
                 if (diff.toDownload.isEmpty()) {
@@ -541,9 +539,7 @@ class ChsDownloader(
         val iterator = localMap.entries.iterator()
         while (iterator.hasNext()) {
             val entry = iterator.next()
-            if (!remotePaths.contains(entry.key)) {
-                val dead = File(rootDir, entry.key)
-                if (dead.exists()) dead.delete()
+            if (!remotePaths.contains(entry.key) && deleteStaleFile(rootDir, entry.key)) {
                 iterator.remove()
             }
         }
@@ -557,6 +553,19 @@ class ChsDownloader(
                 localMap.remove(entry.path)
             }
         }
+    }
+
+    /**
+     * Safely deletes an obsolete file inside [rootDir]. Returns true if the manifest key
+     * should be removed (deleted, already absent, or unsafe path rejected without disk access).
+     */
+    private fun deleteStaleFile(rootDir: File, relPath: String): Boolean {
+        val dead = ChsManifest.safeResolveUnderRoot(rootDir, relPath)
+        if (dead == null) {
+            try { Log.w(TAG, "Skipped unsafe stale path: $relPath") } catch (_: Throwable) {}
+            return true
+        }
+        return !dead.exists() || dead.delete()
     }
 
     /**

@@ -2,6 +2,7 @@ package com.antest1.gotobrowser.Helpers.chs
 
 import android.app.Application
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -75,9 +76,11 @@ class ChsDownloaderTest {
             )
         )
 
+        val outsideFile = File(rootDir.parentFile, "outside_do_not_delete.txt").apply { writeText("keep") }
         val localMap = mutableMapOf(
             "text/corrupt.txt" to ChsManifest.gitBlobSha1Hex(validFile),
-            "text/old_stale.txt" to "stale_hash"
+            "text/old_stale.txt" to "stale_hash",
+            "text/../outside_do_not_delete.txt" to "evil_hash"
         )
         val staleFile = File(rootDir, "text/old_stale.txt").apply { writeText("stale") }
 
@@ -86,7 +89,9 @@ class ChsDownloaderTest {
 
         assertFalse(localMap.containsKey("text/corrupt.txt"))
         assertFalse(localMap.containsKey("text/old_stale.txt"))
+        assertFalse(localMap.containsKey("text/../outside_do_not_delete.txt"))
         assertFalse("Stale file should be deleted from disk", staleFile.exists())
+        assertTrue("Traversal target outside rootDir must NOT be deleted", outsideFile.exists())
         assertFalse(localMap["text/valid.txt"].isNullOrEmpty())
     }
 }

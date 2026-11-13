@@ -85,17 +85,20 @@ class ChsManifestTest {
         assertEquals(sha, reloaded["text/version.json"])
         assertFalse(reloaded.containsKey("non_existent"))
 
-        // 3. Stale/deleted file detection
+        // 3. Stale/deleted file detection (must reject traversal paths)
         val staleLocalMap = mapOf(
             "text/version.json" to sha,
             "text/old_removed.json" to "old_hash",
-            "cache/kcs2/old_img.hack.png" to "old_img_hash"
+            "cache/kcs2/old_img.hack.png" to "old_img_hash",
+            "text/../../escape.txt" to "bad_hash"
         )
         val diffWithDeletions = ChsManifest.computeDiff(remote, rootDir, staleLocalMap)
         assertTrue(diffWithDeletions.hasUpdates)
         assertEquals(2, diffWithDeletions.toDelete.size)
         assertTrue(diffWithDeletions.toDelete.contains("text/old_removed.json"))
         assertTrue(diffWithDeletions.toDelete.contains("cache/kcs2/old_img.hack.png"))
+        assertFalse(diffWithDeletions.toDelete.contains("text/../../escape.txt"))
+        assertEquals(null, ChsManifest.safeResolveUnderRoot(rootDir, "text/../../escape.txt"))
     }
 
     @Test

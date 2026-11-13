@@ -100,10 +100,27 @@ object ChsManifest {
     }
 
     fun isSupportedRepoPath(path: String): Boolean {
-        if (path.contains("..")) return false
+        if (path.isEmpty() || path.contains("..") || path.contains('\\') || path.contains('\u0000')) {
+            return false
+        }
         // GotoBrowser uses its own subtitle system; skip subtitle sub-directory.
         if (path.startsWith("text/text/subtitles/")) return false
         return path.startsWith("text/") || path.startsWith("cache/")
+    }
+
+    /**
+     * Resolves [relPath] safely inside [rootDir], returning null if path traversal is attempted.
+     */
+    fun safeResolveUnderRoot(rootDir: File, relPath: String): File? {
+        if (!isSupportedRepoPath(relPath)) return null
+        return try {
+            val canonicalRoot = rootDir.canonicalPath
+            val prefix = if (canonicalRoot.endsWith(File.separator)) canonicalRoot else canonicalRoot + File.separator
+            val candidate = File(rootDir, relPath)
+            if (candidate.canonicalPath.startsWith(prefix)) candidate else null
+        } catch (_: Exception) {
+            null
+        }
     }
 
     /**
@@ -140,7 +157,7 @@ object ChsManifest {
         val remotePathSet = candidates.map { it.path }.toSet()
         val toDelete = ArrayList<String>()
         for (localPath in localManifest.keys) {
-            if ((localPath.startsWith("text/") || localPath.startsWith("cache/")) && !remotePathSet.contains(localPath)) {
+            if (isSupportedRepoPath(localPath) && !remotePathSet.contains(localPath)) {
                 toDelete.add(localPath)
             }
         }
