@@ -323,9 +323,9 @@ class ChsDownloader(
             } finally {
                 if (activeDownloadToken == token) {
                     activeDownloadToken = 0L
+                    currentDownloadHost = null
+                    currentOnComplete = null
                 }
-                currentDownloadHost = null
-                currentOnComplete = null
             }
         }
     }
@@ -468,11 +468,8 @@ class ChsDownloader(
                 }
 
                 archiveZipFile.delete()
-                commitStagingDirectory(stagingDir, rootDir)
 
-                if (isTaskCancelled(token)) return@execute
-
-                // Verify extracted files against remote hashes before checking remaining incremental updates.
+                // Verify extracted files inside stagingDir against remote hashes before replacing rootDir.
                 mainHandler.post {
                     if (!isTaskCancelled(token)) {
                         host.setPatchDownloadState(
@@ -493,7 +490,15 @@ class ChsDownloader(
                 if (isTaskCancelled(token)) return@execute
 
                 if (remote != null) {
-                    reconcileExtractedFilesWithRemote(remote, rootDir, localMap) { isTaskCancelled(token) }
+                    reconcileExtractedFilesWithRemote(remote, stagingDir, localMap) { isTaskCancelled(token) }
+                    if (isTaskCancelled(token)) return@execute
+
+                    val matchedRemoteCount = remote.files.count { localMap.containsKey(it.path) }
+                    if (remote.files.isNotEmpty() && matchedRemoteCount == 0) {
+                        throw IOException("Release archive verification failed: no files matched remote manifest")
+                    }
+
+                    commitStagingDirectory(stagingDir, rootDir)
                     if (isTaskCancelled(token)) return@execute
 
                     val diff = ChsManifest.computeDiff(remote, rootDir, localMap)
@@ -536,16 +541,25 @@ class ChsDownloader(
                 } else {
                     val baseVersion = "$tag (release)"
                     // When remote manifest is unreachable, compute SHA-256 hashes (matching manifest.json)
-                    // for all extracted files and persist to local manifest map.
-                    rootDir.walkTopDown().filter { it.isFile }.forEach { f ->
+                    // inside stagingDir before committing to rootDir.
+                    val stagedHashes = mutableMapOf<String, String>()
+                    stagingDir.walkTopDown().filter { it.isFile }.forEach { f ->
                         if (isTaskCancelled(token)) return@execute
-                        val relPath = f.relativeTo(rootDir).path.replace('\\', '/')
+                        val relPath = f.relativeTo(stagingDir).path.replace('\\', '/')
                         if (ChsManifest.isSupportedRepoPath(relPath)) {
-                            localMap[relPath] = ChsManifest.sha256Hex(f)
+                            stagedHashes[relPath] = ChsManifest.sha256Hex(f)
                         }
+                    }
+                    if (stagedHashes.isEmpty()) {
+                        throw IOException("Archive contained no supported CHS patch files")
                     }
                     if (isTaskCancelled(token)) return@execute
 
+                    commitStagingDirectory(stagingDir, rootDir)
+                    if (isTaskCancelled(token)) return@execute
+
+                    localMap.clear()
+                    localMap.putAll(stagedHashes)
                     ChsConfig.setLocalVersion(baseVersion)
                     ChsManifest.saveLocalManifestMap(manifestFile, baseVersion, localMap)
                     ChsDataRepository.invalidateCache()
@@ -581,9 +595,9 @@ class ChsDownloader(
                 } catch (_: Exception) {}
                 if (activeDownloadToken == token) {
                     activeDownloadToken = 0L
+                    currentDownloadHost = null
+                    currentOnComplete = null
                 }
-                currentDownloadHost = null
-                currentOnComplete = null
             }
         }
     }
@@ -598,6 +612,7 @@ class ChsDownloader(
             throw IOException("Staging directory contains neither text/ nor cache/")
         }
         val backups = mutableListOf<Pair<File, File>>()
+        val createdTargets = mutableListOf<File>()
         try {
             for (name in stagedDirs) {
                 val stagedSub = File(stagingDir, name)
@@ -614,6 +629,8 @@ class ChsDownloader(
                         }
                     }
                     backups.add(targetSub to backupSub)
+                } else {
+                    createdTargets.add(targetSub)
                 }
                 if (!stagedSub.renameTo(targetSub)) {
                     stagedSub.copyRecursively(targetSub, overwrite = true)
@@ -624,6 +641,13 @@ class ChsDownloader(
                 backupSub.deleteRecursively()
             }
         } catch (e: Exception) {
+            for (created in createdTargets) {
+                try {
+                    if (created.exists()) {
+                        created.deleteRecursively()
+                    }
+                } catch (_: Exception) {}
+            }
             for ((targetSub, backupSub) in backups) {
                 try {
                     if (targetSub.exists()) {

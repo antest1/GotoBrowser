@@ -34,7 +34,6 @@ object ChsApiMerger {
     /**
      * Returns the runtime Axios response-merging script when CHS patching is active.
      */
-    @JvmStatic
     fun patchChsApi(context: Context): String {
         if (!ChsConfig.isPatcherEnabled()) {
             return ""

@@ -91,7 +91,7 @@ For information about the function, refer to the <span class="link" data-move="v
 | Kantai3D Mod | About Kantai3D | Opens the [Kantai3D GitHub page](https://github.com/laplamgor/kantai3d) | | |
 | Kancolle_to_CHS | Simplified Chinese Patch | Apply Simplified Chinese localization for in-game text, display-side KCSAPI responses (Kcanotify still receives unmodified Japanese responses), UI textures, and fonts (mutually exclusive with KCCP Language Patch; expands the options below when enabled) | After reload | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
 | Kancolle_to_CHS | Download / Update CHS Data | Download and extract the latest Release Zip (recommended for first-time setup) or run hash-verified incremental updates | After reload | |
-| Kancolle_to_CHS | Patch Data Source | Choose where the patch data is downloaded from: GitHub Raw, jsDelivr CDN, GHProxy Mirror or a custom URL (data by 砍口垒汉化计划 @归海原) | Immediately | |
+| Kancolle_to_CHS | Patch Data Source | Choose where the patch data is downloaded from: GitHub Raw, jsDelivr CDN, GHProxy Mirror or a custom URL (data by KanColle CHS Project @归海原) | Immediately | |
 | Kancolle_to_CHS | Delete CHS Data | Removes the downloaded patch data | After reload | |
 | Kancolle_to_CHS | About Kancolle_to_CHS | Opens author, data source, and repository details | | |
 | Language Patch (KCCP) | KanColle Language Patch (KCCP) | Apply a translation patch to in-game text | After reload | [@Oradimi](https://x.com/oradimi) |

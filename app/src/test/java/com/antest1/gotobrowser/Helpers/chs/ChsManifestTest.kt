@@ -138,4 +138,19 @@ class ChsManifestTest {
         assertEquals(1, diff.upToDateCount)
         assertTrue(diff.toDownload.isEmpty())
     }
+
+    @Test
+    fun `parseGithubTreeJson returns null when truncated is true`() {
+        val raw = """
+            {
+              "sha": "abcdef123456",
+              "truncated": true,
+              "tree": [
+                {"path": "text/sample.json", "type": "blob", "size": 10, "sha": "1234567890"}
+              ]
+            }
+        """.trimIndent()
+        val parsed = ChsManifest.parseGithubTreeJson(raw)
+        assertEquals(null, parsed)
+    }
 }

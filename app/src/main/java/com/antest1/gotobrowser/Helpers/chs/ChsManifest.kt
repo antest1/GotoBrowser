@@ -48,6 +48,9 @@ object ChsManifest {
         val el = ChsJsonCleaner.safeParseJson(rawJson) ?: return null
         if (!el.isJsonObject) return null
         val obj = el.asJsonObject
+        if (obj.get("truncated")?.takeIf { it.isJsonPrimitive }?.asBoolean == true) {
+            return null
+        }
 
         val version = obj.optStr("version")
             .ifEmpty { obj.optStr("commit") }
@@ -80,6 +83,9 @@ object ChsManifest {
         val el = ChsJsonCleaner.safeParseJson(rawJson) ?: return null
         if (!el.isJsonObject) return null
         val obj = el.asJsonObject
+        if (obj.get("truncated")?.takeIf { it.isJsonPrimitive }?.asBoolean == true) {
+            return null
+        }
 
         val treeSha = obj.optStr("sha").take(10).ifEmpty { "main" }
         val treeArr = obj.getAsJsonArray("tree") ?: return null

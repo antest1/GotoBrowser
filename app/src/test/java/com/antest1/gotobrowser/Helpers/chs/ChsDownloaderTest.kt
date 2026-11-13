@@ -97,6 +97,59 @@ class ChsDownloaderTest {
     }
 
     @Test
+    fun testRealZipExtractVerifyInStagingAndCommit() {
+        val rootDir = tempFolder.newFolder("chs_zip_root")
+        val existingFile = File(rootDir, "text/existing.json").apply {
+            parentFile?.mkdirs()
+            writeText("{\"keep\":true}")
+        }
+
+        // Build a real ZIP archive containing a valid file and an extra untracked file
+        val zipFile = File(tempFolder.root, "release_test.zip")
+        val validContent = "{\"hello\":\"world\"}"
+        java.util.zip.ZipOutputStream(zipFile.outputStream()).use { zos ->
+            zos.putNextEntry(java.util.zip.ZipEntry("Kancolle_to_CHS-1.0/text/valid.json"))
+            zos.write(validContent.toByteArray(Charsets.UTF_8))
+            zos.closeEntry()
+            zos.putNextEntry(java.util.zip.ZipEntry("Kancolle_to_CHS-1.0/cache/extra.hack"))
+            zos.write("extra".toByteArray(Charsets.UTF_8))
+            zos.closeEntry()
+        }
+
+        val stagingDir = tempFolder.newFolder("chs_zip_staging")
+        val downloader = ChsDownloader()
+        val extracted = downloader.extractZipArchive(zipFile, stagingDir) { _, _ -> }
+        assertTrue("Expected 2 extracted files", extracted == 2)
+
+        val stagedValid = File(stagingDir, "text/valid.json")
+        val expectedSha256 = ChsManifest.sha256Hex(stagedValid)
+        val remote = ChsManifest.ManifestData(
+            version = "1.0",
+            files = listOf(
+                ChsManifest.FileEntry(
+                    path = "text/valid.json",
+                    size = stagedValid.length(),
+                    hash = expectedSha256,
+                    hashType = "sha256"
+                )
+            )
+        )
+
+        val localMap = mutableMapOf<String, String>()
+        downloader.reconcileExtractedFilesWithRemote(remote, stagingDir, localMap)
+        assertFalse(
+            "Untracked file in staging must be purged before commit",
+            File(stagingDir, "cache/extra.hack").exists()
+        )
+        assertTrue("Verified file hash must be recorded", localMap["text/valid.json"] == expectedSha256)
+
+        downloader.commitStagingDirectory(stagingDir, rootDir)
+        assertFalse("Old rootDir file should be replaced by staging commit", existingFile.exists())
+        assertTrue("Committed valid file must exist in rootDir", File(rootDir, "text/valid.json").exists())
+        assertFalse("Untracked file must not exist in rootDir", File(rootDir, "cache/extra.hack").exists())
+    }
+
+    @Test
     fun testReconcileExtractedFilesRejectsSameLengthCorruptedFiles() {
         val rootDir = tempFolder.newFolder("chs_extract")
         val validFile = File(rootDir, "text/valid.txt").apply {
