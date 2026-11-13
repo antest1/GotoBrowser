@@ -209,6 +209,15 @@ class ChsDownloader(
 
                 val diff = ChsManifest.computeDiff(remote, rootDir, localMap)
 
+                // Delete orphaned/stale files removed from upstream repo
+                for (relPath in diff.toDelete) {
+                    val deadFile = File(rootDir, relPath)
+                    if (deadFile.exists()) {
+                        deadFile.delete()
+                    }
+                    localMap.remove(relPath)
+                }
+
                 if (diff.toDownload.isEmpty()) {
                     ChsConfig.setLocalVersion(remote.version)
                     ChsManifest.saveLocalManifestMap(manifestFile, remote.version, localMap)
@@ -476,7 +485,16 @@ class ChsDownloader(
                     }
                 } else {
                     val baseVersion = "$tag (release)"
+                    // When remote manifest is unreachable, compute git blob SHA-1 hashes
+                    // for all extracted files and persist to local manifest map.
+                    rootDir.walkTopDown().filter { it.isFile }.forEach { f ->
+                        val relPath = f.relativeTo(rootDir).path.replace('\\', '/')
+                        if (relPath.startsWith("text/") || relPath.startsWith("cache/")) {
+                            localMap[relPath] = ChsManifest.gitBlobSha1Hex(f)
+                        }
+                    }
                     ChsConfig.setLocalVersion(baseVersion)
+                    ChsManifest.saveLocalManifestMap(manifestFile, baseVersion, localMap)
                     ChsDataRepository.invalidateCache()
                     ChsHackResolver.invalidateIndex()
                     ChsConfig.prepare(appContext)
@@ -512,13 +530,24 @@ class ChsDownloader(
     /**
      * Verifies extracted archive files against [remote] hashes before updating [localMap].
      * Any missing, size-mismatched, or hash-mismatched file is excluded so it will be repaired
-     * by incremental download.
+     * by incremental download. Files deleted upstream are removed from disk.
      */
     fun reconcileExtractedFilesWithRemote(
         remote: ChsManifest.ManifestData,
         rootDir: File,
         localMap: MutableMap<String, String>
     ) {
+        val remotePaths = remote.files.map { it.path }.toSet()
+        val iterator = localMap.entries.iterator()
+        while (iterator.hasNext()) {
+            val entry = iterator.next()
+            if (!remotePaths.contains(entry.key)) {
+                val dead = File(rootDir, entry.key)
+                if (dead.exists()) dead.delete()
+                iterator.remove()
+            }
+        }
+
         for (entry in remote.files) {
             val f = File(rootDir, entry.path)
             val sizeMatches = entry.size <= 0L || f.length() == entry.size

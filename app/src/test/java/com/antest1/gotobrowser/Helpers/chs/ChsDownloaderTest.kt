@@ -76,13 +76,17 @@ class ChsDownloaderTest {
         )
 
         val localMap = mutableMapOf(
-            "text/corrupt.txt" to ChsManifest.gitBlobSha1Hex(validFile)
+            "text/corrupt.txt" to ChsManifest.gitBlobSha1Hex(validFile),
+            "text/old_stale.txt" to "stale_hash"
         )
+        val staleFile = File(rootDir, "text/old_stale.txt").apply { writeText("stale") }
 
         val downloader = ChsDownloader()
         downloader.reconcileExtractedFilesWithRemote(remote, rootDir, localMap)
 
         assertFalse(localMap.containsKey("text/corrupt.txt"))
+        assertFalse(localMap.containsKey("text/old_stale.txt"))
+        assertFalse("Stale file should be deleted from disk", staleFile.exists())
         assertFalse(localMap["text/valid.txt"].isNullOrEmpty())
     }
 }

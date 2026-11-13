@@ -33,11 +33,12 @@ object ChsManifest {
     data class DiffResult(
         val remoteVersion: String,
         val toDownload: List<FileEntry>,
+        val toDelete: List<String> = emptyList(),
         val upToDateCount: Int,
         val totalDownloadBytes: Long
     ) {
         val hasUpdates: Boolean
-            get() = toDownload.isNotEmpty()
+            get() = toDownload.isNotEmpty() || toDelete.isNotEmpty()
     }
 
     /**
@@ -136,9 +137,18 @@ object ChsManifest {
             }
         }
 
+        val remotePathSet = candidates.map { it.path }.toSet()
+        val toDelete = ArrayList<String>()
+        for (localPath in localManifest.keys) {
+            if ((localPath.startsWith("text/") || localPath.startsWith("cache/")) && !remotePathSet.contains(localPath)) {
+                toDelete.add(localPath)
+            }
+        }
+
         return DiffResult(
             remoteVersion = remote.version,
             toDownload = toDownload,
+            toDelete = toDelete,
             upToDateCount = upToDate,
             totalDownloadBytes = totalBytes
         )

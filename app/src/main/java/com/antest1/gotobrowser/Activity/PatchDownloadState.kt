@@ -21,4 +21,3 @@ sealed interface PatchDownloadState {
         val onCancel: (() -> Unit)? = null
     ) : PatchDownloadState
 }
-

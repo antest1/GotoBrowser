@@ -79,6 +79,7 @@ object ChsTextPatcher {
     fun injectTypewriterAnchors(mainJs: String): String {
         var js = mainJs
         try {
+            var matchedAnchors = 0
             val m1 = TYPEWRITER_MSGBOX_PATTERN.matcher(js)
             if (m1.find()) {
                 val full = m1.group(1)
@@ -86,6 +87,7 @@ object ChsTextPatcher {
                 if (full != null && keyVar != null) {
                     val replacement = "(typeof window.__kanchs_translate_typewriter==='function'?(this[$keyVar]=window.__kanchs_translate_typewriter(this[$keyVar])):null),$full"
                     js = js.replaceFirst(Pattern.quote(full).toRegex(), MatcherReplacement.escapeLiteral(replacement))
+                    matchedAnchors++
                 }
             }
 
@@ -98,6 +100,7 @@ object ChsTextPatcher {
                 if (full != null && header != null && param != null && body != null) {
                     val replacement = "${header}if(typeof window.__kanchs_translate_typewriter==='function'){try{$param=window.__kanchs_translate_typewriter($param);}catch(_e){}}$body"
                     js = js.replaceFirst(Pattern.quote(full).toRegex(), MatcherReplacement.escapeLiteral(replacement))
+                    matchedAnchors++
                 }
             }
 
@@ -110,7 +113,14 @@ object ChsTextPatcher {
                 if (full != null && header != null && param != null && body != null) {
                     val replacement = "${header}if(typeof window.__kanchs_translate_typewriter==='function'){try{$param=window.__kanchs_translate_typewriter($param);}catch(_e){}}$body"
                     js = js.replaceFirst(Pattern.quote(full).toRegex(), MatcherReplacement.escapeLiteral(replacement))
+                    matchedAnchors++
                 }
+            }
+
+            if (matchedAnchors == 0) {
+                Log.w(TAG, "No typewriter animation anchors matched in main.js; skipping typewriter injection")
+            } else if (matchedAnchors < 3) {
+                Log.i(TAG, "Partially matched $matchedAnchors/3 typewriter anchors in main.js")
             }
         } catch (e: Exception) {
             try { Log.w(TAG, "Skipped typewriter anchor injection: ${e.message}") } catch (_: Throwable) {}

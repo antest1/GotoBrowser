@@ -84,6 +84,18 @@ class ChsManifestTest {
         val reloaded = ChsManifest.loadLocalManifestMap(manifestFile)
         assertEquals(sha, reloaded["text/version.json"])
         assertFalse(reloaded.containsKey("non_existent"))
+
+        // 3. Stale/deleted file detection
+        val staleLocalMap = mapOf(
+            "text/version.json" to sha,
+            "text/old_removed.json" to "old_hash",
+            "cache/kcs2/old_img.hack.png" to "old_img_hash"
+        )
+        val diffWithDeletions = ChsManifest.computeDiff(remote, rootDir, staleLocalMap)
+        assertTrue(diffWithDeletions.hasUpdates)
+        assertEquals(2, diffWithDeletions.toDelete.size)
+        assertTrue(diffWithDeletions.toDelete.contains("text/old_removed.json"))
+        assertTrue(diffWithDeletions.toDelete.contains("cache/kcs2/old_img.hack.png"))
     }
 
     @Test
