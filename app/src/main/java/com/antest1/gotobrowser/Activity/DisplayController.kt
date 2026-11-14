@@ -29,7 +29,8 @@ private val Activity.isInResizableWindow: Boolean
 
 class DisplayController(
     private val activity: BrowserActivity,
-    private val mContentView: WebView,
+    /** The game WebView, created after this controller (see BrowserActivity.onCreate). */
+    private val contentView: () -> WebView?,
     /** Divider margin (dp) to keep above and below the game. */
     private val onMultiwinMarginChanged: (topDp: Int, bottomDp: Int) -> Unit
 ) {
@@ -151,10 +152,11 @@ class DisplayController(
     }
 
     fun applyKeyboardSetting() {
+        val view = contentView() ?: return
         val enabled = activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_KEYBOARD, true)
-        mContentView.isFocusableInTouchMode = enabled
-        mContentView.isFocusable = enabled
-        mContentView.descendantFocusability =
+        view.isFocusableInTouchMode = enabled
+        view.isFocusable = enabled
+        view.descendantFocusability =
             if (enabled) ViewGroup.FOCUS_AFTER_DESCENDANTS else ViewGroup.FOCUS_BLOCK_DESCENDANTS
     }
 

@@ -251,6 +251,14 @@ class BrowserActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setBackgroundDrawable(ColorDrawable(android.graphics.Color.BLACK))
+        // Created first so the orientation is requested before the slow startup work below:
+        // until then the system keeps showing its starting window in the launcher's portrait.
+        displayController = DisplayController(this, { mContentView }) { top, bottom ->
+            // Not there yet if onCreate stops early (WebView unavailable) after this request.
+            if (::gameArea.isInitialized) gameArea.setDividerMargin(top, bottom)
+        }
+        // A saved lock applies once the window has settled into its orientation (onOrientationSettled).
+        displayController.requestOrientationThenLock()
         viewModel = ViewModelProvider(this)[BrowserViewModel::class.java]
         settingsViewModel = ViewModelProvider(this)[SettingsViewModel::class.java]
         // First touch of the WebView provider. It throws when the system WebView can't be
@@ -312,9 +320,6 @@ class BrowserActivity : ComponentActivity() {
             v.setPadding(safe.left, safe.top, safe.right, safe.bottom)
             insets
         }
-        displayController = DisplayController(this, webView) { top, bottom -> gameArea.setDividerMargin(top, bottom) }
-        // A saved lock applies once the window has settled into its orientation (onOrientationSettled).
-        displayController.requestOrientationThenLock()
         // A listener rather than the onMultiWindowModeChanged(Boolean, Configuration) override,
         // which the system only calls from Android 8.0; the listener also runs on 7.x.
         addOnMultiWindowModeChangedListener {
@@ -661,7 +666,7 @@ class BrowserActivity : ComponentActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus && ::displayController.isInitialized) displayController.onOrientationSettled()
+        if (hasFocus) displayController.onOrientationSettled()
     }
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
