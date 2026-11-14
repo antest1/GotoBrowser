@@ -66,6 +66,7 @@
     <string name="noti_screenshot_description">タップするとスクリーンショットが表示されます</string>
     <string name="noti_screenshot_permission_message">スクリーンショット結果を表示するには、通知の許可が必要です。</string>
     <string name="screenshot_save_failed">スクリーンショットを保存できませんでした。</string>
+    <string name="screenshot_storage_permission_required">スクリーンショットを保存するには、ストレージの許可が必要です。</string>
     <string name="granted_true_notification_permission">通知権限を獲得しました。</string>
     <string name="granted_false_notification_permission">通知権限を得ませんでした。</string>
     <string name="settings_source_code">ソースコード</string>
