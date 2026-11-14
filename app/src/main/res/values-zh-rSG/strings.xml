@@ -63,6 +63,8 @@
     <string name="noti_screenshot_title">已储存萤幕截图</string>
     <string name="noti_screenshot_description">点一下即可开启萤幕截图</string>
     <string name="noti_screenshot_permission_message">显示截图结果需要授予通知权限。</string>
+    <string name="screenshot_save_failed">无法保存截图。</string>
+    <string name="screenshot_storage_permission_required">保存截图需要授予存储权限。</string>
     <string name="granted_true_notification_permission">已授予通知权限。</string>
     <string name="granted_false_notification_permission">未授予通知权限。</string>
     <string name="settings_source_code">原始码</string>

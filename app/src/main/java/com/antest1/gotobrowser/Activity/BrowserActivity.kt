@@ -24,6 +24,7 @@ import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
@@ -204,6 +205,12 @@ class BrowserActivity : ComponentActivity() {
     /** Whether an edge swipe reveals the hidden toolbar. */
     private val toolbarSwipe = mutableStateOf(true)
     private val subtitleLoader = Executors.newSingleThreadExecutor()
+    /** Before Android 10 a screenshot is written to the shared Pictures folder, which needs storage access. */
+    private val storagePermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) captureGameScreen()
+            else KcUtils.showToast(this, R.string.screenshot_storage_permission_required)
+        }
 
     // Settings applied immediately without reloading the page.
     private val liveSettings = setOf(
@@ -390,7 +397,7 @@ class BrowserActivity : ComponentActivity() {
                         closeButtonVisible = closeButtonVisible,
                         subtitleFontSize = subtitleFontSize,
                         activity = this@BrowserActivity,
-                        onCapture = { manager?.captureGameScreen(webView) },
+                        onCapture = { captureGameScreen() },
                         onClose = { finish() },
                         gameVerticalBias = gameVerticalBias.value,
                         loadingConnectorTag = loadConnectorTag.value
@@ -432,7 +439,7 @@ class BrowserActivity : ComponentActivity() {
                             tooltip = stringResource(R.string.menu_tooltip_camera),
                             active = isCapture,
                             onClick = {
-                                if (!checkStoragePermissionGrated()) showStoragePermissionDialog()
+                                if (!checkNotificationPermissionGranted()) showNotificationPermissionDialog()
                                 viewModel.toggleCaptureMode()
                             }
                         )
@@ -908,6 +915,20 @@ class BrowserActivity : ComponentActivity() {
         screenshotNotification.showNotification(bitmap, uri)
     }
 
+    fun showScreenshotSaveFailure() {
+        KcUtils.showToast(this, R.string.screenshot_save_failed)
+    }
+
+    private fun captureGameScreen() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+        ) {
+            storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            return
+        }
+        mContentView?.let { manager?.captureGameScreen(it) }
+    }
+
     private fun checkAppUpdateOnStart() {
         if (viewModel.isAppUpdateCheckStarted) return
         viewModel.isAppUpdateCheckStarted = true
@@ -935,7 +956,7 @@ class BrowserActivity : ComponentActivity() {
         )
     }
 
-    private fun checkStoragePermissionGrated(): Boolean {
+    private fun checkNotificationPermissionGranted(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         } else {
@@ -943,7 +964,7 @@ class BrowserActivity : ComponentActivity() {
         }
     }
 
-    private fun showStoragePermissionDialog() {
+    private fun showNotificationPermissionDialog() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             showMessageDialog(
                 MessageDialog(
