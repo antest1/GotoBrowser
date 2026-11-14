@@ -15,14 +15,6 @@ import java.util.regex.PatternSyntaxException
 object ChsJsonCleaner {
     private const val TAG = "GOTO-CHS"
 
-    private fun logWarn(msg: String) {
-        // Ignore unmocked android.util.Log in pure JVM unit tests.
-        try {
-            Log.w(TAG, msg)
-        } catch (_: Throwable) {
-        }
-    }
-
     private val LEADING_ZERO_NONZERO_REGEX = Regex(""":\s*0+([1-9]\d*)\b""")
     private val LEADING_ZERO_ONLY_REGEX = Regex(""":\s*0+\b""")
 
@@ -208,7 +200,7 @@ object ChsJsonCleaner {
                 val cleaned = stripJsonComments(trimmed)
                 JsonParser.parseString(cleaned)
             } catch (e: Exception) {
-                logWarn("Failed to parse JSON: ${e.message}")
+                Log.w(TAG, "Failed to parse JSON: ${e.message}")
                 null
             }
         }
@@ -276,7 +268,7 @@ object ChsJsonCleaner {
         if (validateRegexPattern(pattern)) {
             target.add(pattern to replacement)
         } else {
-            logWarn("[$sourceTag] Skipped invalid regex: $pattern")
+            Log.w(TAG, "[$sourceTag] Skipped invalid regex: $pattern")
         }
     }
 }

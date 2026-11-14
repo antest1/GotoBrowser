@@ -718,7 +718,7 @@ class ChsDownloader(
     private fun deleteStaleFile(rootDir: File, relPath: String): Boolean {
         val dead = ChsManifest.safeResolveUnderRoot(rootDir, relPath)
         if (dead == null) {
-            try { Log.w(TAG, "Skipped unsafe stale path: $relPath") } catch (_: Throwable) {}
+            Log.w(TAG, "Skipped unsafe stale path: $relPath")
             return true
         }
         return !dead.exists() || dead.delete()

@@ -9,7 +9,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.antest1.gotobrowser.Activity.SettingsViewModel
 import com.antest1.gotobrowser.Helpers.chs.ChsConfig
 import com.antest1.gotobrowser.R
@@ -21,9 +20,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = Application::class)
 class ChsSettingsSectionTest {
 

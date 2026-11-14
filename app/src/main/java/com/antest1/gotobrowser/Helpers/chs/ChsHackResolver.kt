@@ -83,10 +83,7 @@ object ChsHackResolver {
             fontNameIndex = newFontMap
             indexedCacheRoot = cacheDir.absolutePath
             indexBuilt = true
-            try {
-                Log.i(TAG, "Indexed CHS asset overrides: ${newPathMap.size / 2} files")
-            } catch (_: Throwable) {
-            }
+            Log.i(TAG, "Indexed CHS asset overrides: ${newPathMap.size / 2} files")
         }
     }
 

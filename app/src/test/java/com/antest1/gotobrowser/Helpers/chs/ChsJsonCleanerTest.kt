@@ -1,11 +1,17 @@
 package com.antest1.gotobrowser.Helpers.chs
 
+import android.app.Application
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35], application = Application::class)
 class ChsJsonCleanerTest {
 
     @Test
