@@ -99,6 +99,7 @@
     <string name="menu_tooltip_refresh">새로고침</string>
     <string name="menu_quick_refresh">빠른 새로고침</string>
     <string name="menu_full_refresh">전체 새로고침</string>
+    <string name="settings_apply_hint">설정 적용</string>
     <string name="menu_tooltip_mute">음소거</string>
     <string name="menu_tooltip_camera">인게임 스크린샷</string>
     <string name="menu_tooltip_lock">회전 잠금</string>

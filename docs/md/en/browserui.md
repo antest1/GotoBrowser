@@ -33,6 +33,7 @@ In landscape, setting Settings → Controls & Toolbar → "Toolbar Placement" to
 - Turn on Settings → Controls & Toolbar → "Refresh Without Confirmation" to refresh without the confirmation dialog.
 - If you chose "Change Settings Without Reload" in the "Reload Required" dialog after changing a setting, refreshing with this button also applies the change.
 - After a connection error while loading or a server error during play, the button runs a Full Refresh regardless of the saved method, and "Full Refresh" is shown next to it. The saved method does not change.
+- If you choose "Later" when the settings ask for a reload, the button is highlighted in blue and runs a Full Refresh until the changes are applied, with "Apply Settings" shown next to it.
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 

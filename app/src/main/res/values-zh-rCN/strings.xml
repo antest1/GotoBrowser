@@ -96,6 +96,7 @@
     <string name="menu_tooltip_refresh">重新整理页面</string>
     <string name="menu_quick_refresh">快速刷新</string>
     <string name="menu_full_refresh">完全刷新</string>
+    <string name="settings_apply_hint">应用设置</string>
     <string name="menu_tooltip_mute">静音</string>
     <string name="menu_tooltip_camera">萤幕截图</string>
     <string name="menu_tooltip_lock">自动旋转锁定</string>

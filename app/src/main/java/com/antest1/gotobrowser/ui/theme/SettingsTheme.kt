@@ -105,6 +105,9 @@ private val SettingsLightColorScheme = lightColorScheme(
 /** The dark scheme's error, for status accents drawn outside a SettingsTheme (the refresh FAB ring). */
 val StatusErrorColor: Color get() = SettingsDarkColorScheme.error
 
+/** The dark scheme's primary, for the refresh FAB ring while changed settings wait for a reload. */
+val StatusInfoColor: Color get() = SettingsDarkColorScheme.primary
+
 /** Wraps the settings sheet in the blue palette, overriding [GotobrowserTheme] beneath it. */
 @Composable
 fun SettingsTheme(

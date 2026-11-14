@@ -155,6 +155,7 @@ import com.antest1.gotobrowser.ui.component.RefreshOption
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
 import com.antest1.gotobrowser.ui.component.rememberLoadingSnapshot
 import com.antest1.gotobrowser.ui.component.refreshAttentionColor
+import com.antest1.gotobrowser.ui.theme.StatusInfoColor
 import com.antest1.gotobrowser.ui.component.requiresFullRefresh
 import com.antest1.gotobrowser.ui.component.rememberToolbarTooltipPositionProvider
 import com.antest1.gotobrowser.ui.component.glassyStyle
@@ -205,6 +206,11 @@ class BrowserActivity : ComponentActivity() {
     private var pendingAtSheetOpen = emptySet<String>()
     /** Set when the cache was cleared in the open sheet. */
     private val cacheClearedInSheet = mutableStateOf(false)
+    /**
+     * Set when the reload prompt is answered with "Later" while settings still wait for a
+     * reload; the refresh FAB then turns blue. Not needed when reloading right away.
+     */
+    private val refreshDeferred = mutableStateOf(false)
     private val refreshPromptVisible = mutableStateOf(false)
     /** What the refresh prompt says; a changed setting and a cleared cache explain it differently. */
     private val refreshPromptReason = mutableStateOf(RefreshPromptReason.SETTING_CHANGED)
@@ -423,8 +429,13 @@ class BrowserActivity : ComponentActivity() {
                             viewModel.setQuickGameReload(option == RefreshOption.QUICK)
                         },
                         onSettingsClick = { openSettingsSheet() },
-                        refreshAttention = refreshAttention,
-                        forceFullRefresh = requiresFullRefresh(loadState, notice),
+                        // Settings left for later also point at the FAB, in blue and below the
+                        // load problems; only a full load applies them.
+                        refreshAttention = refreshAttention
+                            ?: StatusInfoColor.takeIf { settingsRefreshDeferred() },
+                        forceFullRefresh = requiresFullRefresh(loadState, notice) || settingsRefreshDeferred(),
+                        fullRefreshHint = if (requiresFullRefresh(loadState, notice)) R.string.menu_full_refresh
+                        else R.string.settings_apply_hint,
                         gameVerticalBias = gameVerticalBias.value,
                         toolbarAtTop = toolbarAtTop.value,
                         swipeToReveal = toolbarSwipe.value
@@ -505,7 +516,7 @@ class BrowserActivity : ComponentActivity() {
                                     settingsSheetVisible.value = false
                                     refreshPageOrFinish(RefreshOption.FULL)
                                 },
-                                onChangeWithoutRefresh = { refreshPromptVisible.value = false }
+                                onChangeWithoutRefresh = { deferRefresh() }
                             )
                         }
                     }
@@ -629,7 +640,17 @@ class BrowserActivity : ComponentActivity() {
         loadedSettings = refreshSettings.associateWith { refreshSettingValue(it) }
         settingsBeforeChange.clear()
         pendingRefreshKeys.value = emptySet()
+        refreshDeferred.value = false
     }
+
+    /** "Later" on the reload prompt, also when it is dismissed. */
+    private fun deferRefresh() {
+        refreshPromptVisible.value = false
+        if (pendingRefreshKeys.value.isNotEmpty()) refreshDeferred.value = true
+    }
+
+    /** Settings still wait for a reload after "Later"; putting them all back clears it too. */
+    private fun settingsRefreshDeferred() = refreshDeferred.value && pendingRefreshKeys.value.isNotEmpty()
 
     /**
      * The settings changed since the last full load that are not back to their old value.
@@ -710,7 +731,7 @@ class BrowserActivity : ComponentActivity() {
 
     fun handleBackPress() {
         if (refreshPromptVisible.value) {
-            refreshPromptVisible.value = false
+            deferRefresh()
             return
         }
         if (settingsSheetVisible.value) {

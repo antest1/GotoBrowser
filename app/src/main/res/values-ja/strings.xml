@@ -98,6 +98,7 @@
     <string name="menu_tooltip_refresh">リフレッシュ</string>
     <string name="menu_quick_refresh">クイックリフレッシュ</string>
     <string name="menu_full_refresh">フルリフレッシュ</string>
+    <string name="settings_apply_hint">設定を反映</string>
     <string name="menu_tooltip_mute">ミュート</string>
     <string name="menu_tooltip_camera">スクリーンショット</string>
     <string name="menu_tooltip_lock">回転ロック</string>
