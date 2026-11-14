@@ -71,7 +71,7 @@
     <string name="settings_refresh_required_title">Reload Required</string>
     <string name="settings_refresh_required_msg">The setting has been saved. A reload of the game is required for it to take effect. Do you want to reload now?</string>
     <string name="settings_refresh_now">Reload Now</string>
-    <string name="settings_refresh_later">Change Settings Without Reload</string>
+    <string name="settings_refresh_pending">Applies after reload</string>
     <string name="refresh_later">Later</string>
     <string name="settings_menu_tooltip">Settings</string>
     <string name="logout_msg">Are you sure you want to Logout?</string>

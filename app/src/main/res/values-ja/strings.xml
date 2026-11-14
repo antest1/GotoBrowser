@@ -173,7 +173,7 @@
     <string name="settings_refresh_required_title">再読み込みが必要です</string>
     <string name="settings_refresh_required_msg">設定が保存されました。効果を有効にするにはゲームの再読み込みが必要です。今すぐ再読み込みしますか？</string>
     <string name="settings_refresh_now">今すぐ再読み込み</string>
-    <string name="settings_refresh_later">再読み込みせずに設定を変更</string>
+    <string name="settings_refresh_pending">再読み込み後に反映</string>
     <string name="refresh_later">後で</string>
     <!-- First-screen loading status and server errors -->
     <string name="loading_preparing_title">設定を適用中</string>

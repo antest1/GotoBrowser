@@ -172,7 +172,7 @@
     <string name="settings_refresh_required_title">需要重新載入</string>
     <string name="settings_refresh_required_msg">設定已儲存。需要重新載入遊戲才能生效。你想現在重新載入嗎？</string>
     <string name="settings_refresh_now">現在重新載入</string>
-    <string name="settings_refresh_later">暫不重新載入</string>
+    <string name="settings_refresh_pending">重新載入後套用</string>
     <string name="refresh_later">稍後</string>
     <!-- First-screen loading status and server errors -->
     <string name="loading_preparing_title">正在套用設定</string>

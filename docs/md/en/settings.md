@@ -15,7 +15,7 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 | Applies | Description |
 | --- | --- |
 | Immediately | Applied as soon as the value is changed. |
-| After reload | The "Reload Required" dialog is shown. "Reload Now" applies the change after a full refresh, and "Change Settings Without Reload" applies it on the next refresh. |
+| After reload | A reload icon appears next to the name of each changed setting and stays until the game is fully refreshed. "Reload Now" at the top applies the changes right away with a full refresh. If you changed something, closing the settings shows the "Reload Required" dialog once; "Later" applies the changes on the next full refresh. |
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/settings_refresh_required.webp"  width="480" style="max-width: 100%;" class="mb-3"/>
 
@@ -66,7 +66,7 @@ For PIP/multi-window information, refer to the <span class="link" data-move="pip
 | External Storage for Resource Caching | Use external storage instead of internal storage when caching game resources (recommended)<br/>(allows access to image/voice resources via PC) | After reload |
 | Prefetch Font Assets | Use built-in font files instead of loading them from the game server (recommended, on by default) | After reload |
 | Retry Game Asset Download | Prompts a dialog asking whether to retry when the client fails to download a sound or image asset<br/>Can sometimes avoid catbombs caused by poor network. Does not apply to game data API errors | Immediately |
-| Clear Cache | Deletes the browser cache. Use this when images or audio are not loading correctly, or to switch between login methods<br/>You may need to log in again afterwards<br/>A reload prompt appears once clearing is done | Immediately |
+| Clear Cache | Deletes the browser cache. Use this when images or audio are not loading correctly, or to switch between login methods<br/>You may need to log in again afterwards<br/>A reload prompt appears when you close the settings | Immediately |
 
 ##### Subtitle
 

@@ -172,7 +172,7 @@
     <string name="settings_refresh_required_title">需要重新加载</string>
     <string name="settings_refresh_required_msg">设置已保存。需要重新加载游戏才能生效。你想现在重新加载吗？</string>
     <string name="settings_refresh_now">现在重新加载</string>
-    <string name="settings_refresh_later">暂不重新加载</string>
+    <string name="settings_refresh_pending">重新加载后生效</string>
     <string name="refresh_later">稍后</string>
     <!-- First-screen loading status and server errors -->
     <string name="loading_preparing_title">正在应用设置</string>

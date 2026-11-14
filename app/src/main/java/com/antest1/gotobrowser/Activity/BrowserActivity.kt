@@ -191,6 +191,20 @@ class BrowserActivity : ComponentActivity() {
     /** False when the game fills the screen, leaving no margin to tap and no edge to swipe from. */
     private var toolbarRevealAvailable = true
     private val settingsSheetVisible = mutableStateOf(false)
+    /** Saved values of the reload settings at the last full load, for changes made outside the rows. */
+    private var loadedSettings: Map<String, Any?> = emptyMap()
+    /**
+     * The value each setting had before its first change since the last full load: what its row
+     * showed (see LocalBeforeSettingChange), which covers defaults that were never saved.
+     */
+    private val settingsBeforeChange = mutableMapOf<String, Any?>()
+    /** Settings changed since the last full load that only apply after one. */
+    private val pendingRefreshKeys = mutableStateOf(emptySet<String>())
+    /** Reload settings changed while the sheet is open, and what was pending when it opened. */
+    private val sheetChangedKeys = mutableSetOf<String>()
+    private var pendingAtSheetOpen = emptySet<String>()
+    /** Set when the cache was cleared in the open sheet. */
+    private val cacheClearedInSheet = mutableStateOf(false)
     private val refreshPromptVisible = mutableStateOf(false)
     /** What the refresh prompt says; a changed setting and a cleared cache explain it differently. */
     private val refreshPromptReason = mutableStateOf(RefreshPromptReason.SETTING_CHANGED)
@@ -408,7 +422,7 @@ class BrowserActivity : ComponentActivity() {
                             refreshOption.value = option
                             viewModel.setQuickGameReload(option == RefreshOption.QUICK)
                         },
-                        onSettingsClick = { settingsSheetVisible.value = true },
+                        onSettingsClick = { openSettingsSheet() },
                         refreshAttention = refreshAttention,
                         forceFullRefresh = requiresFullRefresh(loadState, notice),
                         gameVerticalBias = gameVerticalBias.value,
@@ -460,14 +474,24 @@ class BrowserActivity : ComponentActivity() {
                         SettingsBottomSheet(
                             viewModel = settingsViewModel,
                             activity = this@BrowserActivity,
-                            onDismissRequest = { settingsSheetVisible.value = false },
+                            onDismissRequest = { closeSettingsSheet() },
                             onLogoutRequest = {
-                                settingsSheetVisible.value = false
+                                // Logging out loads the page again anyway.
+                                closeSettingsSheet(askToRefresh = false)
                                 showLogoutDialog()
                             },
                             onHelpClick = { openManual(this@BrowserActivity) },
                             onSettingChanged = { key -> onSettingChanged(key) },
-                            onCacheCleared = { showRefreshPrompt(RefreshPromptReason.CACHE_CLEARED) }
+                            onCacheCleared = { cacheClearedInSheet.value = true },
+                            pendingRefreshKeys = pendingRefreshKeys.value,
+                            refreshPending = pendingRefreshKeys.value.isNotEmpty() || cacheClearedInSheet.value,
+                            onRefreshNow = {
+                                closeSettingsSheet(askToRefresh = false)
+                                refreshPageOrFinish(RefreshOption.FULL)
+                            },
+                            onBeforeSettingChange = { key, oldValue ->
+                                if (key !in settingsBeforeChange) settingsBeforeChange[key] = oldValue
+                            }
                         )
                     }
 
@@ -524,6 +548,7 @@ class BrowserActivity : ComponentActivity() {
             manager?.setWebViewClient(this, webView)
             manager?.setPopupView(webView)
             startLoading()
+            onSettingsLoaded()
             reloadSettings { manager?.openPage(webView, info) }
         }
         webView.setBackgroundColor(android.graphics.Color.BLACK)
@@ -584,13 +609,63 @@ class BrowserActivity : ComponentActivity() {
     private fun onSettingChanged(key: String) {
         when (key) {
             in liveSettings -> applyLiveSetting(key)
-            in refreshSettings -> showRefreshPrompt(RefreshPromptReason.SETTING_CHANGED)
             else -> {
-                // Unclassified keys fall back to a refresh prompt.
-                if (BuildConfig.DEBUG) Log.w("GOTO", "unclassified setting key: $key")
-                showRefreshPrompt(RefreshPromptReason.SETTING_CHANGED)
+                // Unclassified keys are treated as needing a reload.
+                if (key !in refreshSettings && BuildConfig.DEBUG) Log.w("GOTO", "unclassified setting key: $key")
+                // Rows report the value they showed (LocalBeforeSettingChange); for the rest
+                // (the endpoint dialog), the value saved at the last full load is the best known.
+                if (key !in settingsBeforeChange) settingsBeforeChange[key] = loadedSettings[key]
+                sheetChangedKeys += key
+                updatePendingRefresh()
             }
         }
+    }
+
+    private fun refreshSettingValue(key: String): Any? =
+        if (key in ChsConfig.REFRESH_KEYS) ChsConfig.isEnabled() else viewModel.sharedPref.all[key]
+
+    /** Called on each full load: the settings it reads are now the ones in use. */
+    private fun onSettingsLoaded() {
+        loadedSettings = refreshSettings.associateWith { refreshSettingValue(it) }
+        settingsBeforeChange.clear()
+        pendingRefreshKeys.value = emptySet()
+    }
+
+    /**
+     * The settings changed since the last full load that are not back to their old value.
+     * Only settings changed from the sheet count, so ones the app turns off by itself (the
+     * gadget bypass once it is no longer needed) are not marked.
+     */
+    private fun updatePendingRefresh() {
+        pendingRefreshKeys.value = settingsBeforeChange.keys
+            .filterTo(mutableSetOf()) { it !in liveSettings && refreshSettingValue(it) != settingsBeforeChange[it] }
+    }
+
+    private fun openSettingsSheet() {
+        updatePendingRefresh()
+        pendingAtSheetOpen = pendingRefreshKeys.value
+        sheetChangedKeys.clear()
+        cacheClearedInSheet.value = false
+        settingsSheetVisible.value = true
+    }
+
+    /**
+     * Closes the settings sheet, asking once for a reload if it left settings that need one.
+     * Changes put off with "Later" before are not asked about again; they stay marked instead.
+     */
+    private fun closeSettingsSheet(askToRefresh: Boolean = true) {
+        settingsSheetVisible.value = false
+        val pending = pendingRefreshKeys.value
+        val newlyPending = pending.any { it in sheetChangedKeys || it !in pendingAtSheetOpen }
+        val reason = when {
+            !askToRefresh -> null
+            cacheClearedInSheet.value -> RefreshPromptReason.CACHE_CLEARED
+            newlyPending -> RefreshPromptReason.SETTING_CHANGED
+            else -> null
+        }
+        sheetChangedKeys.clear()
+        cacheClearedInSheet.value = false
+        reason?.let { showRefreshPrompt(it) }
     }
 
     private fun showRefreshPrompt(reason: RefreshPromptReason) {
@@ -639,7 +714,7 @@ class BrowserActivity : ComponentActivity() {
             return
         }
         if (settingsSheetVisible.value) {
-            settingsSheetVisible.value = false
+            closeSettingsSheet()
             return
         }
         // Back only runs the exit flow: the back gesture shares the screen edge with the
@@ -682,7 +757,7 @@ class BrowserActivity : ComponentActivity() {
         if (isInPictureInPictureMode) {
             toolbarVisible.value = false
             // The sheet and its dialogs are separate windows the PiP window cannot show usefully.
-            settingsSheetVisible.value = false
+            closeSettingsSheet(askToRefresh = false)
             refreshPromptVisible.value = false
             messageDialogs.cancelForPip()
         }
@@ -820,6 +895,9 @@ class BrowserActivity : ComponentActivity() {
             startLoading()
             serverNotice.value = null
             errorText.value = ""
+            // A quick refresh reloads only the game frame, so the start page and the login
+            // keep their old settings: only a full load counts.
+            if (option == RefreshOption.FULL) onSettingsLoaded()
             reloadSettings {
                 mContentView?.let {
                     when (option) {
@@ -1052,9 +1130,9 @@ fun PanelButton(
     }
 }
 
-internal enum class RefreshPromptReason(val messageRes: Int, val laterRes: Int) {
-    SETTING_CHANGED(R.string.settings_refresh_required_msg, R.string.settings_refresh_later),
-    CACHE_CLEARED(R.string.cache_cleared_refresh_msg, R.string.refresh_later)
+internal enum class RefreshPromptReason(val messageRes: Int) {
+    SETTING_CHANGED(R.string.settings_refresh_required_msg),
+    CACHE_CLEARED(R.string.cache_cleared_refresh_msg)
 }
 
 @Composable
@@ -1074,7 +1152,7 @@ internal fun SettingsRefreshDialog(
         },
         dismissButton = {
             TextButton(onClick = onChangeWithoutRefresh) {
-                Text(text = stringResource(id = reason.laterRes))
+                Text(text = stringResource(id = R.string.refresh_later))
             }
         }
     )

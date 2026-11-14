@@ -63,13 +63,16 @@ fun ChsSettingsSection(
     SectionHeader(R.string.settings_mod_group_chs)
 
     val mainColor = MaterialTheme.colorScheme.onSurface
+    val beforeChange = LocalBeforeSettingChange.current
+    val refreshPending = ChsConfig.KEY_ENABLED in LocalPendingRefreshKeys.current
     ListItem(
-        headlineContent = { Text(stringResource(R.string.settings_mod_chs_enable), color = mainColor) },
+        headlineContent = { SettingTitle(stringResource(R.string.settings_mod_chs_enable), mainColor, refreshPending) },
         supportingContent = { Text(stringResource(R.string.settings_mod_chs_summary), color = mainColor) },
         trailingContent = {
             Switch(
                 checked = chsEnabled,
                 onCheckedChange = { checked ->
+                    beforeChange(ChsConfig.KEY_ENABLED, chsEnabled)
                     if (!isPreview) viewModel.onChsPatchToggled(checked)
                     onChsToggled(checked)
                     onSettingChanged(ChsConfig.KEY_ENABLED)
@@ -78,6 +81,7 @@ fun ChsSettingsSection(
         },
         modifier = Modifier.clickable {
             val next = !chsEnabled
+            beforeChange(ChsConfig.KEY_ENABLED, chsEnabled)
             if (!isPreview) viewModel.onChsPatchToggled(next)
             onChsToggled(next)
             onSettingChanged(ChsConfig.KEY_ENABLED)

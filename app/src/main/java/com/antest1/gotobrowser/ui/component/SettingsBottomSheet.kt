@@ -22,6 +22,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +30,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.only
@@ -38,10 +41,12 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -62,6 +67,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -81,6 +88,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -142,6 +150,7 @@ import com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE
 import com.antest1.gotobrowser.Constants.PREF_LATEST_URL
 import com.antest1.gotobrowser.Constants.URL_LIST
 import com.antest1.gotobrowser.Helpers.KcUtils
+import com.antest1.gotobrowser.Helpers.chs.ChsConfig
 import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.ui.theme.SettingsTheme
 import kotlinx.coroutines.launch
@@ -260,19 +269,65 @@ fun SettingsBottomSheet(
     onSettingChanged: (String) -> Unit,
     onLogoutRequest: () -> Unit = {},
     onHelpClick: () -> Unit = {},
-    onCacheCleared: () -> Unit = {}
+    onCacheCleared: () -> Unit = {},
+    /** Settings changed since the game was last fully loaded that only apply after a reload. */
+    pendingRefreshKeys: Set<String> = emptySet(),
+    /** Whether a reload is waiting (settings above, or a cache cleared in this sheet). */
+    refreshPending: Boolean = false,
+    onRefreshNow: () -> Unit = {},
+    /** Called before a row changes a setting, with the value it showed until then. */
+    onBeforeSettingChange: (key: String, oldValue: Any?) -> Unit = { _, _ -> }
 ) {
     // The sheet has its own blue palette; the game overlay underneath keeps the neutral theme.
     SettingsTheme {
-        SettingsBottomSheetContent(
-            viewModel = viewModel,
-            activity = activity,
-            onDismissRequest = onDismissRequest,
-            onSettingChanged = onSettingChanged,
-            onLogoutRequest = onLogoutRequest,
-            onHelpClick = onHelpClick,
-            onCacheCleared = onCacheCleared
-        )
+        CompositionLocalProvider(
+            LocalPendingRefreshKeys provides pendingRefreshKeys,
+            LocalBeforeSettingChange provides onBeforeSettingChange
+        ) {
+            SettingsBottomSheetContent(
+                viewModel = viewModel,
+                activity = activity,
+                onDismissRequest = onDismissRequest,
+                onSettingChanged = onSettingChanged,
+                onLogoutRequest = onLogoutRequest,
+                onHelpClick = onHelpClick,
+                onCacheCleared = onCacheCleared,
+                refreshPending = refreshPending,
+                onRefreshNow = onRefreshNow
+            )
+        }
+    }
+}
+
+/** Keys of the settings changed since the last full load that only apply after a reload. */
+internal val LocalPendingRefreshKeys = compositionLocalOf { emptySet<String>() }
+
+/**
+ * Told the value a row showed before it changes a setting. Defaults live in the rows, not in
+ * the preferences, so this is the only way to know a setting was put back as it was.
+ */
+internal val LocalBeforeSettingChange = compositionLocalOf<(String, Any?) -> Unit> { { _, _ -> } }
+
+/** Stands for the login before a change; never equal to a saved value, so the change always counts. */
+private object LoginChanged
+
+/**
+ * A row title, followed by the refresh icon of the header's reload button while the change
+ * waits for the game to be fully reloaded.
+ */
+@Composable
+internal fun SettingTitle(text: String, color: Color, refreshPending: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(text, color = color, modifier = Modifier.weight(1f, fill = false))
+        if (refreshPending) {
+            Spacer(modifier = Modifier.width(6.dp))
+            Icon(
+                imageVector = Icons.Filled.Refresh,
+                contentDescription = stringResource(R.string.settings_refresh_pending),
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp)
+            )
+        }
     }
 }
 
@@ -285,7 +340,9 @@ private fun SettingsBottomSheetContent(
     onSettingChanged: (String) -> Unit,
     onLogoutRequest: () -> Unit,
     onHelpClick: () -> Unit,
-    onCacheCleared: () -> Unit
+    onCacheCleared: () -> Unit,
+    refreshPending: Boolean,
+    onRefreshNow: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     // Each opening checks for updates again; screen switches inside it reuse the result.
@@ -388,6 +445,18 @@ private fun SettingsBottomSheetContent(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.weight(1f)
             )
+            // Applies the changes waiting for a reload without waiting for the sheet to close.
+            if (refreshPending) {
+                FilledTonalButton(
+                    onClick = onRefreshNow,
+                    contentPadding = PaddingValues(start = 12.dp, end = 16.dp),
+                    modifier = Modifier.height(36.dp)
+                ) {
+                    Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.settings_refresh_now))
+                }
+            }
             // Help (manual) entry point, kept in the header so it is reachable from every
             // settings screen without scrolling.
             IconButton(onClick = onHelpClick) {
@@ -720,9 +789,12 @@ private fun ConnectionLoginSection(
     )
 
     if (showLoginForm) {
+        val savedId = if (isPreview) "" else viewModel.getString(PREF_DMM_ID, "")
+        val savedPassword = if (isPreview) "" else viewModel.getLoginPassword()
+        val beforeChange = LocalBeforeSettingChange.current
         LoginFormDialog(
-            initialId = if (isPreview) "" else viewModel.getString(PREF_DMM_ID, ""),
-            initialPassword = if (isPreview) "" else viewModel.getLoginPassword(),
+            initialId = savedId,
+            initialPassword = savedPassword,
             onSave = { loginId, loginPassword ->
                 if (!isPreview) {
                     viewModel.setString(PREF_DMM_ID, loginId)
@@ -731,7 +803,12 @@ private fun ConnectionLoginSection(
                     }
                 }
                 showLoginForm = false
-                onSettingChanged(PREF_DMM_ID)
+                if (loginId != savedId || loginPassword != savedPassword) {
+                    // The password is kept apart from the preferences, so the change is not
+                    // compared by value: it stays marked until the next full load.
+                    beforeChange(PREF_DMM_ID, LoginChanged)
+                    onSettingChanged(PREF_DMM_ID)
+                }
             },
             onDismiss = { showLoginForm = false }
         )
@@ -922,12 +999,19 @@ private fun ModsSection(
     var patchEnabled by remember { mutableStateOf(if (isPreview) false else viewModel.isKccpPatchEnabled()) }
     // Bumped when turning the CHS patch on turns KCCP off, so the switch re-reads its preference.
     var kccpSwitchVersion by remember { mutableIntStateOf(0) }
+    // KCCP and CHS turn each other off; that is reported like a change on the other row.
+    val beforeChange = LocalBeforeSettingChange.current
     key(kccpSwitchVersion) {
         SwitchRow(viewModel, PREF_MOD_KCCP_LANG_PATCH, R.string.settings_mod_kccp, R.string.settings_mod_kccp_summary,
             onChanged = {
                 if (!isPreview) {
                     patchEnabled = viewModel.isKccpPatchEnabled()
+                    val chsWasOn = ChsConfig.isEnabled()
                     viewModel.onKccpPatchChanged()
+                    if (chsWasOn && !ChsConfig.isEnabled()) {
+                        beforeChange(ChsConfig.KEY_ENABLED, true)
+                        onSettingChanged(ChsConfig.KEY_ENABLED)
+                    }
                 }
             },
             onSettingChanged = onSettingChanged)
@@ -980,7 +1064,12 @@ private fun ModsSection(
         viewModel = viewModel,
         onChsToggled = { enabled ->
             if (enabled && !isPreview) {
+                val kccpWasOn = patchEnabled
                 patchEnabled = viewModel.isKccpPatchEnabled()
+                if (kccpWasOn != patchEnabled) {
+                    beforeChange(PREF_MOD_KCCP_LANG_PATCH, kccpWasOn)
+                    onSettingChanged(PREF_MOD_KCCP_LANG_PATCH)
+                }
                 kccpSwitchVersion++
             }
         },
@@ -1089,14 +1178,17 @@ private fun SwitchRow(
     // Dimmed like ClickRow when disabled, not just the switch itself.
     val textColor = if (enabled) MaterialTheme.colorScheme.onSurface
     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+    val refreshPending = key in LocalPendingRefreshKeys.current
+    val beforeChange = LocalBeforeSettingChange.current
     ListItem(
-        headlineContent = { Text(stringResource(titleRes), color = textColor) },
+        headlineContent = { SettingTitle(stringResource(titleRes), textColor, refreshPending) },
         supportingContent = summaryRes?.let { { Text(stringResource(it), color = textColor) } },
         trailingContent = {
             Switch(
                 checked = checked.value,
                 enabled = enabled,
                 onCheckedChange = {
+                    beforeChange(key, checked.value)
                     checked.value = it
                     if (!isPreview) {
                         viewModel.setBoolean(key, it)
@@ -1108,6 +1200,7 @@ private fun SwitchRow(
         },
         modifier = Modifier.clickable(enabled = enabled) {
             val newValue = !checked.value
+            beforeChange(key, checked.value)
             checked.value = newValue
             if (!isPreview) {
                 viewModel.setBoolean(key, newValue)
@@ -1169,8 +1262,10 @@ private fun ListRow(
     // Dimmed like ClickRow when disabled, not just made unclickable.
     val textColor = if (enabled) MaterialTheme.colorScheme.onSurface
     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+    val refreshPending = key in LocalPendingRefreshKeys.current
+    val beforeChange = LocalBeforeSettingChange.current
     ListItem(
-        headlineContent = { Text(stringResource(titleRes), color = textColor) },
+        headlineContent = { SettingTitle(stringResource(titleRes), textColor, refreshPending) },
         supportingContent = { Text(summaryProvider(selected), color = textColor) },
         modifier = if (enabled) Modifier.clickable { showDialog = true } else Modifier
     )
@@ -1183,6 +1278,7 @@ private fun ListRow(
             selected = selected,
             onSelect = { value ->
                 if (onSelected(value)) {
+                    beforeChange(key, selected)
                     selected = value
                     if (!isPreview) {
                         viewModel.setString(key, value)
