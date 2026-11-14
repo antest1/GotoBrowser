@@ -37,7 +37,8 @@ body {
     height: 100%;
 }
 
-/* The app bar stays put and only .page-scroll scrolls, so its scrollbar starts under the bar. */
+/* The app bar stays put and only .page-scroll scrolls, so its scrollbar starts under the bar.
+   Short screens scroll the whole page instead (see below .page-scroll). */
 body {
     display: flex;
     flex-direction: column;
@@ -70,6 +71,25 @@ html:lang(zh-tw) body {
     scrollbar-gutter: stable; /* same content width whether or not the page scrolls */
     scroll-padding-top: 16px;
     overscroll-behavior-y: contain;
+}
+/* On short screens (phones in landscape) the whole page scrolls instead. The app bar then
+   scrolls away, and so does the browser's own toolbar (also the one the app opens this
+   manual in), which only hides when the page itself scrolls. */
+@media (max-height: 500px) {
+    html,
+    body {
+        height: auto;
+    }
+    html {
+        scroll-padding-top: 16px;
+    }
+    body {
+        display: block;
+        overflow: visible;
+    }
+    .page-scroll {
+        overflow-y: visible;
+    }
 }
 
 /* ---------- App bar ---------- */

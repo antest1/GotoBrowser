@@ -175,7 +175,9 @@ function setPage(lang, page, isNext) {
             renderPager(page);
         })
         .catch((error) => console.log(error));
+    // .page-scroll scrolls, or the whole page on short screens (see style.css)
     document.getElementById("page-scroll").scrollTo({ top: 0, behavior: "instant" });
+    window.scrollTo({ top: 0, behavior: "instant" });
 
     const state = { "hl": lang, "page": page };
     const url = location.pathname + "?hl=" + lang + "&page=" + page;
