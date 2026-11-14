@@ -297,6 +297,10 @@ private fun SettingsBottomSheetContent(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
+        // The sheet counts as hidden until its opening animation settles. A fling on the list
+        // in that window makes the sheet settle twice, and the cancelled first settle reads as
+        // a dismiss. Keep the list's scrolls off the sheet until it has fully opened.
+        sheetGesturesEnabled = sheetState.isVisible,
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         // Outside touches are handled below instead, to skip edge swipes.
         properties = ModalBottomSheetProperties(shouldDismissOnClickOutside = false)
