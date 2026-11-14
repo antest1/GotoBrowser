@@ -41,7 +41,7 @@
 | --- | --- | --- |
 | <span class="material-symbols-outlined">volume_off</span>  | 静音 | 将浏览器中正在播放的声音静音。语音文件仍会继续加载。<br/>（适用于只想看字幕而不想听声音等情况） |
 | <span class="material-symbols-outlined">photo_camera</span> | 萤幕截图 | 开启或关闭截图模式。开启后，屏幕右上角设置按钮的下方会显示截图按钮。 |
-| <span class="material-symbols-outlined">screen_lock_rotation</span> | 自动旋转锁定 | 锁定当前画面方向，无论设备设置如何都不会旋转。 |
+| <span class="material-symbols-outlined">screen_lock_rotation</span> | 自动旋转锁定 | 锁定当前画面方向，无论设备设置如何都不会旋转。多窗口（分屏/弹出窗口）下不生效。 |
 | <span class="material-symbols-outlined">light_mode</span> | 保持萤幕开启 | 使屏幕在待机状态下不会变暗。 |
 | <span class="material-symbols-outlined">closed_caption</span> | 字幕 | 在屏幕底部显示或隐藏游戏内字幕。轻触显示的字幕，可将其隐藏至下一句台词出现。 |
 

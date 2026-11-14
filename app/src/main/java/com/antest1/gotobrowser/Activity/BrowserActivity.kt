@@ -272,7 +272,7 @@ class BrowserActivity : ComponentActivity() {
         val intent = getIntent()
         val isAppLaunch = Intent.ACTION_MAIN == intent.action && savedInstanceState == null
 
-        if (viewModel.sharedPref.getBoolean(PREF_LANDSCAPE, true)) {
+        if (viewModel.sharedPref.getBoolean(PREF_LANDSCAPE, true) && !isInResizableWindow) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
         }
 
@@ -322,6 +322,7 @@ class BrowserActivity : ComponentActivity() {
         // which the system only calls from Android 8.0; the listener also runs on 7.x.
         addOnMultiWindowModeChangedListener {
             displayController.updateMultiwindowMargin()
+            displayController.onWindowModeChanged()
         }
 
         val backgroundTapView = View(this).apply {
@@ -663,6 +664,13 @@ class BrowserActivity : ComponentActivity() {
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         pipController.handlePictureInPictureModeChanged(isInPictureInPictureMode)
+        // PiP and split screen are both multi-window, so moving from one to the other only
+        // reports this change. Checked once the multi-window change of the same transition is
+        // also delivered: until then isInMultiWindowMode still has the old value. Only from
+        // Android 11, which sends both in one go; older versions send them apart.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.decorView.post { displayController.onWindowModeChanged() }
+        }
         if (isInPictureInPictureMode) {
             toolbarVisible.value = false
             // The sheet and its dialogs are separate windows the PiP window cannot show usefully.

@@ -17,5 +17,6 @@ You can use this function to play KanColle while doing other tasks on your devic
 
 ##### Multi-window mode
 - Normal game play is possible in multi-window (split/pop-up) mode.
+- In multi-window, "Lock to Landscape" and Auto-Rotate Lock are not applied, so the window can be resized freely. The game keeps its ratio inside the window.
 - Showing and hiding the toolbar can be done in the <span class="link" data-move="browserui">same way as normal</span>. (touch black margin or swipe)
 - If the game screen sticks to the divider, turn on "[Multi-Window] Add Margin from Divider" in Settings → Game Display.

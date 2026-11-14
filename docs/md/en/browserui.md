@@ -41,7 +41,7 @@ In landscape, setting Settings → Controls & Toolbar → "Toolbar Placement" to
 | --- | --- | --- |
 | <span class="material-symbols-outlined">volume_off</span>  | Mute Audio | Mutes the whole sound playing in the browser. The audio files will continue to load.<br/>(Use this when you want to see subtitles without sound, etc.) |
 | <span class="material-symbols-outlined">photo_camera</span> | Screenshot Mode | Turns screenshot mode on or off. When on, the screenshot button appears below the settings button in the top right of the screen. |
-| <span class="material-symbols-outlined">screen_lock_rotation</span> | Auto-Rotate Lock | Prevents the screen from rotating regardless of device settings. |
+| <span class="material-symbols-outlined">screen_lock_rotation</span> | Auto-Rotate Lock | Prevents the screen from rotating regardless of device settings. Not applied in multi-window (split/pop-up). |
 | <span class="material-symbols-outlined">light_mode</span> | Screen Always-On | Keeps the screen from turning off in idle state. |
 | <span class="material-symbols-outlined">closed_caption</span> | Subtitle | Shows or hides in-game subtitles at the bottom of the screen. Touching the subtitle hides it until the next line. |
 

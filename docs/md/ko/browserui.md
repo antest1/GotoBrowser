@@ -41,7 +41,7 @@
 | --- | --- | --- |
 | <span class="material-symbols-outlined">volume_off</span>  | 음소거 | 브라우저에서 재생되고 있는 소리를 음소거합니다. 음성 파일은 계속 로딩됩니다.<br/>(소리 없이 자막만 보고 싶은 경우 등에 사용) |
 | <span class="material-symbols-outlined">photo_camera</span> | 인게임 스크린샷 | 스크린샷 모드를 켜거나 끕니다. 켜면 화면 우측 상단의 설정 버튼 아래에 스크린샷 버튼이 표시됩니다. |
-| <span class="material-symbols-outlined">screen_lock_rotation</span> | 회전 잠금 | 현재 화면 상태에서 기기 설정에 상관없이 회전되지 않도록 설정합니다. |
+| <span class="material-symbols-outlined">screen_lock_rotation</span> | 회전 잠금 | 현재 화면 상태에서 기기 설정에 상관없이 회전되지 않도록 설정합니다. 멀티윈도우(분할/팝업)에서는 적용되지 않습니다. |
 | <span class="material-symbols-outlined">light_mode</span> | 화면 상시 켜기 | 대기 상태에서 화면이 어두워지지 않도록 설정합니다. |
 | <span class="material-symbols-outlined">closed_caption</span> | 자막 | 화면 하단에 인게임 자막을 표시하거나 숨깁니다. 표시된 자막을 터치하면 다음 대사가 나올 때까지 숨겨집니다. |
 

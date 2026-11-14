@@ -1,5 +1,6 @@
 package com.antest1.gotobrowser.Activity
 
+import android.app.Activity
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.graphics.Rect
@@ -15,6 +16,15 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.antest1.gotobrowser.Constants.*
 import com.antest1.gotobrowser.R
 import kotlin.math.abs
+
+/**
+ * In split screen or a freeform window, where the app cannot rotate the display. A fixed
+ * orientation there only letterboxes the app inside its window, and some systems also stop
+ * the split from being resized, so no orientation is requested then. PiP is left out: it
+ * keeps the request so that expanding it goes straight back to landscape.
+ */
+val Activity.isInResizableWindow: Boolean
+    get() = isInMultiWindowMode && !isInPictureInPictureMode
 
 class DisplayController(
     private val activity: BrowserActivity,
@@ -52,7 +62,46 @@ class DisplayController(
         }
     }
 
+    /** Whether the orientation request is currently dropped (see [isInResizableWindow]). */
+    private var orientationReleased = activity.isInResizableWindow
+
+    /**
+     * The request dropped on entering split screen, put back as it was on leaving, so a locked
+     * reverse landscape is not recomputed from the rotation at that moment. Null when there is
+     * nothing to put back (started in split screen, or the settings changed meanwhile).
+     */
+    private var heldOrientation: Int? = null
+
+    /**
+     * Drops or restores the orientation request when the window enters or leaves split screen.
+     * Other mode changes, like going in and out of PiP, leave the current request alone.
+     */
+    fun onWindowModeChanged() {
+        val resizable = activity.isInResizableWindow
+        if (resizable == orientationReleased) return
+        val held = heldOrientation
+        when {
+            resizable -> {
+                heldOrientation = activity.requestedOrientation
+                orientationReleased = true
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            }
+            held != null -> {
+                heldOrientation = null
+                orientationReleased = false
+                activity.requestedOrientation = held
+            }
+            else -> updateOrientationLock()
+        }
+    }
+
     fun updateOrientationLock() {
+        heldOrientation = null
+        orientationReleased = activity.isInResizableWindow
+        if (orientationReleased) {
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            return
+        }
         val isLockMode = activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_LOCKMODE, false)
         if (activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_LANDSCAPE, true)) {
             activity.requestedOrientation = if (isLockMode) {
