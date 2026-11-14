@@ -42,6 +42,12 @@ class ChsDownloader(
         private const val CONCURRENCY = 8
         private const val BUFFER_SIZE = 32768
 
+        // Present in rootDir while commitStagingDirectory swaps text/ and cache/.
+        private const val SWAP_MARKER = ".swap_in_progress"
+
+        // Serializes archive commits and recovery across downloader instances.
+        private val installLock = Any()
+
         private fun createDefaultHttpClient(): OkHttpClient {
             val dispatcher = Dispatcher().apply {
                 maxRequests = 64
@@ -215,6 +221,7 @@ class ChsDownloader(
             try {
                 ChsConfig.init(appContext)
                 val rootDir = ChsPaths.getRootDir(appContext)
+                recoverInterruptedArchiveInstall(rootDir)
                 val manifestFile = ChsPaths.getLocalManifestFile(appContext)
                 val localMap = ChsManifest.loadLocalManifestMap(manifestFile)
 
@@ -365,6 +372,7 @@ class ChsDownloader(
                 ChsConfig.init(appContext)
                 val rootDir = ChsPaths.getRootDir(appContext)
                 rootDir.mkdirs()
+                recoverInterruptedArchiveInstall(rootDir)
 
                 if (isTaskCancelled(token)) return@execute
 
@@ -603,63 +611,129 @@ class ChsDownloader(
     }
 
     /**
-     * Atomically replaces `text/` and `cache/` inside [rootDir] from [stagingDir],
-     * restoring backups if swapping fails so [rootDir] is never left half-written.
+     * Cleans up after an archive install that did not finish (e.g. the process was killed).
+     *
+     * A `.backup_<name>_*` directory is always a complete copy (see [commitStagingDirectory]).
+     * If the swap marker is present, the swap was cut off and `text/` or `cache/` may be partial,
+     * so each backed-up directory is restored. Without the marker, a backup is restored only when
+     * its target is missing. Leftover backups, staging directories and archive files are then
+     * removed. If a restore fails, the backups and the marker are kept for the next attempt.
+     */
+    internal fun recoverInterruptedArchiveInstall(rootDir: File) {
+        synchronized(installLock) {
+            val entries = rootDir.listFiles() ?: return
+            val marker = File(rootDir, SWAP_MARKER)
+            val swapInterrupted = marker.exists()
+            for (name in listOf("text", "cache")) {
+                val backups = entries
+                    .filter { it.isDirectory && it.name.startsWith(".backup_${name}_") }
+                    .sortedByDescending { it.lastModified() }
+                val target = File(rootDir, name)
+                val restoreFrom = backups.firstOrNull()?.takeIf { swapInterrupted || !target.exists() }
+                if (restoreFrom != null) {
+                    restoreBackup(restoreFrom, target, rootDir)
+                }
+                backups.filter { it.exists() }.forEach { it.deleteRecursively() }
+            }
+            marker.delete()
+            entries
+                .filter {
+                    it.name.startsWith(".staging_") ||
+                        it.name.startsWith(".backup_tmp_") ||
+                        it.name.startsWith(".restore_") ||
+                        (it.isFile && it.name.startsWith("release_") &&
+                            (it.name.endsWith(".zip") || it.name.endsWith(".zip.part")))
+                }
+                .forEach { it.deleteRecursively() }
+        }
+    }
+
+    /** Replaces [target] with [backup]; a copy goes through a temporary name so it is never seen half-done. */
+    private fun restoreBackup(backup: File, target: File, rootDir: File) {
+        if (target.exists() && !target.deleteRecursively()) {
+            throw IOException("Failed to remove ${target.name} before restoring its backup")
+        }
+        if (backup.renameTo(target)) return
+        val temp = File(rootDir, ".restore_${target.name}")
+        temp.deleteRecursively()
+        backup.copyRecursively(temp, overwrite = true)
+        if (!temp.renameTo(target)) {
+            throw IOException("Failed to restore ${target.name} from its backup")
+        }
+    }
+
+    /**
+     * Replaces `text/` and `cache/` inside [rootDir] from [stagingDir], restoring backups if
+     * swapping fails. A swap marker stays in [rootDir] until the swap is complete, so
+     * [recoverInterruptedArchiveInstall] can roll back a swap cut off by a process kill.
      */
     internal fun commitStagingDirectory(stagingDir: File, rootDir: File) {
-        val stagedDirs = listOf("text", "cache").filter { File(stagingDir, it).isDirectory }
-        if (stagedDirs.isEmpty()) {
-            throw IOException("Staging directory contains neither text/ nor cache/")
-        }
-        val backups = mutableListOf<Pair<File, File>>()
-        val createdTargets = mutableListOf<File>()
-        try {
-            for (name in stagedDirs) {
-                val stagedSub = File(stagingDir, name)
-                val targetSub = File(rootDir, name)
-                if (targetSub.exists()) {
-                    val backupSub = File(rootDir, ".backup_${name}_${System.nanoTime()}")
-                    if (backupSub.exists()) {
-                        backupSub.deleteRecursively()
-                    }
-                    if (!targetSub.renameTo(backupSub)) {
-                        targetSub.copyRecursively(backupSub, overwrite = true)
-                        if (!targetSub.deleteRecursively()) {
-                            throw IOException("Failed to prepare backup for $name")
-                        }
-                    }
-                    backups.add(targetSub to backupSub)
-                } else {
-                    createdTargets.add(targetSub)
-                }
-                if (!stagedSub.renameTo(targetSub)) {
-                    stagedSub.copyRecursively(targetSub, overwrite = true)
-                    stagedSub.deleteRecursively()
-                }
+        synchronized(installLock) {
+            val stagedDirs = listOf("text", "cache").filter { File(stagingDir, it).isDirectory }
+            if (stagedDirs.isEmpty()) {
+                throw IOException("Staging directory contains neither text/ nor cache/")
             }
+            val marker = File(rootDir, SWAP_MARKER)
+            marker.writeText("")
+            val backups = mutableListOf<Pair<File, File>>()
+            val createdTargets = mutableListOf<File>()
+            try {
+                for (name in stagedDirs) {
+                    val stagedSub = File(stagingDir, name)
+                    val targetSub = File(rootDir, name)
+                    if (targetSub.exists()) {
+                        val backupSub = File(rootDir, ".backup_${name}_${System.nanoTime()}")
+                        if (targetSub.renameTo(backupSub)) {
+                            backups.add(targetSub to backupSub)
+                        } else {
+                            // Copy under a temporary name so a .backup_<name>_* directory is always complete.
+                            val tempBackup = File(rootDir, ".backup_tmp_$name")
+                            tempBackup.deleteRecursively()
+                            targetSub.copyRecursively(tempBackup, overwrite = true)
+                            if (!tempBackup.renameTo(backupSub)) {
+                                throw IOException("Failed to prepare backup for $name")
+                            }
+                            backups.add(targetSub to backupSub)
+                            if (!targetSub.deleteRecursively()) {
+                                throw IOException("Failed to replace $name")
+                            }
+                        }
+                    } else {
+                        createdTargets.add(targetSub)
+                    }
+                    if (!stagedSub.renameTo(targetSub)) {
+                        stagedSub.copyRecursively(targetSub, overwrite = true)
+                        stagedSub.deleteRecursively()
+                    }
+                }
+            } catch (e: Exception) {
+                var rolledBack = true
+                for (created in createdTargets) {
+                    try {
+                        if (created.exists()) {
+                            created.deleteRecursively()
+                        }
+                    } catch (_: Exception) {}
+                }
+                for ((targetSub, backupSub) in backups) {
+                    try {
+                        restoreBackup(backupSub, targetSub, rootDir)
+                    } catch (_: Exception) {
+                        rolledBack = false
+                    }
+                }
+                // Keep the marker when a backup could not be restored, so recovery retries it.
+                if (rolledBack) {
+                    marker.delete()
+                }
+                throw e
+            }
+            // The swap is complete: drop the marker before the backups, so cleanup cut off
+            // midway can never restore old data over the new install.
+            marker.delete()
             for ((_, backupSub) in backups) {
                 backupSub.deleteRecursively()
             }
-        } catch (e: Exception) {
-            for (created in createdTargets) {
-                try {
-                    if (created.exists()) {
-                        created.deleteRecursively()
-                    }
-                } catch (_: Exception) {}
-            }
-            for ((targetSub, backupSub) in backups) {
-                try {
-                    if (targetSub.exists()) {
-                        targetSub.deleteRecursively()
-                    }
-                    if (backupSub.exists() && !backupSub.renameTo(targetSub)) {
-                        backupSub.copyRecursively(targetSub, overwrite = true)
-                        backupSub.deleteRecursively()
-                    }
-                } catch (_: Exception) {}
-            }
-            throw e
         }
     }
 
