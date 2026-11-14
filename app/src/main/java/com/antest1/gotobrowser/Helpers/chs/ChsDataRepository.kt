@@ -23,33 +23,42 @@ object ChsDataRepository {
         val regexRules: List<Pair<String, String>>,
         val apiTables: Map<String, JsonObject>,
         val apiTableJsonStrings: Map<String, String> = emptyMap()
-    )
+    ) {
+        val hasApiData: Boolean
+            get() = apiTables.values.any { it.size() > 0 }
+
+        val hasData: Boolean
+            get() = textDict.isNotEmpty() || regexRules.isNotEmpty() || hasApiData
+    }
+
+    // Bundle and stamp are published together so a reader never pairs one with the other's stale value.
+    private class CachedBundle(val stamp: String, val bundle: LoadedBundle)
+
+    private val loadLock = Any()
 
     @Volatile
-    private var cachedBundle: LoadedBundle? = null
-
-    @Volatile
-    private var cachedRootStamp: String = ""
+    private var cached: CachedBundle? = null
 
     fun invalidateCache() {
-        cachedBundle = null
-        cachedRootStamp = ""
+        synchronized(loadLock) {
+            cached = null
+        }
     }
 
     /**
      * Returns cached bundle or loads from disk when directory timestamps change.
+     * Loading is serialized, so concurrent callers (main.js patching and the JS bridge) share one load.
      */
     fun getOrLoad(context: Context): LoadedBundle {
         val rootDir = ChsPaths.getRootDir(context)
-        val stamp = computeDirStamp(rootDir)
-        val current = cachedBundle
-        if (current != null && stamp == cachedRootStamp) {
-            return current
+        cached?.let { if (it.stamp == computeDirStamp(rootDir)) return it.bundle }
+        synchronized(loadLock) {
+            val stamp = computeDirStamp(rootDir)
+            cached?.let { if (it.stamp == stamp) return it.bundle }
+            val loaded = loadFromDirectory(rootDir)
+            cached = CachedBundle(stamp, loaded)
+            return loaded
         }
-        val loaded = loadFromDirectory(rootDir)
-        cachedBundle = loaded
-        cachedRootStamp = stamp
-        return loaded
     }
 
     /**

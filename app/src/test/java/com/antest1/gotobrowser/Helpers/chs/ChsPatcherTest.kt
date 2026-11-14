@@ -11,6 +11,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = Application::class)
@@ -33,6 +34,66 @@ class ChsPatcherTest {
         val result = ChsTextPatcher.patchChs(context, originalMainJs)
         assertEquals("main.js must remain byte-for-byte identical when CHS is disabled", originalMainJs, result)
         assertFalse(result.contains("__kanchs_"))
+    }
+
+    @Test
+    fun `when CHS is enabled without installed data, nothing is injected`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        ChsPaths.getRootDir(context).deleteRecursively()
+        ChsDataRepository.invalidateCache()
+        ChsConfig.init(context)
+        ChsConfig.setEnabled(true)
+        ChsConfig.prepare(context)
+
+        val originalMainJs = "function initGame() { return 1; }"
+        try {
+            assertEquals(originalMainJs, ChsTextPatcher.patchChs(context, originalMainJs))
+            assertEquals("", ChsApiMerger.patchChsApi(context))
+        } finally {
+            ChsConfig.setEnabled(false)
+            ChsConfig.prepare(context)
+        }
+    }
+
+    @Test
+    fun `installed CHS data enables the matching scripts`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val root = ChsPaths.getRootDir(context).apply { deleteRecursively() }
+        ChsDataRepository.invalidateCache()
+        ChsConfig.init(context)
+        ChsConfig.setEnabled(true)
+        ChsConfig.prepare(context)
+
+        val originalMainJs = "function initGame() { return 1; }"
+        try {
+            File(root, "text/text/01_ui.json").apply {
+                parentFile?.mkdirs()
+                writeText("""{"Text_JA": "Text_CHS"}""")
+            }
+            val textOnly = ChsDataRepository.getOrLoad(context)
+            assertTrue(textOnly.hasData)
+            assertFalse(textOnly.hasApiData)
+            assertTrue(
+                "Text data alone should inject the text patcher",
+                ChsTextPatcher.patchChs(context, originalMainJs).contains("__kanchs_")
+            )
+            assertEquals("Without API tables the API merger is skipped", "", ChsApiMerger.patchChsApi(context))
+
+            File(root, "text/api/start2.api_mst_ship.json").apply {
+                parentFile?.mkdirs()
+                writeText("""[{"api_id": 1, "api_name": "Ship_01_CHS"}]""")
+            }
+            assertTrue(ChsDataRepository.getOrLoad(context).hasApiData)
+            assertTrue(
+                "API tables should inject the API merger",
+                ChsApiMerger.patchChsApi(context).contains("__kanchs_")
+            )
+        } finally {
+            root.deleteRecursively()
+            ChsDataRepository.invalidateCache()
+            ChsConfig.setEnabled(false)
+            ChsConfig.prepare(context)
+        }
     }
 
     @Test

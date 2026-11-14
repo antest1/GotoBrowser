@@ -30,7 +30,7 @@ object ChsTextPatcher {
 
     /**
      * Applies Simplified Chinese text/typewriter patches to [mainJs] when enabled;
-     * returns [mainJs] unchanged when disabled or if loading fails.
+     * returns [mainJs] unchanged when disabled, when no patch data is installed, or if loading fails.
      */
     fun patchChs(context: Context, mainJs: String): String {
         if (!ChsConfig.isPatcherEnabled()) {
@@ -38,6 +38,7 @@ object ChsTextPatcher {
         }
         return try {
             val bundle = ChsDataRepository.getOrLoad(context)
+            if (!bundle.hasData) return mainJs
             patchMainJsWithData(
                 mainJs = mainJs,
                 textDict = bundle.textDict,
