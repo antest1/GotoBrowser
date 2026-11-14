@@ -4,7 +4,6 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.ColorDrawable
@@ -247,7 +246,7 @@ class BrowserActivity : ComponentActivity() {
         PREF_MOD_KCCP_LANG_PATCH_NAME
     ) + ChsConfig.REFRESH_KEYS
 
-    @SuppressLint("SourceLockedOrientationActivity", "ClickableViewAccessibility")
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -271,10 +270,6 @@ class BrowserActivity : ComponentActivity() {
 
         val intent = getIntent()
         val isAppLaunch = Intent.ACTION_MAIN == intent.action && savedInstanceState == null
-
-        if (viewModel.sharedPref.getBoolean(PREF_LANDSCAPE, true) && !isInResizableWindow) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
-        }
 
         toolbarVisible.value = viewModel.sharedPref.getBoolean(PREF_PANELSTART, true)
         refreshOption.value = if (viewModel.isQuickGameReload) RefreshOption.QUICK else RefreshOption.FULL
@@ -318,6 +313,8 @@ class BrowserActivity : ComponentActivity() {
             insets
         }
         displayController = DisplayController(this, webView) { top, bottom -> gameArea.setDividerMargin(top, bottom) }
+        // A saved lock applies once the window has settled into its orientation (onOrientationSettled).
+        displayController.requestOrientationThenLock()
         // A listener rather than the onMultiWindowModeChanged(Boolean, Configuration) override,
         // which the system only calls from Android 8.0; the listener also runs on 7.x.
         addOnMultiWindowModeChangedListener {
@@ -659,6 +656,12 @@ class BrowserActivity : ComponentActivity() {
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
         displayController.updateMultiwindowMargin()
+        displayController.onOrientationSettled()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus && ::displayController.isInitialized) displayController.onOrientationSettled()
     }
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
