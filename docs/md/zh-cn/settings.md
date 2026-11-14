@@ -39,7 +39,7 @@
 
 | 名称 | 说明 | 生效 |
 | --- | --- | --- |
-| 固定横屏 | 无论设备方向如何，始终以横屏模式游玩（默认开启） | 立即 |
+| 固定横屏 | 无论设备方向如何，始终以横屏模式游玩（默认开启）。多窗口（分屏/弹出窗口）下不生效 | 立即 |
 | 自动调整佈局 | 自动缩放游戏画面以适应设备屏幕大小（推荐，默认开启） | 重新加载 |
 | 游戏画面垂直位置 | 竖屏、分屏等游戏上下留有空白时，将游戏居中或置于顶部（默认居中） | 立即 |
 | 启用画中画模式 | 返回主屏幕或在游戏画面上双指缩小时，以浮动小窗显示游戏画面 | 立即 |
@@ -89,7 +89,7 @@ PIP/多窗口相关内容请参阅<span class="link" data-move="pipmode">PIP/多
 | 常规 | 真正的Critical hit | 移除硬编码的伤害混淆。仅在发生 CL2 时显示 Critical hit | 重新加载 | [@Oradimi](https://x.com/oradimi) |
 | Kantai3D 视觉补丁 | Kantai3D v4.0 | 为部分秘书舰添加 3D 效果。使用旧式渲染器时无法选择 | 重新加载 | [@laplamgor](https://x.com/laplamgor) |
 | Kantai3D 视觉补丁 | 关于Kantai3D | 打开 [Kantai3D GitHub 页面](https://github.com/laplamgor/kantai3d) | | |
-| 语言翻译补丁 | KanColle Language Patch (KCCP) | 为游戏内文本应用翻译补丁 | 重新加载 | [@Oradimi](https://x.com/oradimi) |
+| 语言翻译补丁 | KanColle Language Patch (KCCP) | 为游戏内文本应用翻译补丁。开启后会显示下方选项 | 重新加载 | [@Oradimi](https://x.com/oradimi) |
 | 语言翻译补丁 | 要使用的补丁 | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP)（@Oradimi）或 [KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP)（@SLAVUSworks） | 重新加载 | |
 | 语言翻译补丁 | 下载补丁资料 | 下载或更新所选补丁的数据。完成后需刷新游戏才能生效 | 重新加载 | |
 | 语言翻译补丁 | 删除补丁资料 | 在补丁出现意外行为或下载过程中出现问题时使用 | 重新加载 | |

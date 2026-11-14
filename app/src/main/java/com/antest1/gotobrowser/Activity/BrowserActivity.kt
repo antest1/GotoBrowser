@@ -4,7 +4,6 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.ColorDrawable
@@ -25,7 +24,6 @@ import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.activity.OnBackPressedCallback
-import androidx.annotation.RequiresApi
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
@@ -248,11 +246,19 @@ class BrowserActivity : ComponentActivity() {
         PREF_MOD_KCCP_LANG_PATCH_NAME
     ) + ChsConfig.REFRESH_KEYS
 
-    @SuppressLint("SourceLockedOrientationActivity", "ClickableViewAccessibility")
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setBackgroundDrawable(ColorDrawable(android.graphics.Color.BLACK))
+        // Created first so the orientation is requested before the slow startup work below:
+        // until then the system keeps showing its starting window in the launcher's portrait.
+        displayController = DisplayController(this, { mContentView }) { top, bottom ->
+            // Not there yet if onCreate stops early (WebView unavailable) after this request.
+            if (::gameArea.isInitialized) gameArea.setDividerMargin(top, bottom)
+        }
+        // A saved lock applies once the window has settled into its orientation (onOrientationSettled).
+        displayController.requestOrientationThenLock()
         viewModel = ViewModelProvider(this)[BrowserViewModel::class.java]
         settingsViewModel = ViewModelProvider(this)[SettingsViewModel::class.java]
         // First touch of the WebView provider. It throws when the system WebView can't be
@@ -272,10 +278,6 @@ class BrowserActivity : ComponentActivity() {
 
         val intent = getIntent()
         val isAppLaunch = Intent.ACTION_MAIN == intent.action && savedInstanceState == null
-
-        if (viewModel.sharedPref.getBoolean(PREF_LANDSCAPE, true)) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
-        }
 
         toolbarVisible.value = viewModel.sharedPref.getBoolean(PREF_PANELSTART, true)
         refreshOption.value = if (viewModel.isQuickGameReload) RefreshOption.QUICK else RefreshOption.FULL
@@ -318,7 +320,12 @@ class BrowserActivity : ComponentActivity() {
             v.setPadding(safe.left, safe.top, safe.right, safe.bottom)
             insets
         }
-        displayController = DisplayController(this, webView) { top, bottom -> gameArea.setDividerMargin(top, bottom) }
+        // A listener rather than the onMultiWindowModeChanged(Boolean, Configuration) override,
+        // which the system only calls from Android 8.0; the listener also runs on 7.x.
+        addOnMultiWindowModeChangedListener {
+            displayController.updateMultiwindowMargin()
+            displayController.onWindowModeChanged()
+        }
 
         val backgroundTapView = View(this).apply {
             setOnClickListener { toolbarVisible.value = !toolbarVisible.value }
@@ -651,20 +658,27 @@ class BrowserActivity : ComponentActivity() {
         sendIsFrontChanged(false)
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
-    override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: android.content.res.Configuration) {
-        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
-        displayController.updateMultiwindowMargin()
-    }
-
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
         displayController.updateMultiwindowMargin()
+        displayController.onOrientationSettled()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) displayController.onOrientationSettled()
     }
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         pipController.handlePictureInPictureModeChanged(isInPictureInPictureMode)
+        // PiP and split screen are both multi-window, so moving from one to the other only
+        // reports this change. Checked once the multi-window change of the same transition is
+        // also delivered: until then isInMultiWindowMode still has the old value. Only from
+        // Android 11, which sends both in one go; older versions send them apart.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.decorView.post { displayController.onWindowModeChanged() }
+        }
         if (isInPictureInPictureMode) {
             toolbarVisible.value = false
             // The sheet and its dialogs are separate windows the PiP window cannot show usefully.

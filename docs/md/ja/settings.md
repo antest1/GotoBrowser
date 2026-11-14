@@ -39,7 +39,7 @@
 
 | 名前 | 説明 | 反映 |
 | --- | --- | --- |
-| 横画面に固定 | デバイスの向きに関係なく常に横向きでプレイします（デフォルトで有効） | 即時 |
+| 横画面に固定 | デバイスの向きに関係なく常に横向きでプレイします（デフォルトで有効）。マルチウィンドウ（分割/ポップアップ）では適用されません | 即時 |
 | レイアウト自動調整 | ゲーム画面をデバイスの画面サイズに合わせて自動で拡大/縮小します（おすすめ、デフォルトで有効） | 再読み込み |
 | ゲーム画面の縦位置 | 縦画面や分割画面などでゲームの上下に余白がある場合、ゲームを中央または上に配置します（デフォルトは中央） | 即時 |
 | PIPモードを有効にする | ホーム画面に戻るか、ゲーム画面をピンチイン（縮小）すると、小さなフローティング窓でゲーム画面を表示します | 即時 |
@@ -89,7 +89,7 @@ PIP/マルチウィンドウについては<span class="link" data-move="pipmode
 | 一般 | 真のクリティカルヒット | ハードコードされたヒットの難読化を削除します。CL2が発生した場合のみクリティカルヒットとして表示されます | 再読み込み | [@Oradimi](https://x.com/oradimi) |
 | Kantai3D 視覚効果 | Kantai3D v4.0 | 一部の秘書艦に3D効果を適用します。レガシーレンダラ使用時は選択できません | 再読み込み | [@laplamgor](https://x.com/laplamgor) |
 | Kantai3D 視覚効果 | About Kantai3D | [Kantai3DのGitHubページ](https://github.com/laplamgor/kantai3d)を開きます | | |
-| 言語パッチ (KCCP) | KanColle Language Patch (KCCP) | ゲーム内のテキストに翻訳パッチを適用します | 再読み込み | [@Oradimi](https://x.com/oradimi) |
+| 言語パッチ (KCCP) | KanColle Language Patch (KCCP) | ゲーム内のテキストに翻訳パッチを適用します。有効にすると下の項目が表示されます | 再読み込み | [@Oradimi](https://x.com/oradimi) |
 | 言語パッチ (KCCP) | 適用する言語パッチ | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP)（@Oradimi）または[KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP)（@SLAVUSworks） | 再読み込み | |
 | 言語パッチ (KCCP) | パッチデータダウンロード | 選択したパッチのデータをダウンロードまたは更新します。完了後、ゲームを再読み込みすると反映されます | 再読み込み | |
 | 言語パッチ (KCCP) | パッチデータ削除 | パッチが予期しない動作を示す場合や、ダウンロード中に問題が発生した場合に使用します | 再読み込み | |

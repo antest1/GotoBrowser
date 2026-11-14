@@ -41,7 +41,7 @@
 | --- | --- | --- |
 | <span class="material-symbols-outlined">volume_off</span>  | 靜音 | 將瀏覽器中播放的聲音靜音。語音檔案仍會持續載入。<br/>（適用於只想看字幕而不想聽聲音等情況） |
 | <span class="material-symbols-outlined">photo_camera</span> | 螢幕截圖 | 開啟或關閉截圖模式。開啟後，畫面右上角的設定按鈕下方會顯示截圖按鈕。 |
-| <span class="material-symbols-outlined">screen_lock_rotation</span> | 自動旋轉鎖定 | 不論裝置設定為何，都將畫面固定在目前的方向，不會旋轉。 |
+| <span class="material-symbols-outlined">screen_lock_rotation</span> | 自動旋轉鎖定 | 不論裝置設定為何，都將畫面固定在目前的方向，不會旋轉。在多視窗（分割／彈出視窗）下不會套用。 |
 | <span class="material-symbols-outlined">light_mode</span> | 保持螢幕開啟 | 待機時不讓螢幕變暗。 |
 | <span class="material-symbols-outlined">closed_caption</span> | 字幕 | 在畫面下方顯示或隱藏遊戲內字幕。輕觸顯示中的字幕，即可將其隱藏到下一句台詞出現為止。 |
 

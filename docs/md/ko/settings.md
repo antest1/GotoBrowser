@@ -39,7 +39,7 @@
 
 | 이름 | 설명 | 반영 |
 | --- | --- | --- |
-| 가로 화면 고정 | 기기의 방향과 상관없이 항상 가로 모드로 플레이 (기본 켜짐) | 즉시 |
+| 가로 화면 고정 | 기기의 방향과 상관없이 항상 가로 모드로 플레이 (기본 켜짐). 멀티윈도우(분할/팝업)에서는 적용되지 않음 | 즉시 |
 | 레이아웃 자동 조정 | 게임 화면을 기기 화면 크기에 맞게 자동으로 확대/축소 (권장, 기본 켜짐) | 새로고침 |
 | 게임 화면 세로 위치 | 세로 화면, 분할 화면 등 게임 위아래에 여백이 있을 때 게임을 가운데 또는 위쪽에 배치 (기본 가운데) | 즉시 |
 | PIP 모드 활성화 | 홈 화면으로 나가거나 게임 화면을 핀치 축소하면 작은 플로팅 창으로 게임 화면 표시 | 즉시 |
@@ -89,7 +89,7 @@ PIP/멀티윈도우 관련 내용은 <span class="link" data-move="pipmode">PIP/
 | 일반 | 진정한 크리티컬 히트 | 하드 코딩된 데미지의 난독화를 제거. CL2가 발생한 경우에만 크리티컬 히트 표시 | 새로고침 | [@Oradimi](https://x.com/oradimi) |
 | Kantai3D 시각 모드 | Kantai3D v4.0 | 일부 비서함에 3D 효과 적용. 레거시 렌더러 사용 시 선택 불가 | 새로고침 | [@laplamgor](https://x.com/laplamgor) |
 | Kantai3D 시각 모드 | About Kantai3D | [Kantai3D GitHub 페이지](https://github.com/laplamgor/kantai3d) 열기 | | |
-| 언어 번역 패치 (KCCP) | KanColle Language Patch (KCCP) | 게임 내 텍스트에 번역 패치 적용 | 새로고침 | [@Oradimi](https://x.com/oradimi) |
+| 언어 번역 패치 (KCCP) | KanColle Language Patch (KCCP) | 게임 내 텍스트에 번역 패치 적용. 켜져 있을 때 아래 항목이 표시됨 | 새로고침 | [@Oradimi](https://x.com/oradimi) |
 | 언어 번역 패치 (KCCP) | 적용할 언어 패치 | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP) (@Oradimi) 혹은 [KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP) (@SLAVUSworks) | 새로고침 | |
 | 언어 번역 패치 (KCCP) | 패치 데이터 다운로드 | 선택한 패치의 데이터를 다운로드 혹은 업데이트. 완료 후 게임을 새로고침해야 적용됨 | 새로고침 | |
 | 언어 번역 패치 (KCCP) | 패치 데이터 삭제 | 패치가 예기치 않은 동작을 하거나 다운로드 중 문제가 발생한 경우 사용 | 새로고침 | |

@@ -1,7 +1,9 @@
 package com.antest1.gotobrowser.Activity
 
+import android.app.Activity
 import android.content.Context
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.graphics.Rect
 import android.hardware.display.DisplayManager
 import android.os.Build
@@ -16,9 +18,19 @@ import com.antest1.gotobrowser.Constants.*
 import com.antest1.gotobrowser.R
 import kotlin.math.abs
 
+/**
+ * In split screen or a freeform window, where the app cannot rotate the display. A fixed
+ * orientation there only letterboxes the app inside its window, and some systems also stop
+ * the split from being resized, so no orientation is requested then. PiP is left out: it
+ * keeps the request so that expanding it goes straight back to landscape.
+ */
+private val Activity.isInResizableWindow: Boolean
+    get() = isInMultiWindowMode && !isInPictureInPictureMode
+
 class DisplayController(
     private val activity: BrowserActivity,
-    private val mContentView: WebView,
+    /** The game WebView, created after this controller (see BrowserActivity.onCreate). */
+    private val contentView: () -> WebView?,
     /** Divider margin (dp) to keep above and below the game. */
     private val onMultiwinMarginChanged: (topDp: Int, bottomDp: Int) -> Unit
 ) {
@@ -52,8 +64,73 @@ class DisplayController(
         }
     }
 
-    fun updateOrientationLock() {
-        val isLockMode = activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_LOCKMODE, false)
+    /** Whether the orientation request is currently dropped (see [isInResizableWindow]). */
+    private var orientationReleased = activity.isInResizableWindow
+
+    /**
+     * The request dropped on entering split screen, put back as it was on leaving, so a locked
+     * reverse landscape is not recomputed from the rotation at that moment. Null when there is
+     * nothing to put back (started in split screen, or the settings changed meanwhile).
+     */
+    private var heldOrientation: Int? = null
+
+    /**
+     * Drops or restores the orientation request when the window enters or leaves split screen.
+     * Other mode changes, like going in and out of PiP, leave the current request alone.
+     */
+    fun onWindowModeChanged() {
+        val resizable = activity.isInResizableWindow
+        if (resizable == orientationReleased) return
+        val held = heldOrientation
+        when {
+            resizable -> {
+                heldOrientation = activity.requestedOrientation
+                orientationReleased = true
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            }
+            held != null -> {
+                heldOrientation = null
+                orientationReleased = false
+                activity.requestedOrientation = held
+            }
+            else -> requestOrientationThenLock()
+        }
+    }
+
+    /** Set while a saved lock waits for the window to settle (see [requestOrientationThenLock]). */
+    private var lockPending = false
+
+    /**
+     * Requests the orientation without the saved lock first, and locks once the window has
+     * settled into it (see [onOrientationSettled]). Locking right away would lock to the
+     * rotation the launcher or the split screen left behind, not the side the device is held at.
+     */
+    fun requestOrientationThenLock() {
+        updateOrientationLock(applyLock = false)
+        lockPending = !orientationReleased &&
+                activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_LOCKMODE, false)
+    }
+
+    /**
+     * Applies a pending lock. Called when the window gains focus or its configuration changes;
+     * with landscape on, it waits until the window is actually in landscape.
+     */
+    fun onOrientationSettled() {
+        if (!lockPending) return
+        val landscape = activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_LANDSCAPE, true)
+        if (landscape && activity.resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE) return
+        updateOrientationLock()
+    }
+
+    fun updateOrientationLock(applyLock: Boolean = true) {
+        lockPending = false
+        heldOrientation = null
+        orientationReleased = activity.isInResizableWindow
+        if (orientationReleased) {
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            return
+        }
+        val isLockMode = applyLock && activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_LOCKMODE, false)
         if (activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_LANDSCAPE, true)) {
             activity.requestedOrientation = if (isLockMode) {
                 val rot = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -75,10 +152,11 @@ class DisplayController(
     }
 
     fun applyKeyboardSetting() {
+        val view = contentView() ?: return
         val enabled = activity.getSharedPreferences("shared_pref", 0).getBoolean(PREF_KEYBOARD, true)
-        mContentView.isFocusableInTouchMode = enabled
-        mContentView.isFocusable = enabled
-        mContentView.descendantFocusability =
+        view.isFocusableInTouchMode = enabled
+        view.isFocusable = enabled
+        view.descendantFocusability =
             if (enabled) ViewGroup.FOCUS_AFTER_DESCENDANTS else ViewGroup.FOCUS_BLOCK_DESCENDANTS
     }
 

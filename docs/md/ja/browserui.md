@@ -41,7 +41,7 @@
 | --- | --- | --- |
 | <span class="material-symbols-outlined">volume_off</span>  | ミュート | ブラウザで再生される音をミュートします。音声ファイルは引き続き読み込みます。<br/>（音声なしで字幕だけを見たい場合などに使用） |
 | <span class="material-symbols-outlined">photo_camera</span> | スクリーンショット | スクリーンショットモードを切り替えます。有効にすると、画面右上の設定ボタンの下にスクリーンショットボタンが表示されます。 |
-| <span class="material-symbols-outlined">screen_lock_rotation</span> | 回転ロック | 現在の画面状態でデバイス設定に関係なく回転しないように設定します。 |
+| <span class="material-symbols-outlined">screen_lock_rotation</span> | 回転ロック | 現在の画面状態でデバイス設定に関係なく回転しないように設定します。マルチウィンドウ（分割/ポップアップ）では適用されません。 |
 | <span class="material-symbols-outlined">light_mode</span> | 常時画面オン | 待機状態で画面が暗くならないように設定します。 |
 | <span class="material-symbols-outlined">closed_caption</span> | 字幕 | 画面下部にインゲーム音声の字幕を表示または非表示にします。表示中の字幕をタッチすると、次のセリフまで非表示になります。 |
 

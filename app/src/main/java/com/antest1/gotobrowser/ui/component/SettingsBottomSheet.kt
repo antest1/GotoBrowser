@@ -4,9 +4,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.keyframes
@@ -191,20 +193,31 @@ enum class SettingsScreen {
 private const val EDGE_SWIPE_BAND_DP = 24
 
 /**
- * Calls [onOutsideTouch] when a touch is released, unless it started in the screen edge band:
- * the area where hidden system bars would be, the system gesture areas, or at least
- * [EDGE_SWIPE_BAND_DP]. Cancelled touches (taken by a system gesture) are ignored.
+ * Calls [onOutsideTouch] on a tap on [view], unless it started in the screen edge band: the area
+ * where hidden system bars would be, the system gesture areas, or at least [EDGE_SWIPE_BAND_DP].
+ *
+ * As with the sheet's own scrim, only a real tap counts: one finger, within touch slop, not
+ * cancelled by a system gesture. A list fling started right after opening can begin below the
+ * still rising sheet and land here.
  */
 @SuppressLint("ClickableViewAccessibility")
-private fun outsideTouchListener(onOutsideTouch: () -> Unit): View.OnTouchListener {
+private fun outsideTouchListener(view: View, onOutsideTouch: () -> Unit): View.OnTouchListener {
     var startedAtEdge = false
-    return View.OnTouchListener { view, event ->
-        when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> startedAtEdge = isAtScreenEdge(view, event.x, event.y)
-            MotionEvent.ACTION_UP -> if (!startedAtEdge) onOutsideTouch()
+    val tapDetector = GestureDetector(view.context, object : GestureDetector.SimpleOnGestureListener() {
+        override fun onDown(e: MotionEvent): Boolean {
+            startedAtEdge = isAtScreenEdge(view, e.x, e.y)
+            return true
         }
-        true
-    }
+
+        override fun onSingleTapUp(e: MotionEvent): Boolean {
+            if (!startedAtEdge) onOutsideTouch()
+            return true
+        }
+    })
+    // Each tap counts on its own, and a long one still counts as a tap.
+    tapDetector.setOnDoubleTapListener(null)
+    tapDetector.setIsLongpressEnabled(false)
+    return View.OnTouchListener { _, event -> tapDetector.onTouchEvent(event); true }
 }
 
 private fun isAtScreenEdge(view: View, x: Float, y: Float): Boolean {
@@ -297,6 +310,10 @@ private fun SettingsBottomSheetContent(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
+        // The sheet counts as hidden until its opening animation settles. A fling on the list
+        // in that window makes the sheet settle twice, and the cancelled first settle reads as
+        // a dismiss. Keep the list's scrolls off the sheet until it has fully opened.
+        sheetGesturesEnabled = sheetState.isVisible,
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         // Outside touches are handled below instead, to skip edge swipes.
         properties = ModalBottomSheetProperties(shouldDismissOnClickOutside = false)
@@ -330,7 +347,7 @@ private fun SettingsBottomSheetContent(
         val currentDismissAnimated by rememberUpdatedState(dismissAnimated)
         DisposableEffect(dialogWindow) {
             val decorView = dialogWindow?.decorView
-            decorView?.setOnTouchListener(outsideTouchListener { currentDismissAnimated() })
+            decorView?.setOnTouchListener(outsideTouchListener(decorView) { currentDismissAnimated() })
             onDispose { decorView?.setOnTouchListener(null) }
         }
 
@@ -916,41 +933,47 @@ private fun ModsSection(
             onSettingChanged = onSettingChanged)
     }
 
-    ListRow(
-        viewModel, PREF_MOD_KCCP_LANG_PATCH_NAME, R.string.settings_mod_kccp_patch_name, kccpLanguageOptions(),
-        enabled = patchEnabled,
-        summaryProvider = { if (isPreview) "" else viewModel.getKccpPatchSummary(it) },
-        onSelected = { if (!isPreview) viewModel.onPatchLanguageChanged(it); true },
-        onSettingChanged = onSettingChanged
-    )
+    // Like the CHS group, the patch rows only show while the patch is on. They stay
+    // disabled as soon as it goes off, so they can't be used while they animate out.
+    AnimatedVisibility(visible = patchEnabled) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            ListRow(
+                viewModel, PREF_MOD_KCCP_LANG_PATCH_NAME, R.string.settings_mod_kccp_patch_name, kccpLanguageOptions(),
+                enabled = patchEnabled,
+                summaryProvider = { if (isPreview) "" else viewModel.getKccpPatchSummary(it) },
+                onSelected = { if (!isPreview) viewModel.onPatchLanguageChanged(it); true },
+                onSettingChanged = onSettingChanged
+            )
 
-    ClickRow(
-        title = R.string.settings_mod_kantaien_download,
-        summaryText = patchSummary,
-        enabled = patchEnabled && patchEnabledState,
-        onClick = { if (!isPreview) viewModel.requestPatchUpdate() }
-    )
-    var showPatchDeleteDialog by remember { mutableStateOf(false) }
-    ClickRow(
-        title = R.string.settings_mod_kantaien_delete,
-        summary = R.string.settings_mod_kantaien_delete_summary,
-        enabled = patchEnabled,
-        onClick = { showPatchDeleteDialog = true }
-    )
-    if (showPatchDeleteDialog) {
-        PatchDeleteDialog(
-            onConfirm = {
-                showPatchDeleteDialog = false
-                if (!isPreview) viewModel.deletePatch()
-            },
-            onDismiss = { showPatchDeleteDialog = false }
-        )
+            ClickRow(
+                title = R.string.settings_mod_kantaien_download,
+                summaryText = patchSummary,
+                enabled = patchEnabled && patchEnabledState,
+                onClick = { if (!isPreview) viewModel.requestPatchUpdate() }
+            )
+            var showPatchDeleteDialog by remember { mutableStateOf(false) }
+            ClickRow(
+                title = R.string.settings_mod_kantaien_delete,
+                summary = R.string.settings_mod_kantaien_delete_summary,
+                enabled = patchEnabled,
+                onClick = { showPatchDeleteDialog = true }
+            )
+            if (showPatchDeleteDialog) {
+                PatchDeleteDialog(
+                    onConfirm = {
+                        showPatchDeleteDialog = false
+                        if (!isPreview) viewModel.deletePatch()
+                    },
+                    onDismiss = { showPatchDeleteDialog = false }
+                )
+            }
+            ClickRow(
+                title = patchTitle,
+                summaryText = patchUrl,
+                onClick = { openUrl(context, patchUrl) }
+            )
+        }
     }
-    ClickRow(
-        title = patchTitle,
-        summaryText = patchUrl,
-        onClick = { openUrl(context, patchUrl) }
-    )
 
     // --- Group 4: Kancolle to CHS -------------------------------------------
     ChsSettingsSection(
