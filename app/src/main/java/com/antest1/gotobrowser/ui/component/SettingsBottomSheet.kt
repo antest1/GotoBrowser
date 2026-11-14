@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import androidx.compose.animation.AnimatedContent
@@ -191,20 +192,31 @@ enum class SettingsScreen {
 private const val EDGE_SWIPE_BAND_DP = 24
 
 /**
- * Calls [onOutsideTouch] when a touch is released, unless it started in the screen edge band:
- * the area where hidden system bars would be, the system gesture areas, or at least
- * [EDGE_SWIPE_BAND_DP]. Cancelled touches (taken by a system gesture) are ignored.
+ * Calls [onOutsideTouch] on a tap on [view], unless it started in the screen edge band: the area
+ * where hidden system bars would be, the system gesture areas, or at least [EDGE_SWIPE_BAND_DP].
+ *
+ * As with the sheet's own scrim, only a real tap counts: one finger, within touch slop, not
+ * cancelled by a system gesture. A list fling started right after opening can begin below the
+ * still rising sheet and land here.
  */
 @SuppressLint("ClickableViewAccessibility")
-private fun outsideTouchListener(onOutsideTouch: () -> Unit): View.OnTouchListener {
+private fun outsideTouchListener(view: View, onOutsideTouch: () -> Unit): View.OnTouchListener {
     var startedAtEdge = false
-    return View.OnTouchListener { view, event ->
-        when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> startedAtEdge = isAtScreenEdge(view, event.x, event.y)
-            MotionEvent.ACTION_UP -> if (!startedAtEdge) onOutsideTouch()
+    val tapDetector = GestureDetector(view.context, object : GestureDetector.SimpleOnGestureListener() {
+        override fun onDown(e: MotionEvent): Boolean {
+            startedAtEdge = isAtScreenEdge(view, e.x, e.y)
+            return true
         }
-        true
-    }
+
+        override fun onSingleTapUp(e: MotionEvent): Boolean {
+            if (!startedAtEdge) onOutsideTouch()
+            return true
+        }
+    })
+    // Each tap counts on its own, and a long one still counts as a tap.
+    tapDetector.setOnDoubleTapListener(null)
+    tapDetector.setIsLongpressEnabled(false)
+    return View.OnTouchListener { _, event -> tapDetector.onTouchEvent(event); true }
 }
 
 private fun isAtScreenEdge(view: View, x: Float, y: Float): Boolean {
@@ -334,7 +346,7 @@ private fun SettingsBottomSheetContent(
         val currentDismissAnimated by rememberUpdatedState(dismissAnimated)
         DisposableEffect(dialogWindow) {
             val decorView = dialogWindow?.decorView
-            decorView?.setOnTouchListener(outsideTouchListener { currentDismissAnimated() })
+            decorView?.setOnTouchListener(outsideTouchListener(decorView) { currentDismissAnimated() })
             onDispose { decorView?.setOnTouchListener(null) }
         }
 
