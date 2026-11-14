@@ -25,7 +25,6 @@ import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.activity.OnBackPressedCallback
-import androidx.annotation.RequiresApi
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
@@ -319,6 +318,11 @@ class BrowserActivity : ComponentActivity() {
             insets
         }
         displayController = DisplayController(this, webView) { top, bottom -> gameArea.setDividerMargin(top, bottom) }
+        // A listener rather than the onMultiWindowModeChanged(Boolean, Configuration) override,
+        // which the system only calls from Android 8.0; the listener also runs on 7.x.
+        addOnMultiWindowModeChangedListener {
+            displayController.updateMultiwindowMargin()
+        }
 
         val backgroundTapView = View(this).apply {
             setOnClickListener { toolbarVisible.value = !toolbarVisible.value }
@@ -649,12 +653,6 @@ class BrowserActivity : ComponentActivity() {
         super.onStop()
         mContentView?.let { manager?.runMuteScript(it, true, true) }
         sendIsFrontChanged(false)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: android.content.res.Configuration) {
-        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
-        displayController.updateMultiwindowMargin()
     }
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
