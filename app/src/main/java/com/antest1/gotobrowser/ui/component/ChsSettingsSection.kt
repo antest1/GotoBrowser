@@ -21,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -32,6 +33,8 @@ import com.antest1.gotobrowser.Activity.SettingsViewModel
 import com.antest1.gotobrowser.Helpers.chs.ChsConfig
 import com.antest1.gotobrowser.Helpers.chs.ChsPaths
 import com.antest1.gotobrowser.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Simplified Chinese localization (Kancolle_to_CHS) settings group on the Mods screen.
@@ -96,10 +99,16 @@ private fun ChsExpandedRows(
     chsSummary: String
 ) {
     val context = LocalContext.current
-    val hasInstalledData = if (isPreview) false else ChsPaths.hasInstalledData(context)
+    var showDownloadDialog by remember { mutableStateOf(false) }
+    // Checked off the main thread whenever the summary changes and each time the download dialog
+    // opens, since a failed or cancelled download can change the data without changing the summary.
+    val hasInstalledData by produceState(initialValue = false, chsSummary, showDownloadDialog) {
+        if (!isPreview) {
+            value = withContext(Dispatchers.IO) { ChsPaths.hasInstalledData(context) }
+        }
+    }
 
     // Download & update row (opens release zip vs incremental diff dialog)
-    var showDownloadDialog by remember { mutableStateOf(false) }
     ClickRow(
         title = R.string.settings_mod_chs_download,
         summaryText = chsSummary,

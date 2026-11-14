@@ -5,13 +5,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.antest1.gotobrowser.Activity.SettingsViewModel
 import com.antest1.gotobrowser.Helpers.chs.ChsConfig
+import com.antest1.gotobrowser.Helpers.chs.ChsPaths
 import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.ui.theme.SettingsTheme
 import com.google.firebase.FirebaseApp
@@ -21,9 +22,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.File
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = Application::class)
 class ChsSettingsSectionTest {
 
@@ -54,12 +57,11 @@ class ChsSettingsSectionTest {
     @After
     fun tearDown() {
         scenario?.close()
+        ChsConfig.setEnabled(false)
+        ChsPaths.getRootDir(app).deleteRecursively()
     }
 
-    @Test
-    fun testExpandedRowsAndDownloadDialog() {
-        ChsConfig.setEnabled(true)
-
+    private fun showSection() {
         scenario = ActivityScenario.launch(ComponentActivity::class.java).also { s ->
             s.onActivity { a ->
                 a.setContent {
@@ -73,8 +75,32 @@ class ChsSettingsSectionTest {
                 }
             }
         }
-
         compose.waitForIdle()
+    }
+
+    @Test
+    fun testDownloadDialogRecommendsIncrementalUpdateWhenDataIsInstalled() {
+        ChsConfig.setEnabled(true)
+        File(ChsPaths.getTextDictDir(app), "sample.json").apply {
+            parentFile?.mkdirs()
+            writeText("""{"a":"b"}""")
+        }
+        showSection()
+
+        compose.onNodeWithText(app.getString(R.string.settings_mod_chs_download)).performClick()
+
+        // The installed-data check runs on Dispatchers.IO, which compose idling does not track.
+        val recommendedPatch = app.getString(R.string.settings_mod_chs_download_patch_recommended)
+        compose.waitUntil(5_000) {
+            compose.onAllNodesWithText(recommendedPatch).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText(recommendedPatch).assertIsDisplayed()
+    }
+
+    @Test
+    fun testExpandedRowsAndDownloadDialog() {
+        ChsConfig.setEnabled(true)
+        showSection()
 
         val downloadTitle = app.getString(R.string.settings_mod_chs_download)
         val aboutTitle = app.getString(R.string.settings_mod_chs_about)

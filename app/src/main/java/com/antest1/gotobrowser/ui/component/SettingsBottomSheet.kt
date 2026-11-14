@@ -64,6 +64,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -344,9 +345,7 @@ private fun SettingsBottomSheetContent(
             Box(modifier = Modifier.height(48.withDp())) {
                 if (currentScreen != SettingsScreen.MAIN) {
                     IconButton(
-                        onClick = {
-                            currentScreen = SettingsScreen.MAIN
-                        }
+                        onClick = { currentScreen = SettingsScreen.MAIN }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -900,25 +899,13 @@ private fun ModsSection(
         onClick = { openUrl(context, GITHUB_KANTAI3D) }
     )
 
+    // --- Group 3: English & Language Patches --------------------------------
+    SectionHeader(R.string.settings_mod_group_kccp)
     // Held as state so the dependent rows follow the switch right away.
     var patchEnabled by remember { mutableStateOf(if (isPreview) false else viewModel.isKccpPatchEnabled()) }
+    // Bumped when turning the CHS patch on turns KCCP off, so the switch re-reads its preference.
     var kccpSwitchVersion by remember { mutableIntStateOf(0) }
-
-    // --- Group 3: Kancolle_to_CHS --------------------------------------------
-    ChsSettingsSection(
-        viewModel = viewModel,
-        onChsToggled = { enabled ->
-            if (enabled && !isPreview) {
-                patchEnabled = viewModel.isKccpPatchEnabled()
-                kccpSwitchVersion++
-            }
-        },
-        onSettingChanged = onSettingChanged
-    )
-
-    // --- Group 4: English & Language Patches --------------------------------
-    SectionHeader(R.string.settings_mod_group_kccp)
-    androidx.compose.runtime.key(kccpSwitchVersion) {
+    key(kccpSwitchVersion) {
         SwitchRow(viewModel, PREF_MOD_KCCP_LANG_PATCH, R.string.settings_mod_kccp, R.string.settings_mod_kccp_summary,
             onChanged = {
                 if (!isPreview) {
@@ -963,6 +950,18 @@ private fun ModsSection(
         title = patchTitle,
         summaryText = patchUrl,
         onClick = { openUrl(context, patchUrl) }
+    )
+
+    // --- Group 4: Kancolle to CHS -------------------------------------------
+    ChsSettingsSection(
+        viewModel = viewModel,
+        onChsToggled = { enabled ->
+            if (enabled && !isPreview) {
+                patchEnabled = viewModel.isKccpPatchEnabled()
+                kccpSwitchVersion++
+            }
+        },
+        onSettingChanged = onSettingChanged
     )
 }
 

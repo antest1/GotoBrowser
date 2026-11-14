@@ -30,7 +30,7 @@ object ChsTextPatcher {
 
     /**
      * Applies Simplified Chinese text/typewriter patches to [mainJs] when enabled;
-     * returns [mainJs] unchanged when disabled or if loading fails.
+     * returns [mainJs] unchanged when disabled, when no patch data is installed, or if loading fails.
      */
     fun patchChs(context: Context, mainJs: String): String {
         if (!ChsConfig.isPatcherEnabled()) {
@@ -38,6 +38,7 @@ object ChsTextPatcher {
         }
         return try {
             val bundle = ChsDataRepository.getOrLoad(context)
+            if (!bundle.hasData) return mainJs
             patchMainJsWithData(
                 mainJs = mainJs,
                 textDict = bundle.textDict,
@@ -123,7 +124,7 @@ object ChsTextPatcher {
                 Log.i(TAG, "Partially matched $matchedAnchors/3 typewriter anchors in main.js")
             }
         } catch (e: Exception) {
-            try { Log.w(TAG, "Skipped typewriter anchor injection: ${e.message}") } catch (_: Throwable) {}
+            Log.w(TAG, "Skipped typewriter anchor injection: ${e.message}")
             return mainJs
         }
         return js

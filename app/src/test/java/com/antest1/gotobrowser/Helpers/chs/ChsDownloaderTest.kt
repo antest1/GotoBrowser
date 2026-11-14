@@ -54,6 +54,51 @@ class ChsDownloaderTest {
     }
 
     @Test
+    fun testRecoverInterruptedArchiveInstallRestoresBackupsAndRemovesLeftovers() {
+        val rootDir = tempFolder.newFolder("chs_recover_root")
+        // text/ was moved to a backup but the staged copy never took its place.
+        File(rootDir, ".backup_text_100/text.json").apply { parentFile?.mkdirs(); writeText("backup") }
+        // cache/ is intact, so its backup is stale.
+        File(rootDir, "cache/current.png").apply { parentFile?.mkdirs(); writeText("current") }
+        File(rootDir, ".backup_cache_200/old.png").apply { parentFile?.mkdirs(); writeText("old") }
+        File(rootDir, ".staging_3/text/partial.json").apply { parentFile?.mkdirs(); writeText("partial") }
+        File(rootDir, "release_v1.0.zip.part").writeText("zip")
+        File(rootDir, "manifest.local.json").writeText("{}")
+
+        ChsDownloader().recoverInterruptedArchiveInstall(rootDir)
+
+        assertTrue("text/ should be restored from its backup", File(rootDir, "text/text.json").isFile)
+        assertTrue("Intact cache/ must be kept", File(rootDir, "cache/current.png").isFile)
+        assertFalse(File(rootDir, "cache/old.png").exists())
+        assertFalse(File(rootDir, ".backup_text_100").exists())
+        assertFalse(File(rootDir, ".backup_cache_200").exists())
+        assertFalse(File(rootDir, ".staging_3").exists())
+        assertFalse(File(rootDir, "release_v1.0.zip.part").exists())
+        assertTrue("Unrelated files must be kept", File(rootDir, "manifest.local.json").isFile)
+    }
+
+    @Test
+    fun testRecoverInterruptedArchiveInstallRollsBackCutOffSwap() {
+        val rootDir = tempFolder.newFolder("chs_recover_swap_root")
+        // The swap was cut off: text/ holds a partial copy, its backup is complete.
+        File(rootDir, ".swap_in_progress").writeText("")
+        File(rootDir, "text/partial.json").apply { parentFile?.mkdirs(); writeText("partial") }
+        File(rootDir, ".backup_text_100/complete.json").apply { parentFile?.mkdirs(); writeText("complete") }
+        // cache/ was being backed up by copy when the process died; the original is still intact.
+        File(rootDir, "cache/current.png").apply { parentFile?.mkdirs(); writeText("current") }
+        File(rootDir, ".backup_tmp_cache/curr").apply { parentFile?.mkdirs(); writeText("cut") }
+
+        ChsDownloader().recoverInterruptedArchiveInstall(rootDir)
+
+        assertTrue("Complete backup should replace the partial text/", File(rootDir, "text/complete.json").isFile)
+        assertFalse(File(rootDir, "text/partial.json").exists())
+        assertTrue("cache/ without a complete backup must be kept", File(rootDir, "cache/current.png").isFile)
+        assertFalse(File(rootDir, ".backup_tmp_cache").exists())
+        assertFalse(File(rootDir, ".backup_text_100").exists())
+        assertFalse(File(rootDir, ".swap_in_progress").exists())
+    }
+
+    @Test
     fun testCommitStagingDirectoryReplacesTargetsAndRejectsEmptyStaging() {
         val rootDir = tempFolder.newFolder("chs_staging_root")
         val oldText = File(rootDir, "text/old.json").apply {
@@ -94,6 +139,8 @@ class ChsDownloaderTest {
         assertFalse("Old untracked cache file should be gone after staging swap", oldHack.exists())
         assertTrue(File(rootDir, "text/new.json").exists())
         assertTrue(File(rootDir, "cache/new.hack").exists())
+        val leftovers = rootDir.list().orEmpty().filter { it.startsWith(".backup_") || it == ".swap_in_progress" }
+        assertTrue("Backups and the swap marker should be gone after a successful swap: $leftovers", leftovers.isEmpty())
     }
 
     @Test

@@ -32,10 +32,19 @@ object ChsApiMerger {
     }
 
     /**
-     * Returns the runtime Axios response-merging script when CHS patching is active.
+     * Returns the runtime Axios response-merging script when CHS patching is active
+     * and API tables are installed.
      */
     fun patchChsApi(context: Context): String {
         if (!ChsConfig.isPatcherEnabled()) {
+            return ""
+        }
+        val hasApiData = try {
+            ChsDataRepository.getOrLoad(context).hasApiData
+        } catch (_: Exception) {
+            false
+        }
+        if (!hasApiData) {
             return ""
         }
         return generateApiPatcherScript(inlineApiTables = null)

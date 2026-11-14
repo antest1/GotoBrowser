@@ -209,10 +209,10 @@
     <string name="detail_message">메시지</string>
 
     <!-- Simplified Chinese Localization (Kancolle_to_CHS) -->
-    <string name="settings_mod_group_chs">Kancolle_to_CHS</string>
+    <string name="settings_mod_group_chs">Kancolle to CHS</string>
     <string name="settings_mod_chs_enable">중국어 간체 번역 패치</string>
     <string name="settings_mod_chs_summary">게임 내 텍스트, KCSAPI 응답, UI 이미지·글꼴을 중국어 간체로 바꿉니다. 제작자: @泉浅漪</string>
-    <string name="settings_mod_chs_source">번역 데이터 출처 (砍口垒汉化计划 @归海原)</string>
+    <string name="settings_mod_chs_source">번역 데이터 출처 (KanColle CHS Project @归海原)</string>
     <string name="settings_mod_chs_source_custom">사용자 지정 미러 URL</string>
     <string name="settings_mod_chs_custom_url">출처 기본 URL</string>
     <string name="settings_mod_chs_download">번역 데이터 다운로드 및 업데이트</string>
@@ -225,9 +225,9 @@
     <string name="settings_mod_chs_download_patch_desc">변경된 파일만 다운로드합니다. 기존 데이터가 있는 경우 일상적인 업데이트에 적합합니다.</string>
     <string name="settings_mod_chs_delete">번역 데이터 삭제</string>
     <string name="settings_mod_chs_delete_summary">다운로드한 중국어 간체 텍스트와 이미지·글꼴을 삭제합니다.</string>
-    <string name="settings_mod_chs_about">Kancolle_to_CHS 정보</string>
+    <string name="settings_mod_chs_about">Kancolle to CHS 정보</string>
     <string name="settings_mod_chs_about_summary">작성자, 데이터 소스 및 오픈소스 감사</string>
-    <string name="settings_mod_chs_about_dialog_text">개발자: @泉浅漪\n번역 데이터 소스: 砍口垒汉化计划 @归海原\n저장소: https://github.com/asaico/Kancolle_to_CHS</string>
+    <string name="settings_mod_chs_about_dialog_text">개발자: @泉浅漪\n번역 데이터 소스: KanColle CHS Project @归海原\n저장소: https://github.com/asaico/Kancolle_to_CHS</string>
     <string name="chs_status_disabled">패치가 꺼져 있습니다</string>
     <string name="chs_status_check_failed">업데이트 서버에 연결할 수 없습니다. 데이터 소스 변경을 권장합니다</string>
     <string name="chs_download_failed">다운로드에 실패했습니다. 데이터 소스를 변경해 보세요</string>
