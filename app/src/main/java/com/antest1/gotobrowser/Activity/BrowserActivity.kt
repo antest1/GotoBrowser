@@ -908,6 +908,10 @@ class BrowserActivity : ComponentActivity() {
         screenshotNotification.showNotification(bitmap, uri)
     }
 
+    fun showScreenshotSaveFailure() {
+        KcUtils.showToast(this, R.string.screenshot_save_failed)
+    }
+
     private fun checkAppUpdateOnStart() {
         if (viewModel.isAppUpdateCheckStarted) return
         viewModel.isAppUpdateCheckStarted = true

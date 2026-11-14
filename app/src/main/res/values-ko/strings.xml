@@ -66,6 +66,7 @@
     <string name="noti_screenshot_title">스크린샷 저장됨</string>
     <string name="noti_screenshot_description">탭하여 스크린샷 열기</string>
     <string name="noti_screenshot_permission_message">스크린샷 결과를 표시하기 위해서는 알림 권한이 필요합니다.</string>
+    <string name="screenshot_save_failed">스크린샷을 저장하지 못했습니다.</string>
     <string name="granted_true_notification_permission">알림 권한이 설정됨</string>
     <string name="granted_false_notification_permission">알림 권한이 설정되지 않음</string>
     <string name="settings_source_code">소스 코드</string>
