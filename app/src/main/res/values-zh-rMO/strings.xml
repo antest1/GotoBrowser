@@ -98,6 +98,7 @@
     <string name="menu_tooltip_refresh">重新整理頁面</string>
     <string name="menu_quick_refresh">快速重新整理</string>
     <string name="menu_full_refresh">完全重新整理</string>
+    <string name="settings_apply_hint">套用設定</string>
     <string name="menu_tooltip_mute">靜音</string>
     <string name="menu_tooltip_camera">螢幕截圖</string>
     <string name="menu_tooltip_lock">自動旋轉鎖定</string>
@@ -173,7 +174,7 @@
     <string name="settings_refresh_required_title">需要重新載入</string>
     <string name="settings_refresh_required_msg">設定已儲存。需要重新載入遊戲才能生效。你想現在重新載入嗎？</string>
     <string name="settings_refresh_now">現在重新載入</string>
-    <string name="settings_refresh_later">暫不重新載入</string>
+    <string name="settings_refresh_pending">重新載入後套用</string>
     <string name="refresh_later">稍後</string>
     <!-- First-screen loading status and server errors -->
     <string name="loading_preparing_title">正在套用設定</string>

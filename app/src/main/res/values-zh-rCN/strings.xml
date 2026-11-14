@@ -98,6 +98,7 @@
     <string name="menu_tooltip_refresh">重新整理页面</string>
     <string name="menu_quick_refresh">快速刷新</string>
     <string name="menu_full_refresh">完全刷新</string>
+    <string name="settings_apply_hint">应用设置</string>
     <string name="menu_tooltip_mute">静音</string>
     <string name="menu_tooltip_camera">萤幕截图</string>
     <string name="menu_tooltip_lock">自动旋转锁定</string>
@@ -174,7 +175,7 @@
     <string name="settings_refresh_required_title">需要重新加载</string>
     <string name="settings_refresh_required_msg">设置已保存。需要重新加载游戏才能生效。你想现在重新加载吗？</string>
     <string name="settings_refresh_now">现在重新加载</string>
-    <string name="settings_refresh_later">暂不重新加载</string>
+    <string name="settings_refresh_pending">重新加载后生效</string>
     <string name="refresh_later">稍后</string>
     <!-- First-screen loading status and server errors -->
     <string name="loading_preparing_title">正在应用设置</string>
