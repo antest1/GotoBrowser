@@ -8,6 +8,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.keyframes
@@ -932,41 +933,47 @@ private fun ModsSection(
             onSettingChanged = onSettingChanged)
     }
 
-    ListRow(
-        viewModel, PREF_MOD_KCCP_LANG_PATCH_NAME, R.string.settings_mod_kccp_patch_name, kccpLanguageOptions(),
-        enabled = patchEnabled,
-        summaryProvider = { if (isPreview) "" else viewModel.getKccpPatchSummary(it) },
-        onSelected = { if (!isPreview) viewModel.onPatchLanguageChanged(it); true },
-        onSettingChanged = onSettingChanged
-    )
+    // Like the CHS group, the patch rows only show while the patch is on. They stay
+    // disabled as soon as it goes off, so they can't be used while they animate out.
+    AnimatedVisibility(visible = patchEnabled) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            ListRow(
+                viewModel, PREF_MOD_KCCP_LANG_PATCH_NAME, R.string.settings_mod_kccp_patch_name, kccpLanguageOptions(),
+                enabled = patchEnabled,
+                summaryProvider = { if (isPreview) "" else viewModel.getKccpPatchSummary(it) },
+                onSelected = { if (!isPreview) viewModel.onPatchLanguageChanged(it); true },
+                onSettingChanged = onSettingChanged
+            )
 
-    ClickRow(
-        title = R.string.settings_mod_kantaien_download,
-        summaryText = patchSummary,
-        enabled = patchEnabled && patchEnabledState,
-        onClick = { if (!isPreview) viewModel.requestPatchUpdate() }
-    )
-    var showPatchDeleteDialog by remember { mutableStateOf(false) }
-    ClickRow(
-        title = R.string.settings_mod_kantaien_delete,
-        summary = R.string.settings_mod_kantaien_delete_summary,
-        enabled = patchEnabled,
-        onClick = { showPatchDeleteDialog = true }
-    )
-    if (showPatchDeleteDialog) {
-        PatchDeleteDialog(
-            onConfirm = {
-                showPatchDeleteDialog = false
-                if (!isPreview) viewModel.deletePatch()
-            },
-            onDismiss = { showPatchDeleteDialog = false }
-        )
+            ClickRow(
+                title = R.string.settings_mod_kantaien_download,
+                summaryText = patchSummary,
+                enabled = patchEnabled && patchEnabledState,
+                onClick = { if (!isPreview) viewModel.requestPatchUpdate() }
+            )
+            var showPatchDeleteDialog by remember { mutableStateOf(false) }
+            ClickRow(
+                title = R.string.settings_mod_kantaien_delete,
+                summary = R.string.settings_mod_kantaien_delete_summary,
+                enabled = patchEnabled,
+                onClick = { showPatchDeleteDialog = true }
+            )
+            if (showPatchDeleteDialog) {
+                PatchDeleteDialog(
+                    onConfirm = {
+                        showPatchDeleteDialog = false
+                        if (!isPreview) viewModel.deletePatch()
+                    },
+                    onDismiss = { showPatchDeleteDialog = false }
+                )
+            }
+            ClickRow(
+                title = patchTitle,
+                summaryText = patchUrl,
+                onClick = { openUrl(context, patchUrl) }
+            )
+        }
     }
-    ClickRow(
-        title = patchTitle,
-        summaryText = patchUrl,
-        onClick = { openUrl(context, patchUrl) }
-    )
 
     // --- Group 4: Kancolle to CHS -------------------------------------------
     ChsSettingsSection(

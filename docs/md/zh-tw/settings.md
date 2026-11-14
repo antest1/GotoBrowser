@@ -89,7 +89,7 @@ PIP/多視窗相關內容請參閱<span class="link" data-move="pipmode">PIP/多
 | 常規 | 真正的Critical hit | 移除傷害的硬編碼混淆。僅在發生 CL2 時才顯示為 Critical hit | 重新載入 | [@Oradimi](https://x.com/oradimi) |
 | Kantai3D 視覺模組 | Kantai3D v4.0 | 為部分秘書艦套用 3D 效果。使用舊式渲染器時無法選擇 | 重新載入 | [@laplamgor](https://x.com/laplamgor) |
 | Kantai3D 視覺模組 | 關於Kantai3D | 開啟 [Kantai3D GitHub 頁面](https://github.com/laplamgor/kantai3d) | | |
-| 語言翻譯模組 | KanColle Language Patch (KCCP) | 為遊戲內文字套用翻譯補丁 | 重新載入 | [@Oradimi](https://x.com/oradimi) |
+| 語言翻譯模組 | KanColle Language Patch (KCCP) | 為遊戲內文字套用翻譯補丁。開啟後會顯示下方選項 | 重新載入 | [@Oradimi](https://x.com/oradimi) |
 | 語言翻譯模組 | 要使用的補丁 | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP)（@Oradimi）或 [KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP)（@SLAVUSworks） | 重新載入 | |
 | 語言翻譯模組 | 下載補丁資料 | 下載或更新所選補丁的資料。完成後需重新整理遊戲才會生效 | 重新載入 | |
 | 語言翻譯模組 | 刪除補丁資料 | 補丁出現預期外的行為，或下載過程中發生問題時使用 | 重新載入 | |

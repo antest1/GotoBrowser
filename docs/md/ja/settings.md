@@ -89,7 +89,7 @@ PIP/マルチウィンドウについては<span class="link" data-move="pipmode
 | 一般 | 真のクリティカルヒット | ハードコードされたヒットの難読化を削除します。CL2が発生した場合のみクリティカルヒットとして表示されます | 再読み込み | [@Oradimi](https://x.com/oradimi) |
 | Kantai3D 視覚効果 | Kantai3D v4.0 | 一部の秘書艦に3D効果を適用します。レガシーレンダラ使用時は選択できません | 再読み込み | [@laplamgor](https://x.com/laplamgor) |
 | Kantai3D 視覚効果 | About Kantai3D | [Kantai3DのGitHubページ](https://github.com/laplamgor/kantai3d)を開きます | | |
-| 言語パッチ (KCCP) | KanColle Language Patch (KCCP) | ゲーム内のテキストに翻訳パッチを適用します | 再読み込み | [@Oradimi](https://x.com/oradimi) |
+| 言語パッチ (KCCP) | KanColle Language Patch (KCCP) | ゲーム内のテキストに翻訳パッチを適用します。有効にすると下の項目が表示されます | 再読み込み | [@Oradimi](https://x.com/oradimi) |
 | 言語パッチ (KCCP) | 適用する言語パッチ | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP)（@Oradimi）または[KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP)（@SLAVUSworks） | 再読み込み | |
 | 言語パッチ (KCCP) | パッチデータダウンロード | 選択したパッチのデータをダウンロードまたは更新します。完了後、ゲームを再読み込みすると反映されます | 再読み込み | |
 | 言語パッチ (KCCP) | パッチデータ削除 | パッチが予期しない動作を示す場合や、ダウンロード中に問題が発生した場合に使用します | 再読み込み | |
