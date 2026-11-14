@@ -94,6 +94,11 @@ PIP/多視窗相關內容請參閱<span class="link" data-move="pipmode">PIP/多
 | 語言翻譯模組 | 下載補丁資料 | 下載或更新所選補丁的資料。完成後需重新整理遊戲才會生效 | 重新載入 | |
 | 語言翻譯模組 | 刪除補丁資料 | 補丁出現預期外的行為，或下載過程中發生問題時使用 | 重新載入 | |
 | 語言翻譯模組 | KanColle English/Indonesia Patch關於 | 開啟所選補丁的 GitHub 頁面 | | |
+| 砍口壘漢化計劃 in Goto | 漢化 | 將遊戲內文字、UI 貼圖與字體替換為簡體中文。API 資料僅在遊戲畫面中翻譯，Kcanotify 仍會收到原始資料。無法與 KanColle Language Patch (KCCP) 同時使用，開啟其中一個時另一個會自動關閉。開啟後會顯示下方選項 | 重新載入 | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
+| 砍口壘漢化計劃 in Goto | 下載與更新 | 下載漢化資料。首次下載請選擇「下載完整包 (Release Zip)」，之後選擇「增量更新」即可只下載有變更的檔案。完成後需重新整理遊戲才會生效 | 重新載入 | |
+| 砍口壘漢化計劃 in Goto | 漢化資料源 | 選擇檢查更新與增量更新時使用的下載來源：GitHub Raw、jsDelivr CDN、GHProxy Mirror 或自訂鏡像源（選擇自訂鏡像源時需填寫自訂資料源根位址）。增量更新失敗時可嘗試切換資料源。完整包一律從 GitHub Releases 下載，僅在選擇 GHProxy Mirror 時經由 GHProxy。資料來自砍口壘漢化計劃 @歸海原 | 立即 | |
+| 砍口壘漢化計劃 in Goto | 刪除漢化資料 | 刪除已下載的簡體中文文字、貼圖與字體 | 重新載入 | |
+| 砍口壘漢化計劃 in Goto | 關於砍口壘漢化計劃 in Goto | 顯示作者、資料源與儲存庫連結 | | |
 
 ##### 應用程式資訊
 

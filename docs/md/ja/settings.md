@@ -94,6 +94,11 @@ PIP/マルチウィンドウについては<span class="link" data-move="pipmode
 | 言語パッチ (KCCP) | パッチデータダウンロード | 選択したパッチのデータをダウンロードまたは更新します。完了後、ゲームを再読み込みすると反映されます | 再読み込み | |
 | 言語パッチ (KCCP) | パッチデータ削除 | パッチが予期しない動作を示す場合や、ダウンロード中に問題が発生した場合に使用します | 再読み込み | |
 | 言語パッチ (KCCP) | KanColle English/Indonesia Patchについて | 選択したパッチのGitHubページを開きます | | |
+| Kancolle to CHS | 簡体字中国語化パッチ | ゲーム内のテキスト、UI画像、フォントを簡体字中国語に置き換えます。APIデータはゲーム画面内でのみ翻訳されるため、Kcanotifyには元のデータがそのまま送られます。KanColle Language Patch (KCCP)とは併用できず、一方を有効にするともう一方は無効になります。有効にすると下の項目が表示されます | 再読み込み | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
+| Kancolle to CHS | 翻訳データをダウンロード・更新 | パッチデータをダウンロードします。初回はフルパッケージ (Release Zip)、以降は変更されたファイルのみを取得する差分更新を選択します。完了後、ゲームを再読み込みすると反映されます | 再読み込み | |
+| Kancolle to CHS | 翻訳データの取得元 | 更新確認と差分更新に使う取得元をGitHub Raw、jsDelivr CDN、GHProxy Mirror、カスタムミラー URLから選択します（カスタムの場合は取得元のベース URLにアドレスを入力）。差分更新に失敗する場合は別の取得元を使用してください。フルパッケージは常にGitHub Releasesから取得し、GHProxy Mirrorを選択した場合のみGHProxyを経由します。データ提供：KanColle CHS Project（@归海原） | 即時 | |
+| Kancolle to CHS | 翻訳データを削除 | ダウンロード済みの簡体字中国語テキスト、画像、フォントを削除します | 再読み込み | |
+| Kancolle to CHS | Kancolle to CHS について | 作者、データソース、リポジトリへのリンクを表示します | | |
 
 ##### アプリケーション情報
 

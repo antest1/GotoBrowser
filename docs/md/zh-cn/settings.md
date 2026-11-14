@@ -89,16 +89,16 @@ PIP/多窗口相关内容请参阅<span class="link" data-move="pipmode">PIP/多
 | 常规 | 真正的Critical hit | 移除硬编码的伤害混淆。仅在发生 CL2 时显示 Critical hit | 重新加载 | [@Oradimi](https://x.com/oradimi) |
 | Kantai3D 视觉补丁 | Kantai3D v4.0 | 为部分秘书舰添加 3D 效果。使用旧式渲染器时无法选择 | 重新加载 | [@laplamgor](https://x.com/laplamgor) |
 | Kantai3D 视觉补丁 | 关于Kantai3D | 打开 [Kantai3D GitHub 页面](https://github.com/laplamgor/kantai3d) | | |
-| 砍口垒汉化计划 in Goto | 汉化 | 为游戏内文本、游戏显示侧 KCSAPI 数据（仍向 Kcanotify 保留日文原始响应）、UI 贴图与字体应用简体中文汉化（与 KCCP 语言补丁互斥，开启后展开下方选项） | 重新加载 | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
-| 砍口垒汉化计划 in Goto | 下载更新 | 支持下载并自动解压最新 Release 全量包（推荐初次安装使用），或按校验哈希增量更新差异文件，完成后刷新游戏生效 | 重新加载 | |
-| 砍口垒汉化计划 in Goto | 汉化数据源 | 选择汉化数据的下载来源：GitHub Raw、jsDelivr CDN、GHProxy 镜像或自定义地址（数据来自 砍口垒汉化计划 @归海原） | 立即 | |
-| 砍口垒汉化计划 in Goto | 删除汉化数据 | 清除已下载的汉化数据 | 重新加载 | |
-| 砍口垒汉化计划 in Goto | 关于 砍口垒汉化计划 in Goto | 查看作者、数据源与仓库信息 | | |
 | 语言翻译补丁 | KanColle Language Patch (KCCP) | 为游戏内文本应用翻译补丁 | 重新加载 | [@Oradimi](https://x.com/oradimi) |
 | 语言翻译补丁 | 要使用的补丁 | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP)（@Oradimi）或 [KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP)（@SLAVUSworks） | 重新加载 | |
 | 语言翻译补丁 | 下载补丁资料 | 下载或更新所选补丁的数据。完成后需刷新游戏才能生效 | 重新加载 | |
 | 语言翻译补丁 | 删除补丁资料 | 在补丁出现意外行为或下载过程中出现问题时使用 | 重新加载 | |
 | 语言翻译补丁 | KanColle English/Indonesia Patch关于 | 打开所选补丁的 GitHub 页面 | | |
+| 砍口垒汉化计划 in Goto | 汉化 | 将游戏内文本、UI 贴图与字体替换为简体中文。API 数据仅在游戏画面中翻译，Kcanotify 仍会收到原始数据。不能与 KanColle Language Patch (KCCP) 同时使用，开启其中一个时另一个会自动关闭。开启后会显示下方选项 | 重新加载 | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
+| 砍口垒汉化计划 in Goto | 下载与更新 | 下载汉化数据。首次下载请选择「下载全量包 (Release Zip)」，之后选择「增量更新」即可只下载有变更的文件。完成后需刷新游戏才能生效 | 重新加载 | |
+| 砍口垒汉化计划 in Goto | 汉化数据源 | 选择检查更新与增量更新时使用的下载来源：GitHub Raw、jsDelivr CDN、GHProxy Mirror 或自定义镜像源（选择自定义镜像源时需填写自定义数据源根地址）。增量更新失败时可尝试切换数据源。全量包始终从 GitHub Releases 下载，仅在选择 GHProxy Mirror 时经由 GHProxy。数据来自砍口垒汉化计划 @归海原 | 立即 | |
+| 砍口垒汉化计划 in Goto | 删除汉化数据 | 删除已下载的简体中文文本、贴图与字体 | 重新加载 | |
+| 砍口垒汉化计划 in Goto | 关于砍口垒汉化计划 in Goto | 显示作者、数据源与仓库链接 | | |
 
 ##### 应用程式资讯
 

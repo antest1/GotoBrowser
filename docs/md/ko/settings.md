@@ -94,6 +94,11 @@ PIP/멀티윈도우 관련 내용은 <span class="link" data-move="pipmode">PIP/
 | 언어 번역 패치 (KCCP) | 패치 데이터 다운로드 | 선택한 패치의 데이터를 다운로드 혹은 업데이트. 완료 후 게임을 새로고침해야 적용됨 | 새로고침 | |
 | 언어 번역 패치 (KCCP) | 패치 데이터 삭제 | 패치가 예기치 않은 동작을 하거나 다운로드 중 문제가 발생한 경우 사용 | 새로고침 | |
 | 언어 번역 패치 (KCCP) | KanColle English/Indonesia Patch에 대해 | 선택한 패치의 GitHub 페이지 열기 | | |
+| Kancolle to CHS | 중국어 간체 번역 패치 | 게임 내 텍스트, UI 이미지와 글꼴을 중국어 간체로 변경. API 데이터는 게임 화면에서만 번역되므로 Kcanotify에는 원본 데이터가 그대로 전달됨. KanColle Language Patch (KCCP)와 함께 사용할 수 없으며, 한쪽을 켜면 다른 쪽은 꺼짐. 켜져 있을 때 아래 항목이 표시됨 | 새로고침 | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
+| Kancolle to CHS | 번역 데이터 다운로드 및 업데이트 | 패치 데이터를 다운로드. 처음에는 전체 패키지 (Release Zip), 이후에는 변경된 파일만 받는 증분 업데이트를 선택. 완료 후 게임을 새로고침해야 적용됨 | 새로고침 | |
+| Kancolle to CHS | 번역 데이터 출처 | 업데이트 확인과 증분 업데이트에 사용할 출처를 GitHub Raw, jsDelivr CDN, GHProxy Mirror, 사용자 지정 미러 URL 중에서 선택 (사용자 지정 시 출처 기본 URL에 주소 입력). 증분 업데이트에 실패하면 다른 출처를 사용. 전체 패키지는 항상 GitHub Releases에서 받으며, GHProxy Mirror를 선택한 경우에만 GHProxy를 거침. 데이터 제공: KanColle CHS Project (@归海原) | 즉시 | |
+| Kancolle to CHS | 번역 데이터 삭제 | 다운로드한 중국어 간체 텍스트, 이미지, 글꼴을 삭제 | 새로고침 | |
+| Kancolle to CHS | Kancolle to CHS 정보 | 제작자, 데이터 출처, 저장소 링크 표시 | | |
 
 ##### 어플리케이션 정보
 
