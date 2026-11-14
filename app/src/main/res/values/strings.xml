@@ -140,6 +140,7 @@
     <string name="patch_download_extracting">Extracting files…</string>
     <string name="patch_download_updated">Patch updated. Please reload the game.</string>
     <string name="patch_download_failed">Update failed</string>
+    <string name="patch_download_cancelled">Download cancelled</string>
     <string name="patch_download_error">Error occurred while downloading</string>
     <string name="patch_download_zip_not_deleted">Download finished, but the zip file could not be deleted</string>
     <string name="patch_deleted">Patch deleted. Please reload the game.</string>
@@ -218,4 +219,38 @@
     <string name="detail_host">Host</string>
     <string name="detail_api">API</string>
     <string name="detail_message">Message</string>
+
+    <!-- Simplified Chinese Localization (Kancolle_to_CHS) -->
+    <string name="settings_mod_group_chs">Kancolle_to_CHS</string>
+    <string name="settings_mod_chs_enable">Simplified Chinese Patch</string>
+    <string name="settings_mod_chs_summary">Full UI text, KCSAPI response merging and asset localization. Author: @泉浅漪</string>
+    <string name="settings_mod_chs_source">Patch Data Source (KanColle CHS Project @归海原)</string>
+    <string name="settings_mod_chs_source_github" translatable="false">GitHub Raw</string>
+    <string name="settings_mod_chs_source_jsdelivr" translatable="false">jsDelivr CDN</string>
+    <string name="settings_mod_chs_source_ghproxy" translatable="false">GHProxy Mirror</string>
+    <string name="settings_mod_chs_source_custom">Custom Mirror URL</string>
+    <string name="settings_mod_chs_custom_url">Custom Source Base URL</string>
+    <string name="settings_mod_chs_download">Download / Update CHS Data</string>
+    <string name="settings_mod_chs_download_dialog_title">Download CHS Data</string>
+    <string name="settings_mod_chs_download_archive_recommended">Full Package (Release Zip) — Recommended</string>
+    <string name="settings_mod_chs_download_archive_option">Full Package (Release Zip)</string>
+    <string name="settings_mod_chs_download_archive_desc">Download and extract the official release zip directly. Faster and recommended for first-time setup.</string>
+    <string name="settings_mod_chs_download_patch_recommended">Incremental Update — Recommended</string>
+    <string name="settings_mod_chs_download_patch_option">Incremental Update</string>
+    <string name="settings_mod_chs_download_patch_desc">Compare local files with remote and only download updated files.</string>
+    <string name="settings_mod_chs_delete">Delete CHS Data</string>
+    <string name="settings_mod_chs_delete_summary">Remove downloaded Simplified Chinese text and image assets.</string>
+    <string name="settings_mod_chs_about">About Kancolle_to_CHS</string>
+    <string name="settings_mod_chs_about_summary">Author, data source and open-source acknowledgements</string>
+    <string name="settings_mod_chs_about_dialog_text">Developer: @泉浅漪\nData Source: KanColle CHS Project @归海原\nRepository: https://github.com/asaico/Kancolle_to_CHS</string>
+    <string name="chs_status_disabled">Mod disabled.</string>
+    <string name="chs_status_check_failed">Could not reach update source. Try changing data source.</string>
+    <string name="chs_download_failed">Download failed. Please try changing the data source.</string>
+    <string name="chs_download_failed_summary">Download failed, please try changing data source and retry</string>
+    <string name="chs_status_offline_installed" formatted="false">Installed (%1$s)</string>
+    <string name="chs_status_not_installed_format" formatted="false">Not installed (Full package recommended, latest %1$s, %2$d files / %3$s)</string>
+    <string name="chs_status_update_available_format" formatted="false">Update available %1$s (%2$d files / %3$s)</string>
+    <string name="chs_status_up_to_date_format" formatted="false">Up to date (%1$s)</string>
+    <string name="chs_archive_extracted_with_updates">Full package extracted. Subsequent incremental updates found.</string>
+    <string name="chs_archive_extracted_up_to_date">Full package installed and up to date.</string>
 </resources>

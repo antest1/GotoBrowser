@@ -173,7 +173,7 @@ private val BlockSheetDragConnection = object : NestedScrollConnection {
         Velocity(0f, available.y)
 }
 
-private data class ListOption(val value: String, val title: String, val summary: String? = null)
+internal data class ListOption(val value: String, val title: String, val summary: String? = null)
 
 enum class SettingsScreen {
     MAIN,
@@ -344,7 +344,9 @@ private fun SettingsBottomSheetContent(
             Box(modifier = Modifier.height(48.withDp())) {
                 if (currentScreen != SettingsScreen.MAIN) {
                     IconButton(
-                        onClick = { currentScreen = SettingsScreen.MAIN }
+                        onClick = {
+                            currentScreen = SettingsScreen.MAIN
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -898,18 +900,34 @@ private fun ModsSection(
         onClick = { openUrl(context, GITHUB_KANTAI3D) }
     )
 
-    // --- Group 3: English & Language Patches --------------------------------
-    SectionHeader(R.string.settings_mod_group_kccp)
     // Held as state so the dependent rows follow the switch right away.
     var patchEnabled by remember { mutableStateOf(if (isPreview) false else viewModel.isKccpPatchEnabled()) }
-    SwitchRow(viewModel, PREF_MOD_KCCP_LANG_PATCH, R.string.settings_mod_kccp, R.string.settings_mod_kccp_summary,
-        onChanged = {
-            if (!isPreview) {
+    var kccpSwitchVersion by remember { mutableIntStateOf(0) }
+
+    // --- Group 3: Kancolle_to_CHS --------------------------------------------
+    ChsSettingsSection(
+        viewModel = viewModel,
+        onChsToggled = { enabled ->
+            if (enabled && !isPreview) {
                 patchEnabled = viewModel.isKccpPatchEnabled()
-                viewModel.onKccpPatchChanged()
+                kccpSwitchVersion++
             }
         },
-        onSettingChanged = onSettingChanged)
+        onSettingChanged = onSettingChanged
+    )
+
+    // --- Group 4: English & Language Patches --------------------------------
+    SectionHeader(R.string.settings_mod_group_kccp)
+    androidx.compose.runtime.key(kccpSwitchVersion) {
+        SwitchRow(viewModel, PREF_MOD_KCCP_LANG_PATCH, R.string.settings_mod_kccp, R.string.settings_mod_kccp_summary,
+            onChanged = {
+                if (!isPreview) {
+                    patchEnabled = viewModel.isKccpPatchEnabled()
+                    viewModel.onKccpPatchChanged()
+                }
+            },
+            onSettingChanged = onSettingChanged)
+    }
 
     ListRow(
         viewModel, PREF_MOD_KCCP_LANG_PATCH_NAME, R.string.settings_mod_kccp_patch_name, kccpLanguageOptions(),
@@ -1014,7 +1032,7 @@ private fun AppInfoSection(
  * related settings can stay together without adding another navigation level.
  */
 @Composable
-private fun SectionHeader(titleRes: Int) {
+internal fun SectionHeader(titleRes: Int) {
     // Not a ListItem: its 56dp minimum height centered the small label and left it far from
     // the rows it introduces. Same background and 16dp inset as the rows below.
     Text(
@@ -1080,7 +1098,7 @@ private fun SwitchRow(
 }
 
 @Composable
-private fun ClickRow(
+internal fun ClickRow(
     title: Int,
     summary: Int? = null,
     summaryText: String? = null,
@@ -1158,7 +1176,7 @@ private fun ListRow(
 }
 
 @Composable
-private fun ListOptionDialog(
+internal fun ListOptionDialog(
     title: String,
     options: List<ListOption>,
     selected: String,
@@ -1199,7 +1217,7 @@ private fun ListOptionDialog(
 }
 
 @Composable
-private fun EditTextDialog(
+internal fun EditTextDialog(
     title: Int,
     initialValue: String,
     onSave: (String) -> Unit,
@@ -1281,12 +1299,14 @@ private fun SubtitleSizeDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PatchDownloadDialog(state: PatchDownloadState.Running) {
-    // BasicAlertDialog instead of AlertDialog: there are no buttons, and AlertDialog
-    // keeps padding for its (empty) button row, leaving a blank band at the bottom.
+    // BasicAlertDialog instead of AlertDialog: keeps padding tidy and follows
+    // the settings sheet's Material 3 theme.
     BasicAlertDialog(
-        // The download cannot be cancelled midway, same as before.
-        onDismissRequest = {},
-        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+        onDismissRequest = { state.onCancel?.invoke() },
+        properties = DialogProperties(
+            dismissOnBackPress = state.onCancel != null,
+            dismissOnClickOutside = false
+        )
     ) {
         Surface(
             shape = AlertDialogDefaults.shape,
@@ -1295,7 +1315,7 @@ internal fun PatchDownloadDialog(state: PatchDownloadState.Running) {
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
                 Text(
-                    text = stringResource(R.string.settings_mod_kantaien_download),
+                    text = state.title ?: stringResource(R.string.settings_mod_kantaien_download),
                     style = MaterialTheme.typography.headlineSmall,
                     color = AlertDialogDefaults.titleContentColor
                 )
@@ -1318,6 +1338,17 @@ internal fun PatchDownloadDialog(state: PatchDownloadState.Running) {
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (state.onCancel != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = state.onCancel) {
+                            Text(stringResource(R.string.action_cancel))
+                        }
+                    }
+                }
             }
         }
     }
