@@ -17,6 +17,8 @@
 | 立即 | 更改数值后立即生效。 |
 | 重新加载 | 已更改项目的名称旁会显示重新加载图标，直到游戏完全刷新为止。点击上方的“现在重新加载”会立即完全刷新并生效。如有更改，关闭设置时会显示一次“需要重新加载”提示，点击“稍后”将在下次完全刷新时生效。 |
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/settings_refresh_pending.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/settings_refresh_required.webp"  width="480" style="max-width: 100%;" class="mb-3"/>
 
 ##### 登录与连接

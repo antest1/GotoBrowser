@@ -17,6 +17,8 @@
 | 即時 | 値を変更するとすぐに反映されます。 |
 | 再読み込み | 変更した項目の名前の横に再読み込みアイコンが表示され、ゲームをフルリフレッシュするまで残ります。上部の「今すぐ再読み込み」を押すと、すぐにフルリフレッシュして反映されます。項目を変更した場合は、設定を閉じるときに「再読み込みが必要です」ダイアログが一度表示され、「後で」を押すと次のフルリフレッシュ時に反映されます。 |
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/settings_refresh_pending.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/settings_refresh_required.webp"  width="480" style="max-width: 100%;" class="mb-3"/>
 
 ##### ログインと接続

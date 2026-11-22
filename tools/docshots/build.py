@@ -51,6 +51,8 @@ ZH = {
     "저장 알림": ("截图通知", "截圖通知"),
     "Gadget 서버 우회 켜기": ("开启封锁绕行", "開啟封鎖繞行"),
     "URL 교체 · Endpoint 입력": ("URL替换 · 输入端点", "URL Replacement · 輸入端點"),
+    "지금 새로고침": ("现在重新加载", "現在重新載入"),
+    "새로고침 아이콘": ("重新加载图标", "重新載入圖示"),
 }
 
 
@@ -102,19 +104,55 @@ def color_box(path, rgb, tol=6):
 
 
 def fab_box(path, pad=20):
-    """The refresh button (with its attention ring), extended over the "Full Refresh"
-    tooltip when one is shown beside it: the app's own UI goes inside one ring."""
+    """The refresh button (with its attention ring), extended over the hint tooltip
+    ("Full Refresh", "Apply Settings") when one is shown beside it: the app's own UI goes
+    inside one ring. The hint is found by its colour, so the game may show behind it."""
     if not os.path.exists(path):
         return FAB_RING
-    a = np.asarray(Image.open(path).convert("L")).astype(int)
-    y = (FAB[1] + FAB[3]) // 2
-    row = a[y, FAB_RING[2]:GAME_X[0] + 900]
-    lit = np.where(row > 40)[0]
-    right = FAB_RING[2] + lit.max() + pad if lit.size else FAB_RING[2]
-    return [FAB_RING[0], FAB_RING[1], max(FAB_RING[2], right), FAB_RING[3]]
+    a = np.asarray(Image.open(path).convert("RGB")).astype(int)
+    x0 = FAB_RING[2]
+    mask = (np.abs(a[FAB[1]:FAB[3], x0:GAME_X[0] + 900] - np.array(TOOLTIP)) <= 6).all(2)
+    rows = np.where(mask.sum(1) > 100)[0]
+    if not rows.size:
+        return FAB_RING
+    cols = np.where(mask[rows.min():rows.max() + 1].mean(0) > 0.3)[0]
+    if not cols.size:
+        return FAB_RING
+    # the hint starts beside the ring; stray matches in the game further right are not part of it
+    end = cols[0]
+    for c in cols[1:]:
+        if c - end > 3:
+            break
+        end = c
+    return [FAB_RING[0], FAB_RING[1], max(FAB_RING[2], x0 + end + pad), FAB_RING[3]]
+
+
+def mark_box(path, rgb, region, pad=0, tol=6):
+    """Bounding box of every pixel close to rgb inside region [x1, y1, x2, y2], grown by pad.
+    For small marks whose place follows the text before them, which differs per locale."""
+    if not os.path.exists(path):
+        return [0, 0, 1, 1]
+    a = np.asarray(Image.open(path).convert("RGB")).astype(int)
+    x1, y1, x2, y2 = region
+    ys, xs = np.where((np.abs(a[y1:y2, x1:x2] - np.array(rgb)) <= tol).all(2))
+    if not xs.size:
+        return [0, 0, 1, 1]
+    return [x1 + xs.min() - pad, y1 + ys.min() - pad, x1 + xs.max() + 1 + pad, y1 + ys.max() + 1 + pad]
+
+
+def in_crop(boxes, crop):
+    """Per-locale boxes measured on the whole render, moved into the pixels of its crop."""
+    return {loc: [b[0] - crop[0], b[1] - crop[1], b[2] - crop[0], b[3] - crop[1]] for loc, b in boxes.items()}
 
 
 CARD = (39, 42, 47)  # SettingsTheme dark surfaceContainerHigh (loading and in-game notice cards)
+TOOLTIP = (50, 47, 53)  # PlainTooltip container beside the refresh button
+TONAL = (216, 227, 248)  # SettingsTheme secondaryContainer: the header's "Reload Now" button
+PRIMARY = (59, 96, 143)  # SettingsTheme primary: the reload icon after a changed setting's name
+REFRESH_CROP = [0, 560, 2000, 1438]  # lower left of the landscape renders: toolbar end and refresh button
+SHEET_TOP = [440, 0, 2680, 1100]  # settings sheet header and its first three rows
+SHEET_HEADER = [1400, 150, 2700, 350]  # settings sheet header, right of the title
+SHEET_ROW2 = [480, 600, 2200, 760]  # title line of the sheet's second row, short of its switch
 
 
 def per_locale(name, fn, *args):
@@ -153,10 +191,19 @@ SPECS = [
     },
     # browserui: refresh button held and dragged up
     {
-        "name": "refresh_menu", "src": render("ui_refresh_menu"), "crop": [0, 560, 2000, 1438], "display": 560, "out_width": 1120,
+        "name": "refresh_menu", "src": render("ui_refresh_menu"), "crop": REFRESH_CROP, "display": 560, "out_width": 1120,
         "items": [
             {"box": L([80, 300, 625, 720], [80, 300, 625, 720], [80, 300, 830, 720]),  # ja labels are wider
              "side": "right", "label": L("누른 채 위로 끌어서 선택", "Hold and drag up", "押したまま上にドラッグ")},
+        ],
+    },
+    # browserui: settings left for later, the refresh button applying them with a full refresh
+    {
+        "name": "refresh_apply_settings", "src": render("ui_refresh_apply_settings"), "crop": REFRESH_CROP,
+        "display": 560, "out_width": 1120,
+        "items": [
+            {"box": in_crop(per_locale("ui_refresh_apply_settings", fab_box), REFRESH_CROP), "radius": "round",
+             "side": "right", "label": L("새로고침", "Refresh", "リフレッシュ")},
         ],
     },
     # settings: sheet with handle and help button
@@ -166,6 +213,17 @@ SPECS = [
             {"box": [1010, 50, 1230, 118], "radius": "round", "side": "bottom", "align": "center",
              "label": L("아래로 끌어서 닫기", "Drag down to close", "下にドラッグして閉じる")},
             {"box": [2080, 192, 2200, 312], "radius": "round", "side": "left", "label": L("도움말", "Help", "ヘルプ")},
+        ],
+    },
+    # settings: a changed setting waiting for a reload, with "Reload Now" in the header
+    {
+        "name": "settings_refresh_pending", "src": render("settings_refresh_pending"), "crop": SHEET_TOP, "dim": False,
+        "display": 560, "out_width": 1120,
+        "items": [
+            {"box": in_crop(per_locale("settings_refresh_pending", mark_box, TONAL, SHEET_HEADER), SHEET_TOP),
+             "radius": "round", "side": "left", "label": L("지금 새로고침", "Reload Now", "今すぐ再読み込み")},
+            {"box": in_crop(per_locale("settings_refresh_pending", mark_box, PRIMARY, SHEET_ROW2, 4), SHEET_TOP),
+             "radius": "round", "side": "right", "label": L("새로고침 아이콘", "Reload icon", "再読み込みアイコン")},
         ],
     },
     # settings: "refresh required" prompt
