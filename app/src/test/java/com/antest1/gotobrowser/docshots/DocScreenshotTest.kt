@@ -45,6 +45,7 @@ import com.antest1.gotobrowser.Activity.PatchDownloadState
 import com.antest1.gotobrowser.Activity.SettingsRefreshDialog
 import com.antest1.gotobrowser.Activity.SettingsViewModel
 import com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL
+import com.antest1.gotobrowser.Constants.PREF_ADJUSTMENT
 import com.antest1.gotobrowser.Constants.PREF_ALTER_ENDPOINT
 import com.antest1.gotobrowser.Constants.PREF_ALTER_GADGET
 import com.antest1.gotobrowser.Constants.PREF_ALTER_METHOD
@@ -427,10 +428,15 @@ class DocScreenshotTest(private val locale: String) {
         return SettingsViewModel(activity.application)
     }
 
+    /** [pendingRefreshKeys]: settings changed since the last full load that wait for a reload. */
     @Composable
-    private fun Sheet() = OverGame {
+    private fun Sheet(pendingRefreshKeys: Set<String> = emptySet()) = OverGame {
         val viewModel = remember { docViewModel() }
-        SettingsBottomSheet(viewModel = viewModel, activity = activity, onDismissRequest = {}, onSettingChanged = {})
+        SettingsBottomSheet(
+            viewModel = viewModel, activity = activity, onDismissRequest = {}, onSettingChanged = {},
+            pendingRefreshKeys = pendingRefreshKeys,
+            refreshPending = pendingRefreshKeys.isNotEmpty()
+        )
     }
 
     private fun openPage(label: Int, scrollTo: Int? = null): () -> Unit = {
@@ -461,6 +467,12 @@ class DocScreenshotTest(private val locale: String) {
 
     @Test
     fun settingsDisplay() = shoot("settings_display", action = openPage(R.string.settings_display_label)) { Sheet() }
+
+    /** A reload setting was changed: its row is marked and "Reload Now" appears in the header. */
+    @Test
+    fun settingsRefreshPending() = shoot("settings_refresh_pending", action = openPage(R.string.settings_display_label)) {
+        Sheet(pendingRefreshKeys = setOf(PREF_ADJUSTMENT))
+    }
 
     @Test
     fun settingsControl() = shoot("settings_control", action = openPage(R.string.settings_control_label)) { Sheet() }

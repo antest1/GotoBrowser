@@ -51,6 +51,8 @@ ZH = {
     "저장 알림": ("截图通知", "截圖通知"),
     "Gadget 서버 우회 켜기": ("开启封锁绕行", "開啟封鎖繞行"),
     "URL 교체 · Endpoint 입력": ("URL替换 · 输入端点", "URL Replacement · 輸入端點"),
+    "지금 새로고침": ("现在重新加载", "現在重新載入"),
+    "새로고침 아이콘": ("重新加载图标", "重新載入圖示"),
 }
 
 
@@ -114,7 +116,30 @@ def fab_box(path, pad=20):
     return [FAB_RING[0], FAB_RING[1], max(FAB_RING[2], right), FAB_RING[3]]
 
 
+def mark_box(path, rgb, region, pad=0, tol=6):
+    """Bounding box of every pixel close to rgb inside region [x1, y1, x2, y2], grown by pad.
+    For small marks whose place follows the text before them, which differs per locale."""
+    if not os.path.exists(path):
+        return [0, 0, 1, 1]
+    a = np.asarray(Image.open(path).convert("RGB")).astype(int)
+    x1, y1, x2, y2 = region
+    ys, xs = np.where((np.abs(a[y1:y2, x1:x2] - np.array(rgb)) <= tol).all(2))
+    if not xs.size:
+        return [0, 0, 1, 1]
+    return [x1 + xs.min() - pad, y1 + ys.min() - pad, x1 + xs.max() + 1 + pad, y1 + ys.max() + 1 + pad]
+
+
+def in_crop(boxes, crop):
+    """Per-locale boxes measured on the whole render, moved into the pixels of its crop."""
+    return {loc: [b[0] - crop[0], b[1] - crop[1], b[2] - crop[0], b[3] - crop[1]] for loc, b in boxes.items()}
+
+
 CARD = (39, 42, 47)  # SettingsTheme dark surfaceContainerHigh (loading and in-game notice cards)
+TONAL = (216, 227, 248)  # SettingsTheme secondaryContainer: the header's "Reload Now" button
+PRIMARY = (59, 96, 143)  # SettingsTheme primary: the reload icon after a changed setting's name
+SHEET_TOP = [440, 0, 2680, 1100]  # settings sheet header and its first three rows
+SHEET_HEADER = [1400, 150, 2700, 350]  # settings sheet header, right of the title
+SHEET_ROW2 = [480, 600, 2200, 760]  # title line of the sheet's second row, short of its switch
 
 
 def per_locale(name, fn, *args):
@@ -166,6 +191,17 @@ SPECS = [
             {"box": [1010, 50, 1230, 118], "radius": "round", "side": "bottom", "align": "center",
              "label": L("아래로 끌어서 닫기", "Drag down to close", "下にドラッグして閉じる")},
             {"box": [2080, 192, 2200, 312], "radius": "round", "side": "left", "label": L("도움말", "Help", "ヘルプ")},
+        ],
+    },
+    # settings: a changed setting waiting for a reload, with "Reload Now" in the header
+    {
+        "name": "settings_refresh_pending", "src": render("settings_refresh_pending"), "crop": SHEET_TOP, "dim": False,
+        "display": 560, "out_width": 1120,
+        "items": [
+            {"box": in_crop(per_locale("settings_refresh_pending", mark_box, TONAL, SHEET_HEADER), SHEET_TOP),
+             "radius": "round", "side": "left", "label": L("지금 새로고침", "Reload Now", "今すぐ再読み込み")},
+            {"box": in_crop(per_locale("settings_refresh_pending", mark_box, PRIMARY, SHEET_ROW2, 4), SHEET_TOP),
+             "radius": "round", "side": "right", "label": L("새로고침 아이콘", "Reload icon", "再読み込みアイコン")},
         ],
     },
     # settings: "refresh required" prompt

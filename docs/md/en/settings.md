@@ -17,6 +17,8 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 | Immediately | Applied as soon as the value is changed. |
 | After reload | A reload icon appears next to the name of each changed setting and stays until the game is fully refreshed. "Reload Now" at the top applies the changes right away with a full refresh. If you changed something, closing the settings shows the "Reload Required" dialog once; "Later" applies the changes on the next full refresh. |
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/settings_refresh_pending.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/settings_refresh_required.webp"  width="480" style="max-width: 100%;" class="mb-3"/>
 
 ##### Login and Connection

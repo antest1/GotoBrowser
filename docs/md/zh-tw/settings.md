@@ -17,6 +17,8 @@
 | 立即 | 變更數值後立即套用。 |
 | 重新載入 | 已變更項目的名稱旁會顯示重新載入圖示，直到遊戲完全重新整理為止。按上方的「現在重新載入」會立即完全重新整理並套用。如有變更，關閉設定時會顯示一次「需要重新載入」提示；按「稍後」則會在下次完全重新整理時套用。 |
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-tw/settings_refresh_pending.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-tw/settings_refresh_required.webp"  width="480" style="max-width: 100%;" class="mb-3"/>
 
 ##### 登入與連接

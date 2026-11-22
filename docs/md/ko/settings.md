@@ -17,6 +17,8 @@
 | 즉시 | 값을 바꾸면 바로 적용됩니다. |
 | 새로고침 | 바꾼 항목의 이름 옆에 새로고침 아이콘이 표시되며, 게임을 전체 새로고침할 때까지 유지됩니다. 위쪽의 "지금 새로고침"을 누르면 바로 전체 새로고침해 적용합니다. 항목을 바꿨다면 설정을 닫을 때 "새로고침 필요" 안내가 한 번 표시되며, "나중에"를 누르면 다음 전체 새로고침 때 적용됩니다. |
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/settings_refresh_pending.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/settings_refresh_required.webp"  width="480" style="max-width: 100%;" class="mb-3"/>
 
 ##### 로그인 및 접속
