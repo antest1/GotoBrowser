@@ -19,13 +19,22 @@ import com.antest1.gotobrowser.R
 import kotlin.math.abs
 
 /**
- * In split screen or a freeform window, where the app cannot rotate the display. A fixed
- * orientation there only letterboxes the app inside its window, and some systems also stop
- * the split from being resized, so no orientation is requested then. PiP is left out: it
- * keeps the request so that expanding it goes straight back to landscape.
+ * In a freeform (pop-up) window. The windowing mode is not public API, but the configuration
+ * prints it from Android 9; on older versions a freeform window counts as split screen.
  */
-private val Activity.isInResizableWindow: Boolean
-    get() = isInMultiWindowMode && !isInPictureInPictureMode
+private val Activity.isInFreeformWindow: Boolean
+    get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
+            resources.configuration.toString().contains("mWindowingMode=freeform")
+
+/**
+ * In split screen, where the app cannot rotate the display. A fixed orientation there only
+ * letterboxes the app inside its window, and some systems also stop the split from being
+ * resized, so no orientation is requested then. Freeform windows keep the request: some
+ * systems shape the window after it, and open it in portrait without it. PiP keeps it too,
+ * so that expanding it goes straight back to landscape.
+ */
+private val Activity.isInSplitScreen: Boolean
+    get() = isInMultiWindowMode && !isInPictureInPictureMode && !isInFreeformWindow
 
 class DisplayController(
     private val activity: BrowserActivity,
@@ -64,8 +73,22 @@ class DisplayController(
         }
     }
 
-    /** Whether the orientation request is currently dropped (see [isInResizableWindow]). */
-    private var orientationReleased = activity.isInResizableWindow
+    /** Whether the orientation request is currently dropped (see [isInSplitScreen]). */
+    private var orientationReleased = activity.isInSplitScreen
+
+    /** Last seen [isInFreeformWindow], to notice moves between split screen and freeform. */
+    private var inFreeform = activity.isInFreeformWindow
+
+    /**
+     * Moving between split screen and a freeform window changes neither the multi-window nor
+     * the PiP mode, only the configuration, so the window mode is checked again from there.
+     */
+    fun onConfigurationChanged() {
+        val freeform = activity.isInFreeformWindow
+        if (freeform == inFreeform) return
+        inFreeform = freeform
+        onWindowModeChanged()
+    }
 
     /**
      * The request dropped on entering split screen, put back as it was on leaving, so a locked
@@ -79,11 +102,11 @@ class DisplayController(
      * Other mode changes, like going in and out of PiP, leave the current request alone.
      */
     fun onWindowModeChanged() {
-        val resizable = activity.isInResizableWindow
-        if (resizable == orientationReleased) return
+        val split = activity.isInSplitScreen
+        if (split == orientationReleased) return
         val held = heldOrientation
         when {
-            resizable -> {
+            split -> {
                 heldOrientation = activity.requestedOrientation
                 orientationReleased = true
                 activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
@@ -125,7 +148,7 @@ class DisplayController(
     fun updateOrientationLock(applyLock: Boolean = true) {
         lockPending = false
         heldOrientation = null
-        orientationReleased = activity.isInResizableWindow
+        orientationReleased = activity.isInSplitScreen
         if (orientationReleased) {
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             return
