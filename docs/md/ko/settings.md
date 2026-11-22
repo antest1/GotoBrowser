@@ -15,7 +15,9 @@
 | 반영 | 설명 |
 | --- | --- |
 | 즉시 | 값을 바꾸면 바로 적용됩니다. |
-| 새로고침 | "새로고침 필요" 안내가 표시됩니다. "지금 새로고침"을 누르면 전체 새로고침 후 적용되고, "새로고침 없이 설정 변경"을 누르면 다음 새로고침 때 적용됩니다. |
+| 새로고침 | 바꾼 항목의 이름 옆에 새로고침 아이콘이 표시되며, 게임을 전체 새로고침할 때까지 유지됩니다. 위쪽의 "지금 새로고침"을 누르면 바로 전체 새로고침해 적용합니다. 항목을 바꿨다면 설정을 닫을 때 "새로고침 필요" 안내가 한 번 표시되며, "나중에"를 누르면 다음 전체 새로고침 때 적용됩니다. |
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/settings_refresh_pending.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/settings_refresh_required.webp"  width="480" style="max-width: 100%;" class="mb-3"/>
 
@@ -39,7 +41,7 @@
 
 | 이름 | 설명 | 반영 |
 | --- | --- | --- |
-| 가로 화면 고정 | 기기의 방향과 상관없이 항상 가로 모드로 플레이 (기본 켜짐) | 즉시 |
+| 가로 화면 고정 | 기기의 방향과 상관없이 항상 가로 모드로 플레이 (기본 켜짐). 멀티윈도우(분할/팝업)에서는 적용되지 않음 | 즉시 |
 | 레이아웃 자동 조정 | 게임 화면을 기기 화면 크기에 맞게 자동으로 확대/축소 (권장, 기본 켜짐) | 새로고침 |
 | 게임 화면 세로 위치 | 세로 화면, 분할 화면 등 게임 위아래에 여백이 있을 때 게임을 가운데 또는 위쪽에 배치 (기본 가운데) | 즉시 |
 | PIP 모드 활성화 | 홈 화면으로 나가거나 게임 화면을 핀치 축소하면 작은 플로팅 창으로 게임 화면 표시 | 즉시 |
@@ -66,7 +68,7 @@ PIP/멀티윈도우 관련 내용은 <span class="link" data-move="pipmode">PIP/
 | 리소스 캐싱 시 외부 저장소 사용 | 게임 리소스를 캐싱할 때 내부 저장소 대신 외부 저장소를 사용 (권장)<br/>(PC를 통해 이미지/보이스 리소스에 접근하거나 편집 가능) | 새로고침 |
 | 폰트 파일 미리 로드 | 게임 서버에서 폰트를 불러오는 대신 앱에 내장된 폰트 파일을 사용 (권장, 기본 켜짐) | 새로고침 |
 | 게임 에셋 다운로드 재시도 | 사운드/이미지 에셋 다운로드에 실패한 경우 다시 받을지 묻는 창을 표시<br/>불안정한 네트워크에서 발생하는 에러코를 줄일 수 있음. 게임 API 통신에는 적용되지 않음 | 즉시 |
-| 캐시 비우기 | 브라우저 내 캐시를 삭제. 이미지나 오디오가 제대로 불러와지지 않거나 로그인 방식을 바꿀 때 사용<br/>삭제 후에는 다시 로그인해야 할 수 있음<br/>삭제가 끝나면 새로고침 안내가 표시됨 | 즉시 |
+| 캐시 비우기 | 브라우저 내 캐시를 삭제. 이미지나 오디오가 제대로 불러와지지 않거나 로그인 방식을 바꿀 때 사용<br/>삭제 후에는 다시 로그인해야 할 수 있음<br/>설정을 닫을 때 새로고침 안내가 표시됨 | 즉시 |
 
 ##### 자막 설정
 
@@ -89,11 +91,16 @@ PIP/멀티윈도우 관련 내용은 <span class="link" data-move="pipmode">PIP/
 | 일반 | 진정한 크리티컬 히트 | 하드 코딩된 데미지의 난독화를 제거. CL2가 발생한 경우에만 크리티컬 히트 표시 | 새로고침 | [@Oradimi](https://x.com/oradimi) |
 | Kantai3D 시각 모드 | Kantai3D v4.0 | 일부 비서함에 3D 효과 적용. 레거시 렌더러 사용 시 선택 불가 | 새로고침 | [@laplamgor](https://x.com/laplamgor) |
 | Kantai3D 시각 모드 | About Kantai3D | [Kantai3D GitHub 페이지](https://github.com/laplamgor/kantai3d) 열기 | | |
-| 언어 번역 패치 (KCCP) | KanColle Language Patch (KCCP) | 게임 내 텍스트에 번역 패치 적용 | 새로고침 | [@Oradimi](https://x.com/oradimi) |
+| 언어 번역 패치 (KCCP) | KanColle Language Patch (KCCP) | 게임 내 텍스트에 번역 패치 적용. 켜져 있을 때 아래 항목이 표시됨 | 새로고침 | [@Oradimi](https://x.com/oradimi) |
 | 언어 번역 패치 (KCCP) | 적용할 언어 패치 | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP) (@Oradimi) 혹은 [KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP) (@SLAVUSworks) | 새로고침 | |
 | 언어 번역 패치 (KCCP) | 패치 데이터 다운로드 | 선택한 패치의 데이터를 다운로드 혹은 업데이트. 완료 후 게임을 새로고침해야 적용됨 | 새로고침 | |
 | 언어 번역 패치 (KCCP) | 패치 데이터 삭제 | 패치가 예기치 않은 동작을 하거나 다운로드 중 문제가 발생한 경우 사용 | 새로고침 | |
 | 언어 번역 패치 (KCCP) | KanColle English/Indonesia Patch에 대해 | 선택한 패치의 GitHub 페이지 열기 | | |
+| Kancolle to CHS | 중국어 간체 번역 패치 | 게임 내 텍스트, UI 이미지와 글꼴을 중국어 간체로 변경. API 데이터는 게임 화면에서만 번역되므로 Kcanotify에는 원본 데이터가 그대로 전달됨. KanColle Language Patch (KCCP)와 함께 사용할 수 없으며, 한쪽을 켜면 다른 쪽은 꺼짐. 켜져 있을 때 아래 항목이 표시됨 | 새로고침 | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
+| Kancolle to CHS | 번역 데이터 다운로드 및 업데이트 | 패치 데이터를 다운로드. 처음에는 전체 패키지 (Release Zip), 이후에는 변경된 파일만 받는 증분 업데이트를 선택. 완료 후 게임을 새로고침해야 적용됨 | 새로고침 | |
+| Kancolle to CHS | 번역 데이터 출처 | 업데이트 확인과 증분 업데이트에 사용할 출처를 GitHub Raw, jsDelivr CDN, GHProxy Mirror, 사용자 지정 미러 URL 중에서 선택 (사용자 지정 시 출처 기본 URL에 주소 입력). 증분 업데이트에 실패하면 다른 출처를 사용. 전체 패키지는 항상 GitHub Releases에서 받으며, GHProxy Mirror를 선택한 경우에만 GHProxy를 거침. 데이터 제공: KanColle CHS Project (@归海原) | 즉시 | |
+| Kancolle to CHS | 번역 데이터 삭제 | 다운로드한 중국어 간체 텍스트, 이미지, 글꼴을 삭제 | 새로고침 | |
+| Kancolle to CHS | Kancolle to CHS 정보 | 제작자, 데이터 출처, 저장소 링크 표시 | | |
 
 ##### 어플리케이션 정보
 

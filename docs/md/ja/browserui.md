@@ -31,17 +31,19 @@
 
 - ボタンを押したままメニューが開く方向にドラッグすると、もう一方の方式を選択できます。ツールバーの表示位置が「中央」なら上に、「上・クラシック」なら下に開きます。最後に使用した方式がボタンのデフォルト動作として記憶されます。
 - 設定 → 操作とツールバー → 「確認なしでリフレッシュ」を有効にすると、リフレッシュ前の確認ダイアログが表示されません。
-- 設定を変更した後の「再読み込みが必要です」ダイアログで「再読み込みせずに設定を変更」を選んだ場合も、このボタンでリフレッシュすると変更した設定が反映されます。
 - 読み込み中の接続エラーやゲーム中のサーバーエラーの後は、保存された方式に関係なくボタンがフルリフレッシュとして動作し、ボタンの横に「フルリフレッシュ」と表示されます。保存された方式は変わりません。
+- 設定を閉じるときの再読み込みの案内で「後で」を選ぶと、変更が反映されるまでボタンが青く表示されてフルリフレッシュとして動作し、ボタンの横に「設定を反映」と表示されます。
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/refresh_apply_settings.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
 ##### ツールバーボタンの説明
 |  | 機能 | 説明 |
 | --- | --- | --- |
 | <span class="material-symbols-outlined">volume_off</span>  | ミュート | ブラウザで再生される音をミュートします。音声ファイルは引き続き読み込みます。<br/>（音声なしで字幕だけを見たい場合などに使用） |
 | <span class="material-symbols-outlined">photo_camera</span> | スクリーンショット | スクリーンショットモードを切り替えます。有効にすると、画面右上の設定ボタンの下にスクリーンショットボタンが表示されます。 |
-| <span class="material-symbols-outlined">screen_lock_rotation</span> | 回転ロック | 現在の画面状態でデバイス設定に関係なく回転しないように設定します。 |
+| <span class="material-symbols-outlined">screen_lock_rotation</span> | 回転ロック | 現在の画面状態でデバイス設定に関係なく回転しないように設定します。マルチウィンドウ（分割/ポップアップ）では適用されません。 |
 | <span class="material-symbols-outlined">light_mode</span> | 常時画面オン | 待機状態で画面が暗くならないように設定します。 |
 | <span class="material-symbols-outlined">closed_caption</span> | 字幕 | 画面下部にインゲーム音声の字幕を表示または非表示にします。表示中の字幕をタッチすると、次のセリフまで非表示になります。 |
 

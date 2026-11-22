@@ -9,6 +9,8 @@ import android.util.Log
 import com.antest1.gotobrowser.Activity.BrowserActivity
 import com.antest1.gotobrowser.Helpers.*
 import com.antest1.gotobrowser.Constants.*
+import com.antest1.gotobrowser.Helpers.chs.ChsApiMerger
+import com.antest1.gotobrowser.Helpers.chs.ChsTextPatcher
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import java.io.*
@@ -41,6 +43,7 @@ object ResourcePatcher {
     ): String {
         var patchedJs = K3dPatcher.patchKantai3d(context, mainJs)
         patchedJs = KenPatcher.patchKantaiEn(patchedJs, activity)
+        patchedJs = ChsTextPatcher.patchChs(context, patchedJs)
         patchedJs = FpsPatcher.patchFps(patchedJs)
         patchedJs = CritPatcher.patchCrit(patchedJs)
 
@@ -91,6 +94,12 @@ object ResourcePatcher {
 
         patchedJs = patchedJs + MUTE_LISTEN + CAPTURE_LISTEN + "\n" + KcsInterface.AXIOS_INTERCEPT_SCRIPT +
                 "\n" + KcsInterface.AXIOS_HOLD_HIDDEN_SCRIPT
+
+        // Inject KCSAPI localization after AXIOS_INTERCEPT_SCRIPT so Kcanotify receives raw Japanese responses.
+        val chsApiScript = ChsApiMerger.patchChsApi(context)
+        if (chsApiScript.isNotEmpty()) {
+            patchedJs = "$patchedJs\n$chsApiScript"
+        }
 
         return patchedJs
     }

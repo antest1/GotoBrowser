@@ -31,17 +31,19 @@
 
 - 按住按鈕並往選單展開的方向拖曳，即可選擇另一種方式。工具列顯示位置為「置中」時選單往上展開，為「頂部 · 經典」時往下展開。最後使用的方式會被記住，作為按鈕的預設動作。
 - 開啟設定 → 操作與工具列 → 「免確認直接重新整理」後，重新整理前不再顯示確認視窗。
-- 變更設定後，即使在「需要重新載入」提示中選擇了「暫不重新載入」，只要使用此按鈕重新整理，變更的設定就會生效。
 - 載入中發生連線錯誤，或遊戲中發生伺服器錯誤後，不論儲存的方式為何，按鈕都會以完全重新整理執行，並在按鈕旁顯示「完全重新整理」。儲存的方式不會改變。
+- 在關閉設定時的重新載入提示中選擇「稍後」後，在變更套用之前，按鈕會以藍色顯示並以完全重新整理執行，按鈕旁會顯示「套用設定」。
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-tw/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-tw/refresh_apply_settings.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
 ##### 工具列按鈕說明
 |  | 功能 | 說明 |
 | --- | --- | --- |
 | <span class="material-symbols-outlined">volume_off</span>  | 靜音 | 將瀏覽器中播放的聲音靜音。語音檔案仍會持續載入。<br/>（適用於只想看字幕而不想聽聲音等情況） |
 | <span class="material-symbols-outlined">photo_camera</span> | 螢幕截圖 | 開啟或關閉截圖模式。開啟後，畫面右上角的設定按鈕下方會顯示截圖按鈕。 |
-| <span class="material-symbols-outlined">screen_lock_rotation</span> | 自動旋轉鎖定 | 不論裝置設定為何，都將畫面固定在目前的方向，不會旋轉。 |
+| <span class="material-symbols-outlined">screen_lock_rotation</span> | 自動旋轉鎖定 | 不論裝置設定為何，都將畫面固定在目前的方向，不會旋轉。在多視窗（分割／彈出視窗）下不會套用。 |
 | <span class="material-symbols-outlined">light_mode</span> | 保持螢幕開啟 | 待機時不讓螢幕變暗。 |
 | <span class="material-symbols-outlined">closed_caption</span> | 字幕 | 在畫面下方顯示或隱藏遊戲內字幕。輕觸顯示中的字幕，即可將其隱藏到下一句台詞出現為止。 |
 

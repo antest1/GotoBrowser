@@ -15,7 +15,9 @@ You can enter the settings by clicking the gear icon (<span class="material-symb
 | Applies | Description |
 | --- | --- |
 | Immediately | Applied as soon as the value is changed. |
-| After reload | The "Reload Required" dialog is shown. "Reload Now" applies the change after a full refresh, and "Change Settings Without Reload" applies it on the next refresh. |
+| After reload | A reload icon appears next to the name of each changed setting and stays until the game is fully refreshed. "Reload Now" at the top applies the changes right away with a full refresh. If you changed something, closing the settings shows the "Reload Required" dialog once; "Later" applies the changes on the next full refresh. |
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/settings_refresh_pending.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/settings_refresh_required.webp"  width="480" style="max-width: 100%;" class="mb-3"/>
 
@@ -39,7 +41,7 @@ For related information, refer to the <span class="link" data-move="gadgetbypass
 
 | Name | Description | Applies |
 | --- | --- | --- |
-| Lock to Landscape | Always play in landscape mode regardless of device orientation (on by default) | Immediately |
+| Lock to Landscape | Always play in landscape mode regardless of device orientation (on by default). Not applied in multi-window (split/pop-up) | Immediately |
 | Auto Layout Adjustment | Automatically scales the game screen to fit the device screen (recommended, on by default) | After reload |
 | Game Vertical Position | Places the game at the center or the top when there is space above and below it, such as in portrait or split screen (center by default) | Immediately |
 | Picture-in-picture mode | Shows the game in a small floating window when you leave for the home screen or pinch-zoom out on the game screen | Immediately |
@@ -66,7 +68,7 @@ For PIP/multi-window information, refer to the <span class="link" data-move="pip
 | External Storage for Resource Caching | Use external storage instead of internal storage when caching game resources (recommended)<br/>(allows access to image/voice resources via PC) | After reload |
 | Prefetch Font Assets | Use built-in font files instead of loading them from the game server (recommended, on by default) | After reload |
 | Retry Game Asset Download | Prompts a dialog asking whether to retry when the client fails to download a sound or image asset<br/>Can sometimes avoid catbombs caused by poor network. Does not apply to game data API errors | Immediately |
-| Clear Cache | Deletes the browser cache. Use this when images or audio are not loading correctly, or to switch between login methods<br/>You may need to log in again afterwards<br/>A reload prompt appears once clearing is done | Immediately |
+| Clear Cache | Deletes the browser cache. Use this when images or audio are not loading correctly, or to switch between login methods<br/>You may need to log in again afterwards<br/>A reload prompt appears when you close the settings | Immediately |
 
 ##### Subtitle
 
@@ -89,11 +91,16 @@ For information about the function, refer to the <span class="link" data-move="v
 | General Mods | True Critical Hits | Removes some hard-coded obfuscation for hits. Only a critical hit (CL2) will be displayed as such | After reload | [@Oradimi](https://x.com/oradimi) |
 | Kantai3D Mod | Kantai3D v4.0 | Add 3D-like visual effects and jiggle physics to some of your secretaries. Cannot be selected while Legacy Renderer is on | After reload | [@laplamgor](https://x.com/laplamgor) |
 | Kantai3D Mod | About Kantai3D | Opens the [Kantai3D GitHub page](https://github.com/laplamgor/kantai3d) | | |
-| Language Patch (KCCP) | KanColle Language Patch (KCCP) | Apply a translation patch to in-game text | After reload | [@Oradimi](https://x.com/oradimi) |
+| Language Patch (KCCP) | KanColle Language Patch (KCCP) | Apply a translation patch to in-game text. The rows below appear while this is on | After reload | [@Oradimi](https://x.com/oradimi) |
 | Language Patch (KCCP) | Language Patch to Apply | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP) (@Oradimi) or [KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP) (@SLAVUSworks) | After reload | |
 | Language Patch (KCCP) | Download Patch Data | Downloads or updates the data of the selected patch. Refresh the game after it finishes to apply | After reload | |
 | Language Patch (KCCP) | Delete Patch Data | Use this if the patch is presenting unexpected behaviour, or if something went wrong during download | After reload | |
 | Language Patch (KCCP) | About KanColle English/Indonesia Patch | Opens the GitHub page of the selected patch | | |
+| Kancolle to CHS | Simplified Chinese Patch | Replaces in-game text, UI images and fonts with Simplified Chinese. API data is translated only in the game screen, so Kcanotify still receives the original data. Cannot be used together with KanColle Language Patch (KCCP); turning one on turns the other off. The rows below appear while this is on | After reload | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
+| Kancolle to CHS | Download / Update CHS Data | Downloads the patch data. Choose Full Package (Release Zip) for the first download, then Incremental Update to fetch only the changed files. Reload the game after it finishes to apply | After reload | |
+| Kancolle to CHS | Patch Data Source | Choose the source used for update checks and Incremental Update: GitHub Raw, jsDelivr CDN, GHProxy Mirror or Custom Mirror URL (enter its address in Custom Source Base URL). Try another source if Incremental Update fails. Full Package always comes from GitHub Releases, through GHProxy only when GHProxy Mirror is selected. Data by KanColle CHS Project (@归海原) | Immediately | |
+| Kancolle to CHS | Delete CHS Data | Removes the downloaded Simplified Chinese text, images and fonts | After reload | |
+| Kancolle to CHS | About Kancolle to CHS | Shows the author, data source and repository link | | |
 
 ##### App Information
 

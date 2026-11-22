@@ -100,6 +100,8 @@ fun ControlLayout(
     refreshAttention: Color? = null,
     /** Tapping the FAB runs a full refresh, without changing the saved option. */
     forceFullRefresh: Boolean = false,
+    /** Shown next to the FAB while [forceFullRefresh] is set. */
+    fullRefreshHint: Int = R.string.menu_full_refresh,
     /** Matches GameAreaLayout.verticalBias; see GameGeometry.fit. */
     gameVerticalBias: Float = GameGeometry.BIAS_CENTER,
     /** Toolbar docked at the top with the refresh FAB first; landscape only (PREF_TOOLBAR_POSITION). */
@@ -128,7 +130,7 @@ fun ControlLayout(
             // The refresh FAB then lines up with the settings button in the opposite corner.
             topInset = dimensionResource(R.dimen.top_menu_padding),
             fab = {
-                FullRefreshHintTooltip(visible = forceFullRefresh && visible) {
+                FullRefreshHintTooltip(visible = forceFullRefresh && visible, hint = fullRefreshHint) {
                     OneTouchRefreshFab(
                         selectedOption = selectedRefreshOption,
                         onSelectedOptionChange = onRefreshOptionChange,
@@ -217,14 +219,14 @@ private fun GlassyCircleButton(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FullRefreshHintTooltip(visible: Boolean, content: @Composable () -> Unit) {
+private fun FullRefreshHintTooltip(visible: Boolean, hint: Int, content: @Composable () -> Unit) {
     val state = rememberTooltipState(isPersistent = true)
     LaunchedEffect(visible) {
         if (visible) state.show() else state.dismiss()
     }
     TooltipBox(
         positionProvider = rememberToolbarTooltipPositionProvider(TooltipAnchorPosition.End),
-        tooltip = { PlainTooltip { Text(stringResource(R.string.menu_full_refresh)) } },
+        tooltip = { PlainTooltip { Text(stringResource(hint)) } },
         state = state,
         enableUserInput = false,
         content = content

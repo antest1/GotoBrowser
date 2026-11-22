@@ -15,7 +15,9 @@
 | 套用 | 說明 |
 | --- | --- |
 | 立即 | 變更數值後立即套用。 |
-| 重新載入 | 會顯示「需要重新載入」提示。按「現在重新載入」會在完全重新整理後套用；按「暫不重新載入」則會在下次重新整理時套用。 |
+| 重新載入 | 已變更項目的名稱旁會顯示重新載入圖示，直到遊戲完全重新整理為止。按上方的「現在重新載入」會立即完全重新整理並套用。如有變更，關閉設定時會顯示一次「需要重新載入」提示；按「稍後」則會在下次完全重新整理時套用。 |
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-tw/settings_refresh_pending.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-tw/settings_refresh_required.webp"  width="480" style="max-width: 100%;" class="mb-3"/>
 
@@ -39,7 +41,7 @@
 
 | 名稱 | 說明 | 套用 |
 | --- | --- | --- |
-| 固定橫向畫面 | 不論裝置方向為何，一律以橫向模式遊玩（預設開啟） | 立即 |
+| 固定橫向畫面 | 不論裝置方向為何，一律以橫向模式遊玩（預設開啟）。在多視窗（分割／彈出視窗）下不會套用 | 立即 |
 | 自動調整佈局 | 自動放大／縮小遊戲畫面以符合裝置螢幕大小（建議，預設開啟） | 重新載入 |
 | 遊戲畫面垂直位置 | 直向畫面、分割畫面等遊戲上下留有空白時，將遊戲置中或置於頂部（預設置中） | 立即 |
 | 啟用畫中畫模式 | 返回主畫面或在遊戲畫面上雙指縮小時，以浮動小視窗顯示遊戲畫面 | 立即 |
@@ -66,7 +68,7 @@ PIP/多視窗相關內容請參閱<span class="link" data-move="pipmode">PIP/多
 | 將快取存放至外部儲存空間 | 快取遊戲資源時，使用外部儲存空間而非內部儲存空間（建議）<br/>（可透過電腦存取或編輯圖片／語音資源） | 重新載入 |
 | 預先載入字體 | 使用應用程式內建的字體檔案，而不從遊戲伺服器載入字體（建議，預設開啟） | 重新載入 |
 | 重新嘗試下載遊戲資源 | 聲音／圖片資源下載失敗時，顯示詢問是否重新下載的視窗<br/>可減少網路不穩定導致的貓襲。不適用於遊戲 API 通訊 | 立即 |
-| 清除快取 | 刪除瀏覽器內的快取。在圖片或聲音無法正常載入，或切換登入方式時使用<br/>清除後可能需要重新登入<br/>清除完成後會顯示重新載入的提示 | 立即 |
+| 清除快取 | 刪除瀏覽器內的快取。在圖片或聲音無法正常載入，或切換登入方式時使用<br/>清除後可能需要重新登入<br/>關閉設定時會顯示重新載入的提示 | 立即 |
 
 ##### 字幕設定
 
@@ -89,11 +91,16 @@ PIP/多視窗相關內容請參閱<span class="link" data-move="pipmode">PIP/多
 | 常規 | 真正的Critical hit | 移除傷害的硬編碼混淆。僅在發生 CL2 時才顯示為 Critical hit | 重新載入 | [@Oradimi](https://x.com/oradimi) |
 | Kantai3D 視覺模組 | Kantai3D v4.0 | 為部分秘書艦套用 3D 效果。使用舊式渲染器時無法選擇 | 重新載入 | [@laplamgor](https://x.com/laplamgor) |
 | Kantai3D 視覺模組 | 關於Kantai3D | 開啟 [Kantai3D GitHub 頁面](https://github.com/laplamgor/kantai3d) | | |
-| 語言翻譯模組 | KanColle Language Patch (KCCP) | 為遊戲內文字套用翻譯補丁 | 重新載入 | [@Oradimi](https://x.com/oradimi) |
+| 語言翻譯模組 | KanColle Language Patch (KCCP) | 為遊戲內文字套用翻譯補丁。開啟後會顯示下方選項 | 重新載入 | [@Oradimi](https://x.com/oradimi) |
 | 語言翻譯模組 | 要使用的補丁 | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP)（@Oradimi）或 [KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP)（@SLAVUSworks） | 重新載入 | |
 | 語言翻譯模組 | 下載補丁資料 | 下載或更新所選補丁的資料。完成後需重新整理遊戲才會生效 | 重新載入 | |
 | 語言翻譯模組 | 刪除補丁資料 | 補丁出現預期外的行為，或下載過程中發生問題時使用 | 重新載入 | |
 | 語言翻譯模組 | KanColle English/Indonesia Patch關於 | 開啟所選補丁的 GitHub 頁面 | | |
+| 砍口壘漢化計劃 in Goto | 漢化 | 將遊戲內文字、UI 貼圖與字體替換為簡體中文。API 資料僅在遊戲畫面中翻譯，Kcanotify 仍會收到原始資料。無法與 KanColle Language Patch (KCCP) 同時使用，開啟其中一個時另一個會自動關閉。開啟後會顯示下方選項 | 重新載入 | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
+| 砍口壘漢化計劃 in Goto | 下載與更新 | 下載漢化資料。首次下載請選擇「下載完整包 (Release Zip)」，之後選擇「增量更新」即可只下載有變更的檔案。完成後需重新整理遊戲才會生效 | 重新載入 | |
+| 砍口壘漢化計劃 in Goto | 漢化資料源 | 選擇檢查更新與增量更新時使用的下載來源：GitHub Raw、jsDelivr CDN、GHProxy Mirror 或自訂鏡像源（選擇自訂鏡像源時需填寫自訂資料源根位址）。增量更新失敗時可嘗試切換資料源。完整包一律從 GitHub Releases 下載，僅在選擇 GHProxy Mirror 時經由 GHProxy。資料來自砍口壘漢化計劃 @歸海原 | 立即 | |
+| 砍口壘漢化計劃 in Goto | 刪除漢化資料 | 刪除已下載的簡體中文文字、貼圖與字體 | 重新載入 | |
+| 砍口壘漢化計劃 in Goto | 關於砍口壘漢化計劃 in Goto | 顯示作者、資料源與儲存庫連結 | | |
 
 ##### 應用程式資訊
 

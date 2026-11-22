@@ -31,17 +31,19 @@ In landscape, setting Settings → Controls & Toolbar → "Toolbar Placement" to
 
 - Press and hold the button and drag toward the menu to choose the other method. The menu opens upward with the toolbar at the center, and downward with the toolbar at the top. The last method used is remembered as the default action of the button.
 - Turn on Settings → Controls & Toolbar → "Refresh Without Confirmation" to refresh without the confirmation dialog.
-- If you chose "Change Settings Without Reload" in the "Reload Required" dialog after changing a setting, refreshing with this button also applies the change.
 - After a connection error while loading or a server error during play, the button runs a Full Refresh regardless of the saved method, and "Full Refresh" is shown next to it. The saved method does not change.
+- If you choose "Later" when the settings ask for a reload, the button is highlighted in blue and runs a Full Refresh until the changes are applied, with "Apply Settings" shown next to it.
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/refresh_apply_settings.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
 ##### Toolbar Button Description
 |  | Button | Description |
 | --- | --- | --- |
 | <span class="material-symbols-outlined">volume_off</span>  | Mute Audio | Mutes the whole sound playing in the browser. The audio files will continue to load.<br/>(Use this when you want to see subtitles without sound, etc.) |
 | <span class="material-symbols-outlined">photo_camera</span> | Screenshot Mode | Turns screenshot mode on or off. When on, the screenshot button appears below the settings button in the top right of the screen. |
-| <span class="material-symbols-outlined">screen_lock_rotation</span> | Auto-Rotate Lock | Prevents the screen from rotating regardless of device settings. |
+| <span class="material-symbols-outlined">screen_lock_rotation</span> | Auto-Rotate Lock | Prevents the screen from rotating regardless of device settings. Not applied in multi-window (split/pop-up). |
 | <span class="material-symbols-outlined">light_mode</span> | Screen Always-On | Keeps the screen from turning off in idle state. |
 | <span class="material-symbols-outlined">closed_caption</span> | Subtitle | Shows or hides in-game subtitles at the bottom of the screen. Touching the subtitle hides it until the next line. |
 

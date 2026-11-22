@@ -4,9 +4,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.keyframes
@@ -20,6 +22,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,6 +30,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.only
@@ -36,10 +41,12 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,10 +67,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -78,6 +88,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -139,6 +150,7 @@ import com.antest1.gotobrowser.Constants.PREF_USE_EXTCACHE
 import com.antest1.gotobrowser.Constants.PREF_LATEST_URL
 import com.antest1.gotobrowser.Constants.URL_LIST
 import com.antest1.gotobrowser.Helpers.KcUtils
+import com.antest1.gotobrowser.Helpers.chs.ChsConfig
 import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.ui.theme.SettingsTheme
 import kotlinx.coroutines.launch
@@ -173,7 +185,7 @@ private val BlockSheetDragConnection = object : NestedScrollConnection {
         Velocity(0f, available.y)
 }
 
-private data class ListOption(val value: String, val title: String, val summary: String? = null)
+internal data class ListOption(val value: String, val title: String, val summary: String? = null)
 
 enum class SettingsScreen {
     MAIN,
@@ -190,20 +202,31 @@ enum class SettingsScreen {
 private const val EDGE_SWIPE_BAND_DP = 24
 
 /**
- * Calls [onOutsideTouch] when a touch is released, unless it started in the screen edge band:
- * the area where hidden system bars would be, the system gesture areas, or at least
- * [EDGE_SWIPE_BAND_DP]. Cancelled touches (taken by a system gesture) are ignored.
+ * Calls [onOutsideTouch] on a tap on [view], unless it started in the screen edge band: the area
+ * where hidden system bars would be, the system gesture areas, or at least [EDGE_SWIPE_BAND_DP].
+ *
+ * As with the sheet's own scrim, only a real tap counts: one finger, within touch slop, not
+ * cancelled by a system gesture. A list fling started right after opening can begin below the
+ * still rising sheet and land here.
  */
 @SuppressLint("ClickableViewAccessibility")
-private fun outsideTouchListener(onOutsideTouch: () -> Unit): View.OnTouchListener {
+private fun outsideTouchListener(view: View, onOutsideTouch: () -> Unit): View.OnTouchListener {
     var startedAtEdge = false
-    return View.OnTouchListener { view, event ->
-        when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> startedAtEdge = isAtScreenEdge(view, event.x, event.y)
-            MotionEvent.ACTION_UP -> if (!startedAtEdge) onOutsideTouch()
+    val tapDetector = GestureDetector(view.context, object : GestureDetector.SimpleOnGestureListener() {
+        override fun onDown(e: MotionEvent): Boolean {
+            startedAtEdge = isAtScreenEdge(view, e.x, e.y)
+            return true
         }
-        true
-    }
+
+        override fun onSingleTapUp(e: MotionEvent): Boolean {
+            if (!startedAtEdge) onOutsideTouch()
+            return true
+        }
+    })
+    // Each tap counts on its own, and a long one still counts as a tap.
+    tapDetector.setOnDoubleTapListener(null)
+    tapDetector.setIsLongpressEnabled(false)
+    return View.OnTouchListener { _, event -> tapDetector.onTouchEvent(event); true }
 }
 
 private fun isAtScreenEdge(view: View, x: Float, y: Float): Boolean {
@@ -246,19 +269,65 @@ fun SettingsBottomSheet(
     onSettingChanged: (String) -> Unit,
     onLogoutRequest: () -> Unit = {},
     onHelpClick: () -> Unit = {},
-    onCacheCleared: () -> Unit = {}
+    onCacheCleared: () -> Unit = {},
+    /** Settings changed since the game was last fully loaded that only apply after a reload. */
+    pendingRefreshKeys: Set<String> = emptySet(),
+    /** Whether a reload is waiting (settings above, or a cache cleared in this sheet). */
+    refreshPending: Boolean = false,
+    onRefreshNow: () -> Unit = {},
+    /** Called before a row changes a setting, with the value it showed until then. */
+    onBeforeSettingChange: (key: String, oldValue: Any?) -> Unit = { _, _ -> }
 ) {
     // The sheet has its own blue palette; the game overlay underneath keeps the neutral theme.
     SettingsTheme {
-        SettingsBottomSheetContent(
-            viewModel = viewModel,
-            activity = activity,
-            onDismissRequest = onDismissRequest,
-            onSettingChanged = onSettingChanged,
-            onLogoutRequest = onLogoutRequest,
-            onHelpClick = onHelpClick,
-            onCacheCleared = onCacheCleared
-        )
+        CompositionLocalProvider(
+            LocalPendingRefreshKeys provides pendingRefreshKeys,
+            LocalBeforeSettingChange provides onBeforeSettingChange
+        ) {
+            SettingsBottomSheetContent(
+                viewModel = viewModel,
+                activity = activity,
+                onDismissRequest = onDismissRequest,
+                onSettingChanged = onSettingChanged,
+                onLogoutRequest = onLogoutRequest,
+                onHelpClick = onHelpClick,
+                onCacheCleared = onCacheCleared,
+                refreshPending = refreshPending,
+                onRefreshNow = onRefreshNow
+            )
+        }
+    }
+}
+
+/** Keys of the settings changed since the last full load that only apply after a reload. */
+internal val LocalPendingRefreshKeys = compositionLocalOf { emptySet<String>() }
+
+/**
+ * Told the value a row showed before it changes a setting. Defaults live in the rows, not in
+ * the preferences, so this is the only way to know a setting was put back as it was.
+ */
+internal val LocalBeforeSettingChange = compositionLocalOf<(String, Any?) -> Unit> { { _, _ -> } }
+
+/** Stands for the login before a change; never equal to a saved value, so the change always counts. */
+private object LoginChanged
+
+/**
+ * A row title, followed by the refresh icon of the header's reload button while the change
+ * waits for the game to be fully reloaded.
+ */
+@Composable
+internal fun SettingTitle(text: String, color: Color, refreshPending: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(text, color = color, modifier = Modifier.weight(1f, fill = false))
+        if (refreshPending) {
+            Spacer(modifier = Modifier.width(6.dp))
+            Icon(
+                imageVector = Icons.Filled.Refresh,
+                contentDescription = stringResource(R.string.settings_refresh_pending),
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp)
+            )
+        }
     }
 }
 
@@ -271,7 +340,9 @@ private fun SettingsBottomSheetContent(
     onSettingChanged: (String) -> Unit,
     onLogoutRequest: () -> Unit,
     onHelpClick: () -> Unit,
-    onCacheCleared: () -> Unit
+    onCacheCleared: () -> Unit,
+    refreshPending: Boolean,
+    onRefreshNow: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     // Each opening checks for updates again; screen switches inside it reuse the result.
@@ -296,6 +367,10 @@ private fun SettingsBottomSheetContent(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
+        // The sheet counts as hidden until its opening animation settles. A fling on the list
+        // in that window makes the sheet settle twice, and the cancelled first settle reads as
+        // a dismiss. Keep the list's scrolls off the sheet until it has fully opened.
+        sheetGesturesEnabled = sheetState.isVisible,
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         // Outside touches are handled below instead, to skip edge swipes.
         properties = ModalBottomSheetProperties(shouldDismissOnClickOutside = false)
@@ -329,7 +404,7 @@ private fun SettingsBottomSheetContent(
         val currentDismissAnimated by rememberUpdatedState(dismissAnimated)
         DisposableEffect(dialogWindow) {
             val decorView = dialogWindow?.decorView
-            decorView?.setOnTouchListener(outsideTouchListener { currentDismissAnimated() })
+            decorView?.setOnTouchListener(outsideTouchListener(decorView) { currentDismissAnimated() })
             onDispose { decorView?.setOnTouchListener(null) }
         }
 
@@ -370,6 +445,18 @@ private fun SettingsBottomSheetContent(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.weight(1f)
             )
+            // Applies the changes waiting for a reload without waiting for the sheet to close.
+            if (refreshPending) {
+                FilledTonalButton(
+                    onClick = onRefreshNow,
+                    contentPadding = PaddingValues(start = 12.dp, end = 16.dp),
+                    modifier = Modifier.height(36.dp)
+                ) {
+                    Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.settings_refresh_now))
+                }
+            }
             // Help (manual) entry point, kept in the header so it is reachable from every
             // settings screen without scrolling.
             IconButton(onClick = onHelpClick) {
@@ -702,9 +789,12 @@ private fun ConnectionLoginSection(
     )
 
     if (showLoginForm) {
+        val savedId = if (isPreview) "" else viewModel.getString(PREF_DMM_ID, "")
+        val savedPassword = if (isPreview) "" else viewModel.getLoginPassword()
+        val beforeChange = LocalBeforeSettingChange.current
         LoginFormDialog(
-            initialId = if (isPreview) "" else viewModel.getString(PREF_DMM_ID, ""),
-            initialPassword = if (isPreview) "" else viewModel.getLoginPassword(),
+            initialId = savedId,
+            initialPassword = savedPassword,
             onSave = { loginId, loginPassword ->
                 if (!isPreview) {
                     viewModel.setString(PREF_DMM_ID, loginId)
@@ -713,7 +803,12 @@ private fun ConnectionLoginSection(
                     }
                 }
                 showLoginForm = false
-                onSettingChanged(PREF_DMM_ID)
+                if (loginId != savedId || loginPassword != savedPassword) {
+                    // The password is kept apart from the preferences, so the change is not
+                    // compared by value: it stays marked until the next full load.
+                    beforeChange(PREF_DMM_ID, LoginChanged)
+                    onSettingChanged(PREF_DMM_ID)
+                }
             },
             onDismiss = { showLoginForm = false }
         )
@@ -902,49 +997,83 @@ private fun ModsSection(
     SectionHeader(R.string.settings_mod_group_kccp)
     // Held as state so the dependent rows follow the switch right away.
     var patchEnabled by remember { mutableStateOf(if (isPreview) false else viewModel.isKccpPatchEnabled()) }
-    SwitchRow(viewModel, PREF_MOD_KCCP_LANG_PATCH, R.string.settings_mod_kccp, R.string.settings_mod_kccp_summary,
-        onChanged = {
-            if (!isPreview) {
+    // Bumped when turning the CHS patch on turns KCCP off, so the switch re-reads its preference.
+    var kccpSwitchVersion by remember { mutableIntStateOf(0) }
+    // KCCP and CHS turn each other off; that is reported like a change on the other row.
+    val beforeChange = LocalBeforeSettingChange.current
+    key(kccpSwitchVersion) {
+        SwitchRow(viewModel, PREF_MOD_KCCP_LANG_PATCH, R.string.settings_mod_kccp, R.string.settings_mod_kccp_summary,
+            onChanged = {
+                if (!isPreview) {
+                    patchEnabled = viewModel.isKccpPatchEnabled()
+                    val chsWasOn = ChsConfig.isEnabled()
+                    viewModel.onKccpPatchChanged()
+                    if (chsWasOn && !ChsConfig.isEnabled()) {
+                        beforeChange(ChsConfig.KEY_ENABLED, true)
+                        onSettingChanged(ChsConfig.KEY_ENABLED)
+                    }
+                }
+            },
+            onSettingChanged = onSettingChanged)
+    }
+
+    // Like the CHS group, the patch rows only show while the patch is on. They stay
+    // disabled as soon as it goes off, so they can't be used while they animate out.
+    AnimatedVisibility(visible = patchEnabled) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            ListRow(
+                viewModel, PREF_MOD_KCCP_LANG_PATCH_NAME, R.string.settings_mod_kccp_patch_name, kccpLanguageOptions(),
+                enabled = patchEnabled,
+                summaryProvider = { if (isPreview) "" else viewModel.getKccpPatchSummary(it) },
+                onSelected = { if (!isPreview) viewModel.onPatchLanguageChanged(it); true },
+                onSettingChanged = onSettingChanged
+            )
+
+            ClickRow(
+                title = R.string.settings_mod_kantaien_download,
+                summaryText = patchSummary,
+                enabled = patchEnabled && patchEnabledState,
+                onClick = { if (!isPreview) viewModel.requestPatchUpdate() }
+            )
+            var showPatchDeleteDialog by remember { mutableStateOf(false) }
+            ClickRow(
+                title = R.string.settings_mod_kantaien_delete,
+                summary = R.string.settings_mod_kantaien_delete_summary,
+                enabled = patchEnabled,
+                onClick = { showPatchDeleteDialog = true }
+            )
+            if (showPatchDeleteDialog) {
+                PatchDeleteDialog(
+                    onConfirm = {
+                        showPatchDeleteDialog = false
+                        if (!isPreview) viewModel.deletePatch()
+                    },
+                    onDismiss = { showPatchDeleteDialog = false }
+                )
+            }
+            ClickRow(
+                title = patchTitle,
+                summaryText = patchUrl,
+                onClick = { openUrl(context, patchUrl) }
+            )
+        }
+    }
+
+    // --- Group 4: Kancolle to CHS -------------------------------------------
+    ChsSettingsSection(
+        viewModel = viewModel,
+        onChsToggled = { enabled ->
+            if (enabled && !isPreview) {
+                val kccpWasOn = patchEnabled
                 patchEnabled = viewModel.isKccpPatchEnabled()
-                viewModel.onKccpPatchChanged()
+                if (kccpWasOn != patchEnabled) {
+                    beforeChange(PREF_MOD_KCCP_LANG_PATCH, kccpWasOn)
+                    onSettingChanged(PREF_MOD_KCCP_LANG_PATCH)
+                }
+                kccpSwitchVersion++
             }
         },
-        onSettingChanged = onSettingChanged)
-
-    ListRow(
-        viewModel, PREF_MOD_KCCP_LANG_PATCH_NAME, R.string.settings_mod_kccp_patch_name, kccpLanguageOptions(),
-        enabled = patchEnabled,
-        summaryProvider = { if (isPreview) "" else viewModel.getKccpPatchSummary(it) },
-        onSelected = { if (!isPreview) viewModel.onPatchLanguageChanged(it); true },
         onSettingChanged = onSettingChanged
-    )
-
-    ClickRow(
-        title = R.string.settings_mod_kantaien_download,
-        summaryText = patchSummary,
-        enabled = patchEnabled && patchEnabledState,
-        onClick = { if (!isPreview) viewModel.requestPatchUpdate() }
-    )
-    var showPatchDeleteDialog by remember { mutableStateOf(false) }
-    ClickRow(
-        title = R.string.settings_mod_kantaien_delete,
-        summary = R.string.settings_mod_kantaien_delete_summary,
-        enabled = patchEnabled,
-        onClick = { showPatchDeleteDialog = true }
-    )
-    if (showPatchDeleteDialog) {
-        PatchDeleteDialog(
-            onConfirm = {
-                showPatchDeleteDialog = false
-                if (!isPreview) viewModel.deletePatch()
-            },
-            onDismiss = { showPatchDeleteDialog = false }
-        )
-    }
-    ClickRow(
-        title = patchTitle,
-        summaryText = patchUrl,
-        onClick = { openUrl(context, patchUrl) }
     )
 }
 
@@ -1014,7 +1143,7 @@ private fun AppInfoSection(
  * related settings can stay together without adding another navigation level.
  */
 @Composable
-private fun SectionHeader(titleRes: Int) {
+internal fun SectionHeader(titleRes: Int) {
     // Not a ListItem: its 56dp minimum height centered the small label and left it far from
     // the rows it introduces. Same background and 16dp inset as the rows below.
     Text(
@@ -1049,14 +1178,17 @@ private fun SwitchRow(
     // Dimmed like ClickRow when disabled, not just the switch itself.
     val textColor = if (enabled) MaterialTheme.colorScheme.onSurface
     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+    val refreshPending = key in LocalPendingRefreshKeys.current
+    val beforeChange = LocalBeforeSettingChange.current
     ListItem(
-        headlineContent = { Text(stringResource(titleRes), color = textColor) },
+        headlineContent = { SettingTitle(stringResource(titleRes), textColor, refreshPending) },
         supportingContent = summaryRes?.let { { Text(stringResource(it), color = textColor) } },
         trailingContent = {
             Switch(
                 checked = checked.value,
                 enabled = enabled,
                 onCheckedChange = {
+                    beforeChange(key, checked.value)
                     checked.value = it
                     if (!isPreview) {
                         viewModel.setBoolean(key, it)
@@ -1068,6 +1200,7 @@ private fun SwitchRow(
         },
         modifier = Modifier.clickable(enabled = enabled) {
             val newValue = !checked.value
+            beforeChange(key, checked.value)
             checked.value = newValue
             if (!isPreview) {
                 viewModel.setBoolean(key, newValue)
@@ -1080,7 +1213,7 @@ private fun SwitchRow(
 }
 
 @Composable
-private fun ClickRow(
+internal fun ClickRow(
     title: Int,
     summary: Int? = null,
     summaryText: String? = null,
@@ -1129,8 +1262,10 @@ private fun ListRow(
     // Dimmed like ClickRow when disabled, not just made unclickable.
     val textColor = if (enabled) MaterialTheme.colorScheme.onSurface
     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+    val refreshPending = key in LocalPendingRefreshKeys.current
+    val beforeChange = LocalBeforeSettingChange.current
     ListItem(
-        headlineContent = { Text(stringResource(titleRes), color = textColor) },
+        headlineContent = { SettingTitle(stringResource(titleRes), textColor, refreshPending) },
         supportingContent = { Text(summaryProvider(selected), color = textColor) },
         modifier = if (enabled) Modifier.clickable { showDialog = true } else Modifier
     )
@@ -1143,6 +1278,7 @@ private fun ListRow(
             selected = selected,
             onSelect = { value ->
                 if (onSelected(value)) {
+                    beforeChange(key, selected)
                     selected = value
                     if (!isPreview) {
                         viewModel.setString(key, value)
@@ -1158,7 +1294,7 @@ private fun ListRow(
 }
 
 @Composable
-private fun ListOptionDialog(
+internal fun ListOptionDialog(
     title: String,
     options: List<ListOption>,
     selected: String,
@@ -1199,7 +1335,7 @@ private fun ListOptionDialog(
 }
 
 @Composable
-private fun EditTextDialog(
+internal fun EditTextDialog(
     title: Int,
     initialValue: String,
     onSave: (String) -> Unit,
@@ -1281,12 +1417,14 @@ private fun SubtitleSizeDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PatchDownloadDialog(state: PatchDownloadState.Running) {
-    // BasicAlertDialog instead of AlertDialog: there are no buttons, and AlertDialog
-    // keeps padding for its (empty) button row, leaving a blank band at the bottom.
+    // BasicAlertDialog instead of AlertDialog: keeps padding tidy and follows
+    // the settings sheet's Material 3 theme.
     BasicAlertDialog(
-        // The download cannot be cancelled midway, same as before.
-        onDismissRequest = {},
-        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+        onDismissRequest = { state.onCancel?.invoke() },
+        properties = DialogProperties(
+            dismissOnBackPress = state.onCancel != null,
+            dismissOnClickOutside = false
+        )
     ) {
         Surface(
             shape = AlertDialogDefaults.shape,
@@ -1295,7 +1433,7 @@ internal fun PatchDownloadDialog(state: PatchDownloadState.Running) {
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
                 Text(
-                    text = stringResource(R.string.settings_mod_kantaien_download),
+                    text = state.title ?: stringResource(R.string.settings_mod_kantaien_download),
                     style = MaterialTheme.typography.headlineSmall,
                     color = AlertDialogDefaults.titleContentColor
                 )
@@ -1318,6 +1456,17 @@ internal fun PatchDownloadDialog(state: PatchDownloadState.Running) {
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (state.onCancel != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = state.onCancel) {
+                            Text(stringResource(R.string.action_cancel))
+                        }
+                    }
+                }
             }
         }
     }

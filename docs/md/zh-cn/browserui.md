@@ -31,17 +31,19 @@
 
 - 按住按钮并向菜单展开的方向拖动，可选择另一种方式。工具栏显示位置为“居中”时菜单向上展开，为“顶部 · 经典”时向下展开。最后使用的方式会被记住，作为按钮的默认操作。
 - 开启设置 → 操作与工具栏 → “无需确认直接刷新”后，刷新前不再显示确认对话框。
-- 更改设置后，即使在“需要重新加载”提示中选择了“暂不重新加载”，使用此按钮刷新后更改的设置也会生效。
 - 加载中出现连接错误或游戏中出现服务器错误后，无论保存的方式如何，按钮都会以完全刷新执行，并在按钮旁显示“完全刷新”。保存的方式不会改变。
+- 关闭设置时的重新加载提示中选择“稍后”后，在更改生效之前，按钮会以蓝色显示并以完全刷新执行，按钮旁会显示“应用设置”。
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/refresh_apply_settings.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
 ##### 工具栏按钮说明
 |  | 功能 | 说明 |
 | --- | --- | --- |
 | <span class="material-symbols-outlined">volume_off</span>  | 静音 | 将浏览器中正在播放的声音静音。语音文件仍会继续加载。<br/>（适用于只想看字幕而不想听声音等情况） |
 | <span class="material-symbols-outlined">photo_camera</span> | 萤幕截图 | 开启或关闭截图模式。开启后，屏幕右上角设置按钮的下方会显示截图按钮。 |
-| <span class="material-symbols-outlined">screen_lock_rotation</span> | 自动旋转锁定 | 锁定当前画面方向，无论设备设置如何都不会旋转。 |
+| <span class="material-symbols-outlined">screen_lock_rotation</span> | 自动旋转锁定 | 锁定当前画面方向，无论设备设置如何都不会旋转。多窗口（分屏/弹出窗口）下不生效。 |
 | <span class="material-symbols-outlined">light_mode</span> | 保持萤幕开启 | 使屏幕在待机状态下不会变暗。 |
 | <span class="material-symbols-outlined">closed_caption</span> | 字幕 | 在屏幕底部显示或隐藏游戏内字幕。轻触显示的字幕，可将其隐藏至下一句台词出现。 |
 

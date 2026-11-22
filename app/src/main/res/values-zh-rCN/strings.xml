@@ -63,6 +63,8 @@
     <string name="noti_screenshot_title">已储存萤幕截图</string>
     <string name="noti_screenshot_description">点一下即可开启萤幕截图</string>
     <string name="noti_screenshot_permission_message">显示截图结果需要授予通知权限。</string>
+    <string name="screenshot_save_failed">无法保存截图。</string>
+    <string name="screenshot_storage_permission_required">保存截图需要授予存储权限。</string>
     <string name="granted_true_notification_permission">已授予通知权限。</string>
     <string name="granted_false_notification_permission">未授予通知权限。</string>
     <string name="settings_source_code">原始码</string>
@@ -96,6 +98,7 @@
     <string name="menu_tooltip_refresh">重新整理页面</string>
     <string name="menu_quick_refresh">快速刷新</string>
     <string name="menu_full_refresh">完全刷新</string>
+    <string name="settings_apply_hint">应用设置</string>
     <string name="menu_tooltip_mute">静音</string>
     <string name="menu_tooltip_camera">萤幕截图</string>
     <string name="menu_tooltip_lock">自动旋转锁定</string>
@@ -124,6 +127,7 @@
     <string name="patch_download_extracting">正在解压文件…</string>
     <string name="patch_download_updated">补丁已更新，请重新加载游戏。</string>
     <string name="patch_download_failed">更新失败</string>
+    <string name="patch_download_cancelled">已取消下载</string>
     <string name="patch_download_error">下载时发生错误</string>
     <string name="patch_download_zip_not_deleted">下载完成，但无法删除 zip 文件</string>
     <string name="patch_deleted">补丁资料已删除，请重新加载游戏。</string>
@@ -171,7 +175,7 @@
     <string name="settings_refresh_required_title">需要重新加载</string>
     <string name="settings_refresh_required_msg">设置已保存。需要重新加载游戏才能生效。你想现在重新加载吗？</string>
     <string name="settings_refresh_now">现在重新加载</string>
-    <string name="settings_refresh_later">暂不重新加载</string>
+    <string name="settings_refresh_pending">重新加载后生效</string>
     <string name="refresh_later">稍后</string>
     <!-- First-screen loading status and server errors -->
     <string name="loading_preparing_title">正在应用设置</string>
@@ -203,4 +207,35 @@
     <string name="detail_host">主机</string>
     <string name="detail_api">API</string>
     <string name="detail_message">消息</string>
+
+    <!-- Simplified Chinese Localization (Kancolle_to_CHS / 砍口垒汉化计划 in Goto) -->
+    <string name="settings_mod_group_chs">砍口垒汉化计划 in Goto</string>
+    <string name="settings_mod_chs_enable">汉化</string>
+    <string name="settings_mod_chs_summary">提供全界面文本替换、KCSAPI 动态响应合流与 UI 贴图字体汉化。作者：@泉浅漪</string>
+    <string name="settings_mod_chs_source">汉化数据源（砍口垒汉化计划 @归海原）</string>
+    <string name="settings_mod_chs_source_custom">自定义镜像源</string>
+    <string name="settings_mod_chs_custom_url">自定义数据源根地址</string>
+    <string name="settings_mod_chs_download">下载与更新</string>
+    <string name="settings_mod_chs_download_dialog_title">下载汉化数据</string>
+    <string name="settings_mod_chs_download_archive_recommended">下载全量包 (Release Zip) — 推荐</string>
+    <string name="settings_mod_chs_download_archive_option">下载全量包 (Release Zip)</string>
+    <string name="settings_mod_chs_download_archive_desc">一键下载官方发布页完整压缩包并自动解压比对，耗时更短、更稳定。</string>
+    <string name="settings_mod_chs_download_patch_recommended">增量更新 — 推荐</string>
+    <string name="settings_mod_chs_download_patch_option">增量更新</string>
+    <string name="settings_mod_chs_download_patch_desc">仅比对并下载变动的差异文件，适合已有本地数据时日常更新。</string>
+    <string name="settings_mod_chs_delete">删除汉化数据</string>
+    <string name="settings_mod_chs_delete_summary">清除本地已下载的简中汉化文本与贴图字体文件。</string>
+    <string name="settings_mod_chs_about">关于砍口垒汉化计划 in Goto</string>
+    <string name="settings_mod_chs_about_summary">作者、数据源与开源鸣谢</string>
+    <string name="settings_mod_chs_about_dialog_text">开发者：@泉浅漪\n汉化数据源：砍口垒汉化计划 @归海原\n开源仓库：https://github.com/asaico/Kancolle_to_CHS</string>
+    <string name="chs_status_disabled">未启用汉化补丁</string>
+    <string name="chs_status_check_failed">无法连接更新源，建议更换汉化数据源后重试</string>
+    <string name="chs_download_failed">下载失败，请尝试更换汉化数据源</string>
+    <string name="chs_download_failed_summary">下载失败，建议更换汉化数据源后重试</string>
+    <string name="chs_status_offline_installed" formatted="false">已安装本地数据 (%1$s)</string>
+    <string name="chs_status_not_installed_format" formatted="false">尚未下载汉化数据（推荐下载全量包，版本 %1$s，共 %2$d 个文件 / %3$s）</string>
+    <string name="chs_status_update_available_format" formatted="false">发现更新 %1$s（待更新 %2$d 个文件 / %3$s）</string>
+    <string name="chs_status_up_to_date_format" formatted="false">已是最新版本 (%1$s)</string>
+    <string name="chs_archive_extracted_with_updates">全量包解压完成，发现后续增量更新</string>
+    <string name="chs_archive_extracted_up_to_date">全量包解压完成，数据已是最新</string>
 </resources>

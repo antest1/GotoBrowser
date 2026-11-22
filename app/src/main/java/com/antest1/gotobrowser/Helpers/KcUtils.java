@@ -640,20 +640,30 @@ public class KcUtils {
             byte[] decodedString = Base64.decode(image, Base64.DEFAULT);
             Bitmap decodedImage = BitmapFactory.decodeByteArray(
                     decodedString, 0, decodedString.length);
-            Uri fileUri;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                fileUri = writeImageFile(context, filename, decodedImage);
-            } else {
-                fileUri = writeImageFileOld(context, filename, decodedImage);
+            Uri fileUri = saveScreenshot(context, filename, decodedImage);
+            if (fileUri == null) {
+                activity.runOnUiThread(activity::showScreenshotSaveFailure);
+                return;
             }
 
-            if (fileUri != null) {
-                Log.e("GOTO-DURL-P", "Path: " + fileUri);
-                Log.e("GOTO-DURL-P", "Image Size: " +
-                        decodedImage.getWidth() + "x" + decodedImage.getHeight());
-            }
+            Log.e("GOTO-DURL-P", "Path: " + fileUri);
+            Log.e("GOTO-DURL-P", "Image Size: " +
+                    decodedImage.getWidth() + "x" + decodedImage.getHeight());
             activity.runOnUiThread(() -> activity.showScreenshotNotification(decodedImage, fileUri));
         });
+    }
+
+    private static Uri saveScreenshot(Context context, String filename, Bitmap bitmap) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                return writeImageFile(context, filename, bitmap);
+            } else {
+                return writeImageFileOld(context, filename, bitmap);
+            }
+        } catch (Exception e) {
+            Log.e("GOTO-DURL-P", "Failed to save the screenshot", e);
+            return null;
+        }
     }
 
     public static Uri writeImageFile(Context context, String filename, Bitmap bitmap) {
@@ -714,6 +724,7 @@ public class KcUtils {
             fos.close();
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
 
         ContentValues values = new ContentValues();

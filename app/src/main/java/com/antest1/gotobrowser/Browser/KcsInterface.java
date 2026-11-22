@@ -16,6 +16,7 @@ import com.antest1.gotobrowser.ContentProvider.KcaPacketStore;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.R;
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils;
+import com.antest1.gotobrowser.Helpers.chs.ChsApiMerger;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -94,6 +95,11 @@ public class KcsInterface {
         if (!isGameHost(host) || url == null) return;
         Log.e("GOTO-XHR", "kcsapi failed: " + url + " " + status + " " + code + " " + message);
         activity.showRequestFailure(url, status, code, message);
+    }
+
+    @JavascriptInterface
+    public String chs_get_api_table(String tableName) {
+        return ChsApiMerger.getApiTableJson(activity.getApplicationContext(), tableName);
     }
 
     public void processXHR(String url, String request, String response) {

@@ -4,7 +4,6 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.ColorDrawable
@@ -25,7 +24,7 @@ import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.activity.OnBackPressedCallback
-import androidx.annotation.RequiresApi
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
@@ -141,6 +140,7 @@ import com.antest1.gotobrowser.Helpers.KcUtils
 import com.antest1.gotobrowser.Notification.ScreenshotNotification
 import com.antest1.gotobrowser.R
 import com.antest1.gotobrowser.Subtitle.SubtitleProviderUtils
+import com.antest1.gotobrowser.Helpers.chs.ChsConfig
 import com.antest1.gotobrowser.ui.component.ControlLayout
 import com.antest1.gotobrowser.ui.component.DialogButton
 import com.antest1.gotobrowser.ui.component.LoadingStatusOverlay
@@ -156,6 +156,7 @@ import com.antest1.gotobrowser.ui.component.RefreshOption
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
 import com.antest1.gotobrowser.ui.component.rememberLoadingSnapshot
 import com.antest1.gotobrowser.ui.component.refreshAttentionColor
+import com.antest1.gotobrowser.ui.theme.StatusInfoColor
 import com.antest1.gotobrowser.ui.component.requiresFullRefresh
 import com.antest1.gotobrowser.ui.component.rememberToolbarTooltipPositionProvider
 import com.antest1.gotobrowser.ui.component.glassyStyle
@@ -192,6 +193,25 @@ class BrowserActivity : ComponentActivity() {
     /** False when the game fills the screen, leaving no margin to tap and no edge to swipe from. */
     private var toolbarRevealAvailable = true
     private val settingsSheetVisible = mutableStateOf(false)
+    /** Saved values of the reload settings at the last full load, for changes made outside the rows. */
+    private var loadedSettings: Map<String, Any?> = emptyMap()
+    /**
+     * The value each setting had before its first change since the last full load: what its row
+     * showed (see LocalBeforeSettingChange), which covers defaults that were never saved.
+     */
+    private val settingsBeforeChange = mutableMapOf<String, Any?>()
+    /** Settings changed since the last full load that only apply after one. */
+    private val pendingRefreshKeys = mutableStateOf(emptySet<String>())
+    /** Reload settings changed while the sheet is open, and what was pending when it opened. */
+    private val sheetChangedKeys = mutableSetOf<String>()
+    private var pendingAtSheetOpen = emptySet<String>()
+    /** Set when the cache was cleared in the open sheet. */
+    private val cacheClearedInSheet = mutableStateOf(false)
+    /**
+     * Set when the reload prompt is answered with "Later" while settings still wait for a
+     * reload; the refresh FAB then turns blue. Not needed when reloading right away.
+     */
+    private val refreshDeferred = mutableStateOf(false)
     private val refreshPromptVisible = mutableStateOf(false)
     /** What the refresh prompt says; a changed setting and a cleared cache explain it differently. */
     private val refreshPromptReason = mutableStateOf(RefreshPromptReason.SETTING_CHANGED)
@@ -205,6 +225,12 @@ class BrowserActivity : ComponentActivity() {
     /** Whether an edge swipe reveals the hidden toolbar. */
     private val toolbarSwipe = mutableStateOf(true)
     private val subtitleLoader = Executors.newSingleThreadExecutor()
+    /** Before Android 10 a screenshot is written to the shared Pictures folder, which needs storage access. */
+    private val storagePermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) captureGameScreen()
+            else KcUtils.showToast(this, R.string.screenshot_storage_permission_required)
+        }
 
     // Settings applied immediately without reloading the page.
     private val liveSettings = setOf(
@@ -245,13 +271,21 @@ class BrowserActivity : ComponentActivity() {
         PREF_MOD_KANTAI3D,
         PREF_MOD_KCCP_LANG_PATCH,
         PREF_MOD_KCCP_LANG_PATCH_NAME
-    )
+    ) + ChsConfig.REFRESH_KEYS
 
-    @SuppressLint("SourceLockedOrientationActivity", "ClickableViewAccessibility")
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setBackgroundDrawable(ColorDrawable(android.graphics.Color.BLACK))
+        // Created first so the orientation is requested before the slow startup work below:
+        // until then the system keeps showing its starting window in the launcher's portrait.
+        displayController = DisplayController(this, { mContentView }) { top, bottom ->
+            // Not there yet if onCreate stops early (WebView unavailable) after this request.
+            if (::gameArea.isInitialized) gameArea.setDividerMargin(top, bottom)
+        }
+        // A saved lock applies once the window has settled into its orientation (onOrientationSettled).
+        displayController.requestOrientationThenLock()
         viewModel = ViewModelProvider(this)[BrowserViewModel::class.java]
         settingsViewModel = ViewModelProvider(this)[SettingsViewModel::class.java]
         // First touch of the WebView provider. It throws when the system WebView can't be
@@ -271,10 +305,6 @@ class BrowserActivity : ComponentActivity() {
 
         val intent = getIntent()
         val isAppLaunch = Intent.ACTION_MAIN == intent.action && savedInstanceState == null
-
-        if (viewModel.sharedPref.getBoolean(PREF_LANDSCAPE, true)) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
-        }
 
         toolbarVisible.value = viewModel.sharedPref.getBoolean(PREF_PANELSTART, true)
         refreshOption.value = if (viewModel.isQuickGameReload) RefreshOption.QUICK else RefreshOption.FULL
@@ -317,7 +347,12 @@ class BrowserActivity : ComponentActivity() {
             v.setPadding(safe.left, safe.top, safe.right, safe.bottom)
             insets
         }
-        displayController = DisplayController(this, webView) { top, bottom -> gameArea.setDividerMargin(top, bottom) }
+        // A listener rather than the onMultiWindowModeChanged(Boolean, Configuration) override,
+        // which the system only calls from Android 8.0; the listener also runs on 7.x.
+        addOnMultiWindowModeChangedListener {
+            displayController.updateMultiwindowMargin()
+            displayController.onWindowModeChanged()
+        }
 
         val backgroundTapView = View(this).apply {
             setOnClickListener { toolbarVisible.value = !toolbarVisible.value }
@@ -382,7 +417,7 @@ class BrowserActivity : ComponentActivity() {
                         closeButtonVisible = closeButtonVisible,
                         subtitleFontSize = subtitleFontSize,
                         activity = this@BrowserActivity,
-                        onCapture = { manager?.captureGameScreen(webView) },
+                        onCapture = { captureGameScreen() },
                         onClose = { finish() },
                         gameVerticalBias = gameVerticalBias.value,
                         loadingConnectorTag = loadConnectorTag.value
@@ -400,9 +435,14 @@ class BrowserActivity : ComponentActivity() {
                             refreshOption.value = option
                             viewModel.setQuickGameReload(option == RefreshOption.QUICK)
                         },
-                        onSettingsClick = { settingsSheetVisible.value = true },
-                        refreshAttention = refreshAttention,
-                        forceFullRefresh = requiresFullRefresh(loadState, notice),
+                        onSettingsClick = { openSettingsSheet() },
+                        // Settings left for later also point at the FAB, in blue and below the
+                        // load problems; only a full load applies them.
+                        refreshAttention = refreshAttention
+                            ?: StatusInfoColor.takeIf { settingsRefreshDeferred() },
+                        forceFullRefresh = requiresFullRefresh(loadState, notice) || settingsRefreshDeferred(),
+                        fullRefreshHint = if (requiresFullRefresh(loadState, notice)) R.string.menu_full_refresh
+                        else R.string.settings_apply_hint,
                         gameVerticalBias = gameVerticalBias.value,
                         toolbarAtTop = toolbarAtTop.value,
                         swipeToReveal = toolbarSwipe.value
@@ -424,7 +464,7 @@ class BrowserActivity : ComponentActivity() {
                             tooltip = stringResource(R.string.menu_tooltip_camera),
                             active = isCapture,
                             onClick = {
-                                if (!checkStoragePermissionGrated()) showStoragePermissionDialog()
+                                if (!checkNotificationPermissionGranted()) showNotificationPermissionDialog()
                                 viewModel.toggleCaptureMode()
                             }
                         )
@@ -452,14 +492,24 @@ class BrowserActivity : ComponentActivity() {
                         SettingsBottomSheet(
                             viewModel = settingsViewModel,
                             activity = this@BrowserActivity,
-                            onDismissRequest = { settingsSheetVisible.value = false },
+                            onDismissRequest = { closeSettingsSheet() },
                             onLogoutRequest = {
-                                settingsSheetVisible.value = false
+                                // Logging out loads the page again anyway.
+                                closeSettingsSheet(askToRefresh = false)
                                 showLogoutDialog()
                             },
                             onHelpClick = { openManual(this@BrowserActivity) },
                             onSettingChanged = { key -> onSettingChanged(key) },
-                            onCacheCleared = { showRefreshPrompt(RefreshPromptReason.CACHE_CLEARED) }
+                            onCacheCleared = { cacheClearedInSheet.value = true },
+                            pendingRefreshKeys = pendingRefreshKeys.value,
+                            refreshPending = pendingRefreshKeys.value.isNotEmpty() || cacheClearedInSheet.value,
+                            onRefreshNow = {
+                                closeSettingsSheet(askToRefresh = false)
+                                refreshPageOrFinish(RefreshOption.FULL)
+                            },
+                            onBeforeSettingChange = { key, oldValue ->
+                                if (key !in settingsBeforeChange) settingsBeforeChange[key] = oldValue
+                            }
                         )
                     }
 
@@ -473,7 +523,7 @@ class BrowserActivity : ComponentActivity() {
                                     settingsSheetVisible.value = false
                                     refreshPageOrFinish(RefreshOption.FULL)
                                 },
-                                onChangeWithoutRefresh = { refreshPromptVisible.value = false }
+                                onChangeWithoutRefresh = { deferRefresh() }
                             )
                         }
                     }
@@ -516,6 +566,7 @@ class BrowserActivity : ComponentActivity() {
             manager?.setWebViewClient(this, webView)
             manager?.setPopupView(webView)
             startLoading()
+            onSettingsLoaded()
             reloadSettings { manager?.openPage(webView, info) }
         }
         webView.setBackgroundColor(android.graphics.Color.BLACK)
@@ -576,13 +627,73 @@ class BrowserActivity : ComponentActivity() {
     private fun onSettingChanged(key: String) {
         when (key) {
             in liveSettings -> applyLiveSetting(key)
-            in refreshSettings -> showRefreshPrompt(RefreshPromptReason.SETTING_CHANGED)
             else -> {
-                // Unclassified keys fall back to a refresh prompt.
-                if (BuildConfig.DEBUG) Log.w("GOTO", "unclassified setting key: $key")
-                showRefreshPrompt(RefreshPromptReason.SETTING_CHANGED)
+                // Unclassified keys are treated as needing a reload.
+                if (key !in refreshSettings && BuildConfig.DEBUG) Log.w("GOTO", "unclassified setting key: $key")
+                // Rows report the value they showed (LocalBeforeSettingChange); for the rest
+                // (the endpoint dialog), the value saved at the last full load is the best known.
+                if (key !in settingsBeforeChange) settingsBeforeChange[key] = loadedSettings[key]
+                sheetChangedKeys += key
+                updatePendingRefresh()
             }
         }
+    }
+
+    private fun refreshSettingValue(key: String): Any? =
+        if (key in ChsConfig.REFRESH_KEYS) ChsConfig.isEnabled() else viewModel.sharedPref.all[key]
+
+    /** Called on each full load: the settings it reads are now the ones in use. */
+    private fun onSettingsLoaded() {
+        loadedSettings = refreshSettings.associateWith { refreshSettingValue(it) }
+        settingsBeforeChange.clear()
+        pendingRefreshKeys.value = emptySet()
+        refreshDeferred.value = false
+    }
+
+    /** "Later" on the reload prompt, also when it is dismissed. */
+    private fun deferRefresh() {
+        refreshPromptVisible.value = false
+        if (pendingRefreshKeys.value.isNotEmpty()) refreshDeferred.value = true
+    }
+
+    /** Settings still wait for a reload after "Later"; putting them all back clears it too. */
+    private fun settingsRefreshDeferred() = refreshDeferred.value && pendingRefreshKeys.value.isNotEmpty()
+
+    /**
+     * The settings changed since the last full load that are not back to their old value.
+     * Only settings changed from the sheet count, so ones the app turns off by itself (the
+     * gadget bypass once it is no longer needed) are not marked.
+     */
+    private fun updatePendingRefresh() {
+        pendingRefreshKeys.value = settingsBeforeChange.keys
+            .filterTo(mutableSetOf()) { it !in liveSettings && refreshSettingValue(it) != settingsBeforeChange[it] }
+    }
+
+    private fun openSettingsSheet() {
+        updatePendingRefresh()
+        pendingAtSheetOpen = pendingRefreshKeys.value
+        sheetChangedKeys.clear()
+        cacheClearedInSheet.value = false
+        settingsSheetVisible.value = true
+    }
+
+    /**
+     * Closes the settings sheet, asking once for a reload if it left settings that need one.
+     * Changes put off with "Later" before are not asked about again; they stay marked instead.
+     */
+    private fun closeSettingsSheet(askToRefresh: Boolean = true) {
+        settingsSheetVisible.value = false
+        val pending = pendingRefreshKeys.value
+        val newlyPending = pending.any { it in sheetChangedKeys || it !in pendingAtSheetOpen }
+        val reason = when {
+            !askToRefresh -> null
+            cacheClearedInSheet.value -> RefreshPromptReason.CACHE_CLEARED
+            newlyPending -> RefreshPromptReason.SETTING_CHANGED
+            else -> null
+        }
+        sheetChangedKeys.clear()
+        cacheClearedInSheet.value = false
+        reason?.let { showRefreshPrompt(it) }
     }
 
     private fun showRefreshPrompt(reason: RefreshPromptReason) {
@@ -627,11 +738,11 @@ class BrowserActivity : ComponentActivity() {
 
     fun handleBackPress() {
         if (refreshPromptVisible.value) {
-            refreshPromptVisible.value = false
+            deferRefresh()
             return
         }
         if (settingsSheetVisible.value) {
-            settingsSheetVisible.value = false
+            closeSettingsSheet()
             return
         }
         // Back only runs the exit flow: the back gesture shares the screen edge with the
@@ -650,24 +761,31 @@ class BrowserActivity : ComponentActivity() {
         sendIsFrontChanged(false)
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
-    override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: android.content.res.Configuration) {
-        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
-        displayController.updateMultiwindowMargin()
-    }
-
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
         displayController.updateMultiwindowMargin()
+        displayController.onOrientationSettled()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) displayController.onOrientationSettled()
     }
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         pipController.handlePictureInPictureModeChanged(isInPictureInPictureMode)
+        // PiP and split screen are both multi-window, so moving from one to the other only
+        // reports this change. Checked once the multi-window change of the same transition is
+        // also delivered: until then isInMultiWindowMode still has the old value. Only from
+        // Android 11, which sends both in one go; older versions send them apart.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.decorView.post { displayController.onWindowModeChanged() }
+        }
         if (isInPictureInPictureMode) {
             toolbarVisible.value = false
             // The sheet and its dialogs are separate windows the PiP window cannot show usefully.
-            settingsSheetVisible.value = false
+            closeSettingsSheet(askToRefresh = false)
             refreshPromptVisible.value = false
             messageDialogs.cancelForPip()
         }
@@ -805,6 +923,9 @@ class BrowserActivity : ComponentActivity() {
             startLoading()
             serverNotice.value = null
             errorText.value = ""
+            // A quick refresh reloads only the game frame, so the start page and the login
+            // keep their old settings: only a full load counts.
+            if (option == RefreshOption.FULL) onSettingsLoaded()
             reloadSettings {
                 mContentView?.let {
                     when (option) {
@@ -893,6 +1014,20 @@ class BrowserActivity : ComponentActivity() {
         screenshotNotification.showNotification(bitmap, uri)
     }
 
+    fun showScreenshotSaveFailure() {
+        KcUtils.showToast(this, R.string.screenshot_save_failed)
+    }
+
+    private fun captureGameScreen() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+        ) {
+            storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            return
+        }
+        mContentView?.let { manager?.captureGameScreen(it) }
+    }
+
     private fun checkAppUpdateOnStart() {
         if (viewModel.isAppUpdateCheckStarted) return
         viewModel.isAppUpdateCheckStarted = true
@@ -920,7 +1055,7 @@ class BrowserActivity : ComponentActivity() {
         )
     }
 
-    private fun checkStoragePermissionGrated(): Boolean {
+    private fun checkNotificationPermissionGranted(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         } else {
@@ -928,7 +1063,7 @@ class BrowserActivity : ComponentActivity() {
         }
     }
 
-    private fun showStoragePermissionDialog() {
+    private fun showNotificationPermissionDialog() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             showMessageDialog(
                 MessageDialog(
@@ -1037,9 +1172,9 @@ fun PanelButton(
     }
 }
 
-internal enum class RefreshPromptReason(val messageRes: Int, val laterRes: Int) {
-    SETTING_CHANGED(R.string.settings_refresh_required_msg, R.string.settings_refresh_later),
-    CACHE_CLEARED(R.string.cache_cleared_refresh_msg, R.string.refresh_later)
+internal enum class RefreshPromptReason(val messageRes: Int) {
+    SETTING_CHANGED(R.string.settings_refresh_required_msg),
+    CACHE_CLEARED(R.string.cache_cleared_refresh_msg)
 }
 
 @Composable
@@ -1059,7 +1194,7 @@ internal fun SettingsRefreshDialog(
         },
         dismissButton = {
             TextButton(onClick = onChangeWithoutRefresh) {
-                Text(text = stringResource(id = reason.laterRes))
+                Text(text = stringResource(id = R.string.refresh_later))
             }
         }
     )

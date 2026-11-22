@@ -175,7 +175,9 @@ function setPage(lang, page, isNext) {
             renderPager(page);
         })
         .catch((error) => console.log(error));
+    // .page-scroll scrolls, or the whole page on short screens (see style.css)
     document.getElementById("page-scroll").scrollTo({ top: 0, behavior: "instant" });
+    window.scrollTo({ top: 0, behavior: "instant" });
 
     const state = { "hl": lang, "page": page };
     const url = location.pathname + "?hl=" + lang + "&page=" + page;
@@ -241,5 +243,18 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (ev
         applyTheme(event.matches ? "dark" : "light");
     }
 });
+
+// On short screens the whole page scrolls (see style.css). The app bar hides while scrolling
+// down and comes back on scrolling up, like the browser toolbar, so the menu stays in reach.
+const appBar = document.querySelector(".app-bar");
+const shortScreen = window.matchMedia("(max-height: 500px)");
+let lastScrollY = window.scrollY;
+window.addEventListener("scroll", () => {
+    const y = window.scrollY;
+    if (y > 0 && Math.abs(y - lastScrollY) < 8) return; // ignore small jitter
+    appBar.classList.toggle("is-hidden", shortScreen.matches && y > 0 && y > lastScrollY);
+    lastScrollY = y;
+}, { passive: true });
+shortScreen.addEventListener("change", () => appBar.classList.remove("is-hidden"));
 
 setPage(currentLang, currentPage, false);

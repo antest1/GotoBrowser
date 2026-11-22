@@ -8,6 +8,7 @@ import com.antest1.gotobrowser.Helpers.CritPatcher;
 import com.antest1.gotobrowser.Helpers.FpsPatcher;
 import com.antest1.gotobrowser.Helpers.K3dPatcher;
 import com.antest1.gotobrowser.Helpers.KenPatcher;
+import com.antest1.gotobrowser.Helpers.ModPatchCoordinator;
 import com.antest1.gotobrowser.R;
 
 import java.util.ArrayList;
@@ -70,9 +71,9 @@ public class BrowserViewModel extends AndroidViewModel {
     public void prepareModPatchers() {
         Application application = getApplication();
         k3dPatcher.prepare(application);
-        kenPatcher.prepare(application);
         critPatcher.prepare(application);
         fpsPatcher.prepare(application);
+        ModPatchCoordinator.INSTANCE.prepareLanguagePatches(application, kenPatcher);
     }
 
     public LiveData<Boolean> getIsMuteMode() { return isMuteMode; }
