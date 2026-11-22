@@ -14,7 +14,7 @@ When IP block is detected, the following notification will appear when you start
 
 1. Turn on the "Gadget Block Bypass" option under the "Gadget Block Bypass" section in Settings → Login and Connection.
 2. Set the bypass method to "URL Replacement" and the endpoint server to the URL below. Be careful of typos!
-3. When the "Reload Required" dialog appears, press "Reload Now" to reload the game.
+3. Press "Reload Now" at the top of the settings to reload the game. If you close the settings first, press "Reload Now" in the "Reload Required" dialog instead.
 
 | Endpoint Server URL | Notes |
 | --- | --- |
