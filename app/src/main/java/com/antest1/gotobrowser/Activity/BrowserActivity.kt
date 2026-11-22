@@ -764,6 +764,7 @@ class BrowserActivity : ComponentActivity() {
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
         displayController.updateMultiwindowMargin()
+        displayController.onConfigurationChanged()
         displayController.onOrientationSettled()
     }
 
