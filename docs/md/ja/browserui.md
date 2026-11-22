@@ -36,6 +36,8 @@
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ja/refresh_apply_settings.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
 ##### ツールバーボタンの説明
 |  | 機能 | 説明 |
 | --- | --- | --- |

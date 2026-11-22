@@ -36,6 +36,8 @@
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/ko/refresh_apply_settings.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
 ##### 툴바 버튼 설명
 |  | 기능 | 설명 |
 | --- | --- | --- |

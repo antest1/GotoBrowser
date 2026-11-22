@@ -36,6 +36,8 @@ In landscape, setting Settings → Controls & Toolbar → "Toolbar Placement" to
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/refresh_apply_settings.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
 ##### Toolbar Button Description
 |  | Button | Description |
 | --- | --- | --- |

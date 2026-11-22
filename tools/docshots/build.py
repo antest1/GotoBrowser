@@ -104,16 +104,27 @@ def color_box(path, rgb, tol=6):
 
 
 def fab_box(path, pad=20):
-    """The refresh button (with its attention ring), extended over the "Full Refresh"
-    tooltip when one is shown beside it: the app's own UI goes inside one ring."""
+    """The refresh button (with its attention ring), extended over the hint tooltip
+    ("Full Refresh", "Apply Settings") when one is shown beside it: the app's own UI goes
+    inside one ring. The hint is found by its colour, so the game may show behind it."""
     if not os.path.exists(path):
         return FAB_RING
-    a = np.asarray(Image.open(path).convert("L")).astype(int)
-    y = (FAB[1] + FAB[3]) // 2
-    row = a[y, FAB_RING[2]:GAME_X[0] + 900]
-    lit = np.where(row > 40)[0]
-    right = FAB_RING[2] + lit.max() + pad if lit.size else FAB_RING[2]
-    return [FAB_RING[0], FAB_RING[1], max(FAB_RING[2], right), FAB_RING[3]]
+    a = np.asarray(Image.open(path).convert("RGB")).astype(int)
+    x0 = FAB_RING[2]
+    mask = (np.abs(a[FAB[1]:FAB[3], x0:GAME_X[0] + 900] - np.array(TOOLTIP)) <= 6).all(2)
+    rows = np.where(mask.sum(1) > 100)[0]
+    if not rows.size:
+        return FAB_RING
+    cols = np.where(mask[rows.min():rows.max() + 1].mean(0) > 0.3)[0]
+    if not cols.size:
+        return FAB_RING
+    # the hint starts beside the ring; stray matches in the game further right are not part of it
+    end = cols[0]
+    for c in cols[1:]:
+        if c - end > 3:
+            break
+        end = c
+    return [FAB_RING[0], FAB_RING[1], max(FAB_RING[2], x0 + end + pad), FAB_RING[3]]
 
 
 def mark_box(path, rgb, region, pad=0, tol=6):
@@ -135,8 +146,10 @@ def in_crop(boxes, crop):
 
 
 CARD = (39, 42, 47)  # SettingsTheme dark surfaceContainerHigh (loading and in-game notice cards)
+TOOLTIP = (50, 47, 53)  # PlainTooltip container beside the refresh button
 TONAL = (216, 227, 248)  # SettingsTheme secondaryContainer: the header's "Reload Now" button
 PRIMARY = (59, 96, 143)  # SettingsTheme primary: the reload icon after a changed setting's name
+REFRESH_CROP = [0, 560, 2000, 1438]  # lower left of the landscape renders: toolbar end and refresh button
 SHEET_TOP = [440, 0, 2680, 1100]  # settings sheet header and its first three rows
 SHEET_HEADER = [1400, 150, 2700, 350]  # settings sheet header, right of the title
 SHEET_ROW2 = [480, 600, 2200, 760]  # title line of the sheet's second row, short of its switch
@@ -178,10 +191,19 @@ SPECS = [
     },
     # browserui: refresh button held and dragged up
     {
-        "name": "refresh_menu", "src": render("ui_refresh_menu"), "crop": [0, 560, 2000, 1438], "display": 560, "out_width": 1120,
+        "name": "refresh_menu", "src": render("ui_refresh_menu"), "crop": REFRESH_CROP, "display": 560, "out_width": 1120,
         "items": [
             {"box": L([80, 300, 625, 720], [80, 300, 625, 720], [80, 300, 830, 720]),  # ja labels are wider
              "side": "right", "label": L("누른 채 위로 끌어서 선택", "Hold and drag up", "押したまま上にドラッグ")},
+        ],
+    },
+    # browserui: settings left for later, the refresh button applying them with a full refresh
+    {
+        "name": "refresh_apply_settings", "src": render("ui_refresh_apply_settings"), "crop": REFRESH_CROP,
+        "display": 560, "out_width": 1120,
+        "items": [
+            {"box": in_crop(per_locale("ui_refresh_apply_settings", fab_box), REFRESH_CROP), "radius": "round",
+             "side": "right", "label": L("새로고침", "Refresh", "リフレッシュ")},
         ],
     },
     # settings: sheet with handle and help button

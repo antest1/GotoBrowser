@@ -71,6 +71,7 @@ import com.antest1.gotobrowser.ui.component.refreshAttentionColor
 import com.antest1.gotobrowser.ui.component.requiresFullRefresh
 import com.antest1.gotobrowser.ui.theme.GotobrowserTheme
 import com.antest1.gotobrowser.ui.theme.SettingsTheme
+import com.antest1.gotobrowser.ui.theme.StatusInfoColor
 import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
@@ -232,8 +233,17 @@ class DocScreenshotTest(private val locale: String) {
     }
 
     /** Game + overlay (screenshot button) + toolbar, as the browser draws them. */
+    /**
+     * [settingsDeferred]: changed settings were left for later, so the refresh button is
+     * ringed in blue and runs a full refresh to apply them, as the browser draws it.
+     */
     @Composable
-    private fun Browser(subtitle: String = "", refreshOption: RefreshOption = RefreshOption.QUICK, toolbarAtTop: Boolean = false) {
+    private fun Browser(
+        subtitle: String = "",
+        refreshOption: RefreshOption = RefreshOption.QUICK,
+        toolbarAtTop: Boolean = false,
+        settingsDeferred: Boolean = false
+    ) {
         GotobrowserTheme {
             GameArea()
             BrowserOverlayLayer(
@@ -252,6 +262,9 @@ class DocScreenshotTest(private val locale: String) {
                 onRefreshClick = {},
                 onSettingsClick = {},
                 selectedRefreshOption = refreshOption,
+                refreshAttention = StatusInfoColor.takeIf { settingsDeferred },
+                forceFullRefresh = settingsDeferred,
+                fullRefreshHint = R.string.settings_apply_hint,
                 toolbarAtTop = toolbarAtTop
             ) {
                 PanelButton(id = R.drawable.volume_off, tooltip = stringResource(R.string.menu_tooltip_mute), active = true, onClick = {})
@@ -322,6 +335,10 @@ class DocScreenshotTest(private val locale: String) {
         }
         settle(800)
     }) { Browser(toolbarAtTop = true) }
+
+    /** "Later" on the reload prompt: the refresh button applies the settings with a full refresh. */
+    @Test
+    fun refreshApplySettings() = shoot("ui_refresh_apply_settings") { Browser(settingsDeferred = true) }
 
     // ------------------------------------------------------------------
     // Loading and error notices

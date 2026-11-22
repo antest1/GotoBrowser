@@ -36,6 +36,8 @@
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/refresh_menu.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
 
+<img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/refresh_apply_settings.webp"  width="560" style="max-width: 100%;" class="mb-3"/>
+
 ##### 工具栏按钮说明
 |  | 功能 | 说明 |
 | --- | --- | --- |
