@@ -1,6 +1,17 @@
 package com.antest1.gotobrowser.Subtitle;
 
+import java.util.regex.Pattern;
+
 public class SubtitleData {
+    // Every line-break tag form found in the subtitle data: <br>, <br/>, <br />, </br>, < br />.
+    private static final Pattern LINE_BREAK_TAG =
+            Pattern.compile("[ \\t]*<\\s*/?\\s*br\\s*/?\\s*>[ \\t]*", Pattern.CASE_INSENSITIVE);
+
+    /** Turns line-break tags into new lines, dropping the spaces around them. */
+    public static String withLineBreaks(String text) {
+        return LINE_BREAK_TAG.matcher(text).replaceAll("\n").trim();
+    }
+
     public SubtitleData(String text, int delay, int duration) {
         this.text = text;
         this.delay = delay;
