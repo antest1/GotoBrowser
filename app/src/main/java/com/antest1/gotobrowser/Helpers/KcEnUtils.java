@@ -32,7 +32,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -364,10 +363,13 @@ public class KcEnUtils {
     public static String dirMD5(String dir) {
         StringBuilder md5 = new StringBuilder();
         File folder = new File(dir);
+        // null when the folder is missing (e.g. original/ without patched/) or can't be read.
         File[] files = folder.listFiles();
 
-        for (File file : Objects.requireNonNull(files)) {
-            md5.append(getMD5OfFile(file.toString()));
+        if (files != null) {
+            for (File file : files) {
+                md5.append(getMD5OfFile(file.toString()));
+            }
         }
         md5 = new StringBuilder(GetMD5HashOfString(md5.toString()));
         return md5.toString();

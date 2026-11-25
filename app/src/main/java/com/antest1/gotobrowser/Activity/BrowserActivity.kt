@@ -1097,14 +1097,11 @@ class BrowserActivity : ComponentActivity() {
         intentBuilder.setDefaultColorSchemeParams(params)
         intentBuilder.setUrlBarHidingEnabled(true)
 
-        val customTabsIntent = intentBuilder.build()
-        val customTabsApps = context.packageManager.queryIntentActivities(customTabsIntent.intent, 0)
-        if (customTabsApps.isNotEmpty()) {
-            customTabsIntent.launchUrl(context, Uri.parse(url))
-        } else {
-            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            context.startActivity(browserIntent)
-        }
+        // A Custom Tabs intent is a VIEW intent with extras: browsers that support them show
+        // a custom tab, others open the page as usual.
+        val intent = intentBuilder.build().intent
+        intent.data = Uri.parse(url)
+        KcUtils.openLink(context, intent)
     }
 
     fun hideSystemBars() {

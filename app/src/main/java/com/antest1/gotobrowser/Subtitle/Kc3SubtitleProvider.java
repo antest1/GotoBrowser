@@ -420,7 +420,10 @@ public class Kc3SubtitleProvider implements SubtitleProvider {
                     current_special_flag = true;
                     voiceLine = specialVoiceLine;
                 } else {
-                    voiceLine = quoteLabel.get(voiceLine).getAsString();
+                    // Voice numbers missing from the bundled label table have no subtitle.
+                    JsonElement label = quoteLabel.get(voiceLine);
+                    if (label == null) return voicedata_base;
+                    voiceLine = label.getAsString();
                 }
             }
 
