@@ -669,7 +669,7 @@ public class ResourceProcess {
             activity.runOnUiThread(() -> {
                 clearSubHandler.removeCallbacks(clearSubtitle);
                 if (activity.isSubtitleAvailable()) {
-                    subtitle_text = SubtitleData.withLineBreaks(subtitle_text);
+                    subtitle_text = SubtitleData.toDisplayText(subtitle_text);
                 } else {
                     subtitle_text = context.getString(R.string.no_subtitle_file);
                 }
