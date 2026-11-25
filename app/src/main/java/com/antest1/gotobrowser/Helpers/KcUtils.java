@@ -2,6 +2,7 @@ package com.antest1.gotobrowser.Helpers;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -109,6 +110,21 @@ public class KcUtils {
 
     public static void showToast(Context context, int resource_id) {
         Toast.makeText(context, context.getString(resource_id), Toast.LENGTH_LONG).show();
+    }
+
+    public static boolean openLink(Context context, String url) {
+        return openLink(context, new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+    }
+
+    /** Opens a link, or tells the user when no installed app can (e.g. no browser). */
+    public static boolean openLink(Context context, Intent intent) {
+        try {
+            context.startActivity(intent);
+            return true;
+        } catch (ActivityNotFoundException e) {
+            showToast(context, R.string.no_app_to_open_link);
+            return false;
+        }
     }
 
     public static void showToastShort(Context context, String message) {
@@ -620,7 +636,7 @@ public class KcUtils {
                 new DialogButton(ac.getString(R.string.action_ok), () -> {
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(latest_file));
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    ac.startActivity(intent);
+                    if (!openLink(ac, intent)) return;
                     // The sheet stays open behind the dialog, so tell it
                     // to close now that the user is leaving to download.
                     if (onMessage != null) onMessage.onMessage(null);

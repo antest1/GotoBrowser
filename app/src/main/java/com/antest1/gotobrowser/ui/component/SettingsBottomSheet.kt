@@ -2,8 +2,6 @@ package com.antest1.gotobrowser.ui.component
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -1620,8 +1618,7 @@ private fun connectorOptions() = listOf(
 
 private fun openUrl(context: Context, url: String) {
     if (url.isEmpty()) return
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-    context.startActivity(intent)
+    KcUtils.openLink(context, url)
 }
 
 @Composable

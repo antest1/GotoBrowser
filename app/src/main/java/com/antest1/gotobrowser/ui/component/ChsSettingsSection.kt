@@ -1,7 +1,5 @@
 package com.antest1.gotobrowser.ui.component
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -30,6 +28,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.antest1.gotobrowser.Activity.SettingsViewModel
+import com.antest1.gotobrowser.Helpers.KcUtils
 import com.antest1.gotobrowser.Helpers.chs.ChsConfig
 import com.antest1.gotobrowser.Helpers.chs.ChsPaths
 import com.antest1.gotobrowser.R
@@ -244,8 +243,7 @@ private fun ChsExpandedRows(
             text = { Text(stringResource(R.string.settings_mod_chs_about_dialog_text)) },
             confirmButton = {
                 TextButton(onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(ChsConfig.OFFICIAL_GITHUB_URL))
-                    context.startActivity(intent)
+                    KcUtils.openLink(context, ChsConfig.OFFICIAL_GITHUB_URL)
                 }) {
                     Text("GitHub")
                 }
