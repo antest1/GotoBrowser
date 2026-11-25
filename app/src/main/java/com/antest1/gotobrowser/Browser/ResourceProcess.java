@@ -223,7 +223,10 @@ public class ResourceProcess {
         if (url.contains(GADGET_OSAPI_IFR)) return getGadgetIfrPage(url);
         if (url.contains("tweenjs.min.js")) return getTweenJs();
         if (url.contains("gadget_html5/script/rollover.js")) return getMuteInjectedRolloverJs();
-        if (url.contains("html/maintenance.png")) return getMaintenanceFiles(true);
+        if (url.contains("html/maintenance.png")) {
+            activity.getLoadingTracker().onMaintenanceScreen();
+            return getMaintenanceFiles(true);
+        }
         if (resource_type == 0) return null;
         if (url.contains("ooi_moe_")) return null;
 

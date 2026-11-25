@@ -3,6 +3,7 @@ package com.antest1.gotobrowser.Activity
 import android.app.Application
 import com.antest1.gotobrowser.Activity.LoadingTracker.Stage
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -64,6 +65,41 @@ class LoadingTrackerTest {
         val tracker = onLoginForm()
         tracker.onMainFrameRequest("about:blank")
         assertEquals(Stage.IDLE, tracker.snapshot().stage)
+    }
+
+    /** The game page is up and its game frame shows the maintenance screen. */
+    private fun onMaintenanceScreen() = LoadingTracker().apply {
+        onPageStarted(gamePage, false)
+        onPageShown(gamePage, true)
+        onMaintenanceScreen()
+    }
+
+    @Test
+    fun theMaintenanceScreenEndsTheLoad() {
+        val tracker = onMaintenanceScreen()
+        assertEquals(Stage.MAINTENANCE, tracker.snapshot().stage)
+        assertFalse(tracker.snapshot().isLoading)
+    }
+
+    @Test
+    fun resourcesBehindTheMaintenanceScreenKeepIt() {
+        val tracker = onMaintenanceScreen()
+        tracker.onRequest("https://ooi.moe/kcs2/js/main.js")
+        assertEquals(Stage.MAINTENANCE, tracker.snapshot().stage)
+    }
+
+    @Test
+    fun theGameFrameLoadingAgainLeavesTheMaintenanceScreen() {
+        val tracker = onMaintenanceScreen()
+        tracker.onRequest("https://ooi.moe/kcs2/index.php?api_root=/kcsapi")
+        assertEquals(Stage.DOWNLOADING, tracker.snapshot().stage)
+    }
+
+    @Test
+    fun aQuickRefreshLeavesTheMaintenanceScreen() {
+        val tracker = onMaintenanceScreen()
+        tracker.onGameFrameReload()
+        assertEquals(Stage.CONNECTING, tracker.snapshot().stage)
     }
 
     @Test
