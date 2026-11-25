@@ -64,7 +64,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
@@ -227,9 +226,11 @@ public class KcUtils {
     }
 
     public static void deleteRecursive(File fileOrDirectory) {
-        if (fileOrDirectory.isDirectory())
-            for (File child : Objects.requireNonNull(fileOrDirectory.listFiles()))
-                deleteRecursive(child);
+        // listFiles() is null when the folder can't be read or is already gone.
+        File[] children = fileOrDirectory.isDirectory() ? fileOrDirectory.listFiles() : null;
+        if (children != null) {
+            for (File child : children) deleteRecursive(child);
+        }
 
         fileOrDirectory.delete();
     }
