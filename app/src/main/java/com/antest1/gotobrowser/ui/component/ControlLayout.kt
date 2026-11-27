@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.antest1.gotobrowser.Activity.safeOverlayInsets
 import com.antest1.gotobrowser.Browser.GameGeometry
+import com.antest1.gotobrowser.Browser.ToolbarEdgeSwipe
 import com.antest1.gotobrowser.R
 
 enum class RefreshOption { QUICK, FULL }
@@ -88,7 +89,7 @@ fun refreshMenuTarget(localY: Float, fabSizePx: Float, itemStepPx: Float, expand
 fun ControlLayout(
     visible: Boolean,
     onVisibleChange: (Boolean) -> Unit,
-    /** Whether the toolbar can be revealed by a margin tap or an edge swipe. */
+    /** Whether the game leaves a margin to tap or to swipe from; without one, back brings the toolbar up. */
     onRevealAvailableChange: (Boolean) -> Unit = {},
     onRefreshClick: () -> Unit,
     onQuickRefreshClick: () -> Unit = onRefreshClick,
@@ -108,6 +109,8 @@ fun ControlLayout(
     toolbarAtTop: Boolean = false,
     /** Edge swipe reveals the hidden toolbar (PREF_TOOLBAR_SWIPE); a margin tap always does. */
     swipeToReveal: Boolean = true,
+    /** Takes the edge swipe where it has to start over the game; see [ToolbarEdgeSwipe]. */
+    edgeSwipe: ToolbarEdgeSwipe? = null,
     toolbarContent: @Composable () -> Unit
 ) {
     // In portrait the bar lies along the bottom and the FAB already sits at its start.
@@ -128,6 +131,7 @@ fun ControlLayout(
             contentInset = (panelBarSize - panelButtonSize) / 2,
             alignTop = refreshAboveBar,
             swipeToReveal = swipeToReveal,
+            edgeSwipe = edgeSwipe,
             // The refresh FAB then lines up with the settings button in the opposite corner.
             topInset = dimensionResource(R.dimen.top_menu_padding),
             fab = {

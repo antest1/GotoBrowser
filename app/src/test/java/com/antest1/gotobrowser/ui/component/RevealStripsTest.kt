@@ -50,6 +50,69 @@ class RevealStripsTest {
     }
 
     @Test
+    fun noRoomAnywherePutsTheStripOverTheGame() {
+        // 1340x800 tablet: the 1333x800 game leaves about 3px on each side.
+        val strips = revealStrips(true, 1340f, 800f, GameGeometry.fit(1340f, 800f), reveal, 0f)
+        assertFalse(strips.available)
+        assertEquals(GameGeometry.Rect(0f, 0f, reveal, 800f), strips.overGame)
+        assertEquals(0f, strips.first.height)
+        assertEquals(0f, strips.second.height)
+    }
+
+    @Test
+    fun marginsShorterThanTheStripPutItOverTheGameToo() {
+        // 1280x800 tablet: the 1280x768 game leaves 16px above and below, less than the strip.
+        val strips = revealStrips(true, 1280f, 800f, GameGeometry.fit(1280f, 800f), reveal, 0f)
+        assertFalse(strips.available)
+        assertEquals(GameGeometry.Rect(0f, 0f, reveal, 800f), strips.overGame)
+        assertEquals(0f, strips.first.height)
+        assertEquals(0f, strips.second.height)
+    }
+
+    @Test
+    fun noStripOverTheGameWithTheNavigationBarOnThatEdge() {
+        // Reverse landscape with the 3-button bar on the left: the strip would start 126px
+        // in, inside the game. Back is left to show the toolbar.
+        val game = GameGeometry.Rect(100f, 0f, 1800f, 1080f)
+        val strips = landscape(navEdge = 126f, game = game)
+        assertFalse(strips.available)
+        assertEquals(0f, strips.overGame.width)
+        assertEquals(0f, strips.overGame.height)
+    }
+
+    @Test
+    fun marginsTooShortKeepTheirStripsWithTheNavigationBarOnThatEdge() {
+        // 12px above and below the game: less than the strip, but still what there is to swipe from.
+        val game = GameGeometry.Rect(100f, 12f, 1760f, 1056f)
+        val strips = landscape(navEdge = 126f, game = game)
+        assertFalse(strips.available)
+        assertEquals(GameGeometry.Rect(126f, 0f, reveal, 12f), strips.first)
+        assertEquals(GameGeometry.Rect(126f, 1068f, reveal, 12f), strips.second)
+        assertEquals(0f, strips.overGame.width)
+    }
+
+    @Test
+    fun roomInAMarginLeavesNoStripOverTheGame() {
+        assertEquals(0f, landscape(navEdge = 0f).overGame.width)
+        val game = GameGeometry.Rect(100f, 90f, 1500f, 900f)
+        assertEquals(0f, landscape(navEdge = 126f, game = game).overGame.width)
+        assertEquals(0f, revealStrips(false, 1080f, 2400f, GameGeometry.fit(1080f, 2400f), reveal, 126f).overGame.width)
+    }
+
+    @Test
+    fun portraitWithoutRoomPutsTheStripOverTheGameAtTheBottom() {
+        // A small window the game fills almost to the bottom, with no navigation bar there.
+        val game = GameGeometry.Rect(0f, 100f, 500f, 300f)
+        val strips = revealStrips(false, 500f, 420f, game, reveal, 0f)
+        assertFalse(strips.available)
+        assertEquals(GameGeometry.Rect(0f, 420f - reveal, 500f, reveal), strips.overGame)
+        assertEquals(0f, strips.first.width)
+        assertEquals(0f, strips.second.width)
+        // With the navigation bar at the bottom there is none.
+        assertEquals(0f, revealStrips(false, 500f, 420f, game, reveal, 40f).overGame.width)
+    }
+
+    @Test
     fun portraitStripsStartAboveTheNavigationBar() {
         // 1080x2400 portrait: the 1080x648 game sits in the middle, the bar is 126px at the bottom.
         val game = GameGeometry.fit(1080f, 2400f)

@@ -92,6 +92,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.antest1.gotobrowser.Browser.GameAreaLayout
 import com.antest1.gotobrowser.Browser.GameGeometry
+import com.antest1.gotobrowser.Browser.ToolbarEdgeSwipe
+import com.antest1.gotobrowser.Browser.ToolbarEdgeSwipeLayout
 import com.antest1.gotobrowser.Browser.WebViewL
 import com.antest1.gotobrowser.Browser.WebViewManager
 import com.antest1.gotobrowser.BuildConfig
@@ -190,8 +192,10 @@ class BrowserActivity : ComponentActivity() {
     private val errorText = mutableStateOf("")
     private val closeButtonVisible = mutableStateOf(false)
     private val toolbarVisible = mutableStateOf(false)
-    /** False when the game fills the screen, leaving no margin to tap and no edge to swipe from. */
+    /** False when the game fills the screen, leaving no margin to tap or to swipe from. */
     private var toolbarRevealAvailable = true
+    /** The reveal swipe on such a screen starts over the game; the root layout detects it for the toolbar. */
+    private val toolbarEdgeSwipe = ToolbarEdgeSwipe()
     private val settingsSheetVisible = mutableStateOf(false)
     /** Saved values of the reload settings at the last full load, for changes made outside the rows. */
     private var loadedSettings: Map<String, Any?> = emptyMap()
@@ -366,7 +370,7 @@ class BrowserActivity : ComponentActivity() {
             tapDetector.setOnDoubleTapListener(null)
             setOnTouchListener { _, event -> tapDetector.onTouchEvent(event); true }
         }
-        val rootLayout = FrameLayout(this).apply {
+        val rootLayout = ToolbarEdgeSwipeLayout(this, toolbarEdgeSwipe).apply {
             setBackgroundColor(android.graphics.Color.BLACK)
             addView(
                 backgroundTapView,
@@ -445,7 +449,8 @@ class BrowserActivity : ComponentActivity() {
                         else R.string.settings_apply_hint,
                         gameVerticalBias = gameVerticalBias.value,
                         toolbarAtTop = toolbarAtTop.value,
-                        swipeToReveal = toolbarSwipe.value
+                        swipeToReveal = toolbarSwipe.value,
+                        edgeSwipe = toolbarEdgeSwipe
                     ) {
                         val isMute by viewModel.isMuteMode.observeAsState(false)
                         val isCapture by viewModel.isCaptureMode.observeAsState(false)
@@ -747,7 +752,9 @@ class BrowserActivity : ComponentActivity() {
         }
         // Back only runs the exit flow: the back gesture shares the screen edge with the
         // system bar reveal, so it must not toggle the toolbar too. The exception is a screen
-        // with no margin and no reveal strip, where back is the only way to bring it up.
+        // with no margin: the swipe there starts over the game, where the back gesture can
+        // take it first, or there is none (turned off, or the navigation bar is on that
+        // edge), so back brings the toolbar up as well.
         if (!toolbarVisible.value && !toolbarRevealAvailable) {
             toolbarVisible.value = true
             return
