@@ -128,6 +128,7 @@ fun ControlLayout(
             gameVerticalBias = gameVerticalBias,
             barSize = panelBarSize,
             fabSize = dimensionResource(R.dimen.refresh_fab_size),
+            fabOutset = if (refreshAttention != null) AttentionRingOutset else 0.dp,
             contentInset = (panelBarSize - panelButtonSize) / 2,
             alignTop = refreshAboveBar,
             swipeToReveal = swipeToReveal,
@@ -379,6 +380,14 @@ private fun OneTouchRefreshFab(
     }
 }
 
+/** The attention ring from the button outward: a gap, the ring itself and a halo around it. */
+private val AttentionRingGap = 1.dp
+private val AttentionRingWidth = 3.dp
+private val AttentionHaloWidth = 8.dp
+
+/** How far the attention ring reaches past the button; the hidden toolbar takes it off screen too. */
+private val AttentionRingOutset = AttentionRingGap + AttentionRingWidth + AttentionHaloWidth
+
 /**
  * Ring outside the FAB that pulses three times and then stays, so guidance text can point
  * at the existing button instead of adding a new one. Drawn outside the bounds, unclipped.
@@ -398,9 +407,9 @@ private fun Modifier.attentionRing(color: Color?): Modifier {
     if (color == null) return this
     return drawBehind {
         val alpha = pulse.value
-        val ringWidth = 3.dp.toPx()
-        val ringRadius = size.minDimension / 2f + 1.dp.toPx() + ringWidth / 2f
-        val haloWidth = 8.dp.toPx()
+        val ringWidth = AttentionRingWidth.toPx()
+        val ringRadius = size.minDimension / 2f + AttentionRingGap.toPx() + ringWidth / 2f
+        val haloWidth = AttentionHaloWidth.toPx()
         drawCircle(color.copy(alpha = 0.22f * alpha), radius = ringRadius + ringWidth / 2f + haloWidth / 2f, style = Stroke(haloWidth))
         drawCircle(color.copy(alpha = alpha), radius = ringRadius, style = Stroke(ringWidth))
     }

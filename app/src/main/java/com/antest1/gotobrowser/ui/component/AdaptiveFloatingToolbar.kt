@@ -61,6 +61,7 @@ import com.antest1.gotobrowser.Activity.safeOverlayInsets
 import com.antest1.gotobrowser.Browser.GameGeometry
 import com.antest1.gotobrowser.Browser.ToolbarEdgeSwipe
 import kotlinx.coroutines.launch
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 private const val RevealStrip1LayoutId = "reveal_strip_1"
@@ -174,11 +175,12 @@ fun toolbarDockInset(isLandscape: Boolean, insetLeft: Float, insetBottom: Float,
 
 /**
  * Where the hidden bar sits, as an offset off screen (negative): past the wider of the bar
- * and the fab. In whole pixels, like the sizes they are laid out at: a half-pixel size is
- * laid out rounded up, and a fractional offset would then leave a pixel of it on screen.
+ * and the fab, and past what the fab draws around itself ([fabOutsetPx]). In whole pixels,
+ * like the sizes they are laid out at: a half-pixel size is laid out rounded up, and a
+ * fractional offset would then leave a pixel of it on screen.
  */
-fun toolbarHiddenOffset(barSizePx: Float, fabSizePx: Float): Float =
-    -maxOf(barSizePx.roundToInt(), fabSizePx.roundToInt()).toFloat()
+fun toolbarHiddenOffset(barSizePx: Float, fabSizePx: Float, fabOutsetPx: Float = 0f): Float =
+    -(maxOf(barSizePx.roundToInt(), fabSizePx.roundToInt()) + ceil(fabOutsetPx))
 
 /** Share of the way between hidden and docked a slow drag must cover to change the bar's state. */
 private const val BAR_SETTLE_FRACTION = 0.25f
@@ -286,6 +288,11 @@ fun AdaptiveFloatingToolbar(
      * its bar-sized slot, so the hidden bar has to move that much further off screen.
      */
     fabSize: Dp = barSize,
+    /**
+     * How far [fab] draws past its own size, as the refresh button does with its attention
+     * ring: the hidden bar moves that much further as well, taking it off screen too.
+     */
+    fabOutset: Dp = 0.dp,
     barLengthFraction: Float = 0.7f,
     revealSize: Dp = 24.dp,
     contentSpacing: Dp = 8.dp,
@@ -341,13 +348,17 @@ fun AdaptiveFloatingToolbar(
     // Offset logic
     // Vertical: slides horizontally from left (-size to inset + margin)
     // Horizontal: slides vertically from bottom (-size to inset + margin)
-    // The size is that of the wider of the bar and the fab, so neither is left peeking out.
+    // The size is that of the wider of the bar and the fab, with what the fab draws around
+    // itself, so nothing is left peeking out.
     val dockedOffset = marginPx + dockInsetPx
-    val hiddenOffset = toolbarHiddenOffset(barSizePx, with(density) { fabSize.toPx() })
+    val hiddenOffset = with(density) { toolbarHiddenOffset(barSizePx, fabSize.toPx(), fabOutset.toPx()) }
     val flingVelocityPx = with(density) { BarFlingVelocity.toPx() }
     val maxSettleVelocityPx = with(density) { BarMaxSettleVelocity.toPx() }
 
     val currentVisible by rememberUpdatedState(visible)
+    // Read through state: a drag handler keeps the functions it started with, and this
+    // offset changes under it when the fab's outset comes and goes.
+    val currentHiddenOffset by rememberUpdatedState(hiddenOffset)
     val currentOnVisibleChange by rememberUpdatedState(onVisibleChange)
     val currentOnRevealAvailableChange by rememberUpdatedState(onRevealAvailableChange)
     val gestureExclusionMaxPx = with(density) { MaxGestureExclusionLength.toPx() }
@@ -370,19 +381,20 @@ fun AdaptiveFloatingToolbar(
 
     // Called with the drag in the reveal direction (right in landscape, up in portrait).
     fun dragBy(amount: Float) {
-        dragOffset = (barOffset() + amount).coerceIn(hiddenOffset, dockedOffset)
+        dragOffset = (barOffset() + amount).coerceIn(currentHiddenOffset, dockedOffset)
     }
 
     // The drag ended: hand the position back to the animation, which settles the bar.
     fun settle(velocity: Float) {
         val from = barOffset()
-        val shouldShow = settleShown(from, hiddenOffset, dockedOffset, currentVisible, velocity, flingVelocityPx)
+        val hidden = currentHiddenOffset
+        val shouldShow = settleShown(from, hidden, dockedOffset, currentVisible, velocity, flingVelocityPx)
         coroutineScope.launch {
             offsetAnim.snapTo(from)
             dragOffset = Float.NaN
             if (shouldShow != currentVisible) currentOnVisibleChange(shouldShow)
             offsetAnim.animateTo(
-                targetValue = if (shouldShow) dockedOffset else hiddenOffset,
+                targetValue = if (shouldShow) dockedOffset else hidden,
                 animationSpec = settleSpec,
                 initialVelocity = settleVelocity(velocity, shouldShow, maxSettleVelocityPx)
             )

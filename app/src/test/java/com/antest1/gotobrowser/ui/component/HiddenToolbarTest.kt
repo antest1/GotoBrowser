@@ -45,6 +45,9 @@ class HiddenToolbarTest {
     private var scenario: ActivityScenario<ComponentActivity>? = null
     private val visible = mutableStateOf(true)
 
+    /** Colour of the ring around the refresh button, drawn outside it; null for no ring. */
+    private val attention = mutableStateOf<Color?>(null)
+
     @After
     fun tearDown() {
         scenario?.close()
@@ -61,7 +64,8 @@ class HiddenToolbarTest {
                             visible = visible.value,
                             onVisibleChange = { visible.value = it },
                             onRefreshClick = {},
-                            onSettingsClick = {}
+                            onSettingsClick = {},
+                            refreshAttention = attention.value
                         ) {
                             PanelButton(id = R.drawable.volume_off, onClick = {})
                             PanelButton(id = R.drawable.camera_icon, onClick = {})
@@ -111,4 +115,24 @@ class HiddenToolbarTest {
 
     @Test
     fun landscapePhone() = assertNothingLeftWhenHidden("sw411dp-w891dp-h411dp-land-420dpi")
+
+    @Test
+    fun theAttentionRingLeavesWithTheButton() {
+        attention.value = Color.Red
+        assertNothingLeftWhenHidden("sw640dp-w1066dp-h640dp-land-300dpi")
+    }
+
+    @Test
+    fun theAttentionRingLeavesWithTheButtonInPortrait() {
+        attention.value = Color.Red
+        assertNothingLeftWhenHidden("sw411dp-w411dp-h891dp-port-420dpi")
+    }
+
+    @Test
+    fun aRingThatComesUpWhileHiddenStaysOffScreen() {
+        assertNothingLeftWhenHidden("sw411dp-w891dp-h411dp-land-420dpi")
+        attention.value = Color.Red
+        settle()
+        assertEquals(0, litPixels())
+    }
 }

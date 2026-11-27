@@ -151,6 +151,13 @@ class RevealStripsTest {
     }
 
     @Test
+    fun hiddenToolbarAlsoTakesWhatTheButtonDrawsAroundItselfOffScreen() {
+        // A 12dp ring around the button: 15px at 200dpi, 22.5px at 300dpi (a started pixel counts).
+        assertEquals(-100f, toolbarHiddenOffset(80f, 85f, 15f))
+        assertEquals(-151f, toolbarHiddenOffset(120f, 127.5f, 22.5f))
+    }
+
+    @Test
     fun regularLandscapeToolbarOnlyAvoidsTheCutout() {
         // The navigation bar is on the right: nothing on the docking edge.
         assertEquals(80f, toolbarDockInset(true, 80f, 0f, 0f))
