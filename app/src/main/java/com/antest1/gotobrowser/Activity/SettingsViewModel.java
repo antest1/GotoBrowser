@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
@@ -20,6 +19,7 @@ import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.CredentialStore;
 import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
 import com.antest1.gotobrowser.Helpers.KcEnUtils;
+import com.antest1.gotobrowser.Helpers.KccpPatchDownloader;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.MessageCallback;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
@@ -31,7 +31,6 @@ import com.antest1.gotobrowser.Helpers.chs.ChsConfig;
 import com.antest1.gotobrowser.Helpers.chs.ChsDownloader;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Locale;
 
@@ -93,6 +92,7 @@ public class SettingsViewModel extends AndroidViewModel {
     private final VersionDatabase versionTable;
     private final GotoVersionCheck appCheck;
     private final KcEnUtils enUtils = new KcEnUtils();
+    private final KccpPatchDownloader kccpDownloader = new KccpPatchDownloader();
     private final ChsDownloader chsDownloader = new ChsDownloader();
 
     private final MutableLiveData<String> patchUpdateSummary = new MutableLiveData<>("checking updates...");
@@ -194,6 +194,7 @@ public class SettingsViewModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         chsDownloader.shutdown();
+        kccpDownloader.shutdown();
         super.onCleared();
     }
 
@@ -461,16 +462,15 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     public void requestPatchUpdate() {
-        try {
-            enUtils.requestPatchUpdate(host);
-        } catch (IOException e) {
-            Log.e("GOTO", KcUtils.getStringFromException(e));
-        }
+        kccpDownloader.startUpdate(host, () -> refreshKccpDependentRows(null));
     }
 
-    /** Deletes the downloaded patch data; the confirmation dialog lives in the settings sheet. */
+    /**
+     * Deletes the downloaded patch data; the confirmation dialog lives in the settings sheet.
+     * The download row is checked again afterwards, so it offers the install.
+     */
     public void deletePatch() {
-        enUtils.deletePatch(host);
+        kccpDownloader.deletePatch(host, () -> refreshKccpDependentRows(null));
     }
 
     public void onSubtitleLocaleChanged(String localeCode) {

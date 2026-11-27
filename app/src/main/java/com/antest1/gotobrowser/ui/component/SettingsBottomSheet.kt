@@ -1448,8 +1448,8 @@ internal fun PatchDownloadDialog(state: PatchDownloadState.Running) {
                     text = state.message,
                     style = MaterialTheme.typography.bodyMedium,
                     color = AlertDialogDefaults.textContentColor,
-                    // Zip progress is 2 lines and per-file progress 4; reserving 2 keeps the
-                    // dialog steady within a stage without leaving blank lines.
+                    // Progress is 1 line (a step, or a file and its count) or 2 (sizes and
+                    // speed, an extraction count); reserving 2 keeps the dialog's height steady.
                     minLines = 2,
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis
