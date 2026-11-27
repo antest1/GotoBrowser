@@ -614,7 +614,10 @@ public class KcEnUtils {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            host.setPatchDownloadState(running(context.getString(R.string.patch_download_archive), 0f));
+            // Indeterminate until the first transfer report: fetching the size and waiting for
+            // GitHub to start serving the archive can take a while, and a bar parked at 0%
+            // makes the dialog look frozen.
+            host.setPatchDownloadState(running(context.getString(R.string.patch_download_archive), null));
         }
 
         @Override
