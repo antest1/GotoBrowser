@@ -30,7 +30,9 @@ import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -57,11 +59,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.antest1.gotobrowser.Activity.safeOverlayInsets
 import com.antest1.gotobrowser.Browser.GameGeometry
+import com.antest1.gotobrowser.Browser.ToolbarEdgeSwipe
 import kotlinx.coroutines.launch
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 private const val RevealStrip1LayoutId = "reveal_strip_1"
 private const val RevealStrip2LayoutId = "reveal_strip_2"
+private const val RevealOverGameLayoutId = "reveal_over_game"
 private const val BarLayoutId = "bar"
 private const val FabLayoutId = "fab"
 
@@ -77,16 +82,28 @@ fun floatingToolbarEdgeMargin(): Dp {
 }
 
 /**
- * The two strips a swipe can start from to reveal the hidden bar, in the toolbar layout's
- * (unpadded) pixels, and whether any of them has room at all.
+ * The strips a swipe can start from to reveal the hidden bar, in the toolbar layout's
+ * (unpadded) pixels, and whether the game leaves room for one in its margin at all.
  *
  * A single full-length strip lies along the docking edge (left in landscape, bottom in
  * portrait) when the game leaves a margin there. Otherwise two strips go in the margins on
  * either side of the game, still along that edge; one may be empty.
- * Both start [navEdge] in from the edge: a hidden navigation bar on that edge comes back with
- * a swipe from there, and that swipe must not reveal the toolbar as well.
+ * Without room in any margin, [first] and [second] are empty and the full-length strip is
+ * [overGame] instead, lying over the game (empty otherwise).
+ * The strips start [navEdge] in from the edge: a hidden navigation bar on that edge comes back
+ * with a swipe from there, and that swipe must not reveal the toolbar as well. Over the game
+ * that would put the strip well inside it, away from the edge the swipe is expected at and
+ * in the way of the game's own drags. So with a bar on that edge there is no [overGame], and
+ * the strips in the margins stay, however short.
  */
-data class RevealStrips(val first: GameGeometry.Rect, val second: GameGeometry.Rect, val available: Boolean)
+data class RevealStrips(
+    val first: GameGeometry.Rect,
+    val second: GameGeometry.Rect,
+    val available: Boolean,
+    val overGame: GameGeometry.Rect
+)
+
+private val NoStrip = GameGeometry.Rect(0f, 0f, 0f, 0f)
 
 fun revealStrips(
     isLandscape: Boolean,
@@ -96,24 +113,36 @@ fun revealStrips(
     revealSize: Float,
     navEdge: Float
 ): RevealStrips = if (isLandscape) {
-    val full = game.left - navEdge >= revealSize
+    val edge = GameGeometry.Rect(navEdge, 0f, revealSize, containerHeight)
     val above = game.top.coerceAtLeast(0f)
     val below = (containerHeight - game.bottom).coerceAtLeast(0f)
-    RevealStrips(
-        first = GameGeometry.Rect(navEdge, 0f, revealSize, if (full) containerHeight else above),
-        second = GameGeometry.Rect(navEdge, game.bottom, revealSize, if (full) 0f else below),
-        available = full || maxOf(above, below) >= revealSize
-    )
+    val roomBeside = maxOf(above, below) >= revealSize
+    when {
+        game.left - navEdge >= revealSize -> RevealStrips(edge, NoStrip, true, NoStrip)
+        roomBeside || navEdge > 0f -> RevealStrips(
+            first = GameGeometry.Rect(navEdge, 0f, revealSize, above),
+            second = GameGeometry.Rect(navEdge, game.bottom, revealSize, below),
+            available = roomBeside,
+            overGame = NoStrip
+        )
+        else -> RevealStrips(NoStrip, NoStrip, false, edge)
+    }
 } else {
-    val full = containerHeight - game.bottom - navEdge >= revealSize
+    val top = containerHeight - revealSize - navEdge
+    val edge = GameGeometry.Rect(0f, top, containerWidth, revealSize)
     val left = game.left.coerceAtLeast(0f)
     val right = (containerWidth - game.right).coerceAtLeast(0f)
-    val top = containerHeight - revealSize - navEdge
-    RevealStrips(
-        first = GameGeometry.Rect(0f, top, if (full) containerWidth else left, revealSize),
-        second = GameGeometry.Rect(game.right, top, if (full) 0f else right, revealSize),
-        available = full || maxOf(left, right) >= revealSize
-    )
+    val roomBeside = maxOf(left, right) >= revealSize
+    when {
+        containerHeight - game.bottom - navEdge >= revealSize -> RevealStrips(edge, NoStrip, true, NoStrip)
+        roomBeside || navEdge > 0f -> RevealStrips(
+            first = GameGeometry.Rect(0f, top, left, revealSize),
+            second = GameGeometry.Rect(game.right, top, right, revealSize),
+            available = roomBeside,
+            overGame = NoStrip
+        )
+        else -> RevealStrips(NoStrip, NoStrip, false, edge)
+    }
 }
 
 private fun GameGeometry.Rect.fixedConstraints() =
@@ -143,6 +172,15 @@ fun settleVelocity(velocity: Float, shown: Boolean, max: Float): Float =
  */
 fun toolbarDockInset(isLandscape: Boolean, insetLeft: Float, insetBottom: Float, navEdge: Float): Float =
     maxOf(if (isLandscape) insetLeft else insetBottom, navEdge)
+
+/**
+ * Where the hidden bar sits, as an offset off screen (negative): past the wider of the bar
+ * and the fab, and past what the fab draws around itself ([fabOutsetPx]). In whole pixels,
+ * like the sizes they are laid out at: a half-pixel size is laid out rounded up, and a
+ * fractional offset would then leave a pixel of it on screen.
+ */
+fun toolbarHiddenOffset(barSizePx: Float, fabSizePx: Float, fabOutsetPx: Float = 0f): Float =
+    -(maxOf(barSizePx.roundToInt(), fabSizePx.roundToInt()) + ceil(fabOutsetPx))
 
 /** Share of the way between hidden and docked a slow drag must cover to change the bar's state. */
 private const val BAR_SETTLE_FRACTION = 0.25f
@@ -245,6 +283,16 @@ fun AdaptiveFloatingToolbar(
     gameVerticalBias: Float = GameGeometry.BIAS_CENTER,
     modifier: Modifier = Modifier,
     barSize: Dp = 56.dp,
+    /**
+     * Diameter of what [fab] draws. On tablets it is larger than the bar and sticks out of
+     * its bar-sized slot, so the hidden bar has to move that much further off screen.
+     */
+    fabSize: Dp = barSize,
+    /**
+     * How far [fab] draws past its own size, as the refresh button does with its attention
+     * ring: the hidden bar moves that much further as well, taking it off screen too.
+     */
+    fabOutset: Dp = 0.dp,
     barLengthFraction: Float = 0.7f,
     revealSize: Dp = 24.dp,
     contentSpacing: Dp = 8.dp,
@@ -263,6 +311,11 @@ fun AdaptiveFloatingToolbar(
      * are laid out, so that edge is left entirely to the system gestures (back, home).
      */
     swipeToReveal: Boolean = true,
+    /**
+     * Takes the reveal swipe where the game leaves no margin for a strip, so that it starts
+     * over the game (see [ToolbarEdgeSwipe]). Without it there is no swipe on such a screen.
+     */
+    edgeSwipe: ToolbarEdgeSwipe? = null,
     content: @Composable () -> Unit
 ) {
     val configuration = LocalConfiguration.current
@@ -293,14 +346,19 @@ fun AdaptiveFloatingToolbar(
     val dockInsetPx = toolbarDockInset(isLandscape, insetLeftPx, insetBottomPx, navEdgePx)
 
     // Offset logic
-    // Vertical: slides horizontally from left (-barSize to inset + margin)
-    // Horizontal: slides vertically from bottom (-barSize to inset + margin)
+    // Vertical: slides horizontally from left (-size to inset + margin)
+    // Horizontal: slides vertically from bottom (-size to inset + margin)
+    // The size is that of the wider of the bar and the fab, with what the fab draws around
+    // itself, so nothing is left peeking out.
     val dockedOffset = marginPx + dockInsetPx
-    val hiddenOffset = -barSizePx
+    val hiddenOffset = with(density) { toolbarHiddenOffset(barSizePx, fabSize.toPx(), fabOutset.toPx()) }
     val flingVelocityPx = with(density) { BarFlingVelocity.toPx() }
     val maxSettleVelocityPx = with(density) { BarMaxSettleVelocity.toPx() }
 
     val currentVisible by rememberUpdatedState(visible)
+    // Read through state: a drag handler keeps the functions it started with, and this
+    // offset changes under it when the fab's outset comes and goes.
+    val currentHiddenOffset by rememberUpdatedState(hiddenOffset)
     val currentOnVisibleChange by rememberUpdatedState(onVisibleChange)
     val currentOnRevealAvailableChange by rememberUpdatedState(onRevealAvailableChange)
     val gestureExclusionMaxPx = with(density) { MaxGestureExclusionLength.toPx() }
@@ -323,22 +381,38 @@ fun AdaptiveFloatingToolbar(
 
     // Called with the drag in the reveal direction (right in landscape, up in portrait).
     fun dragBy(amount: Float) {
-        dragOffset = (barOffset() + amount).coerceIn(hiddenOffset, dockedOffset)
+        dragOffset = (barOffset() + amount).coerceIn(currentHiddenOffset, dockedOffset)
     }
 
     // The drag ended: hand the position back to the animation, which settles the bar.
     fun settle(velocity: Float) {
         val from = barOffset()
-        val shouldShow = settleShown(from, hiddenOffset, dockedOffset, currentVisible, velocity, flingVelocityPx)
+        val hidden = currentHiddenOffset
+        val shouldShow = settleShown(from, hidden, dockedOffset, currentVisible, velocity, flingVelocityPx)
         coroutineScope.launch {
             offsetAnim.snapTo(from)
             dragOffset = Float.NaN
             if (shouldShow != currentVisible) currentOnVisibleChange(shouldShow)
             offsetAnim.animateTo(
-                targetValue = if (shouldShow) dockedOffset else hiddenOffset,
+                targetValue = if (shouldShow) dockedOffset else hidden,
                 animationSpec = settleSpec,
                 initialVelocity = settleVelocity(velocity, shouldShow, maxSettleVelocityPx)
             )
+        }
+    }
+
+    // The swipe over the game is detected by the root layout, which moves the bar through these.
+    if (edgeSwipe != null) {
+        SideEffect {
+            edgeSwipe.onDrag = ::dragBy
+            edgeSwipe.onDragEnd = ::settle
+        }
+        DisposableEffect(edgeSwipe) {
+            onDispose {
+                edgeSwipe.strip = null
+                edgeSwipe.onDrag = {}
+                edgeSwipe.onDragEnd = {}
+            }
         }
     }
 
@@ -353,10 +427,12 @@ fun AdaptiveFloatingToolbar(
         )
     }
 
+    val revealBySwipe = !visible && swipeToReveal
+
     Layout(
         modifier = modifier.fillMaxSize(),
         content = {
-            if (!visible && swipeToReveal) {
+            if (revealBySwipe) {
                 val createStrip = @Composable { id: String ->
                     Box(
                         modifier = Modifier
@@ -373,6 +449,16 @@ fun AdaptiveFloatingToolbar(
                 }
                 createStrip(RevealStrip1LayoutId)
                 createStrip(RevealStrip2LayoutId)
+                // The strip over the game takes no pointer input, or taps on it would not
+                // reach the game: edgeSwipe gets its place instead. Here it only keeps the
+                // system back gesture off, as above.
+                if (edgeSwipe != null) {
+                    Box(
+                        modifier = Modifier
+                            .layoutId(RevealOverGameLayoutId)
+                            .then(if (isLandscape) Modifier.revealGestureExclusion(RevealOverGameLayoutId, gestureExclusionMaxPx, topAlignedStartPx.takeIf { alignTopInLandscape }) else Modifier)
+                    )
+                }
             }
 
             if (fab != null) {
@@ -444,6 +530,9 @@ fun AdaptiveFloatingToolbar(
         val revealSizePx = with(density) { revealSize.toPx() }
         val strips = revealStrips(isLandscape, containerWidth, containerHeight, game, revealSizePx, navEdgePx)
         currentOnRevealAvailableChange(strips.available)
+        // This layout fills the root layout, so the strip is in its pixels as well.
+        edgeSwipe?.strip = strips.overGame.takeIf { revealBySwipe && it.width > 0f && it.height > 0f }
+        edgeSwipe?.fromLeft = isLandscape
         val fabSpacingPx = with(density) { 16.dp.toPx() }
         val barSizePx = with(density) { barSize.toPx() }
 
@@ -465,6 +554,7 @@ fun AdaptiveFloatingToolbar(
                 }
                 RevealStrip1LayoutId -> measurable.measure(strips.first.fixedConstraints())
                 RevealStrip2LayoutId -> measurable.measure(strips.second.fixedConstraints())
+                RevealOverGameLayoutId -> measurable.measure(strips.overGame.fixedConstraints())
                 else -> measurable.measure(looseConstraints)
             }
         }
@@ -505,6 +595,7 @@ fun AdaptiveFloatingToolbar(
                     }
                     RevealStrip1LayoutId -> placeable.place(strips.first.left.roundToInt(), strips.first.top.roundToInt())
                     RevealStrip2LayoutId -> placeable.place(strips.second.left.roundToInt(), strips.second.top.roundToInt())
+                    RevealOverGameLayoutId -> placeable.place(strips.overGame.left.roundToInt(), strips.overGame.top.roundToInt())
                 }
             }
         }
