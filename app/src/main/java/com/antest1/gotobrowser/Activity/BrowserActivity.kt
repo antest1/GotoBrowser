@@ -325,6 +325,7 @@ class BrowserActivity : ComponentActivity() {
         if (isAppLaunch) {
             window.decorView.post {
                 checkAppUpdateOnStart()
+                checkPatchUpdatesOnStart()
                 warnIfKcanotifyBroadcastDisabled()
             }
         }
@@ -1040,6 +1041,28 @@ class BrowserActivity : ComponentActivity() {
         if (viewModel.isAppUpdateCheckStarted) return
         viewModel.isAppUpdateCheckStarted = true
         settingsViewModel.checkAppUpdate(this)
+    }
+
+    /**
+     * Offers the update of each enabled patch that has one. Accepting opens the settings
+     * sheet, which shows the download progress, and starts the download there.
+     */
+    private fun checkPatchUpdatesOnStart() {
+        if (viewModel.isPatchUpdateCheckStarted) return
+        viewModel.isPatchUpdateCheckStarted = true
+        settingsViewModel.checkPatchUpdates { update ->
+            showMessageDialog(
+                MessageDialog(
+                    title = update.title,
+                    message = String.format(Locale.US, getString(R.string.setting_latest_download), update.version),
+                    confirm = DialogButton(getString(R.string.action_ok)) {
+                        if (!settingsSheetVisible.value) openSettingsSheet()
+                        settingsViewModel.startPatchUpdate(update)
+                    },
+                    dismiss = DialogButton(getString(R.string.action_cancel))
+                )
+            )
+        }
     }
 
     private fun warnIfKcanotifyBroadcastDisabled() {

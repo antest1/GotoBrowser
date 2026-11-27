@@ -312,6 +312,16 @@ class KccpPatchDownloaderTest {
     }
 
     @Test
+    fun onlyANewerPublishedVersionIsAnUpdate() {
+        assertTrue(KcEnUtils.isNewer("4.1.7", "4.1.6"))
+        assertTrue(KcEnUtils.isNewer("4.2", "4.1.10"))
+        assertFalse(KcEnUtils.isNewer("4.1.6", "4.1.6"))
+        // A cached older file right after an update.
+        assertFalse(KcEnUtils.isNewer("4.1.5", "4.1.6"))
+        assertTrue(KcEnUtils.isNewer("4.1.6-beta", "4.1.6"))
+    }
+
+    @Test
     fun resolveUnderKeepsPathsInsideTheRoot() {
         val root = tempFolder.newFolder("root")
         assertEquals(File(root, "a/b.txt").canonicalPath, KccpPatchDownloader.resolveUnder(root, "a/b.txt")?.canonicalPath)

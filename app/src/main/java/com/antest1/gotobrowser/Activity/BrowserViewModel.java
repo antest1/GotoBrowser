@@ -161,4 +161,9 @@ public class BrowserViewModel extends AndroidViewModel {
 
     public boolean isAppUpdateCheckStarted() { return appUpdateCheckStarted; }
     public void setAppUpdateCheckStarted(boolean value) { appUpdateCheckStarted = value; }
+
+    /** Like appUpdateCheckStarted, for the start-up check of the enabled patches. */
+    private boolean patchUpdateCheckStarted = false;
+    public boolean isPatchUpdateCheckStarted() { return patchUpdateCheckStarted; }
+    public void setPatchUpdateCheckStarted(boolean value) { patchUpdateCheckStarted = value; }
 }

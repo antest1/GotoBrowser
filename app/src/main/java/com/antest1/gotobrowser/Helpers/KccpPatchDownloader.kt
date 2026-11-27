@@ -550,6 +550,23 @@ class KccpPatchDownloader(
         }
     }
 
+    /**
+     * Cleans up what an interrupted install of any language left behind (staging folder,
+     * partial archive, an install moved aside by a cut-off swap). Runs on the worker, so it
+     * never meets a running download; the returned future completes once it is done.
+     */
+    fun recoverInterruptedInstalls(context: Context): Future<*> {
+        val appContext = context.applicationContext
+        return workerExecutor.submit {
+            try {
+                val parent = File(KcUtils.getAppCacheFileDir(appContext, ""))
+                LANGUAGES.map(::repoFor).forEach { recoverInterruptedInstall(Layout(parent, it)) }
+            } catch (e: Exception) {
+                Log.w(TAG, "Patch install recovery failed: ${e.message}")
+            }
+        }
+    }
+
     /** Cancels any running download. The worker is shared by the process and stays. */
     fun shutdown() {
         cancelDownload()

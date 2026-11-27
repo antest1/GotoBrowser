@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
@@ -33,6 +34,10 @@ import com.antest1.gotobrowser.Helpers.chs.ChsDownloader;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.Locale;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.DEFAULT_SUBTITLE_FONT_SIZE;
@@ -463,6 +468,59 @@ public class SettingsViewModel extends AndroidViewModel {
 
     public void requestPatchUpdate() {
         kccpDownloader.startUpdate(host, () -> refreshKccpDependentRows(null));
+    }
+
+    /**
+     * Looks for updates of the enabled third-party patches that are installed, on a background
+     * thread. {@code onFound} runs on the main thread once per patch with an update.
+     * Leftovers of an interrupted KCCP install are cleaned up first, which can also bring
+     * back an install moved aside by a cut-off swap.
+     */
+    public void checkPatchUpdates(Consumer<PatchUpdate> onFound) {
+        Context context = getApplication().getApplicationContext();
+        boolean kccpEnabled = isKccpPatchEnabled();
+        String kccpPref = sharedPref.getString(PREF_MOD_KCCP_LANG_PATCH_NAME, PREF_MOD_KCCP_LANG_PATCH_EN);
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+        Future<?> recovery = kccpDownloader.recoverInterruptedInstalls(context);
+        new Thread(() -> {
+            try {
+                recovery.get();
+            } catch (ExecutionException | InterruptedException | CancellationException e) {
+                Log.w("GOTO", "Patch install recovery did not finish: " + e.getMessage());
+            }
+            if (kccpEnabled) {
+                KenPatcher.PatchLanguage language = KenPatcher.getCurrentPatchLanguage(kccpPref);
+                String version = KcEnUtils.findAvailableUpdate(context, language);
+                if (version != null) {
+                    // Product names, as in the patch list of the settings sheet.
+                    String title = language == KenPatcher.PatchLanguage.ID
+                            ? "KanColle Indonesia Patch" : "KanColle English Patch";
+                    mainHandler.post(() -> onFound.accept(
+                            new PatchUpdate(PatchUpdate.Kind.KCCP, title, version)));
+                }
+            }
+            String chsVersion = chsDownloader.findAvailableUpdate(context);
+            if (chsVersion != null) {
+                String title = context.getString(R.string.settings_mod_chs_enable);
+                mainHandler.post(() -> onFound.accept(
+                        new PatchUpdate(PatchUpdate.Kind.CHS, title, chsVersion)));
+            }
+        }, "patch-update-check").start();
+    }
+
+    /**
+     * Starts the download of an update found by {@link #checkPatchUpdates}. The notice can be
+     * answered after a download was started from the sheet; that one is left to finish.
+     */
+    public void startPatchUpdate(PatchUpdate update) {
+        if (update.getKind() == PatchUpdate.Kind.CHS) {
+            if (chsDownloader.isDownloadActive()) return;
+            requestChsPatchUpdate();
+        } else {
+            enUtils.setTargetLanguage(
+                    sharedPref.getString(PREF_MOD_KCCP_LANG_PATCH_NAME, PREF_MOD_KCCP_LANG_PATCH_EN));
+            requestPatchUpdate();
+        }
     }
 
     /**

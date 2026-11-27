@@ -31,10 +31,12 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class KcEnUtils {
-    private static String RAW_BASE() { return "https://raw.githubusercontent.com/" + getGitHubNameRootPath() + "master/"; }
-
     private static String ENPATCH_INFO_LOCAL_FILE() { return getInfoFileName(targetLanguage); }
-    private static String ENPATCH_INFO_URL() { return RAW_BASE() + ENPATCH_INFO_LOCAL_FILE(); }
+
+    private static String getInfoUrl(KenPatcher.PatchLanguage language) {
+        return "https://raw.githubusercontent.com/" + getGitHubNameRootPath(language)
+                + "master/" + getInfoFileName(language);
+    }
     private static String ENPATCH_LOCAL_FOLDER() { return "/" + getRootPath(); }
 
     public static class Version implements Comparable<Version> {
@@ -107,17 +109,9 @@ public class KcEnUtils {
         return targetLanguage;
     }
 
-    public static String getLanguageSymbol() {
-        return getLanguageSymbol(targetLanguage);
-    }
-
     public static String getLanguageSymbol(KenPatcher.PatchLanguage language) {
         if (language == KenPatcher.PatchLanguage.ID) return "ID";
         return "EN"; // EN and fallback
-    }
-
-    public static String getGitHubNameRootPath() {
-        return getGitHubNameRootPath(targetLanguage);
     }
 
     public static String getGitHubNameRootPath(KenPatcher.PatchLanguage language) {
@@ -159,8 +153,12 @@ public class KcEnUtils {
      * On failure the result holds an "error" property.
      */
     public static JsonObject getKantaiEnUpdateInfo(OkHttpClient client) {
+        return getKantaiEnUpdateInfo(client, targetLanguage);
+    }
+
+    private static JsonObject getKantaiEnUpdateInfo(OkHttpClient client, KenPatcher.PatchLanguage language) {
         JsonObject enPatchInfo = new JsonObject();
-        Request request = new Request.Builder().url(ENPATCH_INFO_URL()).build();
+        Request request = new Request.Builder().url(getInfoUrl(language)).build();
         try (Response response = client.newCall(request).execute()) {
             ResponseBody body = response.body();
             if (response.code() != 200) {
@@ -179,6 +177,41 @@ public class KcEnUtils {
         }
         Log.e("GOTO", "enPatchInfo: " + enPatchInfo);
         return enPatchInfo;
+    }
+
+    /**
+     * The published version of the [language] patch when it is installed and the published
+     * one is newer; null when not installed, up to date, or the check fails. Blocks on the
+     * network.
+     */
+    public static String findAvailableUpdate(Context context, KenPatcher.PatchLanguage language) {
+        File localInfo = new File(KcUtils.getAppCacheFileDir(context, "/" + getRootPath(language))
+                + getInfoFileName(language));
+        if (!localInfo.isFile()) return null;
+        String installed = versionOf(KcUtils.readJsonObjectFromFile(localInfo.getPath()));
+        if (installed == null) return null;
+
+        JsonObject remote = getKantaiEnUpdateInfo(KcUtils.getSharedHttpClient(), language);
+        String available = remote.has("error") ? null : versionOf(remote);
+        return available != null && isNewer(available, installed) ? available : null;
+    }
+
+    /**
+     * Whether [available] is a newer version than [installed]. The raw file can be served
+     * from a cache for a few minutes after an update, so an older published version is not
+     * an update. Versions that are not dotted numbers count as newer when they differ.
+     */
+    static boolean isNewer(String available, String installed) {
+        try {
+            return new Version(available).compareTo(new Version(installed)) > 0;
+        } catch (IllegalArgumentException e) {
+            return !available.equals(installed);
+        }
+    }
+
+    private static String versionOf(JsonObject info) {
+        if (info == null || !info.has("version") || !info.get("version").isJsonPrimitive()) return null;
+        return info.get("version").getAsString();
     }
 
     // Bumped per check so a slow, superseded check cannot overwrite a newer result.
