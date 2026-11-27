@@ -74,6 +74,20 @@ class RevealStripsTest {
     }
 
     @Test
+    fun hiddenToolbarGoesPastTheWiderOfTheBarAndTheRefreshButton() {
+        // Tablet tier at 200dpi: 64dp bar, 68dp button.
+        assertEquals(-85f, toolbarHiddenOffset(80f, 85f))
+        // Phone tier: both 56dp.
+        assertEquals(-56f, toolbarHiddenOffset(56f, 56f))
+    }
+
+    @Test
+    fun hiddenToolbarOffsetCoversAHalfPixelSizeAsLaidOut() {
+        // The same tier at 300dpi: the 127.5px button is laid out 128px wide.
+        assertEquals(-128f, toolbarHiddenOffset(120f, 127.5f))
+    }
+
+    @Test
     fun regularLandscapeToolbarOnlyAvoidsTheCutout() {
         // The navigation bar is on the right: nothing on the docking edge.
         assertEquals(80f, toolbarDockInset(true, 80f, 0f, 0f))

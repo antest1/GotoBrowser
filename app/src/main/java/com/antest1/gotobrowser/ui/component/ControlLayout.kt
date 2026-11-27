@@ -124,6 +124,7 @@ fun ControlLayout(
             onRevealAvailableChange = onRevealAvailableChange,
             gameVerticalBias = gameVerticalBias,
             barSize = panelBarSize,
+            fabSize = dimensionResource(R.dimen.refresh_fab_size),
             contentInset = (panelBarSize - panelButtonSize) / 2,
             alignTop = refreshAboveBar,
             swipeToReveal = swipeToReveal,

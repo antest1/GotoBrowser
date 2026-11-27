@@ -144,6 +144,14 @@ fun settleVelocity(velocity: Float, shown: Boolean, max: Float): Float =
 fun toolbarDockInset(isLandscape: Boolean, insetLeft: Float, insetBottom: Float, navEdge: Float): Float =
     maxOf(if (isLandscape) insetLeft else insetBottom, navEdge)
 
+/**
+ * Where the hidden bar sits, as an offset off screen (negative): past the wider of the bar
+ * and the fab. In whole pixels, like the sizes they are laid out at: a half-pixel size is
+ * laid out rounded up, and a fractional offset would then leave a pixel of it on screen.
+ */
+fun toolbarHiddenOffset(barSizePx: Float, fabSizePx: Float): Float =
+    -maxOf(barSizePx.roundToInt(), fabSizePx.roundToInt()).toFloat()
+
 /** Share of the way between hidden and docked a slow drag must cover to change the bar's state. */
 private const val BAR_SETTLE_FRACTION = 0.25f
 
@@ -245,6 +253,11 @@ fun AdaptiveFloatingToolbar(
     gameVerticalBias: Float = GameGeometry.BIAS_CENTER,
     modifier: Modifier = Modifier,
     barSize: Dp = 56.dp,
+    /**
+     * Diameter of what [fab] draws. On tablets it is larger than the bar and sticks out of
+     * its bar-sized slot, so the hidden bar has to move that much further off screen.
+     */
+    fabSize: Dp = barSize,
     barLengthFraction: Float = 0.7f,
     revealSize: Dp = 24.dp,
     contentSpacing: Dp = 8.dp,
@@ -293,10 +306,11 @@ fun AdaptiveFloatingToolbar(
     val dockInsetPx = toolbarDockInset(isLandscape, insetLeftPx, insetBottomPx, navEdgePx)
 
     // Offset logic
-    // Vertical: slides horizontally from left (-barSize to inset + margin)
-    // Horizontal: slides vertically from bottom (-barSize to inset + margin)
+    // Vertical: slides horizontally from left (-size to inset + margin)
+    // Horizontal: slides vertically from bottom (-size to inset + margin)
+    // The size is that of the wider of the bar and the fab, so neither is left peeking out.
     val dockedOffset = marginPx + dockInsetPx
-    val hiddenOffset = -barSizePx
+    val hiddenOffset = toolbarHiddenOffset(barSizePx, with(density) { fabSize.toPx() })
     val flingVelocityPx = with(density) { BarFlingVelocity.toPx() }
     val maxSettleVelocityPx = with(density) { BarMaxSettleVelocity.toPx() }
 
