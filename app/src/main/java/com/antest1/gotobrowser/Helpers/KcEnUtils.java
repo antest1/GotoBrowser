@@ -26,7 +26,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -243,22 +242,6 @@ public class KcEnUtils {
         } else {
             host.setPatchUpdateStatus("Error occurred while retrieving latest version", false);
             newVersionFlag = false;
-        }
-    }
-
-    public boolean remoteFileExists(String URLName){
-        try {
-            HttpURLConnection.setFollowRedirects(false);
-            // note : you may also need
-            //        HttpURLConnection.setInstanceFollowRedirects(false)
-            HttpURLConnection con =
-                    (HttpURLConnection) new URL(URLName).openConnection();
-            con.setRequestMethod("HEAD");
-            return (con.getResponseCode() == HttpURLConnection.HTTP_OK);
-        }
-        catch (Exception e) {
-            Log.e("GOTO", KcUtils.getStringFromException(e));
-            return false;
         }
     }
 
