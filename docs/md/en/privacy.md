@@ -1,6 +1,6 @@
 ## Privacy Policy
 
-**Updated: 2026.11.07** (initial version)
+**Updated: 2026.11.28**
 
 GotoBrowser ("the app") is an open-source browser for playing KanColle (HTML5) on Android devices. The developer does not operate any server for collecting user information. This policy explains what information the app handles and how.
 
@@ -38,7 +38,8 @@ Some features, such as the app update check, voiceline subtitles and third-party
 
 - Internet, network state: connecting to the game and downloading data
 - Storage (Android 12 and below): saving screenshots and cache
-- Notifications: showing a notification when a screenshot is saved
+- Notifications: showing a notification when a screenshot is saved, and the progress of a patch download
+- Background work (foreground service, user-initiated data transfer jobs): continuing a patch download after you leave the app
 
 ##### Deleting Your Information
 

@@ -93,7 +93,7 @@ For information about the function, refer to the <span class="link" data-move="v
 | Kantai3D Mod | About Kantai3D | Opens the [Kantai3D GitHub page](https://github.com/laplamgor/kantai3d) | | |
 | Language Patch (KCCP) | KanColle Language Patch (KCCP) | Apply a translation patch to in-game text. The rows below appear while this is on | After reload | [@Oradimi](https://x.com/oradimi) |
 | Language Patch (KCCP) | Language Patch to Apply | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP) (@Oradimi) or [KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP) (@SLAVUSworks) | After reload | |
-| Language Patch (KCCP) | Download Patch Data | Downloads or updates the data of the selected patch. Refresh the game after it finishes to apply | After reload | |
+| Language Patch (KCCP) | Download Patch Data | Downloads or updates the data of the selected patch. Updates download only the changed files where possible. The download continues when you leave the app, with its progress in a notification. Refresh the game after it finishes to apply | After reload | |
 | Language Patch (KCCP) | Delete Patch Data | Use this if the patch is presenting unexpected behaviour, or if something went wrong during download | After reload | |
 | Language Patch (KCCP) | About KanColle English/Indonesia Patch | Opens the GitHub page of the selected patch | | |
 | Kancolle to CHS | Simplified Chinese Patch | Replaces in-game text, UI images and fonts with Simplified Chinese. API data is translated only in the game screen, so Kcanotify still receives the original data. Cannot be used together with KanColle Language Patch (KCCP); turning one on turns the other off. The rows below appear while this is on | After reload | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
@@ -101,6 +101,8 @@ For information about the function, refer to the <span class="link" data-move="v
 | Kancolle to CHS | Patch Data Source | Choose the source used for update checks and Incremental Update: GitHub Raw, jsDelivr CDN, GHProxy Mirror or Custom Mirror URL (enter its address in Custom Source Base URL). Try another source if Incremental Update fails. Full Package always comes from GitHub Releases, through GHProxy only when GHProxy Mirror is selected. Data by KanColle CHS Project (@归海原) | Immediately | |
 | Kancolle to CHS | Delete CHS Data | Removes the downloaded Simplified Chinese text, images and fonts | After reload | |
 | Kancolle to CHS | About Kancolle to CHS | Shows the author, data source and repository link | | |
+
+When a patch that is turned on and installed has an update, the app offers it at launch. Tap Confirm to open the settings and start the download.
 
 ##### App Information
 

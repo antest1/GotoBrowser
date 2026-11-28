@@ -93,7 +93,7 @@ PIP/多窗口相关内容请参阅<span class="link" data-move="pipmode">PIP/多
 | Kantai3D 视觉补丁 | 关于Kantai3D | 打开 [Kantai3D GitHub 页面](https://github.com/laplamgor/kantai3d) | | |
 | 语言翻译补丁 | KanColle Language Patch (KCCP) | 为游戏内文本应用翻译补丁。开启后会显示下方选项 | 重新加载 | [@Oradimi](https://x.com/oradimi) |
 | 语言翻译补丁 | 要使用的补丁 | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP)（@Oradimi）或 [KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP)（@SLAVUSworks） | 重新加载 | |
-| 语言翻译补丁 | 下载补丁资料 | 下载或更新所选补丁的数据。完成后需刷新游戏才能生效 | 重新加载 | |
+| 语言翻译补丁 | 下载补丁资料 | 下载或更新所选补丁的数据。更新时尽可能只下载有变动的文件。离开应用后下载仍会继续，进度显示在通知中。完成后需刷新游戏才能生效 | 重新加载 | |
 | 语言翻译补丁 | 删除补丁资料 | 在补丁出现意外行为或下载过程中出现问题时使用 | 重新加载 | |
 | 语言翻译补丁 | KanColle English/Indonesia Patch关于 | 打开所选补丁的 GitHub 页面 | | |
 | 砍口垒汉化计划 in Goto | 汉化 | 将游戏内文本、UI 贴图与字体替换为简体中文。API 数据仅在游戏画面中翻译，Kcanotify 仍会收到原始数据。不能与 KanColle Language Patch (KCCP) 同时使用，开启其中一个时另一个会自动关闭。开启后会显示下方选项 | 重新加载 | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
@@ -101,6 +101,8 @@ PIP/多窗口相关内容请参阅<span class="link" data-move="pipmode">PIP/多
 | 砍口垒汉化计划 in Goto | 汉化数据源 | 选择检查更新与增量更新时使用的下载来源：GitHub Raw、jsDelivr CDN、GHProxy Mirror 或自定义镜像源（选择自定义镜像源时需填写自定义数据源根地址）。增量更新失败时可尝试切换数据源。全量包始终从 GitHub Releases 下载，仅在选择 GHProxy Mirror 时经由 GHProxy。数据来自砍口垒汉化计划 @归海原 | 立即 | |
 | 砍口垒汉化计划 in Goto | 删除汉化数据 | 删除已下载的简体中文文本、贴图与字体 | 重新加载 | |
 | 砍口垒汉化计划 in Goto | 关于砍口垒汉化计划 in Goto | 显示作者、数据源与仓库链接 | | |
+
+已开启且已安装的补丁有更新时，应用启动时会提示。点按“确定”后会打开设置并开始下载。
 
 ##### 应用程式资讯
 
