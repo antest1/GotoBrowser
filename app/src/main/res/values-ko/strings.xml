@@ -207,9 +207,12 @@
     <string name="notice_network_desc">인터넷 연결을 확인한 뒤 새로고침 버튼으로 새로고침해 주세요</string>
     <string name="notice_http_title">서버 응답 오류</string>
     <string name="notice_http_desc">잠시 후 새로고침 버튼으로 새로고침해 주세요</string>
+    <string name="notice_script_title">스크립트 오류</string>
+    <string name="notice_script_desc">모드를 사용 중이라면 끈 뒤 새로고침 버튼으로 새로고침해 주세요</string>
     <string name="detail_code">코드</string>
     <string name="detail_host">주소</string>
     <string name="detail_api">API</string>
+    <string name="detail_source">위치</string>
     <string name="detail_message">메시지</string>
 
     <!-- Simplified Chinese Localization (Kancolle_to_CHS) -->

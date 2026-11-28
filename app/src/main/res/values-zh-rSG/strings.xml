@@ -204,9 +204,12 @@
     <string name="notice_network_desc">请检查网络连接，然后使用刷新按钮刷新</string>
     <string name="notice_http_title">服务器响应错误</string>
     <string name="notice_http_desc">请稍后使用刷新按钮刷新</string>
+    <string name="notice_script_title">脚本错误</string>
+    <string name="notice_script_desc">如正在使用MOD，请关闭后使用刷新按钮刷新</string>
     <string name="detail_code">代码</string>
     <string name="detail_host">主机</string>
     <string name="detail_api">API</string>
+    <string name="detail_source">位置</string>
     <string name="detail_message">消息</string>
 
     <!-- Simplified Chinese Localization (Kancolle_to_CHS / 砍口垒汉化计划 in Goto) -->

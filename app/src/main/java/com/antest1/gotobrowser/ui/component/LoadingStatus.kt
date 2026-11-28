@@ -67,7 +67,7 @@ import com.antest1.gotobrowser.ui.theme.StatusErrorColor
 import com.antest1.gotobrowser.ui.theme.StatusWarningColor
 import kotlinx.coroutines.delay
 
-/** A kcsapi call that went wrong during play, shown once at the top of the game area. */
+/** A kcsapi call or game script that went wrong during play, shown once at the top of the game area. */
 data class ServerNotice(val kind: Kind, val code: String, val api: String, val message: String) {
     enum class Kind {
         /** api_result is not 1: only a full refresh recovers. */
@@ -75,7 +75,9 @@ data class ServerNotice(val kind: Kind, val code: String, val api: String, val m
         /** No response: the connection dropped or timed out. */
         NETWORK,
         /** The server answered with an HTTP error. */
-        HTTP
+        HTTP,
+        /** A game script threw: [code] is the error type and [api] the script file and line. */
+        SCRIPT
     }
 
     /** One line for bug reports (long-press copies it). */
@@ -380,16 +382,18 @@ private fun ErrorBadge(color: Color, onColor: Color) {
 }
 
 /**
- * Where [ServerNoticeCard] sits in the game area: a little below the middle, so the card
- * starts under the message at the top of the game's own connection error screen.
+ * Where [ServerNoticeCard] sits in the game area. A failed kcsapi call goes a little below
+ * the middle, so the card starts under the message at the top of the game's own connection
+ * error screen; a script error has no such screen and sits in the middle.
  */
-val ServerNoticeAlignment: Alignment = BiasAlignment(0f, 0.4f)
+fun serverNoticeAlignment(kind: ServerNotice.Kind?): Alignment =
+    if (kind == ServerNotice.Kind.SCRIPT) Alignment.Center else BiasAlignment(0f, 0.4f)
 
 /**
- * A failed kcsapi call, as a card in the middle of the game area: the same look as a load
- * error, and clear of the game's own error message, which sits at the top of its error
- * screen. No action button: tap to dismiss, long-press to copy the detail line
- * (code · api · server message) for bug reports.
+ * A failed kcsapi call or a script error, as a card in the game area (laid out over all of
+ * it, placed by [serverNoticeAlignment]): the same look as a load error, and clear of the
+ * game's own error message, which sits at the top of its error screen. No action button:
+ * tap to dismiss, long-press to copy the detail line (code · api · message) for bug reports.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -397,53 +401,58 @@ fun ServerNoticeCard(notice: ServerNotice?, onDismiss: () -> Unit, modifier: Mod
     var shown by remember { mutableStateOf(notice) }
     SideEffect { if (notice != null) shown = notice }
 
-    AnimatedVisibility(
-        visible = notice != null,
-        enter = fadeIn(tween(250)) + scaleIn(tween(250), initialScale = 0.96f),
-        exit = fadeOut(tween(200)) + scaleOut(tween(200), targetScale = 0.96f),
-        modifier = modifier
-    ) {
-        val current = notice ?: shown ?: return@AnimatedVisibility
-        val (title, description) = when (current.kind) {
-            ServerNotice.Kind.REJECTED -> R.string.server_notice_title to R.string.server_notice_desc
-            ServerNotice.Kind.NETWORK -> R.string.notice_network_title to R.string.notice_network_desc
-            ServerNotice.Kind.HTTP -> R.string.notice_http_title to R.string.notice_http_desc
-        }
-        SettingsTheme(darkTheme = true) {
-            val context = LocalContext.current
-            val shape = MaterialTheme.shapes.large
-            val error = MaterialTheme.colorScheme.error
-            CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
-                Column(
-                    Modifier
-                        .widthIn(max = 320.dp)
-                        .fillMaxWidth()
-                        .shadow(3.dp, shape)
-                        .clip(shape)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                        .combinedClickable(
-                            onClick = onDismiss,
-                            onLongClick = { copyToClipboard(context, current.detail) }
+    // Placed by the last notice while it fades out, so the card does not jump.
+    Box(modifier.fillMaxSize()) {
+        AnimatedVisibility(
+            visible = notice != null,
+            enter = fadeIn(tween(250)) + scaleIn(tween(250), initialScale = 0.96f),
+            exit = fadeOut(tween(200)) + scaleOut(tween(200), targetScale = 0.96f),
+            modifier = Modifier.align(serverNoticeAlignment((notice ?: shown)?.kind)).padding(16.dp)
+        ) {
+            val current = notice ?: shown ?: return@AnimatedVisibility
+            val (title, description) = when (current.kind) {
+                ServerNotice.Kind.REJECTED -> R.string.server_notice_title to R.string.server_notice_desc
+                ServerNotice.Kind.NETWORK -> R.string.notice_network_title to R.string.notice_network_desc
+                ServerNotice.Kind.HTTP -> R.string.notice_http_title to R.string.notice_http_desc
+                ServerNotice.Kind.SCRIPT -> R.string.notice_script_title to R.string.notice_script_desc
+            }
+            val sourceLabel = if (current.kind == ServerNotice.Kind.SCRIPT) R.string.detail_source else R.string.detail_api
+            SettingsTheme(darkTheme = true) {
+                val context = LocalContext.current
+                val shape = MaterialTheme.shapes.large
+                val error = MaterialTheme.colorScheme.error
+                CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
+                    Column(
+                        Modifier
+                            .widthIn(max = 320.dp)
+                            .fillMaxWidth()
+                            .shadow(3.dp, shape)
+                            .clip(shape)
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                            .combinedClickable(
+                                onClick = onDismiss,
+                                onLongClick = { copyToClipboard(context, current.detail) }
+                            )
+                            .padding(16.dp)
+                    ) {
+                        Header(
+                            stringResource(title),
+                            trailing = null,
+                            titleColor = error,
+                            leading = { ErrorBadge(color = error, onColor = MaterialTheme.colorScheme.onError) }
                         )
-                        .padding(16.dp)
-                ) {
-                    Header(
-                        stringResource(title),
-                        trailing = null,
-                        titleColor = error,
-                        leading = { ErrorBadge(color = error, onColor = MaterialTheme.colorScheme.onError) }
-                    )
-                    Supporting(stringResource(description), topPadding = 8.dp)
-                    DetailBlock(
-                        rows = listOf(
-                            stringResource(R.string.detail_code) to current.code,
-                            stringResource(R.string.detail_api) to current.api,
-                            stringResource(R.string.detail_message) to current.message
-                        ),
-                        dividerColor = MaterialTheme.colorScheme.outlineVariant,
-                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        valueColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                        Supporting(stringResource(description), topPadding = 8.dp)
+                        DetailBlock(
+                            rows = listOf(
+                                stringResource(R.string.detail_code) to current.code,
+                                stringResource(sourceLabel) to current.api,
+                                stringResource(R.string.detail_message) to current.message
+                            ),
+                            dividerColor = MaterialTheme.colorScheme.outlineVariant,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            valueColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
