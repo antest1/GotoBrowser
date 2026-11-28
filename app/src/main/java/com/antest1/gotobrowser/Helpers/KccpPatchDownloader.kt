@@ -534,6 +534,9 @@ class KccpPatchDownloader(
             activeRunner = null
             this.appContext = appContext
         }
+        // Android 14+: a user-initiated data transfer job; the foreground service only when
+        // the system refuses the job. Before Android 14 (schedule() returns false): the
+        // foreground service. The app alone only when neither can be started.
         val runner = when {
             KccpPatchJobService.schedule(appContext) -> Runner.JOB
             KccpPatchService.start(appContext) -> Runner.SERVICE
