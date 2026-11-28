@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.antest1.gotobrowser.Activity.safeOverlayInsets
 import com.antest1.gotobrowser.Browser.GameGeometry
+import com.antest1.gotobrowser.Browser.ToolbarEdgeSwipe
 import com.antest1.gotobrowser.R
 
 enum class RefreshOption { QUICK, FULL }
@@ -88,7 +89,7 @@ fun refreshMenuTarget(localY: Float, fabSizePx: Float, itemStepPx: Float, expand
 fun ControlLayout(
     visible: Boolean,
     onVisibleChange: (Boolean) -> Unit,
-    /** Whether the toolbar can be revealed by a margin tap or an edge swipe. */
+    /** Whether the game leaves a margin to tap or to swipe from; without one, back brings the toolbar up. */
     onRevealAvailableChange: (Boolean) -> Unit = {},
     onRefreshClick: () -> Unit,
     onQuickRefreshClick: () -> Unit = onRefreshClick,
@@ -108,6 +109,8 @@ fun ControlLayout(
     toolbarAtTop: Boolean = false,
     /** Edge swipe reveals the hidden toolbar (PREF_TOOLBAR_SWIPE); a margin tap always does. */
     swipeToReveal: Boolean = true,
+    /** Takes the edge swipe where it has to start over the game; see [ToolbarEdgeSwipe]. */
+    edgeSwipe: ToolbarEdgeSwipe? = null,
     toolbarContent: @Composable () -> Unit
 ) {
     // In portrait the bar lies along the bottom and the FAB already sits at its start.
@@ -124,9 +127,12 @@ fun ControlLayout(
             onRevealAvailableChange = onRevealAvailableChange,
             gameVerticalBias = gameVerticalBias,
             barSize = panelBarSize,
+            fabSize = dimensionResource(R.dimen.refresh_fab_size),
+            fabOutset = if (refreshAttention != null) AttentionRingOutset else 0.dp,
             contentInset = (panelBarSize - panelButtonSize) / 2,
             alignTop = refreshAboveBar,
             swipeToReveal = swipeToReveal,
+            edgeSwipe = edgeSwipe,
             // The refresh FAB then lines up with the settings button in the opposite corner.
             topInset = dimensionResource(R.dimen.top_menu_padding),
             fab = {
@@ -374,6 +380,14 @@ private fun OneTouchRefreshFab(
     }
 }
 
+/** The attention ring from the button outward: a gap, the ring itself and a halo around it. */
+private val AttentionRingGap = 1.dp
+private val AttentionRingWidth = 3.dp
+private val AttentionHaloWidth = 8.dp
+
+/** How far the attention ring reaches past the button; the hidden toolbar takes it off screen too. */
+private val AttentionRingOutset = AttentionRingGap + AttentionRingWidth + AttentionHaloWidth
+
 /**
  * Ring outside the FAB that pulses three times and then stays, so guidance text can point
  * at the existing button instead of adding a new one. Drawn outside the bounds, unclipped.
@@ -393,9 +407,9 @@ private fun Modifier.attentionRing(color: Color?): Modifier {
     if (color == null) return this
     return drawBehind {
         val alpha = pulse.value
-        val ringWidth = 3.dp.toPx()
-        val ringRadius = size.minDimension / 2f + 1.dp.toPx() + ringWidth / 2f
-        val haloWidth = 8.dp.toPx()
+        val ringWidth = AttentionRingWidth.toPx()
+        val ringRadius = size.minDimension / 2f + AttentionRingGap.toPx() + ringWidth / 2f
+        val haloWidth = AttentionHaloWidth.toPx()
         drawCircle(color.copy(alpha = 0.22f * alpha), radius = ringRadius + ringWidth / 2f + haloWidth / 2f, style = Stroke(haloWidth))
         drawCircle(color.copy(alpha = alpha), radius = ringRadius, style = Stroke(ringWidth))
     }

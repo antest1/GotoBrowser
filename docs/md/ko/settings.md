@@ -41,7 +41,7 @@
 
 | 이름 | 설명 | 반영 |
 | --- | --- | --- |
-| 가로 화면 고정 | 기기의 방향과 상관없이 항상 가로 모드로 플레이 (기본 켜짐). 멀티윈도우(분할/팝업)에서는 적용되지 않음 | 즉시 |
+| 가로 화면 고정 | 기기의 방향과 상관없이 항상 가로 모드로 플레이 (기본 켜짐). 분할 화면에서는 적용되지 않음 | 즉시 |
 | 레이아웃 자동 조정 | 게임 화면을 기기 화면 크기에 맞게 자동으로 확대/축소 (권장, 기본 켜짐) | 새로고침 |
 | 게임 화면 세로 위치 | 세로 화면, 분할 화면 등 게임 위아래에 여백이 있을 때 게임을 가운데 또는 위쪽에 배치 (기본 가운데) | 즉시 |
 | PIP 모드 활성화 | 홈 화면으로 나가거나 게임 화면을 핀치 축소하면 작은 플로팅 창으로 게임 화면 표시 | 즉시 |
@@ -93,7 +93,7 @@ PIP/멀티윈도우 관련 내용은 <span class="link" data-move="pipmode">PIP/
 | Kantai3D 시각 모드 | About Kantai3D | [Kantai3D GitHub 페이지](https://github.com/laplamgor/kantai3d) 열기 | | |
 | 언어 번역 패치 (KCCP) | KanColle Language Patch (KCCP) | 게임 내 텍스트에 번역 패치 적용. 켜져 있을 때 아래 항목이 표시됨 | 새로고침 | [@Oradimi](https://x.com/oradimi) |
 | 언어 번역 패치 (KCCP) | 적용할 언어 패치 | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP) (@Oradimi) 혹은 [KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP) (@SLAVUSworks) | 새로고침 | |
-| 언어 번역 패치 (KCCP) | 패치 데이터 다운로드 | 선택한 패치의 데이터를 다운로드 혹은 업데이트. 완료 후 게임을 새로고침해야 적용됨 | 새로고침 | |
+| 언어 번역 패치 (KCCP) | 패치 데이터 다운로드 | 선택한 패치의 데이터를 다운로드 혹은 업데이트. 업데이트 시에는 가능한 경우 바뀐 파일만 받음. 앱을 나가도 다운로드가 계속되며 진행 상황은 알림에 표시됨. 완료 후 게임을 새로고침해야 적용됨 | 새로고침 | |
 | 언어 번역 패치 (KCCP) | 패치 데이터 삭제 | 패치가 예기치 않은 동작을 하거나 다운로드 중 문제가 발생한 경우 사용 | 새로고침 | |
 | 언어 번역 패치 (KCCP) | KanColle English/Indonesia Patch에 대해 | 선택한 패치의 GitHub 페이지 열기 | | |
 | Kancolle to CHS | 중국어 간체 번역 패치 | 게임 내 텍스트, UI 이미지와 글꼴을 중국어 간체로 변경. API 데이터는 게임 화면에서만 번역되므로 Kcanotify에는 원본 데이터가 그대로 전달됨. KanColle Language Patch (KCCP)와 함께 사용할 수 없으며, 한쪽을 켜면 다른 쪽은 꺼짐. 켜져 있을 때 아래 항목이 표시됨 | 새로고침 | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
@@ -101,6 +101,8 @@ PIP/멀티윈도우 관련 내용은 <span class="link" data-move="pipmode">PIP/
 | Kancolle to CHS | 번역 데이터 출처 | 업데이트 확인과 증분 업데이트에 사용할 출처를 GitHub Raw, jsDelivr CDN, GHProxy Mirror, 사용자 지정 미러 URL 중에서 선택 (사용자 지정 시 출처 기본 URL에 주소 입력). 증분 업데이트에 실패하면 다른 출처를 사용. 전체 패키지는 항상 GitHub Releases에서 받으며, GHProxy Mirror를 선택한 경우에만 GHProxy를 거침. 데이터 제공: KanColle CHS Project (@归海原) | 즉시 | |
 | Kancolle to CHS | 번역 데이터 삭제 | 다운로드한 중국어 간체 텍스트, 이미지, 글꼴을 삭제 | 새로고침 | |
 | Kancolle to CHS | Kancolle to CHS 정보 | 제작자, 데이터 출처, 저장소 링크 표시 | | |
+
+켜져 있고 설치된 패치에 업데이트가 있으면 앱을 시작할 때 알려 줍니다. 확인을 누르면 설정이 열리고 다운로드가 시작됩니다.
 
 ##### 어플리케이션 정보
 

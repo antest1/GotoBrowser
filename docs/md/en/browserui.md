@@ -14,7 +14,7 @@ You can use various functions such as refreshing the game or taking a screenshot
 - Here are the ways to make the toolbar appear:
   - Touch the black margin outside the game screen (recommended)
   - Swipe inward from the edge where the toolbar is hidden (portrait: bottom, landscape: left) (can be turned off in Settings → Controls & Toolbar → "Swipe from Edge to Show Toolbar")
-  - If there is no margin outside the game screen, press the back button (or use the back gesture)
+  - If there is no margin outside the game screen, swipe from the edge as above, or press the back button (or use the back gesture)
   - Turn on "Show Control Panel on Start" in Settings → Controls & Toolbar to show it on startup
 - Conversely, here are the ways to make the toolbar disappear:
   - Touch the black margin outside the game screen again
@@ -43,7 +43,7 @@ In landscape, setting Settings → Controls & Toolbar → "Toolbar Placement" to
 | --- | --- | --- |
 | <span class="material-symbols-outlined">volume_off</span>  | Mute Audio | Mutes the whole sound playing in the browser. The audio files will continue to load.<br/>(Use this when you want to see subtitles without sound, etc.) |
 | <span class="material-symbols-outlined">photo_camera</span> | Screenshot Mode | Turns screenshot mode on or off. When on, the screenshot button appears below the settings button in the top right of the screen. |
-| <span class="material-symbols-outlined">screen_lock_rotation</span> | Auto-Rotate Lock | Prevents the screen from rotating regardless of device settings. Not applied in multi-window (split/pop-up). |
+| <span class="material-symbols-outlined">screen_lock_rotation</span> | Auto-Rotate Lock | Prevents the screen from rotating regardless of device settings. Not applied in split screen. |
 | <span class="material-symbols-outlined">light_mode</span> | Screen Always-On | Keeps the screen from turning off in idle state. |
 | <span class="material-symbols-outlined">closed_caption</span> | Subtitle | Shows or hides in-game subtitles at the bottom of the screen. Touching the subtitle hides it until the next line. |
 
@@ -54,16 +54,17 @@ In landscape, setting Settings → Controls & Toolbar → "Toolbar Placement" to
 | <span class="material-symbols-outlined">crop_free</span> | Screenshot | Saves the current game screen. Shown only while screenshot mode is on. (See <span class="link" data-move="screenshot">Saving Screenshots</span>) |
 
 ##### Error Notices During Play
-If communication with the server fails during play, a notice is shown in the middle of the game screen, where it does not cover the game's own error message.
+If communication with the server fails or a game script stops with an error during play, a notice is shown in the middle of the game screen. Server notices are placed where they do not cover the game's own error message.
 
 | Notice | Description |
 | --- | --- |
 | Connection error | The connection dropped or the server did not respond. Check your connection, then refresh. |
 | Server response error | The server answered with an HTTP error. Refresh after a moment. |
 | Server error | The server rejected the request (api_result). Quick Refresh cannot recover from it, so the refresh button runs a Full Refresh automatically. |
+| Script error | A game script stopped with an error. A mod that no longer matches the game can cause it. If mods are on, turn them off, then refresh. Each error is shown once per page load. |
 
 - Tap the notice to close it.
-- Long-press the notice to copy its code, API and message. Include them when you report a problem.
+- Long-press the notice to copy its details (code, API and message; for a script error, the error, script file and message). Include them when you report a problem.
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/en/game_notice.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 

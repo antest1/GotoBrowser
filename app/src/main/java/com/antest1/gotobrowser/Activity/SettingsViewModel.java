@@ -1,17 +1,22 @@
 package com.antest1.gotobrowser.Activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -20,6 +25,7 @@ import com.antest1.gotobrowser.BuildConfig;
 import com.antest1.gotobrowser.Helpers.CredentialStore;
 import com.antest1.gotobrowser.Helpers.GotoVersionCheck;
 import com.antest1.gotobrowser.Helpers.KcEnUtils;
+import com.antest1.gotobrowser.Helpers.KccpPatchDownloader;
 import com.antest1.gotobrowser.Helpers.KcUtils;
 import com.antest1.gotobrowser.Helpers.MessageCallback;
 import com.antest1.gotobrowser.Helpers.VersionDatabase;
@@ -31,9 +37,12 @@ import com.antest1.gotobrowser.Helpers.chs.ChsConfig;
 import com.antest1.gotobrowser.Helpers.chs.ChsDownloader;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Locale;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 import static com.antest1.gotobrowser.Constants.DEFAULT_ALTER_GADGET_URL;
 import static com.antest1.gotobrowser.Constants.DEFAULT_SUBTITLE_FONT_SIZE;
@@ -48,6 +57,7 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_ID;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_NAME;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
+import static com.antest1.gotobrowser.Constants.REQUEST_NOTIFICATION_PERMISSION;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Constants.CACHE_DIR;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
@@ -93,6 +103,7 @@ public class SettingsViewModel extends AndroidViewModel {
     private final VersionDatabase versionTable;
     private final GotoVersionCheck appCheck;
     private final KcEnUtils enUtils = new KcEnUtils();
+    private final KccpPatchDownloader kccpDownloader = KccpPatchDownloader.getShared();
     private final ChsDownloader chsDownloader = new ChsDownloader();
 
     private final MutableLiveData<String> patchUpdateSummary = new MutableLiveData<>("checking updates...");
@@ -120,6 +131,8 @@ public class SettingsViewModel extends AndroidViewModel {
         appCheck = getRetrofitAdapter(context, GITHUB_ROOT, false).create(GotoVersionCheck.class);
 
         patchAboutUrl.setValue(context.getString(R.string.settings_mod_kccp_patch_en_link));
+        // Also picks up a download that went on while no settings screen was around.
+        kccpDownloader.addObserver(kccpObserver);
     }
 
     // ---------------------------------------------------------------------
@@ -194,6 +207,7 @@ public class SettingsViewModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         chsDownloader.shutdown();
+        kccpDownloader.removeObserver(kccpObserver);
         super.onCleared();
     }
 
@@ -461,16 +475,84 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     public void requestPatchUpdate() {
-        try {
-            enUtils.requestPatchUpdate(host);
-        } catch (IOException e) {
-            Log.e("GOTO", KcUtils.getStringFromException(e));
+        // Started first: the job behind the download can only be scheduled while the app is
+        // in front, which the permission dialog would no longer be.
+        kccpDownloader.startUpdate(getApplication());
+        requestNotificationPermission();
+    }
+
+    /**
+     * The patch download shows its progress in a notification, which needs the permission
+     * from Android 13; until now only the screenshot mode asked for it. The download runs
+     * either way.
+     */
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return;
+        Activity activity = dialogActivity();
+        if (activity == null) return;
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS)
+                == PackageManager.PERMISSION_GRANTED) return;
+        ActivityCompat.requestPermissions(activity,
+                new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_NOTIFICATION_PERMISSION);
+    }
+
+    /**
+     * Looks for updates of the enabled third-party patches that are installed, on a background
+     * thread. {@code onFound} runs on the main thread once per patch with an update.
+     * Leftovers of an interrupted KCCP install are cleaned up first, which can also bring
+     * back an install moved aside by a cut-off swap.
+     */
+    public void checkPatchUpdates(Consumer<PatchUpdate> onFound) {
+        Context context = getApplication().getApplicationContext();
+        boolean kccpEnabled = isKccpPatchEnabled();
+        String kccpPref = sharedPref.getString(PREF_MOD_KCCP_LANG_PATCH_NAME, PREF_MOD_KCCP_LANG_PATCH_EN);
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+        Future<?> recovery = kccpDownloader.recoverInterruptedInstalls(context);
+        new Thread(() -> {
+            try {
+                recovery.get();
+            } catch (ExecutionException | InterruptedException | CancellationException e) {
+                Log.w("GOTO", "Patch install recovery did not finish: " + e.getMessage());
+            }
+            if (kccpEnabled) {
+                KenPatcher.PatchLanguage language = KenPatcher.getCurrentPatchLanguage(kccpPref);
+                String version = KcEnUtils.findAvailableUpdate(context, language);
+                if (version != null) {
+                    String title = KcEnUtils.getPatchTitle(language);
+                    mainHandler.post(() -> onFound.accept(
+                            new PatchUpdate(PatchUpdate.Kind.KCCP, title, version)));
+                }
+            }
+            String chsVersion = chsDownloader.findAvailableUpdate(context);
+            if (chsVersion != null) {
+                String title = context.getString(R.string.settings_mod_chs_enable);
+                mainHandler.post(() -> onFound.accept(
+                        new PatchUpdate(PatchUpdate.Kind.CHS, title, chsVersion)));
+            }
+        }, "patch-update-check").start();
+    }
+
+    /**
+     * Starts the download of an update found by {@link #checkPatchUpdates}. The notice can be
+     * answered after a download was started from the sheet; that one is left to finish.
+     */
+    public void startPatchUpdate(PatchUpdate update) {
+        if (update.getKind() == PatchUpdate.Kind.CHS) {
+            if (chsDownloader.isDownloadActive()) return;
+            requestChsPatchUpdate();
+        } else {
+            enUtils.setTargetLanguage(
+                    sharedPref.getString(PREF_MOD_KCCP_LANG_PATCH_NAME, PREF_MOD_KCCP_LANG_PATCH_EN));
+            requestPatchUpdate();
         }
     }
 
-    /** Deletes the downloaded patch data; the confirmation dialog lives in the settings sheet. */
+    /**
+     * Deletes the downloaded patch data; the confirmation dialog lives in the settings sheet.
+     * The download row is checked again afterwards, so it offers the install.
+     */
     public void deletePatch() {
-        enUtils.deletePatch(host);
+        kccpDownloader.deletePatch(host, () -> refreshKccpDependentRows(null));
     }
 
     public void onSubtitleLocaleChanged(String localeCode) {
@@ -535,6 +617,25 @@ public class SettingsViewModel extends AndroidViewModel {
         if (url != null) intent.setData(Uri.parse(url));
         return intent;
     }
+
+    /** Shows the KCCP patch download, which can outlive this ViewModel, on the settings sheet. */
+    private final KccpPatchDownloader.Observer kccpObserver = new KccpPatchDownloader.Observer() {
+        @Override
+        public void onDownloadStateChanged(@NonNull PatchDownloadState state) {
+            patchDownloadState.setValue(state);
+        }
+
+        @Override
+        public void onDownloadFinished(@NonNull String message, @NonNull KccpPatchDownloader.Result result) {
+            patchMessage.setValue(message);
+            if (result == KccpPatchDownloader.Result.SUCCEEDED) {
+                setPatchUpdateStatus(getApplication().getString(R.string.setting_latest_version), false);
+            } else {
+                // The install may be gone, removed to make room.
+                refreshKccpDependentRows(null);
+            }
+        }
+    };
 
     // ---------------------------------------------------------------------
     // SettingsStatusHost backed by this ViewModel's LiveData

@@ -8,12 +8,13 @@ import java.util.concurrent.atomic.AtomicLong
  * Follows the first-screen load so the overlay can tell "still loading" from "stuck".
  *
  * Fed by WebView callbacks (main thread) and shouldInterceptRequest (background threads);
- * the overlay polls [snapshot]. Loading ends when the game sends its first kcsapi request.
+ * the overlay polls [snapshot]. Loading ends when the game sends its first kcsapi request,
+ * or when the server's maintenance screen is shown instead of the game ([Stage.MAINTENANCE]).
  * Pages other than the game page (e.g. the login form) are [Stage.IDLE]: they are not
  * black, so nothing is shown over them.
  */
 class LoadingTracker {
-    enum class Stage { IDLE, PREPARING, CONNECTING, DOWNLOADING, READY }
+    enum class Stage { IDLE, PREPARING, CONNECTING, DOWNLOADING, READY, MAINTENANCE }
 
     sealed interface Failure {
         /** What failed, e.g. "net::ERR_NAME_NOT_RESOLVED" or "HTTP 403". */
@@ -98,9 +99,19 @@ class LoadingTracker {
         touch()
         when {
             url.contains("/kcsapi/") && !url.contains("osapi.dmm.com") -> advance(Stage.READY)
-            url.contains("/kcs2/") -> advance(Stage.DOWNLOADING)
+            url.contains("/kcs2/") -> {
+                if (url.contains(GAME_FRAME_PATH)) leaveMaintenance()
+                advance(Stage.DOWNLOADING)
+            }
         }
     }
+
+    /**
+     * The game frame shows the server's maintenance screen in place of the game. Loading
+     * ends there, and the stage holds until a new load or the game frame loads again.
+     */
+    @Synchronized
+    fun onMaintenanceScreen() = reset(Stage.MAINTENANCE)
 
     /** @return true if the failure belongs to the current load and is now shown inline */
     @Synchronized
@@ -137,12 +148,21 @@ class LoadingTracker {
         if (stage.isLoading() && target > stage) stage = target
     }
 
+    /** The game frame loads again (e.g. the page reloaded it itself): the maintenance screen is gone. */
+    @Synchronized
+    private fun leaveMaintenance() {
+        if (stage == Stage.MAINTENANCE) reset(Stage.CONNECTING)
+    }
+
     private fun touch() = lastActivity.set(SystemClock.elapsedRealtime())
 
     private fun isBlank(url: String?) = url == null || url.startsWith("about:blank")
 
     companion object {
         const val STALL_MILLIS = 20_000L
+
+        /** The game frame's own page; every (re)load of the game starts with it. */
+        private const val GAME_FRAME_PATH = "/kcs2/index.php"
 
         private fun Stage.isLoading() = this == Stage.PREPARING || this == Stage.CONNECTING || this == Stage.DOWNLOADING
     }

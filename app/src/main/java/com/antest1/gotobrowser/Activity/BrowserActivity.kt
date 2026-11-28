@@ -92,6 +92,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.antest1.gotobrowser.Browser.GameAreaLayout
 import com.antest1.gotobrowser.Browser.GameGeometry
+import com.antest1.gotobrowser.Browser.ScriptError
+import com.antest1.gotobrowser.Browser.ToolbarEdgeSwipe
+import com.antest1.gotobrowser.Browser.ToolbarEdgeSwipeLayout
 import com.antest1.gotobrowser.Browser.WebViewL
 import com.antest1.gotobrowser.Browser.WebViewManager
 import com.antest1.gotobrowser.BuildConfig
@@ -147,7 +150,6 @@ import com.antest1.gotobrowser.ui.component.LoadingStatusOverlay
 import com.antest1.gotobrowser.ui.component.MessageDialog
 import com.antest1.gotobrowser.ui.component.MessageDialogHost
 import com.antest1.gotobrowser.ui.component.ServerNotice
-import com.antest1.gotobrowser.ui.component.ServerNoticeAlignment
 import com.antest1.gotobrowser.ui.component.ServerNoticeCard
 import com.antest1.gotobrowser.ui.component.cancelForPip
 import com.antest1.gotobrowser.ui.component.floatingToolbarEdgeMargin
@@ -187,11 +189,15 @@ class BrowserActivity : ComponentActivity() {
     // Connector of the load in progress, named in the loading card (changes apply on reload).
     private val loadConnectorTag = mutableStateOf<String?>(null)
     private val serverNotice = mutableStateOf<ServerNotice?>(null)
+    /** Script errors already reported since the last refresh; touched on the main thread only. */
+    private val shownScriptErrors = mutableSetOf<String>()
     private val errorText = mutableStateOf("")
     private val closeButtonVisible = mutableStateOf(false)
     private val toolbarVisible = mutableStateOf(false)
-    /** False when the game fills the screen, leaving no margin to tap and no edge to swipe from. */
+    /** False when the game fills the screen, leaving no margin to tap or to swipe from. */
     private var toolbarRevealAvailable = true
+    /** The reveal swipe on such a screen starts over the game; the root layout detects it for the toolbar. */
+    private val toolbarEdgeSwipe = ToolbarEdgeSwipe()
     private val settingsSheetVisible = mutableStateOf(false)
     /** Saved values of the reload settings at the last full load, for changes made outside the rows. */
     private var loadedSettings: Map<String, Any?> = emptyMap()
@@ -321,6 +327,7 @@ class BrowserActivity : ComponentActivity() {
         if (isAppLaunch) {
             window.decorView.post {
                 checkAppUpdateOnStart()
+                checkPatchUpdatesOnStart()
                 warnIfKcanotifyBroadcastDisabled()
             }
         }
@@ -366,7 +373,7 @@ class BrowserActivity : ComponentActivity() {
             tapDetector.setOnDoubleTapListener(null)
             setOnTouchListener { _, event -> tapDetector.onTouchEvent(event); true }
         }
-        val rootLayout = FrameLayout(this).apply {
+        val rootLayout = ToolbarEdgeSwipeLayout(this, toolbarEdgeSwipe).apply {
             setBackgroundColor(android.graphics.Color.BLACK)
             addView(
                 backgroundTapView,
@@ -445,7 +452,8 @@ class BrowserActivity : ComponentActivity() {
                         else R.string.settings_apply_hint,
                         gameVerticalBias = gameVerticalBias.value,
                         toolbarAtTop = toolbarAtTop.value,
-                        swipeToReveal = toolbarSwipe.value
+                        swipeToReveal = toolbarSwipe.value,
+                        edgeSwipe = toolbarEdgeSwipe
                     ) {
                         val isMute by viewModel.isMuteMode.observeAsState(false)
                         val isCapture by viewModel.isCaptureMode.observeAsState(false)
@@ -747,7 +755,9 @@ class BrowserActivity : ComponentActivity() {
         }
         // Back only runs the exit flow: the back gesture shares the screen edge with the
         // system bar reveal, so it must not toggle the toolbar too. The exception is a screen
-        // with no margin and no reveal strip, where back is the only way to bring it up.
+        // with no margin: the swipe there starts over the game, where the back gesture can
+        // take it first, or there is none (turned off, or the navigation bar is on that
+        // edge), so back brings the toolbar up as well.
         if (!toolbarVisible.value && !toolbarRevealAvailable) {
             toolbarVisible.value = true
             return
@@ -764,6 +774,7 @@ class BrowserActivity : ComponentActivity() {
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
         displayController.updateMultiwindowMargin()
+        displayController.onConfigurationChanged()
         displayController.onOrientationSettled()
     }
 
@@ -891,6 +902,20 @@ class BrowserActivity : ComponentActivity() {
         postServerNotice(notice, replace = false)
     }
 
+    /**
+     * A game script threw (see [WebViewManager]'s console handler). A script that keeps
+     * throwing the same error is shown once per page load, even after the notice is dismissed.
+     */
+    fun showScriptError(error: ScriptError) {
+        val notice = ServerNotice(ServerNotice.Kind.SCRIPT, error.name, error.source, error.message)
+        runOnUiThread {
+            if (isFinishing || isDestroyed) return@runOnUiThread
+            if (serverNotice.value != null || notice.detail in shownScriptErrors) return@runOnUiThread
+            shownScriptErrors.add(notice.detail)
+            serverNotice.value = notice
+        }
+    }
+
     private fun postServerNotice(notice: ServerNotice, replace: Boolean) {
         runOnUiThread {
             if (isFinishing || isDestroyed) return@runOnUiThread
@@ -922,6 +947,7 @@ class BrowserActivity : ComponentActivity() {
         if (manager != null && info != null && info.size == 2) {
             startLoading()
             serverNotice.value = null
+            shownScriptErrors.clear()
             errorText.value = ""
             // A quick refresh reloads only the game frame, so the start page and the login
             // keep their old settings: only a full load counts.
@@ -1034,6 +1060,28 @@ class BrowserActivity : ComponentActivity() {
         settingsViewModel.checkAppUpdate(this)
     }
 
+    /**
+     * Offers the update of each enabled patch that has one. Accepting opens the settings
+     * sheet, which shows the download progress, and starts the download there.
+     */
+    private fun checkPatchUpdatesOnStart() {
+        if (viewModel.isPatchUpdateCheckStarted) return
+        viewModel.isPatchUpdateCheckStarted = true
+        settingsViewModel.checkPatchUpdates { update ->
+            showMessageDialog(
+                MessageDialog(
+                    title = update.title,
+                    message = String.format(Locale.US, getString(R.string.setting_latest_download), update.version),
+                    confirm = DialogButton(getString(R.string.action_ok)) {
+                        if (!settingsSheetVisible.value) openSettingsSheet()
+                        settingsViewModel.startPatchUpdate(update)
+                    },
+                    dismiss = DialogButton(getString(R.string.action_cancel))
+                )
+            )
+        }
+    }
+
     private fun warnIfKcanotifyBroadcastDisabled() {
         val broadcastEnabled = viewModel.sharedPref.getBoolean(PREF_BROADCAST, true)
         if (broadcastEnabled || !KcUtils.isKcanotifyInstalled(this)) return
@@ -1096,14 +1144,11 @@ class BrowserActivity : ComponentActivity() {
         intentBuilder.setDefaultColorSchemeParams(params)
         intentBuilder.setUrlBarHidingEnabled(true)
 
-        val customTabsIntent = intentBuilder.build()
-        val customTabsApps = context.packageManager.queryIntentActivities(customTabsIntent.intent, 0)
-        if (customTabsApps.isNotEmpty()) {
-            customTabsIntent.launchUrl(context, Uri.parse(url))
-        } else {
-            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            context.startActivity(browserIntent)
-        }
+        // A Custom Tabs intent is a VIEW intent with extras: browsers that support them show
+        // a custom tab, others open the page as usual.
+        val intent = intentBuilder.build().intent
+        intent.data = Uri.parse(url)
+        KcUtils.openLink(context, intent)
     }
 
     fun hideSystemBars() {
@@ -1370,15 +1415,11 @@ fun BrowserOverlayContent(
 
             if (!activity.isInPictureInPictureModeState.value) {
                 // Status sits within the game area: loading card centered (or at the bottom
-                // while the game draws its own loading screen), server errors centered as well,
-                // below the message at the top of the game's own connection error screen.
+                // while the game draws its own loading screen), notices placed by
+                // serverNoticeAlignment.
                 Box(modifier = Modifier.align(BiasAlignment(0f, gameVerticalBias)).size(gameWidth, gameHeight)) {
                     LoadingStatusOverlay(loadState, connectorTag = loadingConnectorTag)
-                    ServerNoticeCard(
-                        notice = serverNotice,
-                        onDismiss = onDismissServerNotice,
-                        modifier = Modifier.align(ServerNoticeAlignment).padding(16.dp)
-                    )
+                    ServerNoticeCard(notice = serverNotice, onDismiss = onDismissServerNotice)
                 }
 
                 BrowserOverlayLayer(

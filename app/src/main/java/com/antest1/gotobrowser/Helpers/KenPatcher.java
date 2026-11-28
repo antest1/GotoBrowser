@@ -78,8 +78,8 @@ public class KenPatcher {
         JsonObject translations = new JsonObject();
         StringBuilder regex = new StringBuilder("[");
         String rawText = KcEnUtils.getAssetPath() + "/kcs2/js/main.js/ignore-raw_text_translations";
-        String patcherPath = context.getExternalFilesDir(null).getAbsolutePath()
-                + "/" + KcEnUtils.getAssetPath() + "/kcs2/js/main.js/ignore-patcher_contents.js";
+        String patcherPath = KcUtils.getAppCacheFileDir(context,
+                "/" + KcEnUtils.getAssetPath() + "/kcs2/js/main.js/ignore-patcher_contents.js");
 
         String patcherContents = loadExternalText(patcherPath);
 
@@ -223,8 +223,7 @@ public class KenPatcher {
     }
 
     private static boolean listExternalFiles(String path, List<String> fileList, Context context) {
-        String absolutePath = context.getExternalFilesDir(null).getAbsolutePath();
-        File[] files = new File(absolutePath + "/" + path).listFiles();
+        File[] files = new File(KcUtils.getAppCacheFileDir(context, "/" + path)).listFiles();
         if (files != null) {
             for (File file : files) {
                 if (file.isFile()) {

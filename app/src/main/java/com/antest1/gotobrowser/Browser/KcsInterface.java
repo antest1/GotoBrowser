@@ -3,6 +3,7 @@ package com.antest1.gotobrowser.Browser;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteFullException;
 import android.net.Uri;
 import android.os.Bundle;
@@ -46,6 +47,9 @@ public class KcsInterface {
     private final KcaPacketStore packetTable;
     private final Handler handler = new Handler();
     ExecutorService executorService = Executors.newFixedThreadPool(30);
+    // Records and broadcasts packets off the main thread (the database write can stall on slow
+    // storage and cause ANRs), one at a time so that receivers still get them in order.
+    private static final ExecutorService broadcastExecutor = Executors.newSingleThreadExecutor();
     private final SharedPreferences sharedPref;
 
     public KcsInterface(BrowserActivity ac) {
@@ -64,7 +68,7 @@ public class KcsInterface {
         return sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
     }
 
-    private static boolean isGameHost(String host) {
+    static boolean isGameHost(String host) {
         return host != null && (host.endsWith(".kancolle-server.com") || host.equals("ooi.moe"));
     }
 
@@ -128,14 +132,24 @@ public class KcsInterface {
             KcUtils.reportException(e);
         }
 
-        try {
-            if (isBroadcastMode()) sendBroadcast(url, request, response);
-        } catch (SQLiteFullException e) {
-            activity.runOnUiThread(() -> {
-                String text = "[error] broadcast failed: database or disk is full";
-                activity.setErrorText(text);
-            });
-        }
+        if (!isBroadcastMode()) return;
+        final String body = response;
+        broadcastExecutor.execute(() -> {
+            // Checked again here so that packets still queued are not sent once it is turned off.
+            if (!isBroadcastMode()) return;
+            try {
+                sendBroadcast(url, request, body);
+            } catch (SQLiteException e) {
+                String text;
+                if (e instanceof SQLiteFullException) {
+                    text = "[error] broadcast failed: database or disk is full";
+                } else {
+                    KcUtils.reportException(e);
+                    text = "[error] broadcast failed: database error";
+                }
+                activity.runOnUiThread(() -> activity.setErrorText(text));
+            }
+        });
     }
 
     // The broadcast reaches other apps on the device, so the session token is replaced

@@ -12,8 +12,8 @@ android {
         minSdkVersion 24
         compileSdk 36
         targetSdkVersion 36
-        versionCode 95
-        versionName "4.1-rev1"
+        versionCode 96
+        versionName "4.1-rev2"
         setProperty("archivesBaseName", "gotobrowser-$versionName")
         multiDexEnabled true
 
@@ -63,7 +63,6 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:3.0.0'
     implementation 'com.google.firebase:firebase-crashlytics:21.0.1'
     implementation 'com.google.firebase:firebase-analytics:24.0.0'
-    implementation 'net.lingala.zip4j:zip4j:2.11.6'
 
     implementation 'androidx.browser:browser:1.10.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.2'

@@ -80,6 +80,7 @@
     <string name="noti_screenshot_description">Tap to view your screenshot</string>
     <string name="noti_screenshot_permission_message">Notification permission is required to show the screenshot result.</string>
     <string name="screenshot_save_failed">Couldn\'t save the screenshot.</string>
+    <string name="no_app_to_open_link">No app can open this link.</string>
     <string name="screenshot_storage_permission_required">Storage permission is required to save screenshots.</string>
     <string name="granted_true_notification_permission">Notification permission granted.</string>
     <string name="granted_false_notification_permission">Notification permission not granted.</string>
@@ -141,11 +142,11 @@
     <string name="patch_download_checking">Checking for changes…</string>
     <string name="patch_download_archive">Downloading patch archive…</string>
     <string name="patch_download_extracting">Extracting files…</string>
+    <string name="patch_download_installing">Installing files…</string>
     <string name="patch_download_updated">Patch updated. Please reload the game.</string>
-    <string name="patch_download_failed">Update failed</string>
+    <string name="patch_download_failed">Download failed</string>
     <string name="patch_download_cancelled">Download cancelled</string>
-    <string name="patch_download_error">Error occurred while downloading</string>
-    <string name="patch_download_zip_not_deleted">Download finished, but the zip file could not be deleted</string>
+    <string name="patch_download_no_space">Not enough free storage to install the patch</string>
     <string name="patch_deleted">Patch deleted. Please reload the game.</string>
     <string name="settings_mod_kantaiid_about">About KanColle Indonesia Patch</string>
 
@@ -218,9 +219,12 @@
     <string name="notice_network_desc">Check your internet connection, then use the refresh button</string>
     <string name="notice_http_title">Server response error</string>
     <string name="notice_http_desc">Use the refresh button in a moment</string>
+    <string name="notice_script_title">Script error</string>
+    <string name="notice_script_desc">If mods are on, turn them off, then use the refresh button</string>
     <string name="detail_code">Code</string>
     <string name="detail_host">Host</string>
     <string name="detail_api">API</string>
+    <string name="detail_source">Source</string>
     <string name="detail_message">Message</string>
 
     <!-- Simplified Chinese Localization (Kancolle_to_CHS) -->

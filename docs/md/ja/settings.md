@@ -41,7 +41,7 @@
 
 | 名前 | 説明 | 反映 |
 | --- | --- | --- |
-| 横画面に固定 | デバイスの向きに関係なく常に横向きでプレイします（デフォルトで有効）。マルチウィンドウ（分割/ポップアップ）では適用されません | 即時 |
+| 横画面に固定 | デバイスの向きに関係なく常に横向きでプレイします（デフォルトで有効）。分割画面では適用されません | 即時 |
 | レイアウト自動調整 | ゲーム画面をデバイスの画面サイズに合わせて自動で拡大/縮小します（おすすめ、デフォルトで有効） | 再読み込み |
 | ゲーム画面の縦位置 | 縦画面や分割画面などでゲームの上下に余白がある場合、ゲームを中央または上に配置します（デフォルトは中央） | 即時 |
 | PIPモードを有効にする | ホーム画面に戻るか、ゲーム画面をピンチイン（縮小）すると、小さなフローティング窓でゲーム画面を表示します | 即時 |
@@ -93,7 +93,7 @@ PIP/マルチウィンドウについては<span class="link" data-move="pipmode
 | Kantai3D 視覚効果 | About Kantai3D | [Kantai3DのGitHubページ](https://github.com/laplamgor/kantai3d)を開きます | | |
 | 言語パッチ (KCCP) | KanColle Language Patch (KCCP) | ゲーム内のテキストに翻訳パッチを適用します。有効にすると下の項目が表示されます | 再読み込み | [@Oradimi](https://x.com/oradimi) |
 | 言語パッチ (KCCP) | 適用する言語パッチ | [KanColle English Patch](https://github.com/Oradimi/KanColle-English-Patch-KCCP)（@Oradimi）または[KanColle Indonesia Patch](https://github.com/SLAVUSworks/KanColle-Indonesia-Patch-KCCP)（@SLAVUSworks） | 再読み込み | |
-| 言語パッチ (KCCP) | パッチデータダウンロード | 選択したパッチのデータをダウンロードまたは更新します。完了後、ゲームを再読み込みすると反映されます | 再読み込み | |
+| 言語パッチ (KCCP) | パッチデータダウンロード | 選択したパッチのデータをダウンロードまたは更新します。更新では、可能な場合は変更されたファイルのみをダウンロードします。アプリを離れてもダウンロードは続き、進行状況は通知に表示されます。完了後、ゲームを再読み込みすると反映されます | 再読み込み | |
 | 言語パッチ (KCCP) | パッチデータ削除 | パッチが予期しない動作を示す場合や、ダウンロード中に問題が発生した場合に使用します | 再読み込み | |
 | 言語パッチ (KCCP) | KanColle English/Indonesia Patchについて | 選択したパッチのGitHubページを開きます | | |
 | Kancolle to CHS | 簡体字中国語化パッチ | ゲーム内のテキスト、UI画像、フォントを簡体字中国語に置き換えます。APIデータはゲーム画面内でのみ翻訳されるため、Kcanotifyには元のデータがそのまま送られます。KanColle Language Patch (KCCP)とは併用できず、一方を有効にするともう一方は無効になります。有効にすると下の項目が表示されます | 再読み込み | [@泉浅漪](https://github.com/asaico/Kancolle_to_CHS) |
@@ -101,6 +101,8 @@ PIP/マルチウィンドウについては<span class="link" data-move="pipmode
 | Kancolle to CHS | 翻訳データの取得元 | 更新確認と差分更新に使う取得元をGitHub Raw、jsDelivr CDN、GHProxy Mirror、カスタムミラー URLから選択します（カスタムの場合は取得元のベース URLにアドレスを入力）。差分更新に失敗する場合は別の取得元を使用してください。フルパッケージは常にGitHub Releasesから取得し、GHProxy Mirrorを選択した場合のみGHProxyを経由します。データ提供：KanColle CHS Project（@归海原） | 即時 | |
 | Kancolle to CHS | 翻訳データを削除 | ダウンロード済みの簡体字中国語テキスト、画像、フォントを削除します | 再読み込み | |
 | Kancolle to CHS | Kancolle to CHS について | 作者、データソース、リポジトリへのリンクを表示します | | |
+
+有効にしてインストール済みのパッチに更新がある場合は、アプリの起動時にお知らせします。OKをタップすると設定が開き、ダウンロードが始まります。
 
 ##### アプリケーション情報
 

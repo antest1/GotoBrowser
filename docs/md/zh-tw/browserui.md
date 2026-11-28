@@ -14,7 +14,7 @@
 - 顯示工具列的方法如下：
   - 輕觸遊戲畫面外側的黑色空白處（建議）
   - 從工具列隱藏的畫面邊緣（直向模式：下方，橫向模式：左側）往內滑動（可在設定 → 操作與工具列 → 「從邊緣滑動顯示工具列」中關閉）
-  - 遊戲畫面外側沒有空白處時，按返回鍵（或使用返回手勢）顯示
+  - 遊戲畫面外側沒有空白處時，可使用上述的邊緣滑動，或按返回鍵（或使用返回手勢）顯示
   - 在設定 → 操作與工具列中開啟「啟動時顯示控制台」，讓工具列在應用程式啟動時顯示
 - 反之，隱藏工具列的方法如下：
   - 再次輕觸遊戲畫面外側的黑色空白處
@@ -43,7 +43,7 @@
 | --- | --- | --- |
 | <span class="material-symbols-outlined">volume_off</span>  | 靜音 | 將瀏覽器中播放的聲音靜音。語音檔案仍會持續載入。<br/>（適用於只想看字幕而不想聽聲音等情況） |
 | <span class="material-symbols-outlined">photo_camera</span> | 螢幕截圖 | 開啟或關閉截圖模式。開啟後，畫面右上角的設定按鈕下方會顯示截圖按鈕。 |
-| <span class="material-symbols-outlined">screen_lock_rotation</span> | 自動旋轉鎖定 | 不論裝置設定為何，都將畫面固定在目前的方向，不會旋轉。在多視窗（分割／彈出視窗）下不會套用。 |
+| <span class="material-symbols-outlined">screen_lock_rotation</span> | 自動旋轉鎖定 | 不論裝置設定為何，都將畫面固定在目前的方向，不會旋轉。在分割畫面下不會套用。 |
 | <span class="material-symbols-outlined">light_mode</span> | 保持螢幕開啟 | 待機時不讓螢幕變暗。 |
 | <span class="material-symbols-outlined">closed_caption</span> | 字幕 | 在畫面下方顯示或隱藏遊戲內字幕。輕觸顯示中的字幕，即可將其隱藏到下一句台詞出現為止。 |
 
@@ -54,16 +54,17 @@
 | <span class="material-symbols-outlined">crop_free</span> | 截圖 | 儲存目前的遊戲畫面。僅在截圖模式開啟時顯示。（請參閱<span class="link" data-move="screenshot">儲存螢幕截圖</span>） |
 
 ##### 遊戲中的錯誤提示
-遊戲中與伺服器的通訊發生問題時，遊戲畫面中央會顯示提示，不會遮住遊戲本身的錯誤訊息。
+遊戲中與伺服器的通訊發生問題，或遊戲腳本因錯誤停止時，遊戲畫面中央會顯示提示。伺服器相關的提示不會遮住遊戲本身的錯誤訊息。
 
 | 提示 | 說明 |
 | --- | --- |
 | 通訊錯誤 | 連線中斷或伺服器沒有回應時顯示。請確認連線後重新整理。 |
 | 伺服器回應錯誤 | 伺服器回傳 HTTP 錯誤時顯示。請稍後重新整理。 |
 | 伺服器錯誤 | 伺服器拒絕請求（api_result）時顯示。快速重新整理無法恢復，因此重新整理按鈕會自動以完全重新整理執行。 |
+| 腳本錯誤 | 遊戲腳本因錯誤停止時顯示。可能是與遊戲不再相符的 MOD 造成。如正在使用 MOD，請關閉後重新整理。同一錯誤在每次載入頁面時只會顯示一次。 |
 
 - 輕觸提示即可關閉。
-- 長按提示會複製代碼、API 與訊息。回報問題時請一併附上。
+- 長按提示會複製其內容（代碼、API 與訊息；腳本錯誤則為錯誤、腳本檔案與訊息）。回報問題時請一併附上。
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-tw/game_notice.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 

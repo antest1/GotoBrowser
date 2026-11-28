@@ -64,6 +64,7 @@
     <string name="noti_screenshot_description">點一下即可開啟螢幕截圖</string>
     <string name="noti_screenshot_permission_message">顯示截圖結果需要授予通知權限。</string>
     <string name="screenshot_save_failed">無法儲存截圖。</string>
+    <string name="no_app_to_open_link">沒有可以開啟此連結的應用程式。</string>
     <string name="screenshot_storage_permission_required">儲存截圖需要授予儲存權限。</string>
     <string name="granted_true_notification_permission">已授予通知權限。</string>
     <string name="granted_false_notification_permission">未授予通知權限。</string>
@@ -125,11 +126,11 @@
     <string name="patch_download_checking">正在檢查更新內容…</string>
     <string name="patch_download_archive">正在下載補丁壓縮檔…</string>
     <string name="patch_download_extracting">正在解壓縮檔案…</string>
+    <string name="patch_download_installing">正在安裝檔案…</string>
     <string name="patch_download_updated">補丁已更新，請重新載入遊戲。</string>
-    <string name="patch_download_failed">更新失敗</string>
+    <string name="patch_download_failed">下載失敗</string>
     <string name="patch_download_cancelled">已取消下載</string>
-    <string name="patch_download_error">下載時發生錯誤</string>
-    <string name="patch_download_zip_not_deleted">下載完成，但無法刪除 zip 檔案</string>
+    <string name="patch_download_no_space">儲存空間不足，無法安裝補丁</string>
     <string name="patch_deleted">補丁資料已刪除，請重新載入遊戲。</string>
     <string name="settings_mod_kantaiid_about">KanColle Indonesia Patch關於</string>
 
@@ -202,9 +203,12 @@
     <string name="notice_network_desc">請檢查網路連線，然後使用重新整理按鈕重新整理</string>
     <string name="notice_http_title">伺服器回應錯誤</string>
     <string name="notice_http_desc">請稍後使用重新整理按鈕重新整理</string>
+    <string name="notice_script_title">腳本錯誤</string>
+    <string name="notice_script_desc">如正在使用MOD，請關閉後使用重新整理按鈕重新整理</string>
     <string name="detail_code">代碼</string>
     <string name="detail_host">主機</string>
     <string name="detail_api">API</string>
+    <string name="detail_source">位置</string>
     <string name="detail_message">訊息</string>
 
     <!-- Simplified Chinese Localization (Kancolle_to_CHS / 砍口垒汉化计划 in Goto) -->

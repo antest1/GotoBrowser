@@ -5,34 +5,23 @@ import static com.antest1.gotobrowser.Helpers.KcUtils.parseJsonObject;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.antest1.gotobrowser.Activity.PatchDownloadState;
 import com.antest1.gotobrowser.Activity.SettingsStatusHost;
 import com.antest1.gotobrowser.R;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import net.lingala.zip4j.ZipFile;
-
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -42,20 +31,13 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class KcEnUtils {
-    private static String RAW_BASE() { return "https://raw.githubusercontent.com/" + getGitHubNameRootPath() + "master/"; }
-    private static String GITHUB_BASE() { return "https://github.com/" + getGitHubNameRootPath(); }
+    private static String ENPATCH_INFO_LOCAL_FILE() { return getInfoFileName(targetLanguage); }
 
-    private static String ENPATCH_INFO_LOCAL_FILE() { return getLanguageSymbol() + "-patch.mod.json"; }
-    private static String ENPATCH_INFO_URL() { return RAW_BASE() + ENPATCH_INFO_LOCAL_FILE(); }
-    private static String ENPATCH_FILE_URL_ROOT() { return RAW_BASE(); }
+    private static String getInfoUrl(KenPatcher.PatchLanguage language) {
+        return "https://raw.githubusercontent.com/" + getGitHubNameRootPath(language)
+                + "master/" + getInfoFileName(language);
+    }
     private static String ENPATCH_LOCAL_FOLDER() { return "/" + getRootPath(); }
-    private static String ENPATCH_ZIP_FILE_SRC() { return GITHUB_BASE() + "archive/refs/heads/master.zip"; }
-    private static String ENPATCH_COMMIT_URL() { return "https://api.github.com/repos/" + getGitHubNameRootPath() + "commits/master"; }
-
-    private static int BUFFER_SIZE = 16384;
-
-    private boolean newVersionFlag = false;
-    static String currentVersion = null;
 
     public static class Version implements Comparable<Version> {
 
@@ -122,34 +104,39 @@ public class KcEnUtils {
         return "/patched_cache_en";
     }
 
-    public static String getLanguageSymbol(){
-        if (targetLanguage == KenPatcher.PatchLanguage.EN)
-            return "EN";
-        else if (targetLanguage == KenPatcher.PatchLanguage.ID) {
-            return "ID";
-        }
-        // fallback
-        return "EN";
+    /** Language the settings sheet's patch rows (download / delete) currently point at. */
+    public static KenPatcher.PatchLanguage getTargetLanguage() {
+        return targetLanguage;
     }
 
-    public static String getGitHubNameRootPath() {
-        if (targetLanguage == KenPatcher.PatchLanguage.EN)
-            return "Oradimi/KanColle-English-Patch-KCCP/";
-        else if (targetLanguage == KenPatcher.PatchLanguage.ID) {
-            return "SLAVUSworks/KanColle-Indonesia-Patch-KCCP/";
-        }
-        // fallback
-        return "Oradimi/KanColle-English-Patch-KCCP/";
+    public static String getLanguageSymbol(KenPatcher.PatchLanguage language) {
+        if (language == KenPatcher.PatchLanguage.ID) return "ID";
+        return "EN"; // EN and fallback
+    }
+
+    public static String getGitHubNameRootPath(KenPatcher.PatchLanguage language) {
+        if (language == KenPatcher.PatchLanguage.ID) return "SLAVUSworks/KanColle-Indonesia-Patch-KCCP/";
+        return "Oradimi/KanColle-English-Patch-KCCP/"; // EN and fallback
+    }
+
+    /** Product name of the patch, as in the patch list of the settings sheet. */
+    public static String getPatchTitle(KenPatcher.PatchLanguage language) {
+        if (language == KenPatcher.PatchLanguage.ID) return "KanColle Indonesia Patch";
+        return "KanColle English Patch"; // EN and fallback
     }
 
     public static String getRootPath() {
-        if (targetLanguage == KenPatcher.PatchLanguage.EN)
-            return "KanColle-English-Patch-KCCP-master/";
-        else if (targetLanguage == KenPatcher.PatchLanguage.ID) {
-            return "KanColle-Indonesia-Patch-KCCP-master/";
-        }
-        // fallback
-        return "KanColle-English-Patch-KCCP-master/";
+        return getRootPath(targetLanguage);
+    }
+
+    public static String getRootPath(KenPatcher.PatchLanguage language) {
+        if (language == KenPatcher.PatchLanguage.ID) return "KanColle-Indonesia-Patch-KCCP-master/";
+        return "KanColle-English-Patch-KCCP-master/"; // EN and fallback
+    }
+
+    /** Version file at the patch repository root, also used to tell whether the patch is installed. */
+    public static String getInfoFileName(KenPatcher.PatchLanguage language) {
+        return getLanguageSymbol(language) + "-patch.mod.json";
     }
 
     public static String getAssetPath() {
@@ -167,13 +154,17 @@ public class KcEnUtils {
     }
 
     /**
-     * Fetches the patch info file. Blocks on the network, so callers run it off the main
-     * thread (both do: the update check's thread and the zip downloader's background task).
+     * Fetches the patch info file. Blocks on the network, so the update check runs it on
+     * its own thread.
      * On failure the result holds an "error" property.
      */
     public static JsonObject getKantaiEnUpdateInfo(OkHttpClient client) {
+        return getKantaiEnUpdateInfo(client, targetLanguage);
+    }
+
+    private static JsonObject getKantaiEnUpdateInfo(OkHttpClient client, KenPatcher.PatchLanguage language) {
         JsonObject enPatchInfo = new JsonObject();
-        Request request = new Request.Builder().url(ENPATCH_INFO_URL()).build();
+        Request request = new Request.Builder().url(getInfoUrl(language)).build();
         try (Response response = client.newCall(request).execute()) {
             ResponseBody body = response.body();
             if (response.code() != 200) {
@@ -192,6 +183,41 @@ public class KcEnUtils {
         }
         Log.e("GOTO", "enPatchInfo: " + enPatchInfo);
         return enPatchInfo;
+    }
+
+    /**
+     * The published version of the [language] patch when it is installed and the published
+     * one is newer; null when not installed, up to date, or the check fails. Blocks on the
+     * network.
+     */
+    public static String findAvailableUpdate(Context context, KenPatcher.PatchLanguage language) {
+        File localInfo = new File(KcUtils.getAppCacheFileDir(context, "/" + getRootPath(language))
+                + getInfoFileName(language));
+        if (!localInfo.isFile()) return null;
+        String installed = versionOf(KcUtils.readJsonObjectFromFile(localInfo.getPath()));
+        if (installed == null) return null;
+
+        JsonObject remote = getKantaiEnUpdateInfo(KcUtils.getSharedHttpClient(), language);
+        String available = remote.has("error") ? null : versionOf(remote);
+        return available != null && isNewer(available, installed) ? available : null;
+    }
+
+    /**
+     * Whether [available] is a newer version than [installed]. The raw file can be served
+     * from a cache for a few minutes after an update, so an older published version is not
+     * an update. Versions that are not dotted numbers count as newer when they differ.
+     */
+    static boolean isNewer(String available, String installed) {
+        try {
+            return new Version(available).compareTo(new Version(installed)) > 0;
+        } catch (IllegalArgumentException e) {
+            return !available.equals(installed);
+        }
+    }
+
+    private static String versionOf(JsonObject info) {
+        if (info == null || !info.has("version") || !info.get("version").isJsonPrimitive()) return null;
+        return info.get("version").getAsString();
     }
 
     // Bumped per check so a slow, superseded check cannot overwrite a newer result.
@@ -229,78 +255,18 @@ public class KcEnUtils {
             host.setPatchUpdateStatus(String.format(Locale.US,
                     "Data not installed yet. (%s)",
                     availableVersion), true);
-            newVersionFlag = false;
         } else if (enPatchLocalInfo != null && enPatchLocalInfo.has("version")) {
-            currentVersion = enPatchLocalInfo.get("version").getAsString();
+            String currentVersion = enPatchLocalInfo.get("version").getAsString();
             if (!currentVersion.equals(availableVersion)) {
                 host.setPatchUpdateStatus(String.format(Locale.US,
                         host.getString(R.string.setting_latest_download_subtitle),
                         availableVersion), true);
-                newVersionFlag = true;
             } else {
                 host.setPatchUpdateStatus(host.getString(R.string.setting_latest_version), false);
-                newVersionFlag = false;
             }
         } else {
             host.setPatchUpdateStatus("Error occurred while retrieving latest version", false);
-            newVersionFlag = false;
         }
-    }
-
-    public boolean remoteFileExists(String URLName){
-        try {
-            HttpURLConnection.setFollowRedirects(false);
-            // note : you may also need
-            //        HttpURLConnection.setInstanceFollowRedirects(false)
-            HttpURLConnection con =
-                    (HttpURLConnection) new URL(URLName).openConnection();
-            con.setRequestMethod("HEAD");
-            return (con.getResponseCode() == HttpURLConnection.HTTP_OK);
-        }
-        catch (Exception e) {
-            Log.e("GOTO", KcUtils.getStringFromException(e));
-            return false;
-        }
-    }
-
-    public void requestPatchUpdate(SettingsStatusHost host) throws IOException {
-        // To do: clean up this mess
-        // Progress is rendered by the settings sheet from host state, so the
-        // downloaders only need an application context (no window token, and
-        // nothing to leak across an activity recreation).
-        Context hostContext = host.getContext();
-        if (hostContext == null) return;
-        Context context = hostContext.getApplicationContext();
-        if (newVersionFlag) {
-            // Updates the patch by downloading each new file individually, and deleting outdated ones
-            new PatchIndividualDownloader(context, host).execute();
-        } else {
-            // Downloads and extracts the Patch zip (the patch info is fetched in the background)
-            new PatchZipDownloader(context, host).execute();
-        }
-    }
-
-    /** Deletes the patch data. The confirmation is asked by the settings sheet beforehand. */
-    public void deletePatch(SettingsStatusHost host) {
-        Context context = host.getContext();
-        if (context == null) return;
-        Context appContext = context.getApplicationContext();
-        String message = host.getString(R.string.patch_deleted);
-        // The patch folder holds many files; deleting it on the main thread causes ANRs.
-        new Thread(() -> {
-            deleteEnglishPatch(appContext);
-            new Handler(Looper.getMainLooper()).post(() -> {
-                newVersionFlag = false;
-                host.showPatchMessage(message);
-            });
-        }).start();
-    }
-
-    private static void deleteEnglishPatch(Context context) {
-        File zipFile = new File(KcUtils.getAppCacheFileDir(context, "/master.zip"));
-        zipFile.delete();
-        File patchFolder = new File(KcUtils.getAppCacheFileDir(context, ENPATCH_LOCAL_FOLDER()));
-        KcUtils.deleteRecursive(patchFolder);
     }
 
     public static Set<String> listFiles(String dir) {
@@ -364,10 +330,13 @@ public class KcEnUtils {
     public static String dirMD5(String dir) {
         StringBuilder md5 = new StringBuilder();
         File folder = new File(dir);
+        // null when the folder is missing (e.g. original/ without patched/) or can't be read.
         File[] files = folder.listFiles();
 
-        for (File file : Objects.requireNonNull(files)) {
-            md5.append(getMD5OfFile(file.toString()));
+        if (files != null) {
+            for (File file : files) {
+                md5.append(getMD5OfFile(file.toString()));
+            }
         }
         md5 = new StringBuilder(GetMD5HashOfString(md5.toString()));
         return md5.toString();
@@ -416,315 +385,4 @@ public class KcEnUtils {
         return hexString.toString();
     }
 
-    private static String getLatestCommit(OkHttpClient client) throws IOException {
-        Request request = new Request.Builder().url(ENPATCH_COMMIT_URL()).build();
-        try (Response response = client.newCall(request).execute()) {
-            if (response.isSuccessful() && response.body() != null) {
-                try (Reader reader = response.body().charStream()) {
-                    JsonObject json = parseJsonObject(reader);
-                    return json.get("sha").getAsString();
-                }
-            }
-        }
-        return null;
-    }
-
-    private static String getLocalCommit(Context context) {
-        return context.getSharedPreferences("patch_meta", Context.MODE_PRIVATE)
-                .getString("commit", null);
-    }
-
-    private static void saveLocalCommit(Context context, String sha) {
-        context.getSharedPreferences("patch_meta", Context.MODE_PRIVATE)
-                .edit()
-                .putString("commit", sha)
-                .apply();
-    }
-
-    private static PatchDownloadState running(String message, Float progress) {
-        return new PatchDownloadState.Running(message, progress);
-    }
-
-    /**
-     * Updates the patch by downloading each changed file individually. Progress is
-     * reported through {@link SettingsStatusHost#setPatchDownloadState} so the settings
-     * sheet can draw it with its own Material theme.
-     */
-    private static class PatchIndividualDownloader extends AsyncTask<Void, PatchDownloadState, Integer> {
-
-        private final Context context;
-        private final SettingsStatusHost host;
-        private final OkHttpClient client = KcUtils.getSharedHttpClient();
-
-        public PatchIndividualDownloader(Context ctx, SettingsStatusHost host) {
-            this.context = ctx;
-            this.host = host;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            host.setPatchDownloadState(running(context.getString(R.string.patch_download_checking), null));
-        }
-
-        @Override
-        protected void onProgressUpdate(PatchDownloadState... values) {
-            host.setPatchDownloadState(values[0]);
-        }
-
-        @Override
-        protected void onPostExecute(Integer result) {
-            if (result == 2) {
-                // Hand over to the zip download without going idle in between,
-                // so the progress dialog stays up instead of flickering.
-                new PatchZipDownloader(context, host).execute();
-                return;
-            }
-
-            host.setPatchDownloadState(PatchDownloadState.Idle.INSTANCE);
-            if (result == 1) {
-                host.showPatchMessage(context.getString(R.string.patch_download_updated));
-                host.setPatchUpdateStatus(context.getString(R.string.setting_latest_version), false);
-            } else {
-                host.showPatchMessage(context.getString(R.string.patch_download_failed));
-            }
-        }
-
-        @Override
-        protected Integer doInBackground(Void... voids) {
-            try {
-                String remoteCommit = getLatestCommit(client);
-                String localCommit = getLocalCommit(context);
-
-                if (remoteCommit == null)
-                    return -2;
-
-                if (localCommit == null) {
-                    return 2; // zip fallback
-                }
-
-                if (remoteCommit.equals(localCommit)) {
-                    publishProgress(running("Already up to date", 1f));
-                    return 1;
-                }
-
-                publishProgress(running("Fetching diff...", null));
-
-                JsonObject compare = getCompare(localCommit, remoteCommit);
-                if (compare == null || !compare.has("files"))
-                    return -1;
-
-                JsonArray files = compare.getAsJsonArray("files");
-
-                if (files.size() >= 300)
-                    return 2; // zip fallback
-
-                int updated = 0;
-                int totalFiles = files.size();
-                int currentIndex = 0;
-                long startTime = System.currentTimeMillis();
-                for (JsonElement el : files) {
-                    currentIndex++;
-
-                    JsonObject file = el.getAsJsonObject();
-
-                    String filename = file.get("filename").getAsString();
-                    String status = file.get("status").getAsString();
-
-                    File out = new File(
-                            KcUtils.getAppCacheFileDir(context, ENPATCH_LOCAL_FOLDER()),
-                            filename
-                    );
-
-                    long now = System.currentTimeMillis();
-                    double elapsedSec = (now - startTime) / 1000.0;
-                    double filesPerSec = elapsedSec > 0 ? currentIndex / elapsedSec : 0;
-                    double eta = filesPerSec > 0 ? (totalFiles - currentIndex) / filesPerSec : 0;
-                    float fraction = (float) currentIndex / totalFiles;
-
-                    String progressHeader = String.format(Locale.US,
-                            "[%d / %d] (%.1f%%)\n%.2f files/s • ETA: %ds\n",
-                            currentIndex, totalFiles, (currentIndex * 100.0 / totalFiles), filesPerSec, (int) eta
-                    );
-
-                    if ("removed".equals(status)) {
-                        publishProgress(running(progressHeader + "Deleting:\n" + filename, fraction));
-                        if (out.exists()) out.delete();
-                        continue;
-                    }
-
-                    String rawUrl = file.get("raw_url").getAsString();
-
-                    publishProgress(running(progressHeader + "Downloading:\n" + filename, fraction));
-
-                    if (out.getParentFile() != null) {
-                        out.getParentFile().mkdirs();
-                    }
-
-                    KcUtils.downloadResource(client, rawUrl, out);
-
-                    updated++;
-                }
-
-                saveLocalCommit(context, remoteCommit);
-
-                publishProgress(running("Updated files: " + updated, 1f));
-
-                return 1;
-
-            } catch (Exception e) {
-                Log.e("GOTO", getStringFromException(e));
-                return -1;
-            }
-        }
-
-        // ---------- GitHub ----------
-
-        private JsonObject getCompare(String oldSha, String newSha) throws IOException {
-            String url = "https://api.github.com/repos/" + getGitHubNameRootPath() + "compare/"
-                    + oldSha + "..." + newSha;
-
-            Request request = new Request.Builder().url(url).build();
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful() && response.body() != null) {
-                    try (Reader reader = response.body().charStream()) {
-                        return parseJsonObject(reader);
-                    }
-                }
-            }
-
-            return null;
-        }
-    }
-
-
-    /** Downloads and extracts the whole patch archive. Progress is reported like {@link PatchIndividualDownloader}. */
-    private static class PatchZipDownloader extends AsyncTask<Integer, PatchDownloadState, Integer> {
-        private final SettingsStatusHost host;
-        private final OkHttpClient client = KcUtils.getSharedHttpClient();
-        private final Context context;
-        long patchSize = 370000000;
-
-        public PatchZipDownloader(Context ctx, SettingsStatusHost host) {
-            this.context = ctx;
-            this.host = host;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            host.setPatchDownloadState(running(context.getString(R.string.patch_download_archive), 0f));
-        }
-
-        @Override
-        protected void onProgressUpdate(PatchDownloadState... values) {
-            super.onProgressUpdate(values);
-            host.setPatchDownloadState(values[0]);
-        }
-
-        @Override
-        protected Integer doInBackground(Integer... params) {
-            // Only used for the progress total; a network call, so it stays off the main thread.
-            JsonObject patchInfo = getKantaiEnUpdateInfo(client);
-            if (patchInfo.has("size") && !patchInfo.get("size").isJsonNull()) {
-                patchSize = patchInfo.get("size").getAsLong();
-            }
-            try {
-                URL url = new URL(ENPATCH_ZIP_FILE_SRC());
-                String out = KcUtils.getAppCacheFileDir(context, "/master.zip");
-                File zipOut = new File(out);
-
-                byte[] data = new byte[BUFFER_SIZE];
-                long transferred = 0;
-                InputStream stream = url.openStream();
-                BufferedInputStream bis = new BufferedInputStream(stream);
-                FileOutputStream fos = new FileOutputStream(zipOut);
-                int count;
-                long lastUpdateTime = System.currentTimeMillis();
-                long lastTransferred = 0;
-                double mb = 1024.0 * 1024.0;
-                double totalMB = patchSize / mb;
-                while ((count = bis.read(data, 0, BUFFER_SIZE)) != -1) {
-                    fos.write(data, 0, count);
-                    transferred += count;
-
-                    long now = System.currentTimeMillis();
-                    long timeDiff = now - lastUpdateTime;
-
-                    if (timeDiff > 500) {
-                        long bytesDiff = transferred - lastTransferred;
-
-                        double speed = (double) bytesDiff / timeDiff * 1000.0; // bytes/sec
-                        double speedMB = speed / mb;
-
-                        double downloadedMB = transferred / mb;
-
-                        double eta = speed > 0 ? (patchSize - transferred) / speed : 0;
-
-                        String message = String.format(Locale.US,
-                                "%.2f / %.2f MB (size estimate)\n%.2f MB/s • ETA: %ds",
-                                downloadedMB, totalMB, speedMB, (int) eta
-                        );
-
-                        // patchSize is an estimate, so keep the bar within range.
-                        float fraction = Math.min(1f, (float) transferred / patchSize);
-                        publishProgress(running(message, fraction));
-
-                        lastUpdateTime = now;
-                        lastTransferred = transferred;
-                    }
-                }
-
-                String existingFolderName = KcUtils.getAppCacheFileDir(context, ENPATCH_LOCAL_FOLDER());
-                File existingFolder = new File(existingFolderName);
-                if (existingFolder.exists())
-                    existingFolder.delete();
-
-                publishProgress(running(context.getString(R.string.patch_download_extracting), null));
-                ZipFile zipFile = new ZipFile(out);
-                zipFile.extractAll(KcUtils.getAppCacheFileDir(context, ""));
-                Log.e("GOTO", "zip extracted to " + KcUtils.getAppCacheFileDir(context, ""));
-
-                publishProgress(running("Create .nomedia File...", null));
-                File file = new File(getEnPatchLocalFolder(context).concat(".nomedia"));
-                try {
-                    file.createNewFile();
-                } catch (IOException e) {
-                    Log.e("GOTO", KcUtils.getStringFromException(e));
-                    return -1;
-                }
-                Log.e("GOTO", "Created .nomedia file");
-
-                String latestCommit = getLatestCommit(client);
-                if (latestCommit != null) {
-                    saveLocalCommit(context, latestCommit);
-                }
-
-                publishProgress(running("Removing Zip File...", null));
-                boolean deleted = zipOut.delete();
-                return deleted ? 1 : 0;
-            } catch (Exception e) {
-                Log.e("GOTO", KcUtils.getStringFromException(e));
-                return -1;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Integer integer) {
-            super.onPostExecute(integer);
-
-            host.setPatchDownloadState(PatchDownloadState.Idle.INSTANCE);
-            if (integer == 1) {
-                Log.e("GOTO", "Zip was deleted");
-                host.showPatchMessage(context.getString(R.string.en_install_done_notification));
-                host.setPatchUpdateStatus(host.getString(R.string.setting_latest_version), false);
-            } else if (integer == 0) {
-                Log.e("GOTO", "Zip wasn't deleted");
-                host.showPatchMessage(context.getString(R.string.patch_download_zip_not_deleted));
-                host.setPatchUpdateStatus(host.getString(R.string.setting_latest_version), false);
-            } else if (integer == -1) {
-                Log.e("GOTO", "Error occurred while downloading");
-                host.showPatchMessage(context.getString(R.string.patch_download_error));
-            }
-        }
-    }
 }

@@ -64,6 +64,7 @@
     <string name="noti_screenshot_description">点一下即可开启萤幕截图</string>
     <string name="noti_screenshot_permission_message">显示截图结果需要授予通知权限。</string>
     <string name="screenshot_save_failed">无法保存截图。</string>
+    <string name="no_app_to_open_link">没有可以打开此链接的应用。</string>
     <string name="screenshot_storage_permission_required">保存截图需要授予存储权限。</string>
     <string name="granted_true_notification_permission">已授予通知权限。</string>
     <string name="granted_false_notification_permission">未授予通知权限。</string>
@@ -125,11 +126,11 @@
     <string name="patch_download_checking">正在检查更新内容…</string>
     <string name="patch_download_archive">正在下载补丁压缩包…</string>
     <string name="patch_download_extracting">正在解压文件…</string>
+    <string name="patch_download_installing">正在安装文件…</string>
     <string name="patch_download_updated">补丁已更新，请重新加载游戏。</string>
-    <string name="patch_download_failed">更新失败</string>
-    <string name="patch_download_error">下载时发生错误</string>
+    <string name="patch_download_failed">下载失败</string>
     <string name="patch_download_cancelled">已取消下载</string>
-    <string name="patch_download_zip_not_deleted">下载完成，但无法删除 zip 文件</string>
+    <string name="patch_download_no_space">存储空间不足，无法安装补丁</string>
     <string name="patch_deleted">补丁资料已删除，请重新加载游戏。</string>
     <string name="settings_mod_kantaiid_about">KanColle Indonesia Patch关于</string>
 
@@ -203,9 +204,12 @@
     <string name="notice_network_desc">请检查网络连接，然后使用刷新按钮刷新</string>
     <string name="notice_http_title">服务器响应错误</string>
     <string name="notice_http_desc">请稍后使用刷新按钮刷新</string>
+    <string name="notice_script_title">脚本错误</string>
+    <string name="notice_script_desc">如正在使用MOD，请关闭后使用刷新按钮刷新</string>
     <string name="detail_code">代码</string>
     <string name="detail_host">主机</string>
     <string name="detail_api">API</string>
+    <string name="detail_source">位置</string>
     <string name="detail_message">消息</string>
 
     <!-- Simplified Chinese Localization (Kancolle_to_CHS / 砍口垒汉化计划 in Goto) -->

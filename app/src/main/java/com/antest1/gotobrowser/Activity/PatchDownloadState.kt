@@ -2,7 +2,7 @@ package com.antest1.gotobrowser.Activity
 
 /**
  * Progress of a patch download, published by the downloaders in
- * [com.antest1.gotobrowser.Helpers.KcEnUtils] or [com.antest1.gotobrowser.Helpers.chs.ChsDownloader]
+ * [com.antest1.gotobrowser.Helpers.KccpPatchDownloader] or [com.antest1.gotobrowser.Helpers.chs.ChsDownloader]
  * and rendered by the settings sheet as a Material 3 dialog under the sheet's theme.
  */
 sealed interface PatchDownloadState {

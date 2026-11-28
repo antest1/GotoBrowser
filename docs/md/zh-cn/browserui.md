@@ -14,7 +14,7 @@
 - 显示工具栏的方法如下。
   - 轻触游戏画面外的黑色空白区域（推荐）
   - 从隐藏工具栏的屏幕边缘（竖屏：底部，横屏：左侧）向内滑动（可在设置 → 操作与工具栏 → “从边缘滑动显示工具栏”中关闭）
-  - 游戏画面外没有空白区域时，按返回键（或使用返回手势）显示
+  - 游戏画面外没有空白区域时，可使用上述的边缘滑动，或按返回键（或使用返回手势）显示
   - 在设置 → 操作与工具栏中开启“启动时显示控制台”，使其在应用启动时显示
 - 隐藏工具栏的方法如下。
   - 再次轻触游戏画面外的黑色空白区域
@@ -43,7 +43,7 @@
 | --- | --- | --- |
 | <span class="material-symbols-outlined">volume_off</span>  | 静音 | 将浏览器中正在播放的声音静音。语音文件仍会继续加载。<br/>（适用于只想看字幕而不想听声音等情况） |
 | <span class="material-symbols-outlined">photo_camera</span> | 萤幕截图 | 开启或关闭截图模式。开启后，屏幕右上角设置按钮的下方会显示截图按钮。 |
-| <span class="material-symbols-outlined">screen_lock_rotation</span> | 自动旋转锁定 | 锁定当前画面方向，无论设备设置如何都不会旋转。多窗口（分屏/弹出窗口）下不生效。 |
+| <span class="material-symbols-outlined">screen_lock_rotation</span> | 自动旋转锁定 | 锁定当前画面方向，无论设备设置如何都不会旋转。分屏下不生效。 |
 | <span class="material-symbols-outlined">light_mode</span> | 保持萤幕开启 | 使屏幕在待机状态下不会变暗。 |
 | <span class="material-symbols-outlined">closed_caption</span> | 字幕 | 在屏幕底部显示或隐藏游戏内字幕。轻触显示的字幕，可将其隐藏至下一句台词出现。 |
 
@@ -54,16 +54,17 @@
 | <span class="material-symbols-outlined">crop_free</span> | 截图 | 保存当前游戏画面。仅在截图模式开启时显示。（参见<span class="link" data-move="screenshot">保存截图</span>） |
 
 ##### 游戏中的错误提示
-游戏中与服务器通信出现问题时，游戏画面中央会显示提示，不会遮挡游戏自身的错误信息。
+游戏中与服务器通信出现问题，或游戏脚本因错误停止时，游戏画面中央会显示提示。服务器相关的提示不会遮挡游戏自身的错误信息。
 
 | 提示 | 说明 |
 | --- | --- |
 | 通信错误 | 连接中断或服务器无响应时显示。请检查连接后刷新。 |
 | 服务器响应错误 | 服务器返回 HTTP 错误时显示。请稍后刷新。 |
 | 服务器错误 | 服务器拒绝请求（api_result）时显示。快速刷新无法恢复，因此刷新按钮会自动以完全刷新执行。 |
+| 脚本错误 | 游戏脚本因错误停止时显示。可能是与游戏不再匹配的 MOD 导致。如正在使用 MOD，请关闭后刷新。同一错误在每次加载页面时只显示一次。 |
 
 - 轻触提示即可关闭。
-- 长按提示会复制代码、API 和消息。反馈问题时请一并附上。
+- 长按提示会复制其内容（代码、API 和消息；脚本错误则为错误、脚本文件和消息）。反馈问题时请一并附上。
 
 <img src="https://gotobrowser-docs.s3.ap-northeast-1.amazonaws.com/zh-cn/game_notice.webp"  width="840" style="max-width: 100%;" class="mb-3"/>
 

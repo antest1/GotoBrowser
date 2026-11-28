@@ -67,6 +67,7 @@
     <string name="noti_screenshot_description">탭하여 스크린샷 열기</string>
     <string name="noti_screenshot_permission_message">스크린샷 결과를 표시하기 위해서는 알림 권한이 필요합니다.</string>
     <string name="screenshot_save_failed">스크린샷을 저장하지 못했습니다.</string>
+    <string name="no_app_to_open_link">링크를 열 수 있는 앱이 없습니다.</string>
     <string name="screenshot_storage_permission_required">스크린샷을 저장하려면 저장소 권한이 필요합니다.</string>
     <string name="granted_true_notification_permission">알림 권한이 설정됨</string>
     <string name="granted_false_notification_permission">알림 권한이 설정되지 않음</string>
@@ -128,11 +129,11 @@
     <string name="patch_download_checking">변경 사항 확인 중…</string>
     <string name="patch_download_archive">패치 압축 파일 다운로드 중…</string>
     <string name="patch_download_extracting">파일 압축 해제 중…</string>
+    <string name="patch_download_installing">파일 설치 중…</string>
     <string name="patch_download_updated">패치가 업데이트되었습니다. 게임을 새로고침해주세요.</string>
-    <string name="patch_download_failed">업데이트에 실패했습니다</string>
+    <string name="patch_download_failed">다운로드에 실패했습니다</string>
     <string name="patch_download_cancelled">다운로드가 취소되었습니다</string>
-    <string name="patch_download_error">다운로드 중 오류가 발생했습니다</string>
-    <string name="patch_download_zip_not_deleted">다운로드는 완료되었지만 zip 파일을 삭제하지 못했습니다</string>
+    <string name="patch_download_no_space">패치를 설치할 저장 공간이 부족합니다</string>
     <string name="patch_deleted">패치 데이터가 삭제되었습니다. 게임을 새로고침해주세요.</string>
     <string name="settings_mod_kantaiid_about">KanColle Indonesia Patch에 대해</string>
 
@@ -206,9 +207,12 @@
     <string name="notice_network_desc">인터넷 연결을 확인한 뒤 새로고침 버튼으로 새로고침해 주세요</string>
     <string name="notice_http_title">서버 응답 오류</string>
     <string name="notice_http_desc">잠시 후 새로고침 버튼으로 새로고침해 주세요</string>
+    <string name="notice_script_title">스크립트 오류</string>
+    <string name="notice_script_desc">모드를 사용 중이라면 끈 뒤 새로고침 버튼으로 새로고침해 주세요</string>
     <string name="detail_code">코드</string>
     <string name="detail_host">주소</string>
     <string name="detail_api">API</string>
+    <string name="detail_source">위치</string>
     <string name="detail_message">메시지</string>
 
     <!-- Simplified Chinese Localization (Kancolle_to_CHS) -->

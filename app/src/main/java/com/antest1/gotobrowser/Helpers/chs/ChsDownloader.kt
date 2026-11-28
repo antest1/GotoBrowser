@@ -127,6 +127,12 @@ class ChsDownloader(
         }
     }
 
+    /** Whether a download or archive install runs and has not been cancelled. */
+    fun isDownloadActive(): Boolean {
+        val token = activeDownloadToken
+        return token != 0L && !isTaskCancelled(token)
+    }
+
     /** Checks remote updates and posts status summary on the main thread. */
     fun checkUpdate(context: Context, onStatusResult: (summary: String) -> Unit) {
         val appContext = context.applicationContext
@@ -189,6 +195,26 @@ class ChsDownloader(
                     onStatusResult(appContext.getString(R.string.chs_status_check_failed))
                 }
             }
+        }
+    }
+
+    /**
+     * The remote version when the patch is enabled, installed and has changes to download;
+     * null otherwise or when the check fails. Blocks on the network.
+     */
+    fun findAvailableUpdate(context: Context): String? {
+        val appContext = context.applicationContext
+        ChsConfig.init(appContext)
+        if (!ChsConfig.isEnabled() || !ChsPaths.hasInstalledData(appContext)) return null
+        return try {
+            val remote = fetchRemoteManifest() ?: return null
+            if (remote.files.isEmpty()) return null
+            val localMap = ChsManifest.loadLocalManifestMap(ChsPaths.getLocalManifestFile(appContext))
+            val diff = ChsManifest.computeDiff(remote, ChsPaths.getRootDir(appContext), localMap)
+            remote.version.takeIf { diff.hasUpdates }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to check CHS update: ${e.message}")
+            null
         }
     }
 
