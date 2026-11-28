@@ -115,6 +115,10 @@ class KccpPatchDownloader(
         private const val BUFFER_SIZE = 32768
         private const val CONCURRENCY = 4
         private const val PROGRESS_INTERVAL_MS = 100L
+
+        // Longer than the slowest step without progress: the archive's first bytes can take
+        // up to the 60 s read timeout.
+        private const val IN_APP_NOTIFICATION_TIMEOUT_MS = 2L * 60 * 1000
         private const val SPEED_INTERVAL_MS = 500L
 
         // GitHub's compare API lists at most 300 files.
@@ -440,11 +444,11 @@ class KccpPatchDownloader(
     private var cancelledUpToToken = 0L
     @Volatile
     private var activePool: ExecutorService? = null
-    // What the active download installs, and whether it runs as a user-initiated job.
+    // What the active download installs, and what runs it.
     @Volatile
     private var activeRepo: Repo? = null
     @Volatile
-    private var activeAsJob = false
+    private var activeRunner: Runner? = null
     @Volatile
     private var appContext: Context? = null
     private val activeCalls: MutableSet<Call> = Collections.newSetFromMap(ConcurrentHashMap())
@@ -491,13 +495,21 @@ class KccpPatchDownloader(
         if (isDownloadActive()) observer.onDownloadStateChanged(currentState)
     }
 
-    /**
-     * Main thread. A download that runs in the app, not as a job, is cancelled once its last
-     * observer is gone: nothing shows its progress any more, and the app may be frozen soon.
-     */
+    /** Main thread. */
     fun removeObserver(observer: Observer) {
         observers.remove(observer)
-        if (observers.isEmpty() && !activeAsJob) cancelDownload()
+    }
+
+    /** What runs a download, so that it goes on when the app is left. */
+    internal enum class Runner {
+        /** A user-initiated data transfer job ([KccpPatchJobService]), from Android 14. */
+        JOB,
+
+        /** A data sync foreground service ([KccpPatchService]), before Android 14. */
+        SERVICE,
+
+        /** The app alone, when neither can be started; it may stop with the app in the background. */
+        APP
     }
 
     /**
@@ -505,33 +517,48 @@ class KccpPatchDownloader(
      * reports to the observers. Ignored while another download runs (e.g. a start-up notice
      * answered late): its progress is already shown.
      *
-     * From Android 14 the download runs as a user-initiated data transfer job, which goes on
-     * with its own notification when the app is left; the app must be visible when this is
-     * called. Before that it runs in the app. Main thread.
+     * The download runs in a job or a foreground service ([Runner]), which goes on with a
+     * notification when the app is left; the app must be visible when this is called. Main
+     * thread.
      */
     fun startUpdate(context: Context) {
         if (isDownloadActive()) return
         val appContext = context.applicationContext
         val repo = repoFor(KcEnUtils.getTargetLanguage())
         val token = nextTaskToken.incrementAndGet()
-        // The job starts on the main thread too, so not before the fields below are set.
-        val asJob = KccpPatchJobService.schedule(appContext)
+        // Set before the job or service is started; both start on the main thread, so they
+        // see the fields below anyway.
         synchronized(cancelLock) {
             activeToken = token
             activeRepo = repo
-            activeAsJob = asJob
+            activeRunner = null
             this.appContext = appContext
         }
+        val runner = when {
+            KccpPatchJobService.schedule(appContext) -> Runner.JOB
+            KccpPatchService.start(appContext) -> Runner.SERVICE
+            else -> Runner.APP
+        }
+        synchronized(cancelLock) {
+            if (activeToken == token) activeRunner = runner
+        }
+        if (runner == Runner.APP) {
+            // The job and the service show their own notification. Here the app can be frozen
+            // or killed in the background, so a notification no longer updated goes away.
+            KccpPatchNotification.createChannel(appContext)
+            val notification = KccpPatchNotification.Observer(appContext, repo.title, IN_APP_NOTIFICATION_TIMEOUT_MS)
+            addObserver(notification)
+            runTask(appContext, token, repo) { mainHandler.post { removeObserver(notification) } }
+        }
         showProgress(token, appContext.getString(R.string.patch_download_checking), null)
-        if (!asJob) runTask(appContext, token, repo) {}
     }
 
     /**
-     * Runs the download a job was scheduled for, calling [onEnd] once it has ended. False when
-     * there is none to run, e.g. it was cancelled before the job started, or the process was
-     * restarted in between.
+     * Runs the download the job or service [runner] was started for, calling [onEnd] once it
+     * has ended. False when there is none to run, e.g. it was cancelled before, or the process
+     * was restarted in between.
      */
-    internal fun runJob(onEnd: () -> Unit): Boolean {
+    internal fun runFor(runner: Runner, onEnd: () -> Unit): Boolean {
         val token: Long
         val repo: Repo
         val context: Context
@@ -539,7 +566,7 @@ class KccpPatchDownloader(
             token = activeToken
             repo = activeRepo ?: return false
             context = appContext ?: return false
-            if (token == 0L || !activeAsJob || isCancelled(token)) return false
+            if (token == 0L || activeRunner != runner || isCancelled(token)) return false
         }
         runTask(context, token, repo, onEnd)
         return true
@@ -575,12 +602,12 @@ class KccpPatchDownloader(
                     if (activeToken == token) {
                         activeToken = 0L
                         activeRepo = null
-                        activeAsJob = false
+                        activeRunner = null
                     }
                 }
                 // Drops the old install left by a swap, and the staging folder and archive
-                // of a failed or cancelled run. Before onEnd, so a job keeps the app running
-                // while it deletes about 1 GB.
+                // of a failed or cancelled run. Before onEnd, so the job or service keeps the
+                // app running while it deletes about 1 GB.
                 recoverInterruptedInstall(layout)
                 onEnd()
             }
@@ -593,10 +620,10 @@ class KccpPatchDownloader(
     }
 
     /**
-     * Stops the download of a job the system stopped: by the user from the task manager
-     * ([byUser]), or for a reason of its own such as a lost connection.
+     * Stops the download whose job or service the system stopped: for the user, from the task
+     * manager ([byUser]), or for a reason of its own such as a lost connection or a time limit.
      */
-    internal fun stopForJob(byUser: Boolean) {
+    internal fun stopBySystem(byUser: Boolean) {
         stop(if (byUser) Result.CANCELLED else Result.FAILED, cancelJob = false)
     }
 
@@ -607,7 +634,7 @@ class KccpPatchDownloader(
             val token = activeToken
             if (token == 0L || isCancelled(token) || committingToken == token) return
             cancelledUpToToken = token
-            asJob = activeAsJob
+            asJob = activeRunner == Runner.JOB
             context = appContext
         }
         activeCalls.forEach { it.cancel() }
@@ -615,7 +642,8 @@ class KccpPatchDownloader(
         // waiting on one of them in updateFiles would wait forever.
         activePool?.shutdownNow()?.forEach { (it as? Future<*>)?.cancel(false) }
         if (context == null) return
-        // Also when the job has not started yet. A running one ends with the task.
+        // Also when the job has not started yet. A running job, and the service, end with the
+        // task; a service not started yet finds nothing to run.
         if (cancelJob && asJob) KccpPatchJobService.cancel(context)
         val message = context.getString(
             if (result == Result.CANCELLED) R.string.patch_download_cancelled else R.string.patch_download_failed

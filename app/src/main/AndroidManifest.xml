@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.RUN_USER_INITIATED_JOBS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" />
 
     <permission
@@ -79,13 +81,18 @@
             android:grantUriPermissions="true"
             android:readPermission="com.antest1.gotobrowser.contentprovider.READ_DATA" />
 
-        <!-- KCCP patch download, run as a user-initiated data transfer job on Android 14+ -->
+        <!-- KCCP patch download: a user-initiated data transfer job on Android 14+,
+             a data sync foreground service before that -->
         <service
             android:name=".Helpers.KccpPatchJobService"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service
+            android:name=".Helpers.KccpPatchService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
         <receiver
-            android:name=".Helpers.KccpPatchJobService$CancelReceiver"
+            android:name=".Helpers.KccpPatchNotification$CancelReceiver"
             android:exported="false" />
 
     </application>
