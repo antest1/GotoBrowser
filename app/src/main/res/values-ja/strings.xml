@@ -205,9 +205,12 @@
     <string name="notice_network_desc">インターネット接続を確認してから、リフレッシュボタンでリフレッシュしてください</string>
     <string name="notice_http_title">サーバー応答エラー</string>
     <string name="notice_http_desc">しばらくしてからリフレッシュボタンでリフレッシュしてください</string>
+    <string name="notice_script_title">スクリプトエラー</string>
+    <string name="notice_script_desc">MODを使用中の場合は、オフにしてからリフレッシュボタンでリフレッシュしてください</string>
     <string name="detail_code">コード</string>
     <string name="detail_host">ホスト</string>
     <string name="detail_api">API</string>
+    <string name="detail_source">場所</string>
     <string name="detail_message">メッセージ</string>
 
     <!-- Simplified Chinese Localization (Kancolle_to_CHS) -->

@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Message;
 import android.util.Log;
 import android.view.WindowManager;
+import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.JsResult;
 import android.webkit.SslErrorHandler;
@@ -278,6 +279,16 @@ public class WebViewManager {
             public void onProgressChanged(WebView view, int newProgress) {
                 activity.getLoadingTracker().onProgressChanged(newProgress);
                 super.onProgressChanged(view, newProgress);
+            }
+
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                if (consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
+                    ScriptError error = ScriptErrorKt.parseScriptError(
+                            consoleMessage.message(), consoleMessage.sourceId(), consoleMessage.lineNumber());
+                    if (error != null) activity.showScriptError(error);
+                }
+                return super.onConsoleMessage(consoleMessage);
             }
 
             @Override

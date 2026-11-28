@@ -68,7 +68,7 @@ public class KcsInterface {
         return sharedPref.getBoolean(PREF_DEVTOOLS_DEBUG, false);
     }
 
-    private static boolean isGameHost(String host) {
+    static boolean isGameHost(String host) {
         return host != null && (host.endsWith(".kancolle-server.com") || host.equals("ooi.moe"));
     }
 

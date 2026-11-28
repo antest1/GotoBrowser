@@ -219,9 +219,12 @@
     <string name="notice_network_desc">Check your internet connection, then use the refresh button</string>
     <string name="notice_http_title">Server response error</string>
     <string name="notice_http_desc">Use the refresh button in a moment</string>
+    <string name="notice_script_title">Script error</string>
+    <string name="notice_script_desc">If mods are on, turn them off, then use the refresh button</string>
     <string name="detail_code">Code</string>
     <string name="detail_host">Host</string>
     <string name="detail_api">API</string>
+    <string name="detail_source">Source</string>
     <string name="detail_message">Message</string>
 
     <!-- Simplified Chinese Localization (Kancolle_to_CHS) -->

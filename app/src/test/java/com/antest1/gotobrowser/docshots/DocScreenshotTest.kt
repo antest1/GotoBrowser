@@ -63,7 +63,6 @@ import com.antest1.gotobrowser.ui.component.PatchDeleteDialog
 import com.antest1.gotobrowser.ui.component.PatchDownloadDialog
 import com.antest1.gotobrowser.ui.component.RefreshOption
 import com.antest1.gotobrowser.ui.component.ServerNotice
-import com.antest1.gotobrowser.ui.component.ServerNoticeAlignment
 import com.antest1.gotobrowser.ui.component.ServerNoticeCard
 import com.antest1.gotobrowser.ui.component.SettingsBottomSheet
 import com.antest1.gotobrowser.ui.component.ThirdPartyConnectorDialog
@@ -361,7 +360,7 @@ class DocScreenshotTest(private val locale: String) {
                 ) {
                     // The default connector, as the app names it in the card title.
                     LoadingStatusOverlay(state, connectorTag = "DMM")
-                    ServerNoticeCard(notice, onDismiss = {}, modifier = Modifier.align(ServerNoticeAlignment).padding(16.dp))
+                    ServerNoticeCard(notice, onDismiss = {})
                 }
             }
             ControlLayout(

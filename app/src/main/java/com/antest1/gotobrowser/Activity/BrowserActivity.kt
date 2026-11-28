@@ -92,6 +92,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.antest1.gotobrowser.Browser.GameAreaLayout
 import com.antest1.gotobrowser.Browser.GameGeometry
+import com.antest1.gotobrowser.Browser.ScriptError
 import com.antest1.gotobrowser.Browser.ToolbarEdgeSwipe
 import com.antest1.gotobrowser.Browser.ToolbarEdgeSwipeLayout
 import com.antest1.gotobrowser.Browser.WebViewL
@@ -149,7 +150,6 @@ import com.antest1.gotobrowser.ui.component.LoadingStatusOverlay
 import com.antest1.gotobrowser.ui.component.MessageDialog
 import com.antest1.gotobrowser.ui.component.MessageDialogHost
 import com.antest1.gotobrowser.ui.component.ServerNotice
-import com.antest1.gotobrowser.ui.component.ServerNoticeAlignment
 import com.antest1.gotobrowser.ui.component.ServerNoticeCard
 import com.antest1.gotobrowser.ui.component.cancelForPip
 import com.antest1.gotobrowser.ui.component.floatingToolbarEdgeMargin
@@ -189,6 +189,8 @@ class BrowserActivity : ComponentActivity() {
     // Connector of the load in progress, named in the loading card (changes apply on reload).
     private val loadConnectorTag = mutableStateOf<String?>(null)
     private val serverNotice = mutableStateOf<ServerNotice?>(null)
+    /** Script errors already reported since the last refresh; touched on the main thread only. */
+    private val shownScriptErrors = mutableSetOf<String>()
     private val errorText = mutableStateOf("")
     private val closeButtonVisible = mutableStateOf(false)
     private val toolbarVisible = mutableStateOf(false)
@@ -899,6 +901,20 @@ class BrowserActivity : ComponentActivity() {
         postServerNotice(notice, replace = false)
     }
 
+    /**
+     * A game script threw (see [WebViewManager]'s console handler). A script that keeps
+     * throwing the same error is shown once per page load, even after the notice is dismissed.
+     */
+    fun showScriptError(error: ScriptError) {
+        val notice = ServerNotice(ServerNotice.Kind.SCRIPT, error.name, error.source, error.message)
+        runOnUiThread {
+            if (isFinishing || isDestroyed) return@runOnUiThread
+            if (serverNotice.value != null || notice.detail in shownScriptErrors) return@runOnUiThread
+            shownScriptErrors.add(notice.detail)
+            serverNotice.value = notice
+        }
+    }
+
     private fun postServerNotice(notice: ServerNotice, replace: Boolean) {
         runOnUiThread {
             if (isFinishing || isDestroyed) return@runOnUiThread
@@ -930,6 +946,7 @@ class BrowserActivity : ComponentActivity() {
         if (manager != null && info != null && info.size == 2) {
             startLoading()
             serverNotice.value = null
+            shownScriptErrors.clear()
             errorText.value = ""
             // A quick refresh reloads only the game frame, so the start page and the login
             // keep their old settings: only a full load counts.
@@ -1375,15 +1392,11 @@ fun BrowserOverlayContent(
 
             if (!activity.isInPictureInPictureModeState.value) {
                 // Status sits within the game area: loading card centered (or at the bottom
-                // while the game draws its own loading screen), server errors centered as well,
-                // below the message at the top of the game's own connection error screen.
+                // while the game draws its own loading screen), notices placed by
+                // serverNoticeAlignment.
                 Box(modifier = Modifier.align(BiasAlignment(0f, gameVerticalBias)).size(gameWidth, gameHeight)) {
                     LoadingStatusOverlay(loadState, connectorTag = loadingConnectorTag)
-                    ServerNoticeCard(
-                        notice = serverNotice,
-                        onDismiss = onDismissServerNotice,
-                        modifier = Modifier.align(ServerNoticeAlignment).padding(16.dp)
-                    )
+                    ServerNoticeCard(notice = serverNotice, onDismiss = onDismissServerNotice)
                 }
 
                 BrowserOverlayLayer(
