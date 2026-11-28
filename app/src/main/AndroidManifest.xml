@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.RUN_USER_INITIATED_JOBS" />
     <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" />
 
     <permission
@@ -77,6 +78,15 @@
             android:exported="true"
             android:grantUriPermissions="true"
             android:readPermission="com.antest1.gotobrowser.contentprovider.READ_DATA" />
+
+        <!-- KCCP patch download, run as a user-initiated data transfer job on Android 14+ -->
+        <service
+            android:name=".Helpers.KccpPatchJobService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+        <receiver
+            android:name=".Helpers.KccpPatchJobService$CancelReceiver"
+            android:exported="false" />
 
     </application>
 

@@ -119,6 +119,12 @@ public class KcEnUtils {
         return "Oradimi/KanColle-English-Patch-KCCP/"; // EN and fallback
     }
 
+    /** Product name of the patch, as in the patch list of the settings sheet. */
+    public static String getPatchTitle(KenPatcher.PatchLanguage language) {
+        if (language == KenPatcher.PatchLanguage.ID) return "KanColle Indonesia Patch";
+        return "KanColle English Patch"; // EN and fallback
+    }
+
     public static String getRootPath() {
         return getRootPath(targetLanguage);
     }
