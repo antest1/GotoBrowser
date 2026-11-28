@@ -1,17 +1,22 @@
 package com.antest1.gotobrowser.Activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.webkit.WebView;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -52,6 +57,7 @@ import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_ID;
 import static com.antest1.gotobrowser.Constants.PREF_MOD_KCCP_LANG_PATCH_NAME;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_FONTSIZE;
 import static com.antest1.gotobrowser.Constants.PREF_SUBTITLE_LOCALE;
+import static com.antest1.gotobrowser.Constants.REQUEST_NOTIFICATION_PERMISSION;
 import static com.antest1.gotobrowser.Constants.VERSION_TABLE_VERSION;
 import static com.antest1.gotobrowser.Constants.CACHE_DIR;
 import static com.antest1.gotobrowser.Helpers.KcUtils.getRetrofitAdapter;
@@ -469,7 +475,25 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     public void requestPatchUpdate() {
+        // Started first: the job behind the download can only be scheduled while the app is
+        // in front, which the permission dialog would no longer be.
         kccpDownloader.startUpdate(getApplication());
+        requestNotificationPermission();
+    }
+
+    /**
+     * The patch download shows its progress in a notification, which needs the permission
+     * from Android 13; until now only the screenshot mode asked for it. The download runs
+     * either way.
+     */
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return;
+        Activity activity = dialogActivity();
+        if (activity == null) return;
+        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS)
+                == PackageManager.PERMISSION_GRANTED) return;
+        ActivityCompat.requestPermissions(activity,
+                new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_NOTIFICATION_PERMISSION);
     }
 
     /**
