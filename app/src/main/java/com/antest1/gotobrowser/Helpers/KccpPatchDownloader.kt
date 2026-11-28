@@ -50,7 +50,9 @@ import java.util.zip.ZipFile
  * applied again on the next run. Otherwise it is applied again with the next update,
  * which starts from the commit still recorded.
  *
- * Tasks run one at a time on a single worker thread shared by the process.
+ * Tasks run one at a time on a single worker thread shared by the process. From Android 14
+ * a download runs as a user-initiated data transfer job ([KccpPatchJobService]), so it goes
+ * on, install included, with its own notification when the app is left.
  */
 class KccpPatchDownloader(
     private val httpClient: OkHttpClient = createDefaultHttpClient()
@@ -60,6 +62,8 @@ class KccpPatchDownloader(
         val symbol: String,
         /** `owner/name` on GitHub. */
         val githubPath: String,
+        /** Product name, shown on the download notification. */
+        val title: String,
         /** Install folder name under the app files folder. */
         val rootName: String,
         val infoFileName: String
@@ -111,6 +115,10 @@ class KccpPatchDownloader(
         private const val BUFFER_SIZE = 32768
         private const val CONCURRENCY = 4
         private const val PROGRESS_INTERVAL_MS = 100L
+
+        // Longer than the slowest step without progress: the archive's first bytes can take
+        // up to the 60 s read timeout.
+        private const val IN_APP_NOTIFICATION_TIMEOUT_MS = 2L * 60 * 1000
         private const val SPEED_INTERVAL_MS = 500L
 
         // GitHub's compare API lists at most 300 files.
@@ -136,10 +144,15 @@ class KccpPatchDownloader(
         // as the tests do.
         private val installLock = Any()
 
-        // One worker for the process: each settings ViewModel has its own downloader, but
-        // they all work on the same folders, so a task of a cleared one that is still
-        // unwinding must finish before a new one starts.
+        // One worker for the process, which keeps installs, swaps, deletes and recovery apart.
         private val workerExecutor = Executors.newSingleThreadExecutor()
+
+        /**
+         * The downloader of the process: a download can outlive the settings screen that
+         * started it (it may run as a job), and a new screen picks up its progress.
+         */
+        @JvmStatic
+        val shared: KccpPatchDownloader by lazy { KccpPatchDownloader() }
 
         private fun createDefaultHttpClient(): OkHttpClient {
             // Shares the app client's connection pool; the timeouts keep a stalled
@@ -153,6 +166,7 @@ class KccpPatchDownloader(
         internal fun repoFor(language: KenPatcher.PatchLanguage) = Repo(
             symbol = KcEnUtils.getLanguageSymbol(language),
             githubPath = KcEnUtils.getGitHubNameRootPath(language).trimEnd('/'),
+            title = KcEnUtils.getPatchTitle(language),
             rootName = KcEnUtils.getRootPath(language).trimEnd('/'),
             infoFileName = KcEnUtils.getInfoFileName(language)
         )
@@ -396,7 +410,32 @@ class KccpPatchDownloader(
         }
     }
 
+    /**
+     * Receives the progress and the end of KCCP patch downloads, on the main thread. An
+     * observer added while a download runs gets its current progress right away.
+     */
+    interface Observer {
+        fun onDownloadStateChanged(state: PatchDownloadState)
+
+        /**
+         * The download ended, with [message] to show. Unless it succeeded, the install may be
+         * gone (removed to make room), so it is worth checking again.
+         */
+        fun onDownloadFinished(message: String, result: Result)
+    }
+
+    enum class Result {
+        /** The patch is installed and up to date. */
+        SUCCEEDED,
+        FAILED,
+        CANCELLED
+    }
+
     private val mainHandler = Handler(Looper.getMainLooper())
+
+    // Main thread only.
+    private val observers = mutableListOf<Observer>()
+    private var currentState: PatchDownloadState = PatchDownloadState.Idle
 
     private val nextTaskToken = AtomicLong(0L)
     @Volatile
@@ -405,12 +444,17 @@ class KccpPatchDownloader(
     private var cancelledUpToToken = 0L
     @Volatile
     private var activePool: ExecutorService? = null
+    // What the active download installs, and what runs it.
     @Volatile
-    private var activeHost: SettingsStatusHost? = null
+    private var activeRepo: Repo? = null
+    @Volatile
+    private var activeRunner: Runner? = null
+    @Volatile
+    private var appContext: Context? = null
     private val activeCalls: MutableSet<Call> = Collections.newSetFromMap(ConcurrentHashMap())
 
     // Guards the hand-off between cancelling and moving new files into place, and the
-    // switch of activeToken / activeHost between tasks.
+    // switch of the active download's fields between tasks.
     private val cancelLock = Any()
     @Volatile
     private var committingToken = 0L
@@ -431,12 +475,12 @@ class KccpPatchDownloader(
      * place, or the current install is removed to make room, which must not stop halfway.
      * The dialog drops its Cancel action to match, also for the progress that follows.
      */
-    private fun beginCommit(token: Long, host: SettingsStatusHost, message: String) {
+    private fun beginCommit(token: Long, message: String) {
         synchronized(cancelLock) {
             checkCancelled(token)
             committingToken = token
         }
-        showProgress(token, host, message, null, cancellable = false)
+        showProgress(token, message, null, cancellable = false)
     }
 
     /** Whether a download runs and has not been cancelled. */
@@ -445,94 +489,186 @@ class KccpPatchDownloader(
         return token != 0L && !isCancelled(token)
     }
 
+    /** Main thread. */
+    fun addObserver(observer: Observer) {
+        observers.add(observer)
+        if (isDownloadActive()) observer.onDownloadStateChanged(currentState)
+    }
+
+    /** Main thread. */
+    fun removeObserver(observer: Observer) {
+        observers.remove(observer)
+    }
+
+    /** What runs a download, so that it goes on when the app is left. */
+    internal enum class Runner {
+        /** A user-initiated data transfer job ([KccpPatchJobService]), from Android 14. */
+        JOB,
+
+        /** A data sync foreground service ([KccpPatchService]), before Android 14. */
+        SERVICE,
+
+        /** The app alone, when neither can be started; it may stop with the app in the background. */
+        APP
+    }
+
     /**
-     * Installs the patch of the language the settings sheet points at, or updates it.
-     * Progress is reported through [SettingsStatusHost.setPatchDownloadState]. Ignored while
-     * another download runs (e.g. a start-up notice answered late): its progress is already
-     * on the settings sheet.
+     * Installs the patch of the language the settings sheet points at, or updates it, and
+     * reports to the observers. Ignored while another download runs (e.g. a start-up notice
+     * answered late): its progress is already shown.
      *
-     * [onStopped] runs on the main thread when the download fails or is cancelled, so the
-     * caller can check the install again: it may be gone, removed to make room.
+     * The download runs in a job or a foreground service ([Runner]), which goes on with a
+     * notification when the app is left; the app must be visible when this is called. Main
+     * thread.
      */
-    fun startUpdate(host: SettingsStatusHost, onStopped: Runnable) {
+    fun startUpdate(context: Context) {
         if (isDownloadActive()) return
-        val appContext = host.getContext()?.applicationContext ?: return
+        val appContext = context.applicationContext
         val repo = repoFor(KcEnUtils.getTargetLanguage())
         val token = nextTaskToken.incrementAndGet()
+        // Set before the job or service is started; both start on the main thread, so they
+        // see the fields below anyway.
         synchronized(cancelLock) {
             activeToken = token
-            activeHost = host
+            activeRepo = repo
+            activeRunner = null
+            this.appContext = appContext
         }
-        showProgress(token, host, appContext.getString(R.string.patch_download_checking), null)
+        // Android 14+: a user-initiated data transfer job; the foreground service only when
+        // the system refuses the job. Before Android 14 (schedule() returns false): the
+        // foreground service. The app alone only when neither can be started.
+        val runner = when {
+            KccpPatchJobService.schedule(appContext) -> Runner.JOB
+            KccpPatchService.start(appContext) -> Runner.SERVICE
+            else -> Runner.APP
+        }
+        synchronized(cancelLock) {
+            if (activeToken == token) activeRunner = runner
+        }
+        if (runner == Runner.APP) {
+            // The job and the service show their own notification. Here the app can be frozen
+            // or killed in the background, so a notification no longer updated goes away.
+            KccpPatchNotification.createChannel(appContext)
+            val notification = KccpPatchNotification.Observer(appContext, repo.title, IN_APP_NOTIFICATION_TIMEOUT_MS)
+            addObserver(notification)
+            runTask(appContext, token, repo) { mainHandler.post { removeObserver(notification) } }
+        }
+        showProgress(token, appContext.getString(R.string.patch_download_checking), null)
+    }
 
+    /**
+     * Runs the download the job or service [runner] was started for, calling [onEnd] once it
+     * has ended. False when there is none to run, e.g. it was cancelled before, or the process
+     * was restarted in between.
+     */
+    internal fun runFor(runner: Runner, onEnd: () -> Unit): Boolean {
+        val token: Long
+        val repo: Repo
+        val context: Context
+        synchronized(cancelLock) {
+            token = activeToken
+            repo = activeRepo ?: return false
+            context = appContext ?: return false
+            if (token == 0L || activeRunner != runner || isCancelled(token)) return false
+        }
+        runTask(context, token, repo, onEnd)
+        return true
+    }
+
+    private fun runTask(appContext: Context, token: Long, repo: Repo, onEnd: () -> Unit) {
         workerExecutor.execute {
             val layout = Layout(File(KcUtils.getAppCacheFileDir(appContext, "")), repo)
             try {
                 checkCancelled(token)
                 recoverInterruptedInstall(layout)
-                migrateLegacyCommit(appContext)
-                val outcome = runUpdate(token, host, appContext, repo, layout)
-                post(token) {
-                    host.setPatchDownloadState(PatchDownloadState.Idle)
-                    host.showPatchMessage(
-                        appContext.getString(
-                            when (outcome) {
-                                Outcome.INSTALLED -> R.string.en_install_done_notification
-                                Outcome.UPDATED -> R.string.patch_download_updated
-                                Outcome.UP_TO_DATE -> R.string.setting_latest_version
-                            }
-                        )
-                    )
-                    host.setPatchUpdateStatus(appContext.getString(R.string.setting_latest_version), false)
+                migrateLegacyCommit(token, appContext)
+                val outcome = runUpdate(token, appContext, repo, layout)
+                val message = when (outcome) {
+                    Outcome.INSTALLED -> R.string.en_install_done_notification
+                    Outcome.UPDATED -> R.string.patch_download_updated
+                    Outcome.UP_TO_DATE -> R.string.setting_latest_version
                 }
+                finish(token, appContext.getString(message), Result.SUCCEEDED)
             } catch (e: Exception) {
-                mainHandler.post(onStopped)
                 if (isCancelled(token)) {
                     Log.i(TAG, "KCCP patch download cancelled")
                 } else {
                     Log.e(TAG, "KCCP patch download failed: ${KcUtils.getStringFromException(e)}")
                     val message = if (isOutOfSpace(e)) R.string.patch_download_no_space else R.string.patch_download_failed
-                    post(token) {
-                        host.setPatchDownloadState(PatchDownloadState.Idle)
-                        host.showPatchMessage(appContext.getString(message))
-                    }
+                    finish(token, appContext.getString(message), Result.FAILED)
                 }
             } finally {
                 // Done for the user once the result is out, so a new request is taken right
                 // away; it runs on this worker after the cleanup below. A newer task may have
-                // started meanwhile; its token and host stay.
+                // started meanwhile; its fields stay.
                 synchronized(cancelLock) {
                     if (activeToken == token) {
                         activeToken = 0L
-                        activeHost = null
+                        activeRepo = null
+                        activeRunner = null
                     }
                 }
                 // Drops the old install left by a swap, and the staging folder and archive
-                // of a failed or cancelled run.
+                // of a failed or cancelled run. Before onEnd, so the job or service keeps the
+                // app running while it deletes about 1 GB.
                 recoverInterruptedInstall(layout)
+                onEnd()
             }
         }
     }
 
     /** Cancels the running download, unless its new files are already being moved into place. */
     fun cancelDownload() {
-        val host: SettingsStatusHost?
+        stop(Result.CANCELLED, cancelJob = true)
+    }
+
+    /**
+     * Stops the download whose job or service the system stopped: for the user, from the task
+     * manager ([byUser]), or for a reason of its own such as a lost connection or a time limit.
+     */
+    internal fun stopBySystem(byUser: Boolean) {
+        stop(if (byUser) Result.CANCELLED else Result.FAILED, cancelJob = false)
+    }
+
+    private fun stop(result: Result, cancelJob: Boolean) {
+        val asJob: Boolean
+        val context: Context?
         synchronized(cancelLock) {
             val token = activeToken
             if (token == 0L || isCancelled(token) || committingToken == token) return
             cancelledUpToToken = token
-            host = activeHost
+            asJob = activeRunner == Runner.JOB
+            context = appContext
         }
         activeCalls.forEach { it.cancel() }
         // shutdownNow() only drains the queued downloads; cancel them as well, or the worker
         // waiting on one of them in updateFiles would wait forever.
         activePool?.shutdownNow()?.forEach { (it as? Future<*>)?.cancel(false) }
-        if (host == null) return
-        mainHandler.post {
-            host.setPatchDownloadState(PatchDownloadState.Idle)
-            host.showPatchMessage(host.getString(R.string.patch_download_cancelled))
+        if (context == null) return
+        // Also when the job has not started yet. A running job, and the service, end with the
+        // task; a service not started yet finds nothing to run.
+        if (cancelJob && asJob) KccpPatchJobService.cancel(context)
+        val message = context.getString(
+            if (result == Result.CANCELLED) R.string.patch_download_cancelled else R.string.patch_download_failed
+        )
+        mainHandler.post { report(message, result) }
+    }
+
+    /** Reports the end of the task [token], unless it was stopped, which reports by itself. */
+    private fun finish(token: Long, message: String, result: Result) {
+        post(token) { report(message, result) }
+    }
+
+    private fun report(message: String, result: Result) {
+        currentState = PatchDownloadState.Idle
+        observers.toList().forEach {
+            it.onDownloadStateChanged(PatchDownloadState.Idle)
+            it.onDownloadFinished(message, result)
         }
     }
+
+    /** Patch name of the active download, for its notification. */
+    internal fun activeTitle(): String? = activeRepo?.title
 
     /** Deletes the patch of the language the settings sheet points at, then runs [onDeleted] on the main thread. */
     fun deletePatch(host: SettingsStatusHost, onDeleted: Runnable) {
@@ -567,14 +703,8 @@ class KccpPatchDownloader(
         }
     }
 
-    /** Cancels any running download. The worker is shared by the process and stays. */
-    fun shutdown() {
-        cancelDownload()
-    }
-
     private fun runUpdate(
         token: Long,
-        host: SettingsStatusHost,
         context: Context,
         repo: Repo,
         layout: Layout
@@ -585,12 +715,12 @@ class KccpPatchDownloader(
         return if (base == null) {
             // An install without a recorded commit (e.g. from an earlier version) is refreshed.
             val existed = isInstalled(layout)
-            installArchive(token, host, context, repo, head, layout)
+            installArchive(token, context, repo, head, layout)
             if (existed) Outcome.UPDATED else Outcome.INSTALLED
         } else if (!versionMatchesCommit(token, repo, base, layout)) {
             // The changes since [base] would not bring these files to [head].
             Log.i(TAG, "Reinstalling ${repo.symbol} patch: its files are not at the recorded commit")
-            installArchive(token, host, context, repo, head, layout)
+            installArchive(token, context, repo, head, layout)
             // The patch was there before, so for the user it was updated.
             Outcome.UPDATED
         } else if (base == head) {
@@ -600,12 +730,12 @@ class KccpPatchDownloader(
             when (val compare = fetchCompare(token, repo, base, head)) {
                 CompareResult.UpToDate -> Outcome.UP_TO_DATE
                 is CompareResult.Changes -> {
-                    updateFiles(token, host, context, repo, head, compare.files, layout)
+                    updateFiles(token, context, repo, head, compare.files, layout)
                     Outcome.UPDATED
                 }
                 is CompareResult.NeedsArchive -> {
                     Log.i(TAG, "Reinstalling ${repo.symbol} patch: ${compare.reason}")
-                    installArchive(token, host, context, repo, head, layout)
+                    installArchive(token, context, repo, head, layout)
                     Outcome.UPDATED
                 }
             }
@@ -619,18 +749,9 @@ class KccpPatchDownloader(
      * commit is trusted.
      */
     private fun versionMatchesCommit(token: Long, repo: Repo, commit: String, layout: Layout): Boolean {
-        val installed = KcUtils.readJsonObjectFromFile(File(layout.root, repo.infoFileName).path)
-            ?.get("version")?.takeIf { it.isJsonPrimitive }?.asString ?: return false
-        val request = Request.Builder()
-            .url("https://raw.githubusercontent.com/${repo.githubPath}/$commit/${repo.infoFileName}")
-            .build()
+        val installed = installedVersion(layout) ?: return false
         val published = try {
-            execute(token, request) { response ->
-                if (!response.isSuccessful) return@execute null
-                val json = JsonParser.parseString(readText(token, response))
-                if (!json.isJsonObject) return@execute null
-                json.asJsonObject.get("version")?.takeIf { it.isJsonPrimitive }?.asString
-            }
+            fetchVersionAt(token, repo, commit)
         } catch (e: CancelledException) {
             throw e
         } catch (e: Exception) {
@@ -640,16 +761,36 @@ class KccpPatchDownloader(
         return published == null || published == installed
     }
 
+    private fun installedVersion(layout: Layout): String? =
+        KcUtils.readJsonObjectFromFile(layout.infoFile.path)
+            ?.get("version")?.takeIf { it.isJsonPrimitive }?.asString
+
+    /**
+     * The version in the info file of [repo] at [commit]; null when the repository has no such
+     * commit or file. Throws when the request fails.
+     */
+    private fun fetchVersionAt(token: Long, repo: Repo, commit: String): String? {
+        val request = Request.Builder()
+            .url("https://raw.githubusercontent.com/${repo.githubPath}/$commit/${repo.infoFileName}")
+            .build()
+        return execute(token, request) { response ->
+            if (response.code == 404) return@execute null
+            if (!response.isSuccessful) throw IOException("HTTP ${response.code} for the version at $commit")
+            val json = JsonParser.parseString(readText(token, response))
+            if (!json.isJsonObject) return@execute null
+            json.asJsonObject.get("version")?.takeIf { it.isJsonPrimitive }?.asString
+        }
+    }
+
     private fun installArchive(
         token: Long,
-        host: SettingsStatusHost,
         context: Context,
         repo: Repo,
         head: String,
         layout: Layout
     ) {
         val downloadingText = context.getString(R.string.patch_download_archive)
-        showProgress(token, host, downloadingText, null)
+        showProgress(token, downloadingText, null)
         val sizeEstimate = fetchSizeEstimate(token, repo)
         val parent = layout.root.parentFile ?: throw IOException("No parent folder")
         // The published size runs a little short of the actual archive.
@@ -663,21 +804,21 @@ class KccpPatchDownloader(
         downloadToFile(token, url, layout.archive, MAX_ARCHIVE_BYTES, archiveClient) { transferred, contentLength ->
             val total = if (contentLength > 0) contentLength else sizeEstimate
             speed.update(transferred)?.let { bytesPerSec ->
-                showProgress(token, host, archiveProgressText(transferred, total, contentLength > 0, bytesPerSec),
+                showProgress(token, archiveProgressText(transferred, total, contentLength > 0, bytesPerSec),
                     if (total > 0) (transferred.toFloat() / total).coerceAtMost(1f) else null)
             }
         }
 
         val extractingText = context.getString(R.string.patch_download_extracting)
-        showProgress(token, host, extractingText, 0f)
+        showProgress(token, extractingText, 0f)
         layout.staging.deleteRecursively()
-        ensureSpaceForExtraction(token, host, repo, layout, extractingText)
+        ensureSpaceForExtraction(token, repo, layout, extractingText)
         var lastReport = 0L
         extractArchive(layout.archive, layout.staging, { isCancelled(token) }) { done, total ->
             val now = System.currentTimeMillis()
             if (now - lastReport >= PROGRESS_INTERVAL_MS || done == total) {
                 lastReport = now
-                showProgress(token, host, "$extractingText\n($done / $total)", done.toFloat() / total)
+                showProgress(token, "$extractingText\n($done / $total)", done.toFloat() / total)
             }
         }
         layout.archive.delete()
@@ -688,7 +829,7 @@ class KccpPatchDownloader(
         File(layout.staging, ".nomedia").createNewFile()
         writeCommit(layout.staging, head)
 
-        beginCommit(token, host, context.getString(R.string.patch_download_installing))
+        beginCommit(token, context.getString(R.string.patch_download_installing))
         swapIn(layout)
     }
 
@@ -701,7 +842,6 @@ class KccpPatchDownloader(
      */
     private fun ensureSpaceForExtraction(
         token: Long,
-        host: SettingsStatusHost,
         repo: Repo,
         layout: Layout,
         message: String
@@ -714,7 +854,7 @@ class KccpPatchDownloader(
             if (parent.usableSpace + installSize < needed) {
                 throw NoSpaceException("Extraction needs $needed bytes, ${parent.usableSpace} free besides the install")
             }
-            beginCommit(token, host, message)
+            beginCommit(token, message)
             Log.i(TAG, "Removing the current ${repo.symbol} patch to make room for the new one")
             deleteInstall(layout)
         }
@@ -725,7 +865,6 @@ class KccpPatchDownloader(
 
     private fun updateFiles(
         token: Long,
-        host: SettingsStatusHost,
         context: Context,
         repo: Repo,
         head: String,
@@ -761,7 +900,7 @@ class KccpPatchDownloader(
                         val last = lastReport.get()
                         if (count == total || (now - last >= PROGRESS_INTERVAL_MS && lastReport.compareAndSet(last, now))) {
                             val name = change.path.substringAfterLast('/')
-                            showProgress(token, host, String.format(Locale.US, "%s (%d/%d)", name, count, total),
+                            showProgress(token, String.format(Locale.US, "%s (%d/%d)", name, count, total),
                                 count.toFloat() / total)
                         }
                     } catch (e: Exception) {
@@ -794,7 +933,7 @@ class KccpPatchDownloader(
         checkCancelled(token)
         firstError.get()?.let { throw it }
 
-        beginCommit(token, host, context.getString(R.string.patch_download_installing))
+        beginCommit(token, context.getString(R.string.patch_download_installing))
         applyChanges(changes, layout.staging, layout.root, repo.infoFileName)
         writeCommit(layout.root, head)
     }
@@ -928,7 +1067,6 @@ class KccpPatchDownloader(
 
     private fun showProgress(
         token: Long,
-        host: SettingsStatusHost,
         message: String,
         progress: Float?,
         cancellable: Boolean = true
@@ -936,7 +1074,10 @@ class KccpPatchDownloader(
         val canCancel = cancellable && committingToken != token
         val onCancel: (() -> Unit)? = if (canCancel) ({ cancelDownload() }) else null
         val state = PatchDownloadState.Running(message, progress, null, onCancel)
-        post(token) { host.setPatchDownloadState(state) }
+        post(token) {
+            currentState = state
+            observers.toList().forEach { it.onDownloadStateChanged(state) }
+        }
     }
 
     /** Runs [action] on the main thread unless the task has been cancelled by then. */
@@ -986,20 +1127,37 @@ class KccpPatchDownloader(
     }
 
     /**
-     * The previous downloader kept a single commit for every language in preferences. Move it
-     * into the one installed language it can belong to; with zero or several installs it is
-     * ambiguous and dropped, so the next update reinstalls from the archive. A commit that
-     * runs ahead of the files is caught by [versionMatchesCommit].
+     * The previous downloader kept a single commit for every language in preferences, so an
+     * update after the app update does not have to start over. Move it into the installed
+     * language it belongs to: the only one installed, or, with both installed, the one whose
+     * repository has the commit at the installed version (it is the language downloaded
+     * last). Without an owner it is dropped, and the next update reinstalls from the archive.
+     * A commit that runs ahead of the files is caught by [versionMatchesCommit].
      */
-    private fun migrateLegacyCommit(context: Context) {
+    private fun migrateLegacyCommit(token: Long, context: Context) {
         val prefs = context.getSharedPreferences(META_PREFS, Context.MODE_PRIVATE)
         val legacy = prefs.getString(LEGACY_COMMIT_KEY, null) ?: return
         val parent = File(KcUtils.getAppCacheFileDir(context, ""))
-        val owner = LANGUAGES.map(::repoFor)
-            .map { Layout(parent, it) }
-            .filter { isInstalled(it) }
-            .singleOrNull()
-        if (owner != null && !owner.commitFile.exists() && COMMIT_SHA.matches(legacy)) {
+        val installed = LANGUAGES.map(::repoFor)
+            .map { it to Layout(parent, it) }
+            .filter { (_, layout) -> isInstalled(layout) }
+        val owner = when {
+            !COMMIT_SHA.matches(legacy) -> null
+            installed.size <= 1 -> installed.singleOrNull()?.second
+            else -> try {
+                installed.filter { (repo, layout) ->
+                    fetchVersionAt(token, repo, legacy)?.let { it == installedVersion(layout) } == true
+                }.singleOrNull()?.second
+            } catch (e: CancelledException) {
+                throw e
+            } catch (e: Exception) {
+                checkCancelled(token)
+                // Kept for the next run rather than lost to a failed request.
+                Log.w(TAG, "Could not tell which patch the legacy commit belongs to: ${e.message}")
+                return
+            }
+        }
+        if (owner != null && !owner.commitFile.exists()) {
             try {
                 writeCommit(owner.root, legacy)
             } catch (e: IOException) {

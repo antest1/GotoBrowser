@@ -97,7 +97,7 @@ public class SettingsViewModel extends AndroidViewModel {
     private final VersionDatabase versionTable;
     private final GotoVersionCheck appCheck;
     private final KcEnUtils enUtils = new KcEnUtils();
-    private final KccpPatchDownloader kccpDownloader = new KccpPatchDownloader();
+    private final KccpPatchDownloader kccpDownloader = KccpPatchDownloader.getShared();
     private final ChsDownloader chsDownloader = new ChsDownloader();
 
     private final MutableLiveData<String> patchUpdateSummary = new MutableLiveData<>("checking updates...");
@@ -125,6 +125,8 @@ public class SettingsViewModel extends AndroidViewModel {
         appCheck = getRetrofitAdapter(context, GITHUB_ROOT, false).create(GotoVersionCheck.class);
 
         patchAboutUrl.setValue(context.getString(R.string.settings_mod_kccp_patch_en_link));
+        // Also picks up a download that went on while no settings screen was around.
+        kccpDownloader.addObserver(kccpObserver);
     }
 
     // ---------------------------------------------------------------------
@@ -199,7 +201,7 @@ public class SettingsViewModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         chsDownloader.shutdown();
-        kccpDownloader.shutdown();
+        kccpDownloader.removeObserver(kccpObserver);
         super.onCleared();
     }
 
@@ -467,7 +469,7 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     public void requestPatchUpdate() {
-        kccpDownloader.startUpdate(host, () -> refreshKccpDependentRows(null));
+        kccpDownloader.startUpdate(getApplication());
     }
 
     /**
@@ -492,9 +494,7 @@ public class SettingsViewModel extends AndroidViewModel {
                 KenPatcher.PatchLanguage language = KenPatcher.getCurrentPatchLanguage(kccpPref);
                 String version = KcEnUtils.findAvailableUpdate(context, language);
                 if (version != null) {
-                    // Product names, as in the patch list of the settings sheet.
-                    String title = language == KenPatcher.PatchLanguage.ID
-                            ? "KanColle Indonesia Patch" : "KanColle English Patch";
+                    String title = KcEnUtils.getPatchTitle(language);
                     mainHandler.post(() -> onFound.accept(
                             new PatchUpdate(PatchUpdate.Kind.KCCP, title, version)));
                 }
@@ -593,6 +593,25 @@ public class SettingsViewModel extends AndroidViewModel {
         if (url != null) intent.setData(Uri.parse(url));
         return intent;
     }
+
+    /** Shows the KCCP patch download, which can outlive this ViewModel, on the settings sheet. */
+    private final KccpPatchDownloader.Observer kccpObserver = new KccpPatchDownloader.Observer() {
+        @Override
+        public void onDownloadStateChanged(@NonNull PatchDownloadState state) {
+            patchDownloadState.setValue(state);
+        }
+
+        @Override
+        public void onDownloadFinished(@NonNull String message, @NonNull KccpPatchDownloader.Result result) {
+            patchMessage.setValue(message);
+            if (result == KccpPatchDownloader.Result.SUCCEEDED) {
+                setPatchUpdateStatus(getApplication().getString(R.string.setting_latest_version), false);
+            } else {
+                // The install may be gone, removed to make room.
+                refreshKccpDependentRows(null);
+            }
+        }
+    };
 
     // ---------------------------------------------------------------------
     // SettingsStatusHost backed by this ViewModel's LiveData
