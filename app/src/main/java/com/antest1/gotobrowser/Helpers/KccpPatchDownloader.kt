@@ -581,7 +581,7 @@ class KccpPatchDownloader(
             try {
                 checkCancelled(token)
                 recoverInterruptedInstall(layout)
-                migrateLegacyCommit(appContext)
+                migrateLegacyCommit(token, appContext)
                 val outcome = runUpdate(token, appContext, repo, layout)
                 val message = when (outcome) {
                     Outcome.INSTALLED -> R.string.en_install_done_notification
@@ -749,18 +749,9 @@ class KccpPatchDownloader(
      * commit is trusted.
      */
     private fun versionMatchesCommit(token: Long, repo: Repo, commit: String, layout: Layout): Boolean {
-        val installed = KcUtils.readJsonObjectFromFile(File(layout.root, repo.infoFileName).path)
-            ?.get("version")?.takeIf { it.isJsonPrimitive }?.asString ?: return false
-        val request = Request.Builder()
-            .url("https://raw.githubusercontent.com/${repo.githubPath}/$commit/${repo.infoFileName}")
-            .build()
+        val installed = installedVersion(layout) ?: return false
         val published = try {
-            execute(token, request) { response ->
-                if (!response.isSuccessful) return@execute null
-                val json = JsonParser.parseString(readText(token, response))
-                if (!json.isJsonObject) return@execute null
-                json.asJsonObject.get("version")?.takeIf { it.isJsonPrimitive }?.asString
-            }
+            fetchVersionAt(token, repo, commit)
         } catch (e: CancelledException) {
             throw e
         } catch (e: Exception) {
@@ -768,6 +759,27 @@ class KccpPatchDownloader(
             null
         }
         return published == null || published == installed
+    }
+
+    private fun installedVersion(layout: Layout): String? =
+        KcUtils.readJsonObjectFromFile(layout.infoFile.path)
+            ?.get("version")?.takeIf { it.isJsonPrimitive }?.asString
+
+    /**
+     * The version in the info file of [repo] at [commit]; null when the repository has no such
+     * commit or file. Throws when the request fails.
+     */
+    private fun fetchVersionAt(token: Long, repo: Repo, commit: String): String? {
+        val request = Request.Builder()
+            .url("https://raw.githubusercontent.com/${repo.githubPath}/$commit/${repo.infoFileName}")
+            .build()
+        return execute(token, request) { response ->
+            if (response.code == 404) return@execute null
+            if (!response.isSuccessful) throw IOException("HTTP ${response.code} for the version at $commit")
+            val json = JsonParser.parseString(readText(token, response))
+            if (!json.isJsonObject) return@execute null
+            json.asJsonObject.get("version")?.takeIf { it.isJsonPrimitive }?.asString
+        }
     }
 
     private fun installArchive(
@@ -1115,20 +1127,37 @@ class KccpPatchDownloader(
     }
 
     /**
-     * The previous downloader kept a single commit for every language in preferences. Move it
-     * into the one installed language it can belong to; with zero or several installs it is
-     * ambiguous and dropped, so the next update reinstalls from the archive. A commit that
-     * runs ahead of the files is caught by [versionMatchesCommit].
+     * The previous downloader kept a single commit for every language in preferences, so an
+     * update after the app update does not have to start over. Move it into the installed
+     * language it belongs to: the only one installed, or, with both installed, the one whose
+     * repository has the commit at the installed version (it is the language downloaded
+     * last). Without an owner it is dropped, and the next update reinstalls from the archive.
+     * A commit that runs ahead of the files is caught by [versionMatchesCommit].
      */
-    private fun migrateLegacyCommit(context: Context) {
+    private fun migrateLegacyCommit(token: Long, context: Context) {
         val prefs = context.getSharedPreferences(META_PREFS, Context.MODE_PRIVATE)
         val legacy = prefs.getString(LEGACY_COMMIT_KEY, null) ?: return
         val parent = File(KcUtils.getAppCacheFileDir(context, ""))
-        val owner = LANGUAGES.map(::repoFor)
-            .map { Layout(parent, it) }
-            .filter { isInstalled(it) }
-            .singleOrNull()
-        if (owner != null && !owner.commitFile.exists() && COMMIT_SHA.matches(legacy)) {
+        val installed = LANGUAGES.map(::repoFor)
+            .map { it to Layout(parent, it) }
+            .filter { (_, layout) -> isInstalled(layout) }
+        val owner = when {
+            !COMMIT_SHA.matches(legacy) -> null
+            installed.size <= 1 -> installed.singleOrNull()?.second
+            else -> try {
+                installed.filter { (repo, layout) ->
+                    fetchVersionAt(token, repo, legacy)?.let { it == installedVersion(layout) } == true
+                }.singleOrNull()?.second
+            } catch (e: CancelledException) {
+                throw e
+            } catch (e: Exception) {
+                checkCancelled(token)
+                // Kept for the next run rather than lost to a failed request.
+                Log.w(TAG, "Could not tell which patch the legacy commit belongs to: ${e.message}")
+                return
+            }
+        }
+        if (owner != null && !owner.commitFile.exists()) {
             try {
                 writeCommit(owner.root, legacy)
             } catch (e: IOException) {
